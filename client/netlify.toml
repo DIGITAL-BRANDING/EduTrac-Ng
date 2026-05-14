@@ -8,9 +8,9 @@
 # ── Proxy all API calls to Railway ──────────────────────────────
 # Replace the :splat target with your actual Railway backend URL.
 # This redirect is transparent to the browser (200 status passthrough).
-[[redirects]]
-  from   = "/api/*"
-  to     = "https://REPLACE_WITH_RAILWAY_URL/api/:splat"
+  [[redirects]]
+  from = "/api/*"
+  to   = "https://edutrac-ng-production.up.railway.app/api/:splat"
   status = 200
   force  = true
 
