@@ -5,12 +5,30 @@
 [build]
   publish = "."
 
-# ── Proxy all API calls to Railway ──────────────────────────────
-# Replace the :splat target with your actual Railway backend URL.
-# This redirect is transparent to the browser (200 status passthrough).
-  [[redirects]]
-  from = "/api/*"
-  to   = "https://edutrac-ng-production.up.railway.app/api/:splat"
+# ── Proxy ONLY real API endpoints to Railway ─────────────────────
+# DO NOT use /api/* wildcard — it would catch client/api/*.js files
+
+[[redirects]]
+  from   = "/api/ai-chat"
+  to     = "https://edutrac-ng-production.up.railway.app/api/ai-chat"
+  status = 200
+  force  = true
+
+[[redirects]]
+  from   = "/api/generate-lesson"
+  to     = "https://edutrac-ng-production.up.railway.app/api/generate-lesson"
+  status = 200
+  force  = true
+
+[[redirects]]
+  from   = "/api/provision-school"
+  to     = "https://edutrac-ng-production.up.railway.app/api/provision-school"
+  status = 200
+  force  = true
+
+[[redirects]]
+  from   = "/api/reset-staff-password"
+  to     = "https://edutrac-ng-production.up.railway.app/api/reset-staff-password"
   status = 200
   force  = true
 
