@@ -12,7 +12,7 @@ window.__EDUTRAC_CONFIG__ = {
 
   // ⬇ Set this to your Railway backend URL after deploying the server.
   // Example: 'https://edutrac-backend-production.up.railway.app'
-  API_BASE_URL: 'REPLACE_WITH_RAILWAY_URL',
+  API_BASE_URL: 'https://edutrac-ng-production.up.railway.app',
 };
 
 // ── Validate at load time ─────────────────────────────────────────
