@@ -15,7 +15,7 @@
   force  = true
 
   [redirects.headers]
-    X-Forwarded-Host = "edutrac.netlify.app"
+    X-Forwarded-Host = "edutracng.netlify.app"
 
 # ── Security & PWA Headers ───────────────────────────────────────
 [[headers]]
