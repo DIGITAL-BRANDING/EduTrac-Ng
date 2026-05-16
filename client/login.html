@@ -1,4 +1,288 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Login · EduTrack NG</title><link rel="manifest" href="/manifest.json"><link rel="stylesheet" href="css/global.css"><script src="/js/config.js"></script><script src="/js/supabase.js"></script></head><body><script>
-var redirectByRole=function(r){if(r==='admin')window.location.href='admin/classes.html';else if(r==='teacher')window.location.href='teacher/dashboard.html';else if(r==='student')window.location.href='portals/student/index.html';else if(r==='parent')window.location.href='portals/parent/index.html';else window.location.href='index.html';};
-var handleLogin=function(){console.log('Login handler ready');};
-</script><div id="loginContainer"></div><script src="/js/pwa-v2.1.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Login · EduTrack NG</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="css/global.css">
+
+  <!-- FIX 1: Supabase CDN must load BEFORE config.js and supabase.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
+  <script src="/js/config.js"></script>
+  <script src="/js/supabase.js"></script>
+
+  <style>
+    body { background: var(--surface-2); }
+    .login-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+    .login-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      width: 100%;
+      max-width: 420px;
+      padding: 40px 36px;
+    }
+    .login-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .login-brand__icon {
+      width: 44px; height: 44px;
+      background: var(--primary);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+    }
+    .login-brand__name { font-size: 20px; font-weight: 800; color: var(--ink); }
+    .login-brand__tagline { font-size: 12px; color: var(--ink-3); margin-top: 1px; }
+    .login-title { font-size: 22px; font-weight: 800; color: var(--ink); margin-bottom: 4px; }
+    .login-subtitle { font-size: 13px; color: var(--ink-3); margin-bottom: 28px; }
+    .pw-wrap { position: relative; }
+    .pw-wrap .form-control { padding-right: 42px; }
+    .pw-toggle {
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; color: var(--ink-3);
+      font-size: 16px; padding: 4px; line-height: 1; transition: var(--transition);
+    }
+    .pw-toggle:hover { color: var(--ink); }
+    .login-error {
+      background: var(--danger-light); border: 1px solid #fca5a5;
+      border-radius: var(--radius-sm); color: var(--danger);
+      font-size: 13px; font-weight: 500; padding: 10px 14px;
+      margin-bottom: 16px; display: none;
+    }
+    .login-error.show { display: block; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+    .role-hint { display: flex; gap: 8px; flex-wrap: wrap; }
+    .role-badge {
+      font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 600;
+      background: var(--surface-3); color: var(--ink-3); border: 1px solid var(--border);
+    }
+    @media (max-width: 480px) { .login-card { padding: 28px 20px; } }
+
+    /* Forgot modal */
+    #forgotModal {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.45); z-index: 1000;
+      align-items: center; justify-content: center;
+    }
+    #forgotModal.open { display: flex; }
+    .forgot-inner {
+      background: var(--surface); border-radius: var(--radius-lg);
+      padding: 32px; max-width: 380px; width: 90%; box-shadow: var(--shadow-lg);
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-page">
+  <div class="login-card">
+
+    <div class="login-brand">
+      <div class="login-brand__icon">🎓</div>
+      <div>
+        <div class="login-brand__name">EduTrack NG</div>
+        <div class="login-brand__tagline">Smart School Management</div>
+      </div>
+    </div>
+
+    <h1 class="login-title">Welcome back</h1>
+    <p class="login-subtitle">Sign in to your school portal</p>
+
+    <div class="login-error" id="loginError"></div>
+
+    <div class="form-group">
+      <label class="form-label" for="email">Email address</label>
+      <input type="email" id="email" class="form-control"
+        placeholder="you@school.edu.ng" autocomplete="email" inputmode="email">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="password">Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="password" class="form-control"
+          placeholder="Enter your password" autocomplete="current-password">
+        <button class="pw-toggle" id="pwToggle" type="button">👁</button>
+      </div>
+    </div>
+
+    <div style="text-align:right;margin-top:-8px;margin-bottom:20px;">
+      <a href="#" id="forgotLink" style="font-size:13px;color:var(--primary);font-weight:600;">Forgot password?</a>
+    </div>
+
+    <button class="btn btn--primary btn--full" id="loginBtn" style="height:46px;font-size:15px;">
+      Sign In
+    </button>
+
+    <hr class="divider">
+
+    <div style="text-align:center;font-size:13px;color:var(--ink-3);margin-bottom:16px;">
+      New school? <a href="index.html" style="color:var(--primary);font-weight:600;">Request a demo</a>
+    </div>
+
+    <div style="font-size:11px;color:var(--ink-4);margin-bottom:6px;text-align:center;text-transform:uppercase;letter-spacing:1px;font-weight:600;">Portals</div>
+    <div class="role-hint" style="justify-content:center;">
+      <span class="role-badge">👤 Admin</span>
+      <span class="role-badge">📚 Teacher</span>
+      <span class="role-badge">🎒 Student</span>
+      <span class="role-badge">👨‍👩‍👦 Parent</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- Forgot Password Modal -->
+<div id="forgotModal">
+  <div class="forgot-inner">
+    <h2 style="font-size:18px;font-weight:800;margin-bottom:8px;">Reset Password</h2>
+    <p style="font-size:13px;color:var(--ink-3);margin-bottom:20px;">Enter your email and we'll send a reset link.</p>
+    <div class="form-group">
+      <input type="email" id="resetEmail" class="form-control" placeholder="your@email.com">
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn--secondary btn--full" id="cancelReset">Cancel</button>
+      <button class="btn btn--primary btn--full" id="sendReset">Send Link</button>
+    </div>
+    <p id="resetMsg" style="font-size:13px;margin-top:12px;text-align:center;display:none;"></p>
+  </div>
+</div>
+
+<script src="/js/pwa-v2.1.js"></script>
+<script>
+(function () {
+
+  /* ── Redirect if already logged in ──────────────────────── */
+  db.auth.getSession().then(function(res) {
+    var session = res.data.session;
+    if (!session) return;
+    db.from('users').select('role').eq('id', session.user.id).single()
+      .then(function(r) { if (r.data) redirectByRole(r.data.role); });
+  });
+
+  /* ── Role redirect ───────────────────────────────────────── */
+  function redirectByRole(role) {
+    if      (role === 'admin')   window.location.href = '/admin/classes.html';
+    else if (role === 'teacher') window.location.href = '/portals/staff/dashboard.html';
+    else if (role === 'student') window.location.href = '/portals/student/index.html';
+    else if (role === 'parent')  window.location.href = '/portals/parent/index.html';
+    else                         window.location.href = '/index.html';
+  }
+
+  /* ── UI refs ─────────────────────────────────────────────── */
+  var emailEl    = document.getElementById('email');
+  var passEl     = document.getElementById('password');
+  var loginBtn   = document.getElementById('loginBtn');
+  var errorEl    = document.getElementById('loginError');
+  var pwToggle   = document.getElementById('pwToggle');
+
+  function showError(msg) { errorEl.textContent = msg; errorEl.classList.add('show'); }
+  function clearError()   { errorEl.classList.remove('show'); }
+
+  /* ── Password show/hide ──────────────────────────────────── */
+  pwToggle.addEventListener('click', function () {
+    var hidden = passEl.type === 'password';
+    passEl.type = hidden ? 'text' : 'password';
+    pwToggle.textContent = hidden ? '🙈' : '👁';
+  });
+
+  /* ── Login ───────────────────────────────────────────────── */
+  async function doLogin() {
+    clearError();
+    var email    = emailEl.value.trim();
+    var password = passEl.value;
+    if (!email || !password) { showError('Please enter your email and password.'); return; }
+
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'Signing in…';
+
+    try {
+      var res = await db.auth.signInWithPassword({ email: email, password: password });
+      if (res.error) throw res.error;
+
+      var uid = res.data.session.user.id;
+      var userRes = await db.from('users').select('role, is_active').eq('id', uid).single();
+
+      if (userRes.error || !userRes.data) {
+        await db.auth.signOut();
+        showError('Account not found. Please contact your school admin.');
+        return;
+      }
+      if (userRes.data.is_active === false) {
+        await db.auth.signOut();
+        showError('Your account has been deactivated. Contact your school admin.');
+        return;
+      }
+      redirectByRole(userRes.data.role);
+
+    } catch (err) {
+      var msg = err.message || 'Login failed. Please try again.';
+      if (/invalid login|invalid credentials/i.test(msg))
+        msg = 'Incorrect email or password. Please try again.';
+      showError(msg);
+    } finally {
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Sign In';
+    }
+  }
+
+  loginBtn.addEventListener('click', doLogin);
+  passEl.addEventListener('keydown',  function(e){ if(e.key==='Enter') doLogin(); });
+  emailEl.addEventListener('keydown', function(e){ if(e.key==='Enter') passEl.focus(); });
+
+  /* ── Forgot password ─────────────────────────────────────── */
+  var modal      = document.getElementById('forgotModal');
+  var resetEmail = document.getElementById('resetEmail');
+  var resetMsg   = document.getElementById('resetMsg');
+  var sendBtn    = document.getElementById('sendReset');
+
+  document.getElementById('forgotLink').addEventListener('click', function(e) {
+    e.preventDefault();
+    resetEmail.value = emailEl.value;
+    resetMsg.style.display = 'none';
+    sendBtn.disabled = false; sendBtn.textContent = 'Send Link';
+    modal.classList.add('open');
+  });
+  document.getElementById('cancelReset').addEventListener('click', function() {
+    modal.classList.remove('open');
+  });
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) modal.classList.remove('open');
+  });
+
+  sendBtn.addEventListener('click', async function() {
+    var em = resetEmail.value.trim();
+    if (!em) {
+      resetMsg.style.display='block'; resetMsg.style.color='var(--danger)';
+      resetMsg.textContent='Enter your email first.'; return;
+    }
+    sendBtn.disabled = true; sendBtn.textContent = 'Sending…';
+    try {
+      var r = await db.auth.resetPasswordForEmail(em, {
+        redirectTo: window.location.origin + '/login.html'
+      });
+      if (r.error) throw r.error;
+      resetMsg.style.display='block'; resetMsg.style.color='var(--success)';
+      resetMsg.textContent='Reset link sent! Check your inbox.';
+      sendBtn.textContent = 'Sent ✓';
+    } catch(err) {
+      resetMsg.style.display='block'; resetMsg.style.color='var(--danger)';
+      resetMsg.textContent = err.message || 'Failed to send link.';
+      sendBtn.disabled = false; sendBtn.textContent = 'Send Link';
+    }
+  });
+
+})();
+</script>
+
+</body>
+</html>
