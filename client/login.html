@@ -26,20 +26,16 @@
     body{display:flex;min-height:100vh;background:var(--INK2);}
 
     /* Left pane */
-    .l-pane{flex:1;display:flex;flex-direction:column;padding:48px 56px;position:relative;overflow:hidden;
-      background-image: linear-gradient(rgba(5,10,8,0.62), rgba(7,20,14,0.72)), url('icons/student_2.jpg');
-      background-size: cover;
-      background-position: center top;
-    }
-    .l-pane::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 70% at 20% 80%,rgba(10,110,63,.22) 0%,transparent 60%),radial-gradient(ellipse 60% 50% at 80% 20%,rgba(2[...]
-    .l-dots{position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle,rgba(255,255,255,.05) 1px,transparent 1px);background-size:28px 28px;mask-image:radial-gradient(ellips[...]
+    .l-pane{flex:1;display:flex;flex-direction:column;padding:48px 56px;position:relative;overflow:hidden;background-image: linear-gradient(rgba(5,10,8,0.62), rgba(7,20,14,0.72)), url('icons/student_2.jpg');background-size: cover;background-position: center top;}
+    .l-pane::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 70% at 20% 80%,rgba(10,110,63,.22) 0%,transparent 60%),radial-gradient(ellipse 60% 50% at 80% 20%,rgba(2,30,16,.15) 0%,transparent 70%);pointer-events:none;}
+    .l-dots{position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle,rgba(255,255,255,.05) 1px,transparent 1px);background-size:28px 28px;mask-image:radial-gradient(ellipse at center,black 0%,transparent 80%);}
     .l-top{position:relative;z-index:1;display:flex;align-items:center;gap:11px;}
     .l-logo{width:42px;height:42px;border-radius:11px;background:white;padding:3px;overflow:hidden;flex-shrink:0;}
     .l-logo img{width:100%;height:100%;object-fit:cover;border-radius:8px;}
     .l-brand{font-family:var(--H);font-size:19px;font-weight:800;color:white;}
     .l-brand em{color:var(--AU);font-style:normal;}
     .l-body{flex:1;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:1;max-width:400px;}
-    .l-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(10,110,63,.15);border:1px solid rgba(10,110,63,.4);padding:5px 14px 5px 10px;border-radius:100px;font-size:12px;font-weig[...]
+    .l-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(10,110,63,.15);border:1px solid rgba(10,110,63,.4);padding:5px 14px 5px 10px;border-radius:100px;font-size:12px;font-weight:500;color:rgba(255,255,255,.7);}
     .l-dot{width:8px;height:8px;border-radius:50%;background:#4ade80;animation:pulse 2.2s ease-in-out infinite;}
     @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.5)}}
     .l-h{font-family:var(--H);font-size:clamp(26px,3.2vw,42px);font-weight:900;color:white;line-height:1.08;letter-spacing:-1.5px;margin-bottom:16px;}
@@ -62,13 +58,13 @@
 
     /* Right pane */
     .r-pane{width:480px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px;background:var(--S);}
-    .r-inner{width:100%;max-width:380px;}
+    .r-inner{width:100%;max-width:380px;max-height:80vh;overflow-y:auto;}
     .r-title{font-family:var(--H);font-size:26px;font-weight:800;color:var(--INK);letter-spacing:-.5px;margin-bottom:6px;}
     .r-sub{font-size:14px;color:var(--T3);margin-bottom:28px;line-height:1.6;}
     .form-grp{margin-bottom:16px;}
     .form-lbl{display:block;font-size:13px;font-weight:600;color:var(--T2);margin-bottom:6px;}
     .form-lbl .req{color:#ef4444;margin-left:2px;}
-    .form-ctrl{width:100%;padding:11px 14px;border:1.5px solid var(--BD);border-radius:var(--radius-sm);background:white;font-family:var(--B);font-size:14px;color:var(--INK);transition:var(--transitio[...]
+    .form-ctrl{width:100%;padding:11px 14px;border:1.5px solid var(--BD);border-radius:var(--radius-sm);background:white;font-family:var(--B);font-size:14px;color:var(--INK);transition:var(--transition);}
     .form-ctrl::placeholder{color:var(--T3);}
     .form-ctrl:focus{border-color:var(--G);box-shadow:0 0 0 3px rgba(10,110,63,.1);}
     .pwd-wrap{position:relative;}
@@ -76,23 +72,21 @@
     .pwd-toggle:hover{color:var(--G);}
     .form-err{background:#fef2f2;border:1px solid #fecaca;border-radius:var(--radius-sm);color:#b91c1c;font-size:13px;padding:10px 14px;margin-bottom:14px;display:none;line-height:1.5;}
     .form-success{background:#f0fdf4;border:1px solid #86efac;border-radius:var(--radius-sm);color:#166534;font-size:13px;padding:10px 14px;margin-bottom:14px;display:none;line-height:1.5;}
-    .btn-sign-in{width:100%;padding:13px;border-radius:var(--radius-sm);background:var(--G);color:white;font-family:var(--H);font-size:15px;font-weight:700;border:none;cursor:pointer;position:rela[...]
+    .btn-sign-in{width:100%;padding:13px;border-radius:var(--radius-sm);background:var(--G);color:white;font-family:var(--H);font-size:15px;font-weight:700;border:none;cursor:pointer;position:relative;overflow:hidden;}
     .btn-sign-in::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.15),transparent);pointer-events:none;}
     .btn-sign-in:hover:not(:disabled){background:var(--G3);transform:translateY(-1px);box-shadow:0 8px 24px rgba(10,110,63,.35);}
     .btn-sign-in:disabled{opacity:.6;cursor:not-allowed;transform:none;}
     .btn-secondary{width:100%;padding:10px;border-radius:var(--radius-sm);background:white;border:1.5px solid var(--BD);color:var(--T3);font-family:var(--H);font-size:13px;font-weight:600;cursor:pointer;transition:var(--transition);}
     .btn-secondary:hover:not(:disabled){background:var(--GL);border-color:var(--G);}
-    .demo-section{margin-top:22px;padding-top:20px;border-top:1px solid var(--BD);}
-    .demo-label{font-size:11px;font-weight:700;color:var(--T3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;}
     .demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
     .demo-btn{padding:9px 12px;background:white;border:1.5px solid var(--BD);border-radius:var(--radius-sm);cursor:pointer;text-align:left;font-family:var(--B);transition:var(--transition);}
     .demo-btn:hover{background:var(--GL);border-color:var(--G);}
     .demo-btn strong{display:block;font-size:12px;font-weight:700;color:var(--G);}
     .demo-btn span{font-size:10px;color:var(--T3);}
-    .student-link{margin-top:16px;padding:13px 15px;border-radius:var(--radius-sm);background:var(--AUL);border:1px solid #fde68a;display:flex;align-items:center;justify-content:space-between;gap:10px[...]
+    .student-link{margin-top:16px;padding:13px 15px;border-radius:var(--radius-sm);background:var(--AUL);border:1px solid #fde68a;display:flex;align-items:center;justify-content:space-between;gap:10px;}
     .student-link p{font-size:12px;color:#78350f;line-height:1.5;}
     .student-link p strong{font-weight:700;display:block;font-size:13px;}
-    .student-link a{flex-shrink:0;padding:8px 13px;border-radius:8px;background:var(--AU);color:white;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;transition:var(--transitio[...]
+    .student-link a{flex-shrink:0;padding:8px 13px;border-radius:8px;background:var(--AU);color:white;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;transition:var(--transition);}
     .student-link a:hover{background:#d97706;}
     .result-link{margin-top:10px;padding:13px 15px;border-radius:var(--radius-sm);background:#eff6ff;border:1px solid #bfdbfe;display:flex;align-items:center;justify-content:space-between;gap:10px;}
     .result-link p{font-size:12px;color:#1e3a5f;line-height:1.5;}
@@ -111,7 +105,7 @@
     .reset-type-btn:hover{border-color:var(--G);}
 
     /* Floating demo button */
-    .demo-float-btn{position:fixed;top:22px;right:24px;z-index:1000;display:flex;align-items:center;gap:9px;background:var(--G);color:white;padding:11px 20px;border-radius:50px;box-shadow:0 4px 20px r[...]
+    .demo-float-btn{position:fixed;top:22px;right:24px;z-index:1000;display:flex;align-items:center;gap:9px;background:var(--G);color:white;padding:11px 20px;border-radius:50px;box-shadow:0 4px 20px rgba(10,110,63,.25);cursor:pointer;border:none;font-family:var(--H);font-size:14px;font-weight:600;transition:var(--transition);}
     .demo-float-btn:hover{background:var(--G3);transform:translateY(-2px);box-shadow:0 8px 28px rgba(10,110,63,.38);}
     .demo-float-btn svg{width:16px;height:16px;}
     /* Demo modal overlay */
@@ -119,7 +113,7 @@
     .demo-modal-overlay.open{display:flex;}
     .demo-modal-box{background:white;width:90vw;max-width:340px;padding:26px 22px 20px;border-radius:18px;box-shadow:0 12px 40px rgba(0,0,0,.18);position:relative;}
     .demo-modal-title{font-size:11px;font-weight:800;color:var(--T3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px;display:flex;align-items:center;gap:7px;}
-    .demo-modal-close{position:absolute;top:12px;right:14px;background:none;border:none;font-size:22px;color:var(--T3);cursor:pointer;line-height:1;padding:2px 6px;border-radius:6px;transition:backgro[...]
+    .demo-modal-close{position:absolute;top:12px;right:14px;background:none;border:none;font-size:22px;color:var(--T3);cursor:pointer;line-height:1;padding:2px 6px;border-radius:6px;transition:background .15s;}
     .demo-modal-close:hover{background:var(--GL);color:var(--G);}
     @media(max-width:860px){.demo-float-btn{top:14px;right:14px;padding:9px 15px;font-size:13px;}}
 
@@ -133,7 +127,7 @@
     <div class="l-dots"></div>
     <div class="l-top">
       <div class="l-logo">
-        <img src="images/logo.jpg" alt="EduTrack NG" onerror="this.parentElement.style.background='#0a6e3f';this.parentElement.innerHTML='<span class="icon-svg" style="display:inline-flex;align-items:[...]
+        <img src="images/logo.jpg" alt="EduTrack NG" onerror="this.parentElement.style.background='#0a6e3f';">
       </div>
       <div class="l-brand">EduTrack <em>NG</em></div>
     </div>
@@ -142,10 +136,10 @@
       <h1 class="l-h">School admin,<br>simplified<br>for <span class="au">Nigeria</span></h1>
       <p class="l-p">One platform, four powerful portals. Every user sees exactly what they need — with full Nigerian grading (A1–F9) and Naira fee tracking.</p>
       <div class="portals-list">
-        <div class="portal-item"><div class="pi-ico admin"><span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.org/2000/[...]
-        <div class="portal-item"><div class="pi-ico teacher"><span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.org/20[...]
-        <div class="portal-item"><div class="pi-ico parent"><span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.org/200[...]
-        <div class="portal-item"><div class="pi-ico exam"><span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.org/2000/[...]
+        <div class="portal-item"><div class="pi-ico admin" title="Admin">👨‍💼</div><div class="pi-text"><h4>Admin</h4><p>Full system access</p></div></div>
+        <div class="portal-item"><div class="pi-ico teacher" title="Teacher">👨‍🏫</div><div class="pi-text"><h4>Teacher</h4><p>Grade & attendance</p></div></div>
+        <div class="portal-item"><div class="pi-ico parent" title="Parent">👨‍👩‍👧</div><div class="pi-text"><h4>Parent</h4><p>Monitor progress</p></div></div>
+        <div class="portal-item"><div class="pi-ico exam" title="Exam">📋</div><div class="pi-text"><h4>Exam</h4><p>Results & testing</p></div></div>
       </div>
     </div>
     <div class="l-bottom">
@@ -166,48 +160,46 @@
 
       <!-- LOGIN PANEL -->
       <div id="loginPanel">
-      <h2 class="r-title" style="margin-bottom:4px;">Welcome back</h2>
-      <p class="r-sub">Sign in to your school portal. Students use the student portal link below.</p>
-      <div class="form-err" id="loginError"></div>
+        <h2 class="r-title">Welcome back</h2>
+        <p class="r-sub">Sign in to your school portal. Students use the student portal link below.</p>
+        <div class="form-err" id="loginError"></div>
 
-      <div class="form-grp">
-        <label class="form-lbl">Email Address <span class="req">*</span></label>
-        <input type="email" id="email" class="form-ctrl" placeholder="you@school.edu.ng" required autocomplete="username">
-      </div>
-      <div class="form-grp">
-        <label class="form-lbl">Password <span class="req">*</span></label>
-        <div class="pwd-wrap">
-          <input type="password" id="password" class="form-ctrl" placeholder="Enter your password" required autocomplete="current-password">
-          <button type="button" class="pwd-toggle" id="pwdToggle" title="Toggle password"><span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><sv[...]
+        <div class="form-grp">
+          <label class="form-lbl">Email Address <span class="req">*</span></label>
+          <input type="email" id="email" class="form-ctrl" placeholder="you@school.edu.ng" required autocomplete="username">
         </div>
-      </div>
-
-      <button class="btn-sign-in" id="loginBtn" onclick="doLogin()">Sign In to Portal →</button>
-
-      <div class="student-link">
-        <p><strong>Are you a student?</strong>Use your Admission No. + PIN to log in at the student portal.</p>
-        <a href="portals/student/login.html">Student Login →</a>
-      </div>
-
-      <!-- Apply Now — New student registration -->
-      <div style="margin-top:10px;padding:14px 15px;border-radius:var(--radius-sm);background:linear-gradient(135deg,#052e16,#14532d);border:1px solid rgba(74,222,128,.2);display:flex;align-items:cent[...]
-        <div>
-          <div style="font-size:13px;font-weight:800;color:#4ade80;margin-bottom:2px;"><span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg x[...]
-          <p style="font-size:11px;color:rgba(255,255,255,.55);line-height:1.5;margin:0;">Register with your school-issued scratch card PIN.</p>
+        <div class="form-grp">
+          <label class="form-lbl">Password <span class="req">*</span></label>
+          <div class="pwd-wrap">
+            <input type="password" id="password" class="form-ctrl" placeholder="Enter your password" required autocomplete="current-password">
+            <button type="button" class="pwd-toggle" id="pwdToggle" title="Toggle password">👁️</button>
+          </div>
         </div>
-        <button onclick="switchTab('register')" style="flex-shrink:0;padding:9px 15px;border-radius:8px;background:#16a34a;color:white;font-size:12px;font-weight:800;border:none;cursor:pointer;white-s[...]
-          onmouseover="this.style.background='#15803d'" onmouseout="this.style.background='#16a34a'">Apply Now →</button>
-      </div>
 
-      <div class="result-link">
-        <p><strong><span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 [...]
-        <a href="portals/parent/result-checker.html">Check Result →</a>
-      </div>
+        <button class="btn-sign-in" id="loginBtn" onclick="doLogin()">Sign In to Portal →</button>
+
+        <div class="student-link">
+          <p><strong>Are you a student?</strong>Use your Admission No. + PIN to log in at the student portal.</p>
+          <a href="portals/student/login.html">Student Login →</a>
+        </div>
+
+        <div style="margin-top:10px;padding:14px 15px;border-radius:var(--radius-sm);background:linear-gradient(135deg,#052e16,#14532d);border:1px solid rgba(74,222,128,.2);display:flex;align-items:center;justify-content:space-between;gap:10px;">
+          <div>
+            <div style="font-size:13px;font-weight:800;color:#4ade80;margin-bottom:2px;">📝 New Student?</div>
+            <p style="font-size:11px;color:rgba(255,255,255,.55);line-height:1.5;margin:0;">Register with your school-issued scratch card PIN.</p>
+          </div>
+          <button onclick="switchTab('register')" style="flex-shrink:0;padding:9px 15px;border-radius:8px;background:#16a34a;color:white;font-size:12px;font-weight:800;border:none;cursor:pointer;white-space:nowrap;transition:background .15s;" onmouseover="this.style.background='#15803d'" onmouseout="this.style.background='#16a34a'">Apply Now →</button>
+        </div>
+
+        <div class="result-link">
+          <p><strong>Check Result</strong><br>Access your examination results and performance analytics.</p>
+          <a href="portals/parent/result-checker.html">Check Result →</a>
+        </div>
       </div><!-- /loginPanel -->
 
       <!-- PASSWORD RESET PANEL -->
       <div id="resetPanel" style="display:none;">
-        <h2 class="r-title" style="margin-bottom:4px;">Reset Password</h2>
+        <h2 class="r-title">Reset Password</h2>
         <p class="r-sub">Select your account type and we'll help you reset your password.</p>
         <div class="form-err" id="resetError"></div>
         <div class="form-success" id="resetSuccess"></div>
@@ -236,7 +228,7 @@
 
           <div id="staffStep2" style="display:none;">
             <div style="background:#e6f4ed;border:1px solid #86efac;border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;color:#166534;line-height:1.6;">
-              <strong>Check your email</strong><br>We've sent a password reset link to <strong id="confirmEmail"></strong>. The link expires in 30 minutes.
+              <strong>✓ Check your email</strong><br>We've sent a password reset code to <strong id="confirmEmail"></strong>. The code expires in 30 minutes.
             </div>
             <div class="form-grp">
               <label class="form-lbl">Reset Code <span class="req">*</span></label>
@@ -265,7 +257,7 @@
         <div id="studentResetFlow" style="display:none;">
           <div id="studentStep1">
             <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;color:#92400e;line-height:1.6;">
-              <strong>Student Portal Access</strong><br>If you're a student, use your admission number. If you forgot it, visit your school office.
+              <strong>ℹ️ Student Portal Access</strong><br>Use your admission number and date of birth to verify your identity.
             </div>
             <div class="form-grp">
               <label class="form-lbl">School <span class="req">*</span></label>
@@ -285,7 +277,7 @@
 
           <div id="studentStep2" style="display:none;">
             <div style="background:#e6f4ed;border:1px solid #86efac;border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;color:#166534;line-height:1.6;">
-              <strong>Verification Successful</strong><br>Now set your new password. Use a strong password with at least 8 characters.
+              <strong>✓ Verification Successful</strong><br>Now set your new password. Use a strong password with at least 8 characters.
             </div>
             <div class="form-grp">
               <label class="form-lbl">New Password <span class="req">*</span></label>
@@ -312,7 +304,7 @@
 
       <!-- REGISTRATION PANEL -->
       <div id="regPanel" style="display:none;">
-        <h2 class="r-title" style="margin-bottom:4px;">Student Registration</h2>
+        <h2 class="r-title">Student Registration</h2>
         <p class="r-sub">Enter your school-issued scratch card PIN to begin enrollment.</p>
         <div class="form-err" id="regError"></div>
 
@@ -323,25 +315,22 @@
           </div>
           <div class="form-grp">
             <label class="form-lbl">Scratch Card PIN <span class="req">*</span></label>
-            <input type="text" id="regPin" class="form-ctrl" placeholder="Enter 10-digit PIN"
-              maxlength="12" style="font-family:monospace;font-size:18px;letter-spacing:4px;text-align:center;"
-              oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+            <input type="text" id="regPin" class="form-ctrl" placeholder="Enter 10-digit PIN" maxlength="12" style="font-family:monospace;font-size:18px;letter-spacing:4px;text-align:center;" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
             <div style="font-size:11px;color:var(--T3);margin-top:4px;">You must have a school-issued scratch card to register.</div>
           </div>
-          <button class="btn-sign-in" onclick="verifyRegPin()"><span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.org/[...]
+          <button class="btn-sign-in" onclick="verifyRegPin()">Verify PIN →</button>
         </div>
 
         <div id="regStep2" style="display:none;">
           <div style="background:#e6f4ed;border:1px solid #86efac;border-radius:8px;padding:10px 14px;font-size:13px;color:#166534;margin-bottom:14px;">
-            <span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24[...]
+            <strong>✓ PIN Verified</strong> - Now complete your registration details
           </div>
 
           <!-- Passport — COMPULSORY -->
           <div class="form-grp">
             <label class="form-lbl">Passport Photo <span class="req">*</span></label>
-            <div id="photoPreviewWrap" onclick="document.getElementById('regPassport').click()"
-              style="width:90px;height:110px;border:2px dashed var(--BD);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;margin-bottom:8px;backg[...]
-              <span id="photoPlaceholder" style="font-size:32px;"><span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.o[...]
+            <div id="photoPreviewWrap" onclick="document.getElementById('regPassport').click()" style="width:90px;height:110px;border:2px dashed var(--BD);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;margin-bottom:8px;background:#f9fafb;">
+              <span id="photoPlaceholder" style="font-size:32px;">📷</span>
             </div>
             <input type="file" id="regPassport" accept="image/*" style="display:none;" onchange="previewPassport()">
             <div style="font-size:11px;color:var(--T3);">Photo appears on ID card &amp; report card. Max 2MB.</div>
@@ -362,9 +351,8 @@
           </div>
           <input type="hidden" id="regVerifiedPin">
           <input type="hidden" id="regSchoolId">
-          <button class="btn-sign-in" style="margin-top:6px;" onclick="submitRegistration()"><span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height[...]
-          <button type="button" onclick="document.getElementById('regStep2').style.display='none';document.getElementById('regStep1').style.display='';"
-            style="width:100%;margin-top:8px;padding:10px;border:1.5px solid var(--BD);border-radius:var(--radius-sm);background:white;cursor:pointer;font-size:13px;font-weight:600;color:var(--T3);">b[...]
+          <button class="btn-sign-in" style="margin-top:6px;" onclick="submitRegistration()">Complete Registration →</button>
+          <button type="button" onclick="document.getElementById('regStep2').style.display='none';document.getElementById('regStep1').style.display='';" style="width:100%;margin-top:8px;padding:10px;border:1.5px solid var(--BD);border-radius:var(--radius-sm);background:white;cursor:pointer;font-size:13px;font-weight:600;color:var(--T3);transition:var(--transition);">← Back</button>
         </div>
       </div><!-- /regPanel -->
 
@@ -406,9 +394,7 @@
     document.getElementById('pwdToggle').addEventListener('click', () => {
       const p = document.getElementById('password'), b = document.getElementById('pwdToggle');
       p.type = p.type === 'password' ? 'text' : 'password';
-      b.innerHTML = p.type === 'password'
-        ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><pa[...]
-        : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><pa[...]
+      b.textContent = p.type === 'password' ? '👁️' : '🙈';
     });
 
     document.getElementById('password').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
@@ -447,14 +433,12 @@
         const { error } = await db.auth.signInWithPassword({ email, password: pwd });
         if (error) {
           _loginAttempts.set(email, (_loginAttempts.get(email) || 0) + 1);
-          // Generic message — don't reveal whether email or password is wrong
           throw new Error('Invalid email or password.');
         }
         const user = await getCurrentUser();
         if (!user) throw new Error('Account not found. Contact your school admin.');
         if (!user.is_active) throw new Error('Your account is deactivated. Contact your school admin.');
-        _loginAttempts.delete(email); // clear on success
-        // Check if user must change password on first login
+        _loginAttempts.delete(email);
         if (user.must_change_password) {
           showChangePasswordScreen(user);
           return;
@@ -470,7 +454,7 @@
     function showChangePasswordScreen(user) {
       document.querySelector('.r-inner').innerHTML = `
         <div style="text-align:center;margin-bottom:24px;">
-          <div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#0a6e3f,#12a05a);margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:2[...]
+          <div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#0a6e3f,#12a05a);margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:28px;">🔐</div>
           <h2 style="font-family:var(--H);font-size:22px;font-weight:800;color:var(--INK);margin-bottom:6px;">Set Your Password</h2>
           <p style="font-size:13px;color:var(--T3);line-height:1.65;">Welcome, <strong>${user.full_name}</strong>!<br>Please set a new password before continuing.</p>
         </div>
@@ -523,39 +507,35 @@
 <script>
 // ── Tab switching ────────────────────────────────────────────
 function switchTab(tab) {
-  // Hide all panels
   document.getElementById('loginPanel').style.display = 'none';
   document.getElementById('resetPanel').style.display = 'none';
   document.getElementById('regPanel').style.display = 'none';
 
-  // Reset all tab buttons
   document.getElementById('tabLogin').classList.remove('active');
   document.getElementById('tabReset').classList.remove('active');
   document.getElementById('tabReg').classList.remove('active');
 
-  // Show selected panel and activate tab
   if (tab === 'login') {
     document.getElementById('loginPanel').style.display = '';
     document.getElementById('tabLogin').classList.add('active');
   } else if (tab === 'reset') {
     document.getElementById('resetPanel').style.display = '';
     document.getElementById('tabReset').classList.add('active');
-    loadResetSchools(); // Load schools for student reset
+    loadResetSchools();
   } else if (tab === 'register') {
     document.getElementById('regPanel').style.display = '';
     document.getElementById('tabReg').classList.add('active');
-    loadRegSchools(); // Load schools for registration
+    loadRegSchools();
   }
 }
 
-// Initialize tab styling on page load
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('tabLogin').classList.add('active');
 });
 
 // ── PASSWORD RESET FUNCTIONALITY ────────────────────────────
-let currentResetType = 'staff'; // 'staff' or 'student'
-let resetRateLimits = new Map(); // Track reset attempts per email/admno
+let currentResetType = 'staff';
+let resetRateLimits = new Map();
 
 function setResetType(type) {
   currentResetType = type;
@@ -569,35 +549,31 @@ function setResetType(type) {
     studentBtn.classList.remove('active');
     staffFlow.style.display = '';
     studentFlow.style.display = 'none';
-    resetError(''); // Clear errors
+    resetError('');
   } else {
     staffBtn.classList.remove('active');
     studentBtn.classList.add('active');
     staffFlow.style.display = 'none';
     studentFlow.style.display = '';
-    resetError(''); // Clear errors
+    resetError('');
   }
 }
 
 function resetError(msg = '') {
   const errEl = document.getElementById('resetError');
-  const successEl = document.getElementById('resetSuccess');
   if (msg) {
     errEl.textContent = msg;
     errEl.style.display = 'block';
-    successEl.style.display = 'none';
   } else {
     errEl.style.display = 'none';
   }
 }
 
 function resetSuccess(msg = '') {
-  const errEl = document.getElementById('resetError');
   const successEl = document.getElementById('resetSuccess');
   if (msg) {
     successEl.textContent = msg;
     successEl.style.display = 'block';
-    errEl.style.display = 'none';
   } else {
     successEl.style.display = 'none';
   }
@@ -614,7 +590,6 @@ async function requestStaffReset() {
     return;
   }
 
-  // Client-side rate limit: max 3 requests per email per 60 seconds
   const key = `staff_${email}`;
   const now = Date.now();
   const attempts = resetRateLimits.get(key) || [];
@@ -629,7 +604,6 @@ async function requestStaffReset() {
   btn.textContent = 'Sending…'; btn.disabled = true;
 
   try {
-    // Call backend RPC to send reset email
     const { data, error: rpcErr } = await db.rpc('send_password_reset_email', {
       p_email: email
     });
@@ -640,7 +614,6 @@ async function requestStaffReset() {
     recentAttempts.push(now);
     resetRateLimits.set(key, recentAttempts);
 
-    // Show step 2
     document.getElementById('staffStep1').style.display = 'none';
     document.getElementById('staffStep2').style.display = '';
     document.getElementById('confirmEmail').textContent = email;
@@ -676,7 +649,6 @@ async function submitStaffReset() {
   btn.textContent = 'Resetting…'; btn.disabled = true;
 
   try {
-    // Verify code and update password via backend RPC
     const { data, error: rpcErr } = await db.rpc('reset_password_with_code', {
       p_email: email,
       p_code: code,
@@ -686,7 +658,6 @@ async function submitStaffReset() {
     if (rpcErr) throw new Error('Unable to reset password. Please try again.');
     if (!data?.success) throw new Error(data?.error || 'Invalid code or code expired.');
 
-    // Success
     resetSuccess('Password reset successfully! Redirecting to login...');
     setTimeout(() => {
       switchTab('login');
@@ -717,7 +688,7 @@ function staffStep1Retry() {
 // ── STUDENT PASSWORD RESET ────────────────────────────────────
 async function loadResetSchools() {
   const sel = document.getElementById('studentSchool');
-  if (sel.options.length > 1) return; // Already loaded
+  if (sel.options.length > 1) return;
   try {
     const { data } = await db.from('schools').select('id,name').eq('is_active', true).order('name');
     sel.innerHTML = '<option value="">Select your school…</option>' +
@@ -737,7 +708,6 @@ async function verifyStudentIdentity() {
   if (!admNo) { resetError('Please enter your admission number.'); return; }
   if (!dob) { resetError('Please enter your date of birth.'); return; }
 
-  // Client-side rate limit: max 3 attempts per admission number per 60 seconds
   const key = `student_${schoolId}_${admNo}`;
   const now = Date.now();
   const attempts = resetRateLimits.get(key) || [];
@@ -752,7 +722,6 @@ async function verifyStudentIdentity() {
   btn.textContent = 'Verifying…'; btn.disabled = true;
 
   try {
-    // Call backend RPC to verify student identity
     const { data, error: rpcErr } = await db.rpc('verify_student_reset_identity', {
       p_school_id: schoolId,
       p_admission_no: admNo,
@@ -765,7 +734,6 @@ async function verifyStudentIdentity() {
     recentAttempts.push(now);
     resetRateLimits.set(key, recentAttempts);
 
-    // Show step 2
     document.getElementById('studentStep1').style.display = 'none';
     document.getElementById('studentStep2').style.display = '';
     resetSuccess(`Welcome back! Now set your new password.`);
@@ -797,7 +765,6 @@ async function submitStudentReset() {
   btn.textContent = 'Saving…'; btn.disabled = true;
 
   try {
-    // Update student password via backend RPC
     const { data, error: rpcErr } = await db.rpc('reset_student_password', {
       p_school_id: schoolId,
       p_admission_no: admNo,
@@ -808,7 +775,6 @@ async function submitStudentReset() {
     if (rpcErr) throw new Error('Unable to reset password. Please try again.');
     if (!data?.success) throw new Error(data?.error || 'Password reset failed.');
 
-    // Success
     resetSuccess('Password reset successfully! Redirecting to student login...');
     setTimeout(() => {
       window.location.href = 'portals/student/login.html';
@@ -858,15 +824,12 @@ async function verifyRegPin() {
   if (!schoolId) { errEl.textContent = 'Please select your school.'; errEl.style.display = 'block'; return; }
   if (!pin || pin.length < 6) { errEl.textContent = 'Enter a valid scratch card PIN.'; errEl.style.display = 'block'; return; }
   try {
-    // Use RPC (SECURITY DEFINER) — direct table query is blocked by RLS for anon users,
-    // which causes valid PINs to return "Invalid PIN". The RPC runs as DB owner and bypasses RLS.
     const { data: result, error: rpcErr } = await db.rpc('verify_scratch_pin', {
       p_pin: pin,
       p_school_id: schoolId
     });
     if (rpcErr) throw new Error('Unable to verify PIN. Please try again.');
     if (!result?.valid) throw new Error(result?.error || 'Invalid PIN. Check your scratch card and try again.');
-    // Load classes for this school
     const { data: cls } = await db.from('classes').select('id,name').eq('school_id', schoolId).order('name');
     document.getElementById('regClass').innerHTML = '<option value="">Select class…</option>' +
       (cls || []).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
@@ -880,15 +843,13 @@ async function verifyRegPin() {
 function previewPassport() {
   const file = document.getElementById('regPassport').files[0];
   if (!file) return;
-  // Validate file type
   if (!file.type.startsWith('image/')) {
-    toast('Please select an image file (JPG, PNG, etc.).', 'error');
+    alert('Please select an image file (JPG, PNG, etc.).');
     document.getElementById('regPassport').value = '';
     return;
   }
-  // Validate file size (max 2 MB)
   if (file.size > 2 * 1024 * 1024) {
-    toast('Image must be under 2 MB.', 'error');
+    alert('Image must be under 2 MB.');
     document.getElementById('regPassport').value = '';
     return;
   }
@@ -929,8 +890,6 @@ async function submitRegistration() {
   const btn = document.querySelector('#regStep2 .btn-sign-in');
   btn.disabled = true; btn.textContent = 'Submitting…';
   try {
-    // 1. Try to upload passport photo — fails gracefully if storage policy not yet set
-    //    Admin can update the photo later from the students page.
     let photoUrl = null;
     if (passportFile) {
       try {
@@ -941,10 +900,9 @@ async function submitRegistration() {
           const { data: urlData } = db.storage.from('passports').getPublicUrl(fileName);
           photoUrl = urlData?.publicUrl || null;
         }
-      } catch (_) { /* storage policy may not be set — photo stays null, admin adds later */ }
+      } catch (_) { }
     }
 
-    // 2. Call SECURITY DEFINER function — bypasses RLS safely after server-side PIN re-validation
     const { data: result, error: rpcErr } = await db.rpc('register_student_public', {
       p_school_id:     schoolId,
       p_pin:           pin,
@@ -961,11 +919,9 @@ async function submitRegistration() {
     if (rpcErr) throw new Error(rpcErr.message);
     if (result?.error) throw new Error(result.error);
 
-    // 3. Success screen
-    const photoNote = photoUrl ? '' : '<p style="font-size:11px;color:#d97706;margin-top:8px;"><span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-heig[...]
     document.getElementById('regStep2').innerHTML = `
       <div style="text-align:center;padding:24px 0;">
-        <div style="font-size:56px;margin-bottom:12px;"><span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.org/20[...]
+        <div style="font-size:56px;margin-bottom:12px;">✅</div>
         <h3 style="font-family:var(--H);font-size:20px;font-weight:800;margin-bottom:8px;">Registration Successful!</h3>
         <p style="color:var(--T3);font-size:14px;margin-bottom:8px;">Welcome, <strong>${name}</strong>.</p>
         <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:14px;margin:12px 0;text-align:left;">
@@ -973,21 +929,19 @@ async function submitRegistration() {
           <div style="font-size:13px;color:#14532d;">Admission No: <strong>${admNo}</strong></div>
           <div style="font-size:13px;color:#14532d;margin-top:4px;">Scratch Card PIN saved to your account.</div>
         </div>
-        ${photoNote}
         <p style="font-size:12px;color:var(--T3);margin-top:12px;">Please visit your school office to collect your student ID and complete enrollment.</p>
       </div>`;
   } catch(e) {
     errEl.textContent = e.message || 'Registration failed. Please try again.';
     errEl.style.display = 'block';
-    btn.disabled = false; btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="ro[...]
+    btn.disabled = false; btn.textContent = 'Complete Registration →';
   }
 }
 </script>
 
   <!-- Floating Demo Login Button -->
   <button class="demo-float-btn" onclick="document.getElementById('demoModalOverlay').classList.add('open')" title="Demo logins">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.[...]
-    Demo Login
+    🎯 Demo Login
   </button>
 
   <!-- Demo Modal -->
@@ -995,10 +949,9 @@ async function submitRegistration() {
     <div class="demo-modal-box">
       <button class="demo-modal-close" onclick="document.getElementById('demoModalOverlay').classList.remove('open')">&times;</button>
       <div class="demo-modal-title">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path [...]
-        Demo accounts — click to fill
+        📋 Demo accounts — click to fill
       </div>
-      <div class="demo-grid" style="margin-bottom:0;">
+      <div class="demo-grid">
         <button class="demo-btn" onclick="fillDemoAndClose('admin@demo.school.ng','demo1234')"><strong>Admin</strong><span>admin@demo.school.ng</span></button>
         <button class="demo-btn" onclick="fillDemoAndClose('teacher@demo.school.ng','demo1234')"><strong>Teacher</strong><span>teacher@demo.school.ng</span></button>
         <button class="demo-btn" onclick="fillDemoAndClose('examofficer@demo.school.ng','demo1234')"><strong>Exam Officer</strong><span>examofficer@demo.school.ng</span></button>
@@ -1011,7 +964,6 @@ async function submitRegistration() {
       document.getElementById('email').value = email;
       document.getElementById('password').value = pwd;
       document.getElementById('demoModalOverlay').classList.remove('open');
-      // Switch to login tab if on register tab
       if (document.getElementById('loginPanel').style.display === 'none') switchTab('login');
     }
   </script>
