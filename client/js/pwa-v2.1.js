@@ -1,6 +1,12 @@
 // ============================================================
 //  EduTrack NG — PWA Manager (js/pwa-v2.1) - ENHANCED
 //  ─────────────────────────────────────────────────────────
+//  CRITICAL FIXES APPLIED:
+//   ✅ Fix #1: Correct cache version from v3.1 → v3.2
+//   ✅ Fix #2: Redundant connectivity check (multi-endpoint)
+//   ✅ Fix #3: Parallel SyncEngine initialization (not delayed)
+//   ✅ Fix #4: Add prefetch hook after successful auth
+//
 //  IMPROVEMENTS in v2.1:
 //   ① Exponential backoff for SyncEngine ready promise
 //   ② Persistent sync metadata in IndexedDB
@@ -174,7 +180,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// ── IndexedDB Validation ───────────────────────────────────────
+// ── IndexedDB Validation ──────────────────────���────────────────
 /**
  * Validates IndexedDB is accessible and has proper configuration
  */
@@ -212,26 +218,46 @@ async function validateIndexedDB() {
 // ── Network Connectivity Detector ──────────────────────────────
 /**
  * Check if network is actually available (not just online flag)
+ * ✅ FIX #2: Multi-endpoint fallback for robust connectivity detection
  */
 async function checkNetworkConnectivity() {
   if (!navigator.onLine) return false;
   
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), CONNECTIVITY_TIMEOUT);
-    
-    // Ping a small, reliable endpoint
-    const resp = await fetch('/manifest.json', {
-      method: 'HEAD',
-      signal: controller.signal,
-      cache: 'no-store',
-    });
-    
-    clearTimeout(timeoutId);
-    return resp.ok;
-  } catch (e) {
-    return false;
+  // Try multiple endpoints with fallback
+  const endpoints = ['/manifest.json', '/', '/api/health'];
+  
+  for (const endpoint of endpoints) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), CONNECTIVITY_TIMEOUT);
+      
+      // Ping endpoint (HEAD or GET)
+      const resp = await fetch(endpoint, {
+        method: 'HEAD',
+        signal: controller.signal,
+        cache: 'no-store',
+      }).catch(() => 
+        // Fallback to GET if HEAD not supported
+        fetch(endpoint, {
+          method: 'GET',
+          signal: controller.signal,
+          cache: 'no-store',
+        })
+      );
+      
+      clearTimeout(timeoutId);
+      if (resp && resp.ok) {
+        console.log(`[PWA] Connectivity verified via ${endpoint}`);
+        return true;
+      }
+    } catch (e) {
+      // Try next endpoint
+      console.debug(`[PWA] Endpoint ${endpoint} failed, trying next...`);
+    }
   }
+  
+  console.warn('[PWA] No connectivity endpoints available');
+  return false;
 }
 
 // ── Logout helper — clears portal cache in SW ─────────────────
@@ -260,10 +286,11 @@ window.clearPortalCacheOnLogout = function () {
 };
 
 // ── SyncEngine Auto-Init with improved error handling ──────────
+// ✅ FIX #3: Parallel initialization instead of 1.5s delay
 window.addEventListener('DOMContentLoaded', () => {
   // Start validation and init in parallel
   validateIndexedDB().catch(console.warn);
-  setTimeout(tryInitSyncEngine, 1500);
+  tryInitSyncEngine(); // Start immediately, don't wait
 });
 
 /**
@@ -460,6 +487,7 @@ window._performSync = async function() {
 /**
  * Pre-fetches critical data into IndexedDB for offline use
  * Call this during initial app load while online
+ * ✅ FIX #4: Hook this after successful auth
  */
 window.prefetchCriticalDataForOffline = async function() {
   if (!window._eduSyncEngine) {
@@ -492,10 +520,11 @@ window.prefetchCriticalDataForOffline = async function() {
 /**
  * Lists all cached portal pages for offline navigation
  * Enhanced with metadata for better UX
+ * ✅ FIX #1: Updated cache version to v3.2
  */
 window._getOfflinePages = async function() {
   try {
-    const cache = await caches.open('edutrack-v3.1-portal');
+    const cache = await caches.open('edutrack-v3.2-portal');
     if (!cache) {
       console.warn('[PWA] Portal cache not found');
       return [];
@@ -886,3 +915,27 @@ window.addEventListener('beforeinstallprompt', e => {
   }
 });
 window.addEventListener('appinstalled', () => { deferredInstallPrompt = null; });
+
+// ── PUBLIC API FOR LOGIN PAGES ────────────────────────────────
+/**
+ * Call this after successful authentication to pre-fetch offline data
+ * ✅ FIX #4: Hook for prefetching after login
+ */
+window.onAuthSuccess = async function(user, schoolId) {
+  console.log('[Auth] User logged in:', user.id, 'school:', schoolId);
+  
+  // SyncEngine will auto-init via DOMContentLoaded
+  // Wait for it to be ready, then prefetch
+  const engine = await window._syncEngineReady;
+  
+  if (engine) {
+    console.log('[Auth] SyncEngine ready, prefetching offline data...');
+    window.prefetchCriticalDataForOffline()
+      .then(success => {
+        if (success) {
+          console.log('[Auth] ✓ Offline data prefetched successfully');
+        }
+      })
+      .catch(e => console.warn('[Auth] Prefetch failed:', e));
+  }
+};

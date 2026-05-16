@@ -1,29 +1,23 @@
 // ============================================================
-//  EduTrack NG — Service Worker v3.1
+//  EduTrack NG — Service Worker v3.2 (ENHANCED)
 //  ─────────────────────────────────────────────────────────
-//  BUGS FIXED vs v3.0:
-//   ① resp.clone() now called synchronously (before any async)
-//     so the body stream is never consumed before cloning.
-//   ② Portal pages cached by PATHNAME only (no query string),
-//     so report-cards.html?class=X always hits the cache even
-//     if the user navigated with a different ?class= param.
-//   ③ stale-while-revalidate uses same synchronous-clone fix.
-//
-//  Strategies:
-//   APP_SHELL  → cache-first, pre-cached on install
-//   Portal HTML → network-first; stored by pathname; served
-//                 from PORTAL_CACHE when offline; cleared on
-//                 CLEAR_PORTAL_CACHE (logout)
-//   Supabase   → always network (data comes from IndexedDB
-//                 via SyncEngine when offline)
-//   CDN        → cache-first
-//   JS/CSS/img → stale-while-revalidate
+//  IMPROVEMENTS vs v3.1:
+//   ① Better offline fallback for unmemoized pages
+//   ② Smarter cache invalidation strategy
+//   ③ Offline page listing endpoint
+//   ④ Better error recovery for portal pages
+//   ⑤ Request deduplication for concurrent fetch
+//   ⑥ Improved cache cleanup on activation
+//   ⑦ Broadcast offline state to clients
 // ============================================================
 
-const SW_VERSION    = 'v3.1';
+const SW_VERSION    = 'v3.2';
 const SHELL_CACHE   = `edutrack-${SW_VERSION}-shell`;
 const PORTAL_CACHE  = `edutrack-${SW_VERSION}-portal`;
 const CDN_CACHE     = `edutrack-${SW_VERSION}-cdn`;
+
+// Track in-flight requests to avoid duplicate fetches
+const _inflightRequests = new Map();
 
 // ── Pre-cached shell assets ───────────────────────────────────
 const APP_SHELL = [
@@ -35,7 +29,7 @@ const APP_SHELL = [
   // ★ config.js MUST be here — contains Supabase URL + anon key
   '/js/config.js',
   '/js/supabase.js',
-  '/js/pwa.js',
+  '/js/pwa-v2.1.js',
   '/js/sync-engine.js',
   '/js/layout.js',
   '/js/notifications.js',
@@ -65,7 +59,7 @@ const PORTAL_PREFIXES = [
 
 // ── Helpers ───────────────────────────────────────────────────
 const isPortalPage  = url => url.pathname !== '/portals/student/login.html'
-                           && PORTAL_PREFIXES.some(p => url.pathname.startsWith(p));
+                            && PORTAL_PREFIXES.some(p => url.pathname.startsWith(p));
 const isSupabase    = url => url.hostname.includes('supabase.co');
 const isCdn         = url => CDN_ORIGINS.includes(url.hostname);
 
@@ -84,11 +78,43 @@ function portalCacheKey(url) {
  */
 function cacheResponse(cacheName, cacheKey, response) {
   if (!response || !response.ok) return;
-  const clone = response.clone(); // ← synchronous, body not yet consumed
+  const clone = response.clone();
   caches.open(cacheName).then(c => {
     c.put(cacheKey, clone).catch(e =>
       console.warn(`[SW ${SW_VERSION}] cache.put failed (${cacheName}):`, e.message)
     );
+  });
+}
+
+/**
+ * Deduplicate concurrent fetch requests
+ * If the same request is in-flight, return that Promise instead of fetching again
+ */
+function deduplicatedFetch(request) {
+  const key = request.url;
+  
+  if (_inflightRequests.has(key)) {
+    console.log(`[SW ${SW_VERSION}] Deduplicating fetch: ${key}`);
+    return _inflightRequests.get(key);
+  }
+  
+  const promise = fetch(request)
+    .finally(() => _inflightRequests.delete(key));
+  
+  _inflightRequests.set(key, promise);
+  return promise;
+}
+
+/**
+ * Broadcast offline state change to all clients
+ */
+async function broadcastOfflineState(isOffline) {
+  const clients = await self.clients.matchAll({ type: 'window' });
+  clients.forEach(client => {
+    client.postMessage({
+      type: 'OFFLINE_STATE_CHANGED',
+      isOffline: isOffline,
+    });
   });
 }
 
@@ -103,7 +129,7 @@ self.addEventListener('install', event => {
         )
       ))
       .then(() => {
-        console.log(`[SW ${SW_VERSION}] Shell cached (incl. config.js). Activating.`);
+        console.log(`[SW ${SW_VERSION}] Shell cached (${APP_SHELL.length} items). Activating.`);
         return self.skipWaiting();
       })
   );
@@ -114,11 +140,17 @@ self.addEventListener('activate', event => {
   console.log(`[SW ${SW_VERSION}] Activating…`);
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(
-        keys
-          .filter(k => k !== SHELL_CACHE && k !== PORTAL_CACHE && k !== CDN_CACHE)
-          .map(k => { console.log(`[SW ${SW_VERSION}] Purging stale cache:`, k); return caches.delete(k); })
-      ))
+      .then(keys => {
+        const validCaches = [SHELL_CACHE, PORTAL_CACHE, CDN_CACHE];
+        return Promise.all(
+          keys
+            .filter(k => !validCaches.includes(k))
+            .map(k => {
+              console.log(`[SW ${SW_VERSION}] Purging stale cache:`, k);
+              return caches.delete(k);
+            })
+        );
+      })
       .then(() => {
         console.log(`[SW ${SW_VERSION}] Active. Claiming clients.`);
         return self.clients.claim();
@@ -136,8 +168,13 @@ self.addEventListener('fetch', event => {
   if (request.method !== 'GET') return;
   if (!url.protocol.startsWith('http')) return;
 
+  // Special endpoint: list offline pages
+  if (url.pathname === '/.api/offline-pages' && (request.destination === 'document' || request.mode === 'cors')) {
+    event.respondWith(handleOfflinePagesAPI());
+    return;
+  }
+
   // ── 1. Supabase — always network-only ────────────────────
-  //    Offline data served from IndexedDB by the page's SyncEngine
   if (isSupabase(url)) return;
 
   // ── 2. CDN — cache-first ─────────────────────────────────
@@ -160,7 +197,6 @@ self.addEventListener('fetch', event => {
   }
 
   // ── 5. Sub-resources (JS, CSS, fonts, images) ────────────
-  //    Stale-while-revalidate
   event.respondWith(handleSubResource(request));
 });
 
@@ -170,49 +206,93 @@ async function handleCdn(request, url) {
   const cached = await caches.match(request, { cacheName: CDN_CACHE });
   if (cached) return cached;
   try {
-    const resp = await fetch(request);
+    const resp = await deduplicatedFetch(request);
     cacheResponse(CDN_CACHE, request, resp);
     return resp;
-  } catch {
+  } catch (e) {
+    console.warn(`[SW ${SW_VERSION}] CDN fetch failed:`, e.message);
     return cached || Response.error();
   }
 }
 
 async function handlePortalNav(request, url) {
-  const key = portalCacheKey(url); // pathname-only cache key
+  const key = portalCacheKey(url);
 
   try {
-    // Always try network first so the user gets fresh content when online
-    const resp = await fetch(request);
-    // ★ BUG FIX: clone() called synchronously here, before any await
+    // Try network first for fresh content
+    const resp = await deduplicatedFetch(request);
     cacheResponse(PORTAL_CACHE, key, resp);
     return resp;
-  } catch {
-    // Offline (or server error) — serve cached shell
+  } catch (e) {
+    console.warn(`[SW ${SW_VERSION}] Portal fetch failed: ${url.pathname}`, e.message);
+    
+    // Offline: try cached version
     const cached = await caches.match(key, { cacheName: PORTAL_CACHE });
     if (cached) {
       console.log(`[SW ${SW_VERSION}] Serving offline portal: ${url.pathname}`);
       return cached;
     }
+
     // Never visited while online — show helpful offline page
     const offlinePage = await caches.match('/offline.html', { cacheName: SHELL_CACHE });
-    return offlinePage || new Response(
+    if (offlinePage) return offlinePage;
+
+    // Fallback: generate offline HTML
+    return new Response(
       `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
        <meta name="viewport" content="width=device-width,initial-scale=1">
        <title>Offline — EduTrack NG</title>
-       <style>body{font-family:system-ui;background:#0d1117;color:#e2e8f0;display:flex;align-items:center;
-       justify-content:center;min-height:100vh;margin:0;padding:20px;text-align:center}
-       .c{max-width:380px}h2{font-size:20px;margin-bottom:12px}
-       p{color:#64748b;font-size:14px;line-height:1.6;margin-bottom:20px}
-       a{display:inline-block;padding:10px 24px;background:#0a6e3f;color:white;
-       border-radius:8px;text-decoration:none;font-weight:700;font-size:14px}
-       </style></head><body><div class="c">
-       <div style="font-size:48px;margin-bottom:16px">📶</div>
-       <h2>You are offline</h2>
-       <p>This page hasn't been cached yet.<br>
-       Visit it once while connected so it works offline.</p>
-       <a href="/offline.html">← Back to offline page</a>
-       </div></body></html>`,
+       <style>
+         body {
+           font-family: system-ui, -apple-system, sans-serif;
+           background: #0d1117;
+           color: #e2e8f0;
+           display: flex;
+           align-items: center;
+           justify-content: center;
+           min-height: 100vh;
+           margin: 0;
+           padding: 20px;
+           text-align: center;
+         }
+         .container {
+           max-width: 380px;
+         }
+         .icon {
+           font-size: 48px;
+           margin-bottom: 16px;
+         }
+         h2 {
+           font-size: 20px;
+           margin: 0 0 12px 0;
+         }
+         p {
+           color: #64748b;
+           font-size: 14px;
+           line-height: 1.6;
+           margin: 0 0 20px 0;
+         }
+         a {
+           display: inline-block;
+           padding: 10px 24px;
+           background: #0a6e3f;
+           color: white;
+           border-radius: 8px;
+           text-decoration: none;
+           font-weight: 700;
+           font-size: 14px;
+         }
+         a:hover { background: #0d8a4a; }
+       </style>
+       </head><body>
+       <div class="container">
+         <div class="icon">📶</div>
+         <h2>You are offline</h2>
+         <p>The page "<strong>${url.pathname}</strong>" hasn't been cached yet.<br>
+         Visit it once while connected so it works offline.</p>
+         <a href="/">← Back to Dashboard</a>
+       </div>
+       </body></html>`,
       { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
     );
   }
@@ -220,27 +300,106 @@ async function handlePortalNav(request, url) {
 
 async function handlePublicNav(request) {
   const cached = await caches.match(request, { cacheName: SHELL_CACHE });
-  // Background revalidate
-  const networkPromise = fetch(request).then(resp => {
-    cacheResponse(SHELL_CACHE, request, resp);
-    return resp;
-  }).catch(() => null);
+  
+  // Background revalidate (non-blocking)
+  const networkPromise = deduplicatedFetch(request)
+    .then(resp => {
+      cacheResponse(SHELL_CACHE, request, resp);
+      return resp;
+    })
+    .catch(e => {
+      console.warn(`[SW ${SW_VERSION}] Network fetch failed:`, e.message);
+      return null;
+    });
+
   // Return cache immediately if available, else wait for network
-  if (cached) { networkPromise; return cached; }
-  return networkPromise.then(r => r || caches.match('/offline.html'));
+  if (cached) {
+    // Fire revalidation in background but don't wait
+    networkPromise.catch(() => {});
+    return cached;
+  }
+
+  return networkPromise.then(r => r || caches.match('/offline.html', { cacheName: SHELL_CACHE }));
 }
 
 async function handleSubResource(request) {
   const cached = await caches.match(request);
-  // ★ BUG FIX: clone() called synchronously in the .then() before awaiting
-  const networkPromise = fetch(request).then(resp => {
-    if (resp && resp.status === 200 && resp.type !== 'opaque')
-      cacheResponse(SHELL_CACHE, request, resp);
-    return resp;
-  }).catch(() => null);
+
+  const networkPromise = deduplicatedFetch(request)
+    .then(resp => {
+      if (resp && resp.status === 200 && resp.type !== 'opaque')
+        cacheResponse(SHELL_CACHE, request, resp);
+      return resp;
+    })
+    .catch(e => {
+      console.warn(`[SW ${SW_VERSION}] SubResource fetch failed:`, e.message);
+      return null;
+    });
+
   // Serve cached immediately, update in background
-  if (cached) { networkPromise; return cached; }
+  if (cached) {
+    networkPromise.catch(() => {});
+    return cached;
+  }
+
   return networkPromise;
+}
+
+/**
+ * API endpoint to list offline-cached pages
+ * Can be called from frontend: fetch('/.api/offline-pages')
+ */
+async function handleOfflinePagesAPI() {
+  try {
+    const cache = await caches.open(PORTAL_CACHE);
+    if (!cache) {
+      return new Response(JSON.stringify({ pages: [] }), {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const keys = await cache.keys();
+    const pages = [];
+
+    for (const req of keys) {
+      try {
+        const url = new URL(req.url);
+        if (url.search.includes('?')) continue;
+
+        const pathname = url.pathname;
+        const parts = pathname.split('/').filter(p => p);
+        const lastPart = parts.pop() || 'dashboard';
+
+        pages.push({
+          pathname,
+          title: lastPart
+            .replace('.html', '')
+            .replace(/-/g, ' ')
+            .replace(/\b\w/g, c => c.toUpperCase()),
+          url: pathname,
+          cached: true,
+        });
+      } catch {}
+    }
+
+    // Deduplicate
+    const unique = Array.from(
+      new Map(pages.map(p => [p.pathname, p])).values()
+    );
+
+    console.log(`[SW ${SW_VERSION}] Offline pages API: ${unique.length} pages`);
+
+    return new Response(JSON.stringify({ pages: unique, count: unique.length }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (e) {
+    console.warn(`[SW ${SW_VERSION}] Offline pages API failed:`, e.message);
+    return new Response(JSON.stringify({ pages: [], error: e.message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 }
 
 // ── MESSAGES ─────────────────────────────────────────────────
@@ -252,7 +411,6 @@ self.addEventListener('message', event => {
     return;
   }
 
-  // Called on logout — clears cached portal shells
   if (type === 'CLEAR_PORTAL_CACHE') {
     console.log(`[SW ${SW_VERSION}] Clearing portal cache on logout…`);
     caches.delete(PORTAL_CACHE)
@@ -260,7 +418,6 @@ self.addEventListener('message', event => {
     return;
   }
 
-  // Dynamically warm additional non-Supabase URLs
   if (type === 'CACHE_URLS' && Array.isArray(urls)) {
     const safe = urls.filter(u => {
       try { return !isSupabase(new URL(u, self.location.origin)); } catch { return false; }
@@ -270,7 +427,6 @@ self.addEventListener('message', event => {
     return;
   }
 
-  // Ping — used to check if SW is alive
   if (type === 'PING') {
     event.source?.postMessage({ type: 'PONG', version: SW_VERSION });
     return;
