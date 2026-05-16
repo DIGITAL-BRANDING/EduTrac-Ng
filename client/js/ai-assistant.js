@@ -463,25 +463,7 @@
     }
   }
 
-  btn.addEventListener('click', toggle);
-  const _hdClose = document.getElementById('edt-hd-close');
-  if (_hdClose) _hdClose.addEventListener('click', toggle);
-
-  chips.addEventListener('click', e => {
-    const c = e.target.closest('.edt-chip');
-    if (!c) return;
-    inp.value = c.dataset.q;
-    doSend();
-  });
-
-  inp.addEventListener('input', () => {
-    inp.style.height = 'auto';
-    inp.style.height = Math.min(inp.scrollHeight, 90) + 'px';
-  });
-  inp.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSend(); }
-  });
-  send.addEventListener('click', doSend);
+  // Event listeners are already wired safely in _wireListeners() above.
 
   function addTs() {
     const el = document.createElement('div');
