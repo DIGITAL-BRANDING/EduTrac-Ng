@@ -199,6 +199,11 @@ function renderPage() {
             onclick="toggleUserStatus('${u.id}', ${u.is_active})">
             ${u.is_active ? 'Deactivate' : 'Activate'}
           </button>
+          ${['admin','teacher'].includes(u.role) ? `
+          <button class="btn btn--sm btn--secondary"
+            onclick='openResetModal(${JSON.stringify({id:u.id, full_name:u.full_name, email:u.email||"—"})})'>
+            🔑 Reset PW
+          </button>` : ''}
         </div>
       </td>
     </tr>
@@ -308,5 +313,162 @@ async function createUser() {
 </script>
 
 <script src="../js/ai-assistant.js" defer></script>
+
+<!-- ── Reset Password Modal ──────────────────────────────────── -->
+<div class="modal" id="resetPwModal">
+  <div class="modal__box" style="max-width:460px">
+    <div class="modal__header">
+      <h3 class="modal__title">🔑 Reset Password</h3>
+      <button class="modal__close" onclick="closeModal('resetPwModal')">✕</button>
+    </div>
+    <div class="modal__body">
+      <div id="resetTargetInfo" style="background:var(--surface-3);border-radius:var(--radius-sm);
+        padding:12px 14px;margin-bottom:16px;font-size:13px;">
+        <div id="resetUserName" style="font-weight:700;color:var(--ink);margin-bottom:2px;"></div>
+        <div id="resetUserEmail" style="color:var(--ink-3);"></div>
+      </div>
+
+      <p style="font-size:13px;color:var(--ink-2);margin-bottom:16px;">
+        Choose how to reset this user's password:
+      </p>
+
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+        <!-- Option A: Email link -->
+        <label style="display:flex;align-items:flex-start;gap:12px;padding:14px;
+          border:1.5px solid var(--border);border-radius:var(--radius);cursor:pointer;
+          transition:.15s;" id="modeEmailLabel">
+          <input type="radio" name="resetMode" value="email" id="modeEmail"
+            style="margin-top:2px;accent-color:#6d28d9" onchange="onModeChange()" checked>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:2px;">
+              📧 Send Reset Email
+            </div>
+            <div style="font-size:12px;color:var(--ink-3);line-height:1.4;">
+              User receives an email with a secure link to set their own password. Recommended.
+            </div>
+          </div>
+        </label>
+
+        <!-- Option B: Generate temp password -->
+        <label style="display:flex;align-items:flex-start;gap:12px;padding:14px;
+          border:1.5px solid var(--border);border-radius:var(--radius);cursor:pointer;
+          transition:.15s;" id="modeGenLabel">
+          <input type="radio" name="resetMode" value="generate" id="modeGenerate"
+            style="margin-top:2px;accent-color:#6d28d9" onchange="onModeChange()">
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:2px;">
+              🎲 Generate Temp Password
+            </div>
+            <div style="font-size:12px;color:var(--ink-3);line-height:1.4;">
+              Instantly set a new temporary password. You share it with the user via phone/WhatsApp.
+            </div>
+          </div>
+        </label>
+      </div>
+
+      <!-- Result area -->
+      <div id="resetResult" style="display:none;padding:12px 14px;border-radius:var(--radius-sm);
+        font-size:13px;margin-bottom:8px;"></div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--ghost" onclick="closeModal('resetPwModal')">Cancel</button>
+      <button class="btn btn--purple" id="doResetBtn" onclick="doResetPassword()">
+        Reset Password
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+let _resetTarget = null;
+
+function openResetModal(user) {
+  _resetTarget = user;
+  document.getElementById('resetUserName').textContent  = user.full_name;
+  document.getElementById('resetUserEmail').textContent = user.email || '—';
+  document.getElementById('modeEmail').checked   = true;
+  document.getElementById('resetResult').style.display = 'none';
+  document.getElementById('doResetBtn').disabled  = false;
+  document.getElementById('doResetBtn').textContent = 'Reset Password';
+  onModeChange();
+  openModal('resetPwModal');
+}
+
+function onModeChange() {
+  const isEmail = document.getElementById('modeEmail').checked;
+  document.getElementById('modeEmailLabel').style.borderColor = isEmail ? '#6d28d9' : 'var(--border)';
+  document.getElementById('modeGenLabel').style.borderColor   = !isEmail ? '#6d28d9' : 'var(--border)';
+  document.getElementById('doResetBtn').textContent = isEmail ? 'Send Reset Email' : 'Generate & Set Password';
+  document.getElementById('resetResult').style.display = 'none';
+}
+
+async function doResetPassword() {
+  if (!_resetTarget) return;
+  const mode   = document.getElementById('modeEmail').checked ? 'email' : 'generate';
+  const btn    = document.getElementById('doResetBtn');
+  const result = document.getElementById('resetResult');
+
+  btn.disabled    = true;
+  btn.textContent = 'Working…';
+  result.style.display = 'none';
+
+  try {
+    const { data: { session } } = await db.auth.getSession();
+    const token = session?.access_token;
+
+    const res = await fetch('/api/reset-admin-password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        user_id: _resetTarget.id,
+        mode,
+        redirect_url: window.location.origin + '/reset-password.html',
+      }),
+    });
+
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Reset failed');
+
+    if (mode === 'email') {
+      showResetResult(
+        `✅ Reset email sent to <strong>${data.email}</strong>.<br>
+         The user will receive a link to set their new password.`,
+        'success'
+      );
+    } else {
+      showResetResult(
+        `✅ Temporary password set.<br><br>
+         <strong>Email:</strong> ${data.email}<br>
+         <strong>Temp Password:</strong>
+         <code style="background:#f3f4f6;padding:3px 8px;border-radius:4px;
+           font-size:15px;letter-spacing:1px;user-select:all;">${data.temp_password}</code><br><br>
+         <span style="color:#b45309;font-size:12px;">
+           ⚠️ Share this password securely (WhatsApp/phone call). The user must change it on next login.
+         </span>`,
+        'success'
+      );
+    }
+
+    btn.textContent = 'Done';
+    toast('Password reset successful', 'success');
+  } catch(e) {
+    showResetResult('❌ ' + e.message, 'error');
+    btn.disabled    = false;
+    btn.textContent = mode === 'email' ? 'Send Reset Email' : 'Generate & Set Password';
+  }
+}
+
+function showResetResult(html, type) {
+  const el = document.getElementById('resetResult');
+  el.innerHTML = html;
+  el.style.display = 'block';
+  el.style.background = type === 'success' ? '#dcfce7' : '#fee2e2';
+  el.style.color      = type === 'success' ? '#166534' : '#991b1b';
+  el.style.border     = type === 'success' ? '1px solid #86efac' : '1px solid #fca5a5';
+}
+</script>
 </body>
 </html>

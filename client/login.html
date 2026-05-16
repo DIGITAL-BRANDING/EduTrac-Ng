@@ -2,501 +2,354 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-<<<<<<< HEAD
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>Login · EduTrack NG</title>
   <link rel="manifest" href="/manifest.json">
-  <link rel="stylesheet" href="css/global.css">
-
-  <!-- FIX 1: Supabase CDN must load BEFORE config.js and supabase.js -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
-  <script src="/js/config.js"></script>
-  <script src="/js/supabase.js"></script>
-
-  <style>
-    body { background: var(--surface-2); }
-    .login-page {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px 16px;
-    }
-    .login-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-lg);
-      width: 100%;
-      max-width: 420px;
-      padding: 40px 36px;
-    }
-    .login-brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 28px;
-    }
-    .login-brand__icon {
-      width: 44px; height: 44px;
-      background: var(--primary);
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 22px;
-    }
-    .login-brand__name { font-size: 20px; font-weight: 800; color: var(--ink); }
-    .login-brand__tagline { font-size: 12px; color: var(--ink-3); margin-top: 1px; }
-    .login-title { font-size: 22px; font-weight: 800; color: var(--ink); margin-bottom: 4px; }
-    .login-subtitle { font-size: 13px; color: var(--ink-3); margin-bottom: 28px; }
-    .pw-wrap { position: relative; }
-    .pw-wrap .form-control { padding-right: 42px; }
-    .pw-toggle {
-      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
-      background: none; border: none; cursor: pointer; color: var(--ink-3);
-      font-size: 16px; padding: 4px; line-height: 1; transition: var(--transition);
-    }
-    .pw-toggle:hover { color: var(--ink); }
-    .login-error {
-      background: var(--danger-light); border: 1px solid #fca5a5;
-      border-radius: var(--radius-sm); color: var(--danger);
-      font-size: 13px; font-weight: 500; padding: 10px 14px;
-      margin-bottom: 16px; display: none;
-    }
-    .login-error.show { display: block; }
-    .divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
-    .role-hint { display: flex; gap: 8px; flex-wrap: wrap; }
-    .role-badge {
-      font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 600;
-      background: var(--surface-3); color: var(--ink-3); border: 1px solid var(--border);
-    }
-    @media (max-width: 480px) { .login-card { padding: 28px 20px; } }
-
-    /* Forgot modal */
-    #forgotModal {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,.45); z-index: 1000;
-      align-items: center; justify-content: center;
-    }
-    #forgotModal.open { display: flex; }
-    .forgot-inner {
-      background: var(--surface); border-radius: var(--radius-lg);
-      padding: 32px; max-width: 380px; width: 90%; box-shadow: var(--shadow-lg);
-    }
-  </style>
-</head>
-<body>
-
-<div class="login-page">
-  <div class="login-card">
-
-    <div class="login-brand">
-      <div class="login-brand__icon">🎓</div>
-      <div>
-        <div class="login-brand__name">EduTrack NG</div>
-        <div class="login-brand__tagline">Smart School Management</div>
-      </div>
-    </div>
-
-    <h1 class="login-title">Welcome back</h1>
-    <p class="login-subtitle">Sign in to your school portal</p>
-
-    <div class="login-error" id="loginError"></div>
-
-    <div class="form-group">
-      <label class="form-label" for="email">Email address</label>
-      <input type="email" id="email" class="form-control"
-        placeholder="you@school.edu.ng" autocomplete="email" inputmode="email">
-    </div>
-
-    <div class="form-group">
-      <label class="form-label" for="password">Password</label>
-      <div class="pw-wrap">
-        <input type="password" id="password" class="form-control"
-          placeholder="Enter your password" autocomplete="current-password">
-        <button class="pw-toggle" id="pwToggle" type="button">👁</button>
-      </div>
-    </div>
-
-    <div style="text-align:right;margin-top:-8px;margin-bottom:20px;">
-      <a href="#" id="forgotLink" style="font-size:13px;color:var(--primary);font-weight:600;">Forgot password?</a>
-    </div>
-
-    <button class="btn btn--primary btn--full" id="loginBtn" style="height:46px;font-size:15px;">
-      Sign In
-    </button>
-
-    <hr class="divider">
-
-    <div style="text-align:center;font-size:13px;color:var(--ink-3);margin-bottom:16px;">
-      New school? <a href="index.html" style="color:var(--primary);font-weight:600;">Request a demo</a>
-    </div>
-
-    <div style="font-size:11px;color:var(--ink-4);margin-bottom:6px;text-align:center;text-transform:uppercase;letter-spacing:1px;font-weight:600;">Portals</div>
-    <div class="role-hint" style="justify-content:center;">
-      <span class="role-badge">👤 Admin</span>
-      <span class="role-badge">📚 Teacher</span>
-      <span class="role-badge">🎒 Student</span>
-      <span class="role-badge">👨‍👩‍👦 Parent</span>
-    </div>
-
-  </div>
-</div>
-
-<!-- Forgot Password Modal -->
-<div id="forgotModal">
-  <div class="forgot-inner">
-    <h2 style="font-size:18px;font-weight:800;margin-bottom:8px;">Reset Password</h2>
-    <p style="font-size:13px;color:var(--ink-3);margin-bottom:20px;">Enter your email and we'll send a reset link.</p>
-    <div class="form-group">
-      <input type="email" id="resetEmail" class="form-control" placeholder="your@email.com">
-    </div>
-    <div style="display:flex;gap:10px;">
-      <button class="btn btn--secondary btn--full" id="cancelReset">Cancel</button>
-      <button class="btn btn--primary btn--full" id="sendReset">Send Link</button>
-    </div>
-    <p id="resetMsg" style="font-size:13px;margin-top:12px;text-align:center;display:none;"></p>
-  </div>
-</div>
-
-<script src="/js/pwa-v2.1.js"></script>
-<script>
-(function () {
-
-  /* ── Redirect if already logged in ──────────────────────── */
-  db.auth.getSession().then(function(res) {
-    var session = res.data.session;
-    if (!session) return;
-    db.from('users').select('role').eq('id', session.user.id).single()
-      .then(function(r) { if (r.data) redirectByRole(r.data.role); });
-  });
-
-  /* ── Role redirect ───────────────────────────────────────── */
-  function redirectByRole(role) {
-    if      (role === 'admin')   window.location.href = '/admin/classes.html';
-    else if (role === 'teacher') window.location.href = '/portals/staff/dashboard.html';
-    else if (role === 'student') window.location.href = '/portals/student/index.html';
-    else if (role === 'parent')  window.location.href = '/portals/parent/index.html';
-    else                         window.location.href = '/index.html';
-  }
-
-  /* ── UI refs ─────────────────────────────────────────────── */
-  var emailEl    = document.getElementById('email');
-  var passEl     = document.getElementById('password');
-  var loginBtn   = document.getElementById('loginBtn');
-  var errorEl    = document.getElementById('loginError');
-  var pwToggle   = document.getElementById('pwToggle');
-
-  function showError(msg) { errorEl.textContent = msg; errorEl.classList.add('show'); }
-  function clearError()   { errorEl.classList.remove('show'); }
-
-  /* ── Password show/hide ──────────────────────────────────── */
-  pwToggle.addEventListener('click', function () {
-    var hidden = passEl.type === 'password';
-    passEl.type = hidden ? 'text' : 'password';
-    pwToggle.textContent = hidden ? '🙈' : '👁';
-  });
-
-  /* ── Login ───────────────────────────────────────────────── */
-  async function doLogin() {
-    clearError();
-    var email    = emailEl.value.trim();
-    var password = passEl.value;
-    if (!email || !password) { showError('Please enter your email and password.'); return; }
-
-    loginBtn.disabled = true;
-    loginBtn.textContent = 'Signing in…';
-
-    try {
-      var res = await db.auth.signInWithPassword({ email: email, password: password });
-      if (res.error) throw res.error;
-
-      var uid = res.data.session.user.id;
-      var userRes = await db.from('users').select('role, is_active').eq('id', uid).single();
-
-      if (userRes.error || !userRes.data) {
-        await db.auth.signOut();
-        showError('Account not found. Please contact your school admin.');
-        return;
-      }
-      if (userRes.data.is_active === false) {
-        await db.auth.signOut();
-        showError('Your account has been deactivated. Contact your school admin.');
-        return;
-      }
-      redirectByRole(userRes.data.role);
-
-    } catch (err) {
-      var msg = err.message || 'Login failed. Please try again.';
-      if (/invalid login|invalid credentials/i.test(msg))
-        msg = 'Incorrect email or password. Please try again.';
-      showError(msg);
-    } finally {
-      loginBtn.disabled = false;
-      loginBtn.textContent = 'Sign In';
-    }
-  }
-
-  loginBtn.addEventListener('click', doLogin);
-  passEl.addEventListener('keydown',  function(e){ if(e.key==='Enter') doLogin(); });
-  emailEl.addEventListener('keydown', function(e){ if(e.key==='Enter') passEl.focus(); });
-
-  /* ── Forgot password ─────────────────────────────────────── */
-  var modal      = document.getElementById('forgotModal');
-  var resetEmail = document.getElementById('resetEmail');
-  var resetMsg   = document.getElementById('resetMsg');
-  var sendBtn    = document.getElementById('sendReset');
-
-  document.getElementById('forgotLink').addEventListener('click', function(e) {
-    e.preventDefault();
-    resetEmail.value = emailEl.value;
-    resetMsg.style.display = 'none';
-    sendBtn.disabled = false; sendBtn.textContent = 'Send Link';
-    modal.classList.add('open');
-  });
-  document.getElementById('cancelReset').addEventListener('click', function() {
-    modal.classList.remove('open');
-  });
-  modal.addEventListener('click', function(e) {
-    if (e.target === modal) modal.classList.remove('open');
-  });
-
-  sendBtn.addEventListener('click', async function() {
-    var em = resetEmail.value.trim();
-    if (!em) {
-      resetMsg.style.display='block'; resetMsg.style.color='var(--danger)';
-      resetMsg.textContent='Enter your email first.'; return;
-    }
-    sendBtn.disabled = true; sendBtn.textContent = 'Sending…';
-    try {
-      var r = await db.auth.resetPasswordForEmail(em, {
-        redirectTo: window.location.origin + '/login.html'
-      });
-      if (r.error) throw r.error;
-      resetMsg.style.display='block'; resetMsg.style.color='var(--success)';
-      resetMsg.textContent='Reset link sent! Check your inbox.';
-      sendBtn.textContent = 'Sent ✓';
-    } catch(err) {
-      resetMsg.style.display='block'; resetMsg.style.color='var(--danger)';
-      resetMsg.textContent = err.message || 'Failed to send link.';
-      sendBtn.disabled = false; sendBtn.textContent = 'Send Link';
-    }
-  });
-
-})();
-</script>
-
-=======
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#0a6e3f">
-  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>EduTrack NG — Sign In</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --G:#0a6e3f;--G2:#07512e;--G3:#12a05a;--GL:#e6f4ed;--GL2:#c8e8d6;
-      --AU:#f0a500;--AUL:#fff8e6;
-      --INK:#080c10;--INK2:#0f1820;
-      --T2:#3a5245;--T3:#7a9488;--BD:#dde4e8;--S:#f4f7f5;
-      --H:'Plus Jakarta Sans',system-ui,sans-serif;
-      --B:'DM Sans',system-ui,sans-serif;
-      --radius:14px;--radius-sm:10px;--transition:all .18s ease;
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --primary:#0a6e3f;--primary-dark:#085c34;--primary-light:#e6f4ee;
+      --accent:#f59e0b;--danger:#dc2626;--danger-light:#fee2e2;
+      --surface:#ffffff;--surface-2:#f9fafb;--surface-3:#f3f4f6;
+      --border:#e5e7eb;--ink:#111827;--ink-2:#374151;--ink-3:#6b7280;--ink-4:#9ca3af;
+      --radius:10px;--radius-sm:8px;--radius-lg:16px;
+      --shadow:0 1px 3px rgba(0,0,0,.1),0 1px 2px rgba(0,0,0,.06);
+      --shadow-lg:0 10px 40px rgba(0,0,0,.12);
+      --transition:all .15s ease;
+      --font:'Plus Jakarta Sans',system-ui,sans-serif;
     }
-    html,body{height:100%;font-family:var(--B);-webkit-font-smoothing:antialiased;}
-    body{display:flex;min-height:100vh;background:var(--INK2);}
-
-    /* Left pane */
-    .l-pane{flex:1;display:flex;flex-direction:column;background:var(--INK);padding:48px 56px;position:relative;overflow:hidden;}
-    .l-pane::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 70% at 20% 80%,rgba(10,110,63,.22) 0%,transparent 60%),radial-gradient(ellipse 60% 50% at 80% 20%,rgba(240,165,0,.08) 0%,transparent 55%);}
-    .l-dots{position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle,rgba(255,255,255,.05) 1px,transparent 1px);background-size:28px 28px;mask-image:radial-gradient(ellipse 80% 80% at 30% 70%,black 10%,transparent 85%);}
-    .l-top{position:relative;z-index:1;display:flex;align-items:center;gap:11px;}
-    .l-logo{width:42px;height:42px;border-radius:11px;background:white;padding:3px;overflow:hidden;flex-shrink:0;}
-    .l-logo img{width:100%;height:100%;object-fit:cover;border-radius:8px;}
-    .l-brand{font-family:var(--H);font-size:19px;font-weight:800;color:white;}
-    .l-brand em{color:var(--AU);font-style:normal;}
-    .l-body{flex:1;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:1;max-width:400px;}
-    .l-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(10,110,63,.15);border:1px solid rgba(10,110,63,.4);padding:5px 14px 5px 10px;border-radius:100px;font-size:12px;font-weight:700;color:#6ee7a7;margin-bottom:24px;width:fit-content;}
-    .l-dot{width:8px;height:8px;border-radius:50%;background:#4ade80;animation:pulse 2.2s ease-in-out infinite;}
-    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.5)}}
-    .l-h{font-family:var(--H);font-size:clamp(26px,3.2vw,42px);font-weight:900;color:white;line-height:1.08;letter-spacing:-1.5px;margin-bottom:16px;}
-    .l-h .au{color:var(--AU);}
-    .l-p{font-size:14px;color:rgba(255,255,255,.42);line-height:1.75;margin-bottom:32px;}
-    .portals-list{display:flex;flex-direction:column;gap:9px;}
-    .portal-item{display:flex;align-items:center;gap:12px;padding:11px 15px;border-radius:12px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.025);transition:var(--transition);}
-    .portal-item:hover{background:rgba(255,255,255,.04);border-color:rgba(10,110,63,.3);}
-    .pi-ico{width:34px;height:34px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;}
-    .pi-ico.admin{background:rgba(10,110,63,.2);}
-    .pi-ico.teacher{background:rgba(59,130,246,.15);}
-    .pi-ico.parent{background:rgba(240,165,0,.15);}
-    .pi-ico.exam{background:rgba(168,85,247,.15);}
-    .pi-text h4{font-family:var(--H);font-size:12px;font-weight:700;color:white;margin-bottom:1px;}
-    .pi-text p{font-size:10px;color:rgba(255,255,255,.32);}
-    .l-bottom{position:relative;z-index:1;font-size:12px;color:rgba(255,255,255,.2);margin-top:32px;}
-    .l-bottom a{color:rgba(255,255,255,.38);text-decoration:none;transition:color .15s;}
-    .l-bottom a:hover{color:white;}
-    .flag-stripe{position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--G) 33.33%,rgba(255,255,255,.6) 33.33%,rgba(255,255,255,.6) 66.66%,var(--G) 66.66%);}
-
-    /* Right pane */
-    .r-pane{width:480px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px;background:var(--S);}
-    .r-inner{width:100%;max-width:380px;}
-    .r-title{font-family:var(--H);font-size:26px;font-weight:800;color:var(--INK);letter-spacing:-.5px;margin-bottom:6px;}
-    .r-sub{font-size:14px;color:var(--T3);margin-bottom:28px;line-height:1.6;}
-    .form-grp{margin-bottom:16px;}
-    .form-lbl{display:block;font-size:13px;font-weight:600;color:var(--T2);margin-bottom:6px;}
-    .form-lbl .req{color:#ef4444;margin-left:2px;}
-    .form-ctrl{width:100%;padding:11px 14px;border:1.5px solid var(--BD);border-radius:var(--radius-sm);background:white;font-family:var(--B);font-size:14px;color:var(--INK);transition:var(--transition);outline:none;}
-    .form-ctrl::placeholder{color:var(--T3);}
-    .form-ctrl:focus{border-color:var(--G);box-shadow:0 0 0 3px rgba(10,110,63,.1);}
-    .pwd-wrap{position:relative;}
-    .pwd-toggle{position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--T3);font-size:14px;padding:4px;transition:color .15s;}
-    .pwd-toggle:hover{color:var(--G);}
-    .form-err{background:#fef2f2;border:1px solid #fecaca;border-radius:var(--radius-sm);color:#b91c1c;font-size:13px;padding:10px 14px;margin-bottom:14px;display:none;line-height:1.5;}
-    .btn-sign-in{width:100%;padding:13px;border-radius:var(--radius-sm);background:var(--G);color:white;font-family:var(--H);font-size:15px;font-weight:700;border:none;cursor:pointer;position:relative;overflow:hidden;transition:all .22s;margin-top:4px;}
-    .btn-sign-in::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.15),transparent);pointer-events:none;}
-    .btn-sign-in:hover:not(:disabled){background:var(--G3);transform:translateY(-1px);box-shadow:0 8px 24px rgba(10,110,63,.35);}
-    .btn-sign-in:disabled{opacity:.6;cursor:not-allowed;transform:none;}
-    .demo-section{margin-top:22px;padding-top:20px;border-top:1px solid var(--BD);}
-    .demo-label{font-size:11px;font-weight:700;color:var(--T3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;}
-    .demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
-    .demo-btn{padding:9px 12px;background:white;border:1.5px solid var(--BD);border-radius:var(--radius-sm);cursor:pointer;text-align:left;font-family:var(--B);transition:var(--transition);}
-    .demo-btn:hover{background:var(--GL);border-color:var(--G);}
-    .demo-btn strong{display:block;font-size:12px;font-weight:700;color:var(--G);}
-    .demo-btn span{font-size:10px;color:var(--T3);}
-    .student-link{margin-top:16px;padding:13px 15px;border-radius:var(--radius-sm);background:var(--AUL);border:1px solid #fde68a;display:flex;align-items:center;justify-content:space-between;gap:10px;}
-    .student-link p{font-size:12px;color:#78350f;line-height:1.5;}
-    .student-link p strong{font-weight:700;display:block;font-size:13px;}
-    .student-link a{flex-shrink:0;padding:8px 13px;border-radius:8px;background:var(--AU);color:white;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;transition:var(--transition);}
-    .student-link a:hover{background:#d97706;}
-    .r-footer{margin-top:24px;font-size:12px;color:var(--T3);text-align:center;}
-    .r-footer a{color:var(--G);font-weight:600;text-decoration:none;}
-    .r-footer a:hover{text-decoration:underline;}
-    @media(max-width:860px){.l-pane{display:none;}.r-pane{width:100%;padding:36px 24px;background:white;}body{background:white;}}
-    @media(max-width:480px){.demo-grid{grid-template-columns:1fr;}}
+    body{font-family:var(--font);background:var(--surface-3);min-height:100vh;
+      display:flex;align-items:center;justify-content:center;padding:20px;}
+    .login-wrap{width:100%;max-width:400px;}
+    .login-card{background:var(--surface);border-radius:var(--radius-lg);
+      padding:32px 28px;box-shadow:var(--shadow-lg);position:relative;}
+    /* Header */
+    .login-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+    .login-logo{display:flex;align-items:center;gap:10px;}
+    .login-logo img{width:40px;height:40px;border-radius:10px;object-fit:cover;}
+    .login-logo-text{font-size:16px;font-weight:800;color:var(--ink);}
+    .login-logo-text span{color:var(--primary);}
+    .demo-btn{background:var(--primary);color:#fff;border:none;padding:8px 14px;
+      border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;
+      display:flex;align-items:center;gap:6px;font-family:var(--font);
+      transition:var(--transition);position:relative;}
+    .demo-btn:hover{background:var(--primary-dark);}
+    .demo-badge{position:absolute;top:-8px;left:50%;transform:translateX(-50%);
+      background:var(--accent);color:#fff;font-size:9px;font-weight:800;
+      padding:2px 6px;border-radius:100px;text-transform:uppercase;letter-spacing:.5px;
+      white-space:nowrap;}
+    /* Heading */
+    .login-title{font-size:22px;font-weight:800;color:var(--ink);margin-bottom:4px;}
+    .login-sub{font-size:13px;color:var(--ink-3);margin-bottom:24px;line-height:1.5;}
+    /* Form */
+    .form-group{margin-bottom:16px;}
+    .form-label{display:block;font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:6px;}
+    .form-label .req{color:var(--danger);margin-left:2px;}
+    .input-wrap{position:relative;}
+    .form-control{width:100%;padding:10px 12px;border:1.5px solid var(--border);
+      border-radius:var(--radius-sm);font-size:14px;background:var(--surface);
+      color:var(--ink);transition:var(--transition);outline:none;
+      font-family:var(--font);-webkit-appearance:none;}
+    .form-control:focus{border-color:var(--primary);box-shadow:0 0 0 3px #0a6e3f18;}
+    .form-control::placeholder{color:var(--ink-4);}
+    .pw-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);
+      background:none;border:none;cursor:pointer;color:var(--ink-3);padding:4px;
+      display:flex;align-items:center;}
+    .pw-toggle:hover{color:var(--ink);}
+    /* Error */
+    .error-box{background:var(--danger-light);border:1px solid #fca5a5;color:#991b1b;
+      padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;
+      margin-bottom:16px;display:none;}
+    /* Buttons */
+    .btn-signin{width:100%;padding:12px;background:var(--primary);color:#fff;
+      border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;
+      cursor:pointer;font-family:var(--font);transition:var(--transition);
+      display:flex;align-items:center;justify-content:center;gap:8px;}
+    .btn-signin:hover:not(:disabled){background:var(--primary-dark);}
+    .btn-signin:disabled{opacity:.6;cursor:not-allowed;}
+    /* Portal boxes */
+    .portal-boxes{display:flex;flex-direction:column;gap:10px;margin-top:16px;}
+    .portal-box{border-radius:var(--radius);padding:12px 16px;
+      display:flex;align-items:center;justify-content:space-between;gap:12px;}
+    .portal-box--student{background:#fffbeb;border:1px solid #fde68a;}
+    .portal-box--new{background:var(--primary-light);border:1px solid #bbf7d0;}
+    .portal-box--result{background:var(--surface-3);border:1px solid var(--border);}
+    .portal-box-text{font-size:13px;}
+    .portal-box-title{font-weight:700;color:var(--ink);margin-bottom:2px;}
+    .portal-box-sub{font-size:12px;color:var(--ink-3);}
+    .portal-btn{white-space:nowrap;padding:8px 14px;border:none;border-radius:var(--radius-sm);
+      font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);
+      transition:var(--transition);}
+    .portal-btn--orange{background:var(--accent);color:#fff;}
+    .portal-btn--orange:hover{background:#d97706;}
+    .portal-btn--green{background:var(--primary);color:#fff;}
+    .portal-btn--green:hover{background:var(--primary-dark);}
+    .portal-btn--gray{background:var(--ink);color:#fff;}
+    .portal-btn--gray:hover{background:var(--ink-2);}
+    /* Spinner */
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.4);
+      border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none;}
+    .btn-signin.loading .spinner{display:block;}
+    .btn-signin.loading .btn-text{display:none;}
   </style>
 </head>
 <body>
-  <!-- Left Pane -->
-  <div class="l-pane">
-    <div class="l-dots"></div>
-    <div class="l-top">
-      <div class="l-logo">
-        <img src="images/logo.jpg" alt="EduTrack NG" onerror="this.parentElement.style.background='#0a6e3f';this.parentElement.innerHTML='🏫'">
-      </div>
-      <div class="l-brand">EduTrack <em>NG</em></div>
-    </div>
-    <div class="l-body">
-      <div class="l-eyebrow"><span class="l-dot"></span>Nigerian School Management</div>
-      <h1 class="l-h">School admin,<br>simplified<br>for <span class="au">Nigeria</span></h1>
-      <p class="l-p">One platform, four powerful portals. Every user sees exactly what they need — with full Nigerian grading (A1–F9) and Naira fee tracking.</p>
-      <div class="portals-list">
-        <div class="portal-item"><div class="pi-ico admin">🛡️</div><div class="pi-text"><h4>Administrator</h4><p>Full school management — students, staff, fees, results</p></div></div>
-        <div class="portal-item"><div class="pi-ico teacher">📚</div><div class="pi-text"><h4>Teacher Portal</h4><p>Attendance, scores & timetable for assigned classes</p></div></div>
-        <div class="portal-item"><div class="pi-ico parent">👨‍👩‍👧</div><div class="pi-text"><h4>Parent Portal</h4><p>Track child's results, attendance and fee balance</p></div></div>
-        <div class="portal-item"><div class="pi-ico exam">📝</div><div class="pi-text"><h4>Exam Officer</h4><p>Manage exams, enter scores, publish report cards</p></div></div>
-      </div>
-    </div>
-    <div class="l-bottom">
-      <p>© 2025 EduTrack NG &nbsp;·&nbsp;<a href="index.html">Home</a> &nbsp;·&nbsp;<a href="index.html#pricing">Pricing</a></p>
-    </div>
-    <div class="flag-stripe"></div>
-  </div>
+<div class="login-wrap">
+  <div class="login-card">
 
-  <!-- Right Pane (Form) -->
-  <div class="r-pane">
-    <div class="r-inner">
-      <h2 class="r-title">Welcome back</h2>
-      <p class="r-sub">Sign in to your school portal. Students use the student portal link below.</p>
-
-      <div class="form-err" id="loginError"></div>
-
-      <div class="form-grp">
-        <label class="form-lbl">Email Address <span class="req">*</span></label>
-        <input type="email" id="email" class="form-ctrl" placeholder="you@school.edu.ng" required autocomplete="username">
+    <!-- Header -->
+    <div class="login-header">
+      <div class="login-logo">
+        <img src="/icons/logo.jpg" alt="EduTrack NG" onerror="this.style.display='none'">
+        <div class="login-logo-text">EduTrack <span>NG</span></div>
       </div>
-      <div class="form-grp">
-        <label class="form-lbl">Password <span class="req">*</span></label>
-        <div class="pwd-wrap">
-          <input type="password" id="password" class="form-ctrl" placeholder="Enter your password" required autocomplete="current-password">
-          <button type="button" class="pwd-toggle" id="pwdToggle" title="Toggle password">👁</button>
+      <button class="demo-btn" onclick="demoLogin()">
+        <span class="demo-badge">NEW</span>
+        🎯 Demo Login
+      </button>
+    </div>
+
+    <!-- Title -->
+    <h2 class="login-title">Welcome back</h2>
+    <p class="login-sub">Sign in to your school portal. Students use the student portal link below.</p>
+
+    <!-- Error -->
+    <div class="error-box" id="errorBox"></div>
+
+    <!-- Form -->
+    <div class="form-group">
+      <label class="form-label">Email Address <span class="req">*</span></label>
+      <input class="form-control" type="email" id="email"
+        placeholder="you@school.edu.ng" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password <span class="req">*</span></label>
+      <div class="input-wrap">
+        <input class="form-control" type="password" id="password"
+          placeholder="Enter your password" autocomplete="current-password"
+          style="padding-right:40px">
+        <button class="pw-toggle" type="button" id="pwToggle" aria-label="Show password">
+          <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+
+    <!-- Forgot password link -->
+    <div style="text-align:right;margin-top:-8px;margin-bottom:16px">
+      <button onclick="toggleForgot()" style="background:none;border:none;color:var(--primary);
+        font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);">
+        Forgot password?
+      </button>
+    </div>
+
+    <!-- Forgot password panel -->
+    <div id="forgotPanel" style="display:none;background:var(--primary-light);
+      border:1px solid #bbf7d0;border-radius:var(--radius);padding:16px;margin-bottom:16px;">
+      <p style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:6px;">🔑 Reset your password</p>
+      <p style="font-size:12px;color:var(--ink-3);margin-bottom:12px;line-height:1.5;">
+        Enter your email and we'll send a link to set a new password.
+      </p>
+      <div style="display:flex;gap:8px;">
+        <input class="form-control" type="email" id="resetEmail"
+          placeholder="your@email.com" style="flex:1;font-size:13px;padding:9px 12px;">
+        <button onclick="sendReset()" id="resetBtn"
+          style="background:var(--primary);color:#fff;border:none;padding:9px 16px;
+          border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;
+          white-space:nowrap;font-family:var(--font);">Send Link</button>
+      </div>
+      <div id="resetMsg" style="display:none;margin-top:10px;font-size:12px;
+        padding:8px 12px;border-radius:var(--radius-sm);"></div>
+    </div>
+
+    <!-- Sign In -->
+    <button class="btn-signin" id="signinBtn" onclick="doLogin()">
+      <span class="btn-text">Sign In to Portal →</span>
+      <div class="spinner"></div>
+    </button>
+
+    <!-- Portal boxes -->
+    <div class="portal-boxes">
+      <div class="portal-box portal-box--student">
+        <div class="portal-box-text">
+          <div class="portal-box-title">Are you a student?</div>
+          <div class="portal-box-sub">Use your Admission No. + PIN to log in to the student portal.</div>
         </div>
+        <button class="portal-btn portal-btn--orange"
+          onclick="window.location.href='portals/student/login.html'">
+          Student Login →
+        </button>
       </div>
 
-      <button class="btn-sign-in" id="loginBtn" onclick="doLogin()">Sign In to Portal →</button>
-
-      <div class="demo-section">
-        <div class="demo-label">🔑 Demo accounts — click to fill</div>
-        <div class="demo-grid">
-          <button class="demo-btn" onclick="fillDemo('admin@demo.school.ng','demo1234')"><strong>Admin</strong><span>admin@demo.school.ng</span></button>
-          <button class="demo-btn" onclick="fillDemo('teacher@demo.school.ng','demo1234')"><strong>Teacher</strong><span>teacher@demo.school.ng</span></button>
-          <button class="demo-btn" onclick="fillDemo('examofficer@demo.school.ng','demo1234')"><strong>Exam Officer</strong><span>examofficer@demo.school.ng</span></button>
-          <button class="demo-btn" onclick="fillDemo('parent@demo.school.ng','demo1234')"><strong>Parent</strong><span>parent@demo.school.ng</span></button>
+      <div class="portal-box portal-box--new">
+        <div class="portal-box-text">
+          <div class="portal-box-title">🌟 New Student?</div>
+          <div class="portal-box-sub">Register with your school-issued scratch card PIN.</div>
         </div>
+        <button class="portal-btn portal-btn--green"
+          onclick="window.location.href='register.html'">
+          Apply Now →
+        </button>
       </div>
 
-      <div class="student-link">
-        <p><strong>Are you a student?</strong>Use your Admission No. + PIN to log in at the student portal.</p>
-        <a href="student/login.html">Student Login →</a>
-      </div>
-
-      <div class="r-footer">
-        <a href="index.html">← Back to homepage</a> &nbsp;·&nbsp; <a href="saas-admin/login.html">Platform Admin</a>
+      <div class="portal-box portal-box--result">
+        <div class="portal-box-text">
+          <div class="portal-box-title">📋 Check Term Result</div>
+          <div class="portal-box-sub">Use your scratch card PIN to view a published result.</div>
+        </div>
+        <button class="portal-btn portal-btn--gray"
+          onclick="window.location.href='result-checker/index.html'">
+          Check Result →
+        </button>
       </div>
     </div>
-  </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/supabase.js"></script>
-  <script>
-    (async () => {
-      const session = await getSession();
-      if (session) { const user = await getCurrentUser(); if (user) redirectByRole(user.role); }
-    })();
+  </div><!-- /login-card -->
+</div><!-- /login-wrap -->
 
-    function redirectByRole(role) {
-      const routes = { admin:'admin/index.html', teacher:'teacher/index.html', parent:'parent/index.html', exam_officer:'exam-officer/index.html', saas_owner:'saas-admin/index.html' };
-      window.location.href = routes[role] || 'index.html';
-    }
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
+<script src="/js/config.js"></script>
+<script src="/js/supabase.js"></script>
+<script src="/js/pwa-v2.1.js" defer></script>
+<script>
+// ── Redirect if already logged in ──────────────────────────────
+(async () => {
+  try {
+    if (typeof getSession !== 'function') return;
+    const session = await getSession();
+    if (!session) return;
+    const user = await getCurrentUser();
+    if (user?.role) redirectByRole(user.role);
+  } catch(e) {}
+})();
 
-    function fillDemo(email, pwd) {
-      document.getElementById('email').value = email;
-      document.getElementById('password').value = pwd;
-    }
+// ── Role-based redirect ────────────────────────────────────────
+function redirectByRole(role) {
+  const map = {
+    admin:   'admin/index.html',
+    teacher: 'teacher/dashboard.html',
+    student: 'portals/student/index.html',
+    parent:  'portals/parent/index.html',
+    saas_owner: 'saas-console/index.html',
+  };
+  window.location.href = map[role] || 'index.html';
+}
 
-    document.getElementById('pwdToggle').addEventListener('click', () => {
-      const p = document.getElementById('password'), b = document.getElementById('pwdToggle');
-      p.type = p.type === 'password' ? 'text' : 'password';
-      b.textContent = p.type === 'password' ? '👁' : '🙈';
+// ── Password toggle ────────────────────────────────────────────
+document.getElementById('pwToggle').addEventListener('click', function() {
+  const pw = document.getElementById('password');
+  const isText = pw.type === 'text';
+  pw.type = isText ? 'password' : 'text';
+  document.getElementById('eyeIcon').style.opacity = isText ? '1' : '0.4';
+});
+
+// ── Enter key submits ──────────────────────────────────────────
+document.getElementById('password').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+document.getElementById('email').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('password').focus();
+});
+
+// ── Main login ─────────────────────────────────────────────────
+async function doLogin() {
+  const email    = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const btn      = document.getElementById('signinBtn');
+  const errBox   = document.getElementById('errorBox');
+
+  errBox.style.display = 'none';
+  if (!email || !password) { showError('Please enter your email and password.'); return; }
+
+  btn.disabled = true;
+  btn.classList.add('loading');
+
+  try {
+    const { error } = await db.auth.signInWithPassword({ email, password });
+    if (error) { showError(error.message); return; }
+
+    const user = await getCurrentUser();
+    if (!user) { showError('Login failed. Please try again.'); return; }
+
+    redirectByRole(user.role);
+  } catch(e) {
+    showError('An error occurred. Please check your connection and try again.');
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove('loading');
+  }
+}
+
+// ── Demo login ─────────────────────────────────────────────────
+async function demoLogin() {
+  document.getElementById('email').value    = 'demo@edutracng.com';
+  document.getElementById('password').value = 'Demo@2025';
+  await doLogin();
+}
+
+
+// ── Forgot password ────────────────────────────────────────────
+function toggleForgot() {
+  const panel = document.getElementById('forgotPanel');
+  const isHidden = panel.style.display === 'none';
+  panel.style.display = isHidden ? 'block' : 'none';
+  if (isHidden) {
+    const email = document.getElementById('email').value;
+    if (email) document.getElementById('resetEmail').value = email;
+    document.getElementById('resetEmail').focus();
+  }
+}
+
+async function sendReset() {
+  const email = document.getElementById('resetEmail').value.trim();
+  const btn   = document.getElementById('resetBtn');
+  const msg   = document.getElementById('resetMsg');
+
+  if (!email) { showResetMsg('Please enter your email address.', 'error'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+
+  try {
+    const { error } = await db.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + '/reset-password.html',
     });
+    if (error) throw error;
+    showResetMsg('✅ Check your email for the reset link. It expires in 1 hour.', 'success');
+    btn.textContent = 'Sent!';
+    setTimeout(() => { btn.disabled = false; btn.textContent = 'Send Link'; }, 30000);
+  } catch(e) {
+    showResetMsg('Failed: ' + e.message, 'error');
+    btn.disabled = false;
+    btn.textContent = 'Send Link';
+  }
+}
 
-    document.getElementById('password').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+function showResetMsg(text, type) {
+  const el = document.getElementById('resetMsg');
+  el.textContent = text;
+  el.style.display = 'block';
+  el.style.background = type === 'success' ? '#dcfce7' : '#fee2e2';
+  el.style.color      = type === 'success' ? '#166534' : '#991b1b';
+}
 
-    async function doLogin() {
-      const btn = document.getElementById('loginBtn');
-      const errEl = document.getElementById('loginError');
-      const email = document.getElementById('email').value.trim();
-      const pwd = document.getElementById('password').value;
-      errEl.style.display = 'none';
-      if (!email || !pwd) { errEl.textContent = 'Please enter your email and password.'; errEl.style.display = 'block'; return; }
-      btn.textContent = 'Signing in…'; btn.disabled = true;
-      try {
-        const { error } = await db.auth.signInWithPassword({ email, password: pwd });
-        if (error) throw error;
-        const user = await getCurrentUser();
-        if (!user) throw new Error('Account not found. Contact your school admin.');
-        if (!user.is_active) throw new Error('Your account is deactivated. Contact your school admin.');
-        redirectByRole(user.role);
-      } catch (err) {
-        errEl.textContent = err.message || 'Login failed. Check your credentials.';
-        errEl.style.display = 'block';
-        btn.textContent = 'Sign In to Portal →'; btn.disabled = false;
-      }
-    }
-  </script>
-  <script src="js/pwa.js"></script>
->>>>>>> 01f5891 (Update project files)
+function showError(msg) {
+  const b = document.getElementById('errorBox');
+  b.textContent = msg;
+  b.style.display = 'block';
+}
+</script>
 </body>
 </html>
