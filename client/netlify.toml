@@ -167,3 +167,10 @@
   [headers.values]
     Cache-Control = "private, no-cache, must-revalidate"
     Pragma        = "no-cache"
+
+# Favicon redirect - serve icon-96.png as favicon
+[[redirects]]
+  from   = "/favicon.ico"
+  to     = "/icons/icon-96.png"
+  status = 200
+  force  = false

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="icon" href="/icons/icon-96.png" type="image/png">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="manifest" href="/manifest.json">
@@ -177,12 +178,12 @@ function searchSchools(q) {
     );
 
     if (!matches.length) {
-      dd.innerHTML = `<div class="school-option" style="color:var(--ink-3);cursor:default">No schools found matching "${q}"</div>`;
+      dd.innerHTML = '<div class="school-option" style="color:var(--ink-3);cursor:default">No schools found</div>';
     } else {
       dd.innerHTML = matches.map(s => `
         <div class="school-option" onclick='pickSchool(${JSON.stringify(s)})'>
-          <div class="school-option__name">${s.name}</div>
-          <div class="school-option__sub">${[s.state, s.lga].filter(Boolean).join(', ') || 'Location not set'}</div>
+          <div class="school-option__name">${s.name.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+          <div class="school-option__sub">${([s.state, s.lga].filter(Boolean).join(', ') || 'Location not set').replace(/&/g,'&amp;').replace(/</g,'&lt;')}</div>
         </div>
       `).join('');
     }

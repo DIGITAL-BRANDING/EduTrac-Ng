@@ -102,6 +102,8 @@ ul { list-style: none; }
 .nav-item:hover { background: #ffffff0d; color: #fff; }
 .nav-item.active { background: #ffffff12; color: #fff; border-left-color: var(--primary); }
 .nav-item .nav-icon { font-size: 18px; width: 22px; text-align: center; }
+.nav-group__header .nav-icon { width: 22px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.nav-group__header .nav-icon svg { width: 18px; height: 18px; display: block; }
 .sidebar__footer { padding: 16px 20px; border-top: 1px solid #ffffff12; }
 .sidebar__user { display: flex; align-items: center; gap: 10px; }
 .sidebar__avatar {
@@ -461,14 +463,28 @@ tbody td { padding: 11px 14px; vertical-align: middle; }
   color: #fff !important; font-weight: 600 !important;
   background: #ffffff10 !important;
 }
-.nav-item--child { position: relative; }
 .nav-item--child.active::before {
   content: ''; width: 3px; background: var(--primary);
   position: absolute; left: 0; top: 0; bottom: 0;
 }
+.nav-item--child { position: relative; }
 .nav-group.active-group > .nav-group__header {
   border-left: 3px solid var(--primary); padding-left: 14px;
 }
-/* Nav group header icon sizing */
-.nav-group__header .nav-icon { width: 22px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.nav-group__header .nav-icon svg { width: 18px; height: 18px; display: block; }
+/* Scratch card delete checkbox overlay */
+.sc-check-wrap {
+  position: absolute; top: 6px; right: 6px; z-index: 5;
+}
+.sc-check-wrap input[type=checkbox] {
+  width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary);
+}
+.scratch-card.selected { outline: 3px solid var(--primary); outline-offset: -2px; }
+/* Selection toolbar */
+#selectionBar {
+  position: sticky; top: 64px; z-index: 40;
+  background: var(--primary); color: #fff;
+  padding: 10px 20px; display: none; align-items: center; gap: 12px;
+  border-radius: var(--radius); margin-bottom: 12px;
+  box-shadow: var(--shadow);
+}
+#selectionBar.active { display: flex; }
