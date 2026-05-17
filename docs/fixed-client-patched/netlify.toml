@@ -1,0 +1,176 @@
+# EduTrack NG — Netlify Configuration
+# Frontend deploys from the client/ folder.
+# All /api/* requests are proxied to the Railway backend via the redirect below.
+
+[build]
+  publish = "."
+
+# ── Proxy ONLY real API endpoints to Railway ─────────────────────
+# DO NOT use /api/* wildcard — it would catch client/api/*.js files
+
+[[redirects]]
+  from   = "/api/ai-chat"
+  to     = "https://edutrac-ng-production.up.railway.app/api/ai-chat"
+  status = 200
+  force  = true
+
+[[redirects]]
+  from   = "/api/generate-lesson"
+  to     = "https://edutrac-ng-production.up.railway.app/api/generate-lesson"
+  status = 200
+  force  = true
+
+[[redirects]]
+  from   = "/api/provision-school"
+  to     = "https://edutrac-ng-production.up.railway.app/api/provision-school"
+  status = 200
+  force  = true
+
+[[redirects]]
+  from   = "/api/reset-staff-password"
+  to     = "https://edutrac-ng-production.up.railway.app/api/reset-staff-password"
+  status = 200
+  force  = true
+
+  [redirects.headers]
+    X-Forwarded-Host = "edutracng.netlify.app"
+
+# ── Security & PWA Headers ───────────────────────────────────────
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Service Worker — must NOT be cached
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Content-Type  = "application/javascript"
+
+# Manifest
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Content-Type  = "application/manifest+json"
+    Cache-Control = "public, max-age=86400"
+
+# Icons — cache aggressively
+[[headers]]
+  for = "/icons/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+
+[[headers]]
+  for = "/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+# ── Role-gated portals — private, no CDN cache ───────────────────
+[[headers]]
+  for = "/admin/*.html"
+  [headers.values]
+    Cache-Control = "private, no-cache, must-revalidate"
+    Pragma        = "no-cache"
+
+[[headers]]
+  for = "/portals/staff/*.html"
+  [headers.values]
+    Cache-Control = "private, no-cache, must-revalidate"
+    Pragma        = "no-cache"
+
+[[headers]]
+  for = "/portals/academic-office/*.html"
+  [headers.values]
+    Cache-Control = "private, no-cache, must-revalidate"
+    Pragma        = "no-cache"
+
+[[headers]]
+  for = "/portals/bursary/*.html"
+  [headers.values]
+    Cache-Control = "private, no-cache, must-revalidate"
+    Pragma        = "no-cache"
+
+[[headers]]
+  for = "/portals/admin-office/*.html"
+  [headers.values]
+    Cache-Control = "private, no-cache, must-revalidate"
+    Pragma        = "no-cache"
+
+[[headers]]
+  for = "/portals/parent/*.html"
+  [headers.values]
+    Cache-Control = "private, no-cache, must-revalidate"
+    Pragma        = "no-cache"
+
+[[headers]]
+  for = "/portals/student/index.html"
+  [headers.values]
+    Cache-Control = "private, no-cache, must-revalidate"
+    Pragma        = "no-cache"
+
+[[headers]]
+  for = "/portals/student/results.html"
+  [headers.values]
+    Cache-Control = "private, no-cache, must-revalidate"
+    Pragma        = "no-cache"
+
+[[headers]]
+  for = "/portals/student/attendance.html"
+  [headers.values]
+    Cache-Control = "private, no-cache, must-revalidate"
+    Pragma        = "no-cache"
+
+[[headers]]
+  for = "/portals/student/fees.html"
+  [headers.values]
+    Cache-Control = "private, no-cache, must-revalidate"
+    Pragma        = "no-cache"
+
+[[headers]]
+  for = "/portals/student/profile.html"
+  [headers.values]
+    Cache-Control = "private, no-cache, must-revalidate"
+    Pragma        = "no-cache"
+
+[[headers]]
+  for = "/portals/student/notifications.html"
+  [headers.values]
+    Cache-Control = "private, no-cache, must-revalidate"
+    Pragma        = "no-cache"
+
+[[headers]]
+  for = "/portals/student/login.html"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/report-card/*.html"
+  [headers.values]
+    Cache-Control = "private, no-cache, must-revalidate"
+    Pragma        = "no-cache"
+
+[[headers]]
+  for = "/saas-console/*.html"
+  [headers.values]
+    Cache-Control = "private, no-cache, must-revalidate"
+    Pragma        = "no-cache"
+
+# Favicon redirect - serve icon-96.png as favicon
+[[redirects]]
+  from   = "/favicon.ico"
+  to     = "/icons/icon-96.png"
+  status = 200
+  force  = false

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/icons/icon-96.png" type="image/png">
+  <meta name="theme-color" content="#0a6e3f">
+  <title>Timetable · EduTrack NG</title>
+  <link rel="stylesheet" href="../assets/css/global.css">
+  <style>
+    .tt-wrap{overflow-x:auto;}
+    .tt-table{border-collapse:collapse;min-width:700px;width:100%;font-size:.82rem;}
+    .tt-table th{background:var(--surface-2);padding:9px 10px;border:1px solid var(--border);font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);white-space:nowrap;}
+    .tt-table td{border:1px solid var(--border);padding:0;vertical-align:top;min-width:120px;height:56px;}
+    .tt-cell{padding:7px 8px;height:100%;display:flex;flex-direction:column;gap:2px;cursor:pointer;transition:background .12s;}
+    .tt-cell:hover{background:var(--primary-light);}
+    .tt-subject{font-weight:600;font-size:.8rem;line-height:1.2;}
+    .tt-teacher{font-size:.68rem;color:var(--ink-3);}
+    .tt-empty{background:var(--surface-2);color:var(--ink-4);font-size:.75rem;align-items:center;justify-content:center;}
+    .tt-time-col{background:var(--surface-2);padding:9px 10px;font-size:.75rem;font-weight:700;color:var(--ink-3);white-space:nowrap;text-align:right;border:1px solid var(--border);}
+  </style>
+</head>
+<body>
+<div id="app"></div>
+
+<!-- Add/Edit Slot Modal -->
+<div class="modal" id="slotModal">
+  <div class="modal__box" style="max-width:420px;">
+    <div class="modal__header">
+      <h2 class="modal__title" id="slotModalTitle">Add Timetable Entry</h2>
+      <button class="modal__close" onclick="closeModal('slotModal')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal__body">
+      <input type="hidden" id="slotId">
+      <input type="hidden" id="slotDay">
+      <input type="hidden" id="slotPeriod">
+      <input type="hidden" id="slotClass">
+      <div class="form-group">
+        <label class="form-label">Subject <span class="required">*</span></label>
+        <select id="slotSubject" class="form-control"><option value="">— Select Subject —</option></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Teacher</label>
+        <select id="slotTeacher" class="form-control"><option value="">— Select Teacher —</option></select>
+      </div>
+      <div id="slotErr" class="form-error" style="display:none;margin-top:8px;"></div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--ghost btn--sm" id="slotDeleteBtn" style="margin-right:auto;color:var(--danger);display:none;" onclick="deleteSlot()">Delete</button>
+      <button class="btn btn--secondary" onclick="closeModal('slotModal')">Cancel</button>
+      <button class="btn btn--primary" onclick="saveSlot()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
+<script src="../js/config.js"></script>
+<script src="../js/supabase.js"></script>
+<script src="../js/layout.js"></script>
+<script>
+const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
+const PERIODS = ['07:30–08:15','08:15–09:00','09:00–09:45','09:45–10:00 (Break)','10:00–10:45','10:45–11:30','11:30–12:15','12:15–13:00 (Lunch)','13:00–13:45','13:45–14:30'];
+let currentUser, classes = [], subjects = [], teachers = [], slots = [], currentTerm, selectedClass;
+
+(async () => {
+  currentUser = await initAdminLayout('timetable', 'Timetable');
+  if (!currentUser) return;
+  const sid = currentUser.school_id;
+  const [{ data: cls }, { data: sub }, { data: tch }, { data: trm }] = await Promise.all([
+    db.from('classes').select('id,name').eq('school_id', sid).order('name'),
+    db.from('subjects').select('id,name').eq('school_id', sid).order('name').catch(()=>({data:[]})),
+    db.from('users').select('id,full_name').eq('school_id', sid).eq('role','teacher').eq('is_active',true).order('full_name'),
+    db.from('terms').select('*').eq('school_id', sid).eq('is_current', true).maybeSingle(),
+  ]);
+  classes = cls || []; subjects = sub || []; teachers = tch || []; currentTerm = trm;
+  selectedClass = classes[0]?.id || null;
+
+  document.getElementById('slotSubject').innerHTML = '<option value="">— Select Subject —</option>' +
+    subjects.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  document.getElementById('slotTeacher').innerHTML = '<option value="">— Select Teacher —</option>' +
+    teachers.map(t=>`<option value="${t.id}">${t.full_name}</option>`).join('');
+
+  document.getElementById('pageBody').innerHTML = `
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:22px;">
+      <div><h1 style="font-size:1.45rem;font-weight:800;margin:0;">Timetable</h1><p style="color:var(--ink-3);font-size:.875rem;margin:4px 0 0;">${currentTerm ? currentTerm.name : 'No active term'}</p></div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <select id="classPicker" class="form-control" style="max-width:200px;" onchange="changeClass(this.value)">
+          ${classes.map(c=>`<option value="${c.id}" ${c.id===selectedClass?'selected':''}>${c.name}</option>`).join('')}
+        </select>
+        <a href="timetable-builder.html" class="btn btn--secondary btn--sm">Builder</a>
+      </div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;"><div class="tt-wrap" id="ttContent"><div style="padding:32px;text-align:center;color:var(--ink-3);">Loading…</div></div></div>
+  `;
+  if (selectedClass) loadTimetable();
+})();
+
+async function changeClass(id) {
+  selectedClass = id;
+  loadTimetable();
+}
+
+async function loadTimetable() {
+  if (!selectedClass) return;
+  showLoader('#ttContent','Loading timetable…');
+  const { data } = await db.from('timetables')
+    .select('*,subjects(name),users(full_name)')
+    .eq('class_id', selectedClass)
+    .eq('school_id', currentUser.school_id);
+  slots = data || [];
+  renderTimetable();
+}
+
+function renderTimetable() {
+  const slotMap = {};
+  slots.forEach(s => { slotMap[`${s.day_of_week}-${s.period_index}`] = s; });
+
+  document.getElementById('ttContent').innerHTML = `
+    <table class="tt-table">
+      <thead>
+        <tr>
+          <th style="min-width:90px;">Period / Time</th>
+          ${DAYS.map(d=>`<th>${d}</th>`).join('')}
+        </tr>
+      </thead>
+      <tbody>
+        ${PERIODS.map((p,pi) => {
+          const isBreak = p.includes('Break') || p.includes('Lunch');
+          if (isBreak) return `<tr><td class="tt-time-col" style="background:#fef9c3;"><span style="font-size:.7rem;color:#854d0e;font-weight:700;">${p}</span></td>${DAYS.map(()=>`<td style="background:#fffbeb;border:1px solid var(--border);"></td>`).join('')}</tr>`;
+          return `<tr>
+            <td class="tt-time-col">${p}</td>
+            ${DAYS.map((d, di) => {
+              const key = `${di+1}-${pi}`;
+              const slot = slotMap[key];
+              if (slot) {
+                return `<td><div class="tt-cell" onclick="openSlotModal(${di+1},${pi},'${slot.id}')">
+                  <div class="tt-subject">${slot.subjects?.name||slot.subject_name||'—'}</div>
+                  <div class="tt-teacher">${slot.users?.full_name||''}</div>
+                </div></td>`;
+              }
+              return `<td><div class="tt-cell tt-empty" onclick="openSlotModal(${di+1},${pi},null)">+ Add</div></td>`;
+            }).join('')}
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
+}
+
+function openSlotModal(day, period, slotId) {
+  document.getElementById('slotDay').value = day;
+  document.getElementById('slotPeriod').value = period;
+  document.getElementById('slotClass').value = selectedClass;
+  document.getElementById('slotId').value = slotId || '';
+  document.getElementById('slotErr').style.display = 'none';
+  document.getElementById('slotDeleteBtn').style.display = slotId ? 'inline-flex' : 'none';
+  const slot = slotId ? slots.find(s=>s.id===slotId) : null;
+  document.getElementById('slotSubject').value = slot?.subject_id || '';
+  document.getElementById('slotTeacher').value = slot?.teacher_id || '';
+  document.getElementById('slotModalTitle').textContent = `${DAYS[day-1]} · ${PERIODS[period]}`;
+  openModal('slotModal');
+}
+
+async function saveSlot() {
+  const errEl = document.getElementById('slotErr');
+  const subjectId = document.getElementById('slotSubject').value;
+  if (!subjectId) { errEl.textContent = 'Select a subject.'; errEl.style.display = 'block'; return; }
+  const payload = {
+    school_id: currentUser.school_id, class_id: selectedClass,
+    day_of_week: parseInt(document.getElementById('slotDay').value),
+    period_index: parseInt(document.getElementById('slotPeriod').value),
+    subject_id: subjectId,
+    teacher_id: document.getElementById('slotTeacher').value || null,
+  };
+  const slotId = document.getElementById('slotId').value;
+  const { error } = slotId
+    ? await db.from('timetables').update(payload).eq('id', slotId)
+    : await db.from('timetables').insert(payload);
+  if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+  closeModal('slotModal'); toast('Timetable updated.','success'); loadTimetable();
+}
+
+async function deleteSlot() {
+  const slotId = document.getElementById('slotId').value;
+  if (!slotId || !confirm('Remove this slot?')) return;
+  await db.from('timetables').delete().eq('id', slotId);
+  closeModal('slotModal'); toast('Slot removed.','success'); loadTimetable();
+}
+</script>
+<script src="/js/pwa-v2.1.js"></script>
+<script src="../js/ai-assistant.js" defer></script>
+</body>
+</html>

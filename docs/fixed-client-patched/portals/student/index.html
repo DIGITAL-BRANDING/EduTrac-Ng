@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" href="/icons/icon-96.png" type="image/png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0a6e3f">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="EduTrack NG">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <title>EduTrack NG — Student Dashboard</title>
+  <link rel="stylesheet" href="../../assets/css/global.css">
+</head>
+<body>
+<div id="app">
+  <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:12px;font-family:sans-serif;color:#666;">
+    <div style="width:36px;height:36px;border:4px solid #e5e7eb;border-top-color:#0a6e3f;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+    <p style="margin:0;font-size:14px;">Loading dashboard…</p>
+  </div>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
+<script src="../../js/config.js"></script>
+<script src="../../js/supabase.js"></script>
+<script src="layout.js"></script>
+<script>
+(async () => {
+  try {
+    const ctx = await initStudentLayout('dashboard', 'Student Dashboard');
+    if (!ctx) return;
+    
+    const { session, student, school, dash_settings, unread_count } = ctx;
+    const className = student?.enrollments?.[0]?.classes?.name || '—';
+    const admissionNo = session?.admission_no || '—';
+
+    // Fetch dashboard statistics
+    const { data: dashData, error: dashErr } = await db.rpc('get_student_dashboard', {
+      p_student_id: session.id,
+      p_school_id:  session.school_id
+    });
+
+    if (dashErr) {
+      console.warn('Dashboard data warning:', dashErr);
+    }
+
+    const statsData = dashData?.ok ? dashData : {};
+    const subjectsCount = statsData.subjects_count || 0;
+    const attendancePercentage = statsData.attendance_percentage || 0;
+    const feeBalance = statsData.fee_balance || 0;
+
+    // Build dashboard content
+    const dashboardHTML = `
+      <div class="page-header">
+        <h1>Dashboard</h1>
+        <p>Welcome back, ${session.full_name.split(' ')[0]}!</p>
+      </div>
+
+      <div class="card" style="margin-bottom:20px;">
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+          <div class="avatar avatar--lg" style="font-size:32px;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;width:60px;height:60px;border-radius:50%;">
+            ${session.full_name.charAt(0)}
+          </div>
+          <div>
+            <h2 style="font-size:18px;font-weight:700;margin:0 0 4px 0;">${session.full_name}</h2>
+            <p style="margin:0;font-size:14px;color:var(--ink-3);">${className}</p>
+            <p style="margin:0;font-size:13px;color:var(--ink-3);">Adm. No: <strong>${admissionNo}</strong></p>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;">
+        <div class="stat-card" style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:16px;border-radius:var(--radius-md);text-align:center;">
+          <div style="font-size:28px;font-weight:800;">${subjectsCount}</div>
+          <div style="font-size:12px;opacity:0.9;margin-top:4px;">Subjects</div>
+        </div>
+        
+        <div class="stat-card" style="background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%);color:white;padding:16px;border-radius:var(--radius-md);text-align:center;">
+          <div style="font-size:28px;font-weight:800;">${attendancePercentage}%</div>
+          <div style="font-size:12px;opacity:0.9;margin-top:4px;">Attendance</div>
+        </div>
+        
+        <div class="stat-card" style="background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);color:white;padding:16px;border-radius:var(--radius-md);text-align:center;">
+          <div style="font-size:28px;font-weight:800;">₦${(feeBalance / 1000).toFixed(0)}K</div>
+          <div style="font-size:12px;opacity:0.9;margin-top:4px;">Fee Balance</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;">
+        <a href="results.html" class="card card--hover" style="text-decoration:none;color:inherit;padding:16px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;">
+          <span style="font-size:32px;">📊</span>
+          <span style="font-weight:600;font-size:14px;">View Results</span>
+        </a>
+        
+        <a href="attendance.html" class="card card--hover" style="text-decoration:none;color:inherit;padding:16px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;">
+          <span style="font-size:32px;">📋</span>
+          <span style="font-weight:600;font-size:14px;">Attendance</span>
+        </a>
+        
+        <a href="fees.html" class="card card--hover" style="text-decoration:none;color:inherit;padding:16px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;">
+          <span style="font-size:32px;">💰</span>
+          <span style="font-weight:600;font-size:14px;">My Fees</span>
+        </a>
+        
+        <a href="profile.html" class="card card--hover" style="text-decoration:none;color:inherit;padding:16px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;">
+          <span style="font-size:32px;">👤</span>
+          <span style="font-weight:600;font-size:14px;">My Profile</span>
+        </a>
+      </div>
+    `;
+
+    document.getElementById('pageBody').innerHTML = dashboardHTML;
+  } catch (ex) {
+    console.error('Dashboard error:', ex);
+    document.getElementById('pageBody').innerHTML = 
+      '<div style="padding:2rem;color:red;"><strong>Error:</strong> ' + (ex && ex.message || ex) + '</div>';
+  }
+})();
+</script>
+</body>
+</html>
