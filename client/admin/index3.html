@@ -413,7 +413,7 @@
     db.from('students').select('id,gender,created_at',{count:'exact'}).eq('school_id',sid).eq('is_active',true),
     db.from('users').select('id,role',{count:'exact'}).eq('school_id',sid).eq('is_active',true),
     db.from('terms').select('*').eq('school_id',sid).eq('is_current',true).maybeSingle(),
-    db.from('payments').select('id,amount_paid,payment_date,payment_method,status,students(full_name,enrollments(classes(name)))').eq('school_id',sid).order('payment_date',{ascending:false}).limit(50),
+    db.from('payments').select('id,amount_paid,paid_at,payment_method,status,students(full_name,enrollments(classes(name)))').eq('school_id',sid).order('paid_at',{ascending:false}).limit(50),
     db.from('students').select('id,full_name,admission_no,gender,created_at,enrollments(classes(name))').eq('school_id',sid).eq('is_active',true).order('created_at',{ascending:false}).limit(6),
     db.from('classes').select('id,name,level').eq('school_id',sid).order('name'),
     db.from('attendance').select('student_id,class_id,status,students(full_name),classes(id,name)').eq('school_id',sid).eq('date',today),
@@ -615,7 +615,7 @@
   ];
   const actEvents = [
     ...(recentStudents.slice(0,2).map(s => ({...actDefs[0], msg:`<strong>${s.full_name}</strong> was enrolled`, time:relDate(s.created_at)}))),
-    ...(recentPayments.slice(0,2).map(p => ({...actDefs[1], msg:`<strong>${p.students?.full_name||'A student'}</strong> paid <strong>${fmt(p.amount_paid)}</strong>`, time:relDate(p.payment_date)}))),
+    ...(recentPayments.slice(0,2).map(p => ({...actDefs[1], msg:`<strong>${p.students?.full_name||'A student'}</strong> paid <strong>${fmt(p.amount_paid)}</strong>`, time:relDate(p.paid_at)}))),
     {...actDefs[2], msg:`Attendance recorded for <strong>${today}</strong>`, time:'Today'},
     ...(announcements.slice(0,1).map(a => ({...actDefs[3], msg:`Notice: <strong>${a.title}</strong>`, time:'Recent'}))),
   ].slice(0,6);
@@ -686,7 +686,7 @@
             <td><div class="stu-row-name">${p.students?.full_name||'\u2014'}</div><div class="stu-row-sub">${p.students?.enrollments?.[0]?.classes?.name||''}</div></td>
             <td style="font-weight:800;color:var(--success,#16a34a)">${fmt(p.amount_paid)}</td>
             <td><span class="db-badge db-badge-gray"><i class="fa-solid fa-credit-card"></i> ${p.payment_method||'\u2014'}</span></td>
-            <td style="color:var(--ink-3);font-size:.72rem">${relDate(p.payment_date)}</td>
+            <td style="color:var(--ink-3);font-size:.72rem">${relDate(p.paid_at)}</td>
           </tr>`).join('')}
         </tbody>
       </table>`

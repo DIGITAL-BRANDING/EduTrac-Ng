@@ -145,20 +145,45 @@ async function authGuard(allowedRoles = null) {
 
 // ── Login page: redirect if already authed ─────────────────────
 async function redirectIfLoggedIn() {
+  // Only try to redirect if we're online OR have a valid cached session
   const session = await db.auth.getSession().then(r => r.data.session).catch(() => null);
-  if (!session) return;
-
-  // Try network first, then cache
-  let user = null;
-  try {
-    const { data } = await db.from('users').select('role,is_active').eq('id', session.user.id).single();
-    if (data) { user = data; }
-  } catch {
-    const cached = _loadProfileCache();
-    if (cached && cached.id === session.user.id) user = { role: cached.role, is_active: cached.is_active };
+  if (!session) {
+    // No session at all — don't block login page
+    return;
   }
 
-  if (!user || !user.is_active) return;
+  // Session exists — try to get user role
+  let user = null;
+  
+  // Online: fetch fresh user data
+  if (navigator.onLine) {
+    try {
+      const { data } = await db.from('users')
+        .select('role,is_active')
+        .eq('id', session.user.id)
+        .single();
+      if (data) {
+        user = data;
+        // Cache the user for offline access
+        try { localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(data)); } catch {}
+      }
+    } catch (err) {
+      // Network fetch failed — fall through to cache
+      console.warn('[AUTH] Network fetch failed, trying cache:', err.message);
+    }
+  }
+
+  // Offline OR network fetch failed: use cache
+  if (!user) {
+    const cached = _loadProfileCache();
+    if (cached && cached.id === session.user.id) {
+      user = { role: cached.role, is_active: cached.is_active };
+    }
+  }
+
+  // Only redirect if we have an active user
+  if (!user || user.is_active === false) return;
+  
   const portal = ROLE_PORTALS[user.role];
   if (portal) window.location.href = portal + 'index.html';
 }
@@ -175,7 +200,43 @@ async function logout() {
   if (typeof clearPortalCacheOnLogout === 'function') clearPortalCacheOnLogout();
   _clearProfileCache();
   try { localStorage.removeItem('user'); sessionStorage.removeItem('user'); } catch {}
-  await db.auth.signOut();
+  
+  // CRITICAL: Sign out from Supabase FIRST, then clear ALL auth storage
+  try {
+    await db.auth.signOut();
+  } catch (e) {
+    console.warn('Signout failed:', e);
+  }
+  
+  // Force clear ALL possible auth storage locations to prevent auto-login
+  try {
+    // Clear Supabase session storage keys
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.includes('supabase') || key.includes('auth') || key.includes('et_user') || key.includes('et_student'))) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+    
+    // Clear sessionStorage
+    sessionStorage.clear();
+    
+    // Clear IndexedDB if it exists
+    if (window.indexedDB) {
+      const dbs = await indexedDB.databases();
+      dbs.forEach(db => {
+        indexedDB.deleteDatabase(db.name);
+      });
+    }
+  } catch (e) {
+    console.warn('Error clearing auth storage:', e);
+  }
+  
+  // Add a small delay to ensure storage is cleared before redirect
+  await new Promise(resolve => setTimeout(resolve, 100));
+  
   window.location.href = '/login.html';
 }
 
