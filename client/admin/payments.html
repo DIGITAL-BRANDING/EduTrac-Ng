@@ -352,10 +352,10 @@ function copyPayLink(feeTypeId, feeName, amount) {
 async function renderTransactions(c) {
   showLoader(c, 'Loading transactions...');
   const { data: payments } = await db.from('payments')
-    .select('id,amount_paid,payment_method,reference,payment_date,students(full_name),fee_types(name)')
+    .select('id,amount_paid,payment_method,reference,paid_at,students(full_name),fee_types(name)')
     .eq('school_id', currentUser.school_id)
     .eq('payment_method', 'online')
-    .order('payment_date', { ascending: false })
+    .order('paid_at', { ascending: false })
     .limit(50);
 
   if (!payments?.length) {
@@ -380,7 +380,7 @@ async function renderTransactions(c) {
                 <td>${p.fee_types?.name || '—'}</td>
                 <td style="color:var(--success);font-weight:700;">${formatMoney(p.amount_paid)}</td>
                 <td style="font-family:var(--mono);font-size:12px;">${p.reference || '—'}</td>
-                <td style="font-size:13px;color:var(--ink-3);">${formatDate(p.payment_date)}</td>
+                <td style="font-size:13px;color:var(--ink-3);">${formatDate(p.paid_at)}</td>
                 <td><span class="pay-success"><span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Success</span></td>
               </tr>`).join('')}
           </tbody>

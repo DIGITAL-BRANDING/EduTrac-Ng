@@ -426,7 +426,7 @@ async function loadStudentHistory() {
     .select('*, fee_types(name)')
     .eq('student_id', selectedStudent.id)
     .eq('term_id', term.id)
-    .order('payment_date', { ascending: false });
+    .order('paid_at', { ascending: false });
 
   const card = document.getElementById('studentHistoryCard');
   const el = document.getElementById('studentHistory');
@@ -437,7 +437,7 @@ async function loadStudentHistory() {
       <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
         <div>
           <div style="font-size:12px;font-weight:600;">${p.fee_types?.name || '—'}</div>
-          <div style="font-size:11px;color:var(--ink-3);">${p.payment_method || '—'} · ${formatDate(p.payment_date)}</div>
+          <div style="font-size:11px;color:var(--ink-3);">${p.payment_method || '—'} · ${formatDate(p.paid_at)}</div>
         </div>
         <div style="font-weight:700;color:var(--success);font-size:13px;">${formatMoney(p.amount_paid)}</div>
       </div>

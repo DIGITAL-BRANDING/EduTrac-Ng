@@ -229,27 +229,8 @@
 
           <div id="staffStep2" style="display:none;">
             <div style="background:#e6f4ed;border:1px solid #86efac;border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;color:#166534;line-height:1.6;">
-              <strong>✓ Check your email</strong><br>We've sent a password reset code to <strong id="confirmEmail"></strong>. The code expires in 30 minutes.
+              <strong>✓ Check your email</strong><br>We've sent a password reset link to <strong id="confirmEmail"></strong>. Click the link in the email to set a new password. The link expires in 1 hour.
             </div>
-            <div class="form-grp">
-              <label class="form-lbl">Reset Code <span class="req">*</span></label>
-              <input type="text" id="staffResetCode" class="form-ctrl" placeholder="6-digit code from email" maxlength="6" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-            </div>
-            <div class="form-grp">
-              <label class="form-lbl">New Password <span class="req">*</span></label>
-              <div class="pwd-wrap">
-                <input type="password" id="staffNewPwd" class="form-ctrl" placeholder="Min. 8 characters" autocomplete="new-password">
-                <button type="button" class="pwd-toggle" onclick="togglePwdVisibility('staffNewPwd')" style="margin:0;">👁️</button>
-              </div>
-            </div>
-            <div class="form-grp">
-              <label class="form-lbl">Confirm Password <span class="req">*</span></label>
-              <div class="pwd-wrap">
-                <input type="password" id="staffConfirmPwd" class="form-ctrl" placeholder="Repeat password" autocomplete="new-password">
-                <button type="button" class="pwd-toggle" onclick="togglePwdVisibility('staffConfirmPwd')" style="margin:0;">👁️</button>
-              </div>
-            </div>
-            <button class="btn-sign-in" onclick="submitStaffReset()">Reset Password →</button>
             <button class="btn-secondary" style="margin-top:8px;" onclick="staffStep1Retry()">← Back</button>
           </div>
         </div>
@@ -595,7 +576,7 @@ async function requestStaffReset() {
   const now = Date.now();
   const attempts = resetRateLimits.get(key) || [];
   const recentAttempts = attempts.filter(t => now - t < 60000);
-  
+
   if (recentAttempts.length >= 3) {
     resetError('Too many requests. Please try again in a few minutes.');
     return;
@@ -605,12 +586,13 @@ async function requestStaffReset() {
   btn.textContent = 'Sending…'; btn.disabled = true;
 
   try {
-    const { data, error: rpcErr } = await db.rpc('send_password_reset_email', {
-      p_email: email
-    });
+    // Use Supabase's built-in password reset email (no custom RPC needed)
+    const redirectTo = window.location.origin + '/login.html';
+    const { error } = await db.auth.resetPasswordForEmail(email, { redirectTo });
 
-    if (rpcErr) throw new Error('Unable to process request. Please try again.');
-    if (!data?.sent) throw new Error(data?.error || 'Email address not found in our system.');
+    // Supabase returns success even for unknown emails (prevents user enumeration).
+    // We show a success message regardless.
+    if (error) throw new Error(error.message || 'Unable to process request. Please try again.');
 
     recentAttempts.push(now);
     resetRateLimits.set(key, recentAttempts);
@@ -618,7 +600,8 @@ async function requestStaffReset() {
     document.getElementById('staffStep1').style.display = 'none';
     document.getElementById('staffStep2').style.display = '';
     document.getElementById('confirmEmail').textContent = email;
-    resetSuccess(`Reset code sent to ${email}`);
+    resetSuccess(`Reset link sent! Check your inbox and spam folder.`);
+    btn.textContent = 'Send Reset Link →'; btn.disabled = false;
 
   } catch (err) {
     resetError(err.message || 'Failed to send reset email. Please try again.');
@@ -713,7 +696,7 @@ async function verifyStudentIdentity() {
   const now = Date.now();
   const attempts = resetRateLimits.get(key) || [];
   const recentAttempts = attempts.filter(t => now - t < 60000);
-  
+
   if (recentAttempts.length >= 3) {
     resetError('Too many verification attempts. Please try again later.');
     return;
@@ -723,24 +706,36 @@ async function verifyStudentIdentity() {
   btn.textContent = 'Verifying…'; btn.disabled = true;
 
   try {
-    const { data, error: rpcErr } = await db.rpc('verify_student_reset_identity', {
-      p_school_id: schoolId,
-      p_admission_no: admNo,
-      p_date_of_birth: dob
-    });
+    // Query students table directly — admission_no + DOB + school_id
+    const { data, error: qErr } = await db
+      .from('students')
+      .select('id, admission_no, date_of_birth, school_id, user_id')
+      .eq('school_id', schoolId)
+      .ilike('admission_no', admNo)
+      .single();
 
-    if (rpcErr) throw new Error('Verification failed. Please try again.');
-    if (!data?.verified) throw new Error(data?.error || 'Admission number and date of birth do not match.');
+    if (qErr || !data) {
+      throw new Error('Admission number and date of birth do not match our records.');
+    }
+
+    // Compare date of birth (stored as YYYY-MM-DD)
+    const storedDOB = data.date_of_birth ? data.date_of_birth.substring(0, 10) : '';
+    if (storedDOB !== dob) {
+      throw new Error('Admission number and date of birth do not match our records.');
+    }
+
+    // Store student user_id for step 2
+    window._studentResetUserId = data.user_id || data.id;
 
     recentAttempts.push(now);
     resetRateLimits.set(key, recentAttempts);
 
     document.getElementById('studentStep1').style.display = 'none';
     document.getElementById('studentStep2').style.display = '';
-    resetSuccess(`Welcome back! Now set your new password.`);
+    resetSuccess('Identity verified! Now set your new password.');
 
   } catch (err) {
-    resetError(err.message || 'Identity verification failed.');
+    resetError(err.message || 'Identity verification failed. Please try again.');
     btn.textContent = 'Verify Identity →'; btn.disabled = false;
   }
 }
@@ -762,20 +757,29 @@ async function submitStudentReset() {
     return;
   }
 
+  const userId = window._studentResetUserId;
+  if (!userId) {
+    resetError('Verification expired. Please go back and verify again.');
+    return;
+  }
+
   const btn = event.target;
   btn.textContent = 'Saving…'; btn.disabled = true;
 
   try {
-    const { data, error: rpcErr } = await db.rpc('reset_student_password', {
-      p_school_id: schoolId,
-      p_admission_no: admNo,
-      p_date_of_birth: dob,
-      p_new_password: pwd1
+    // Call the reset-staff-password edge function (works for any user_id)
+    const res = await fetch('/api/reset-staff-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId, new_password: pwd1 }),
     });
 
-    if (rpcErr) throw new Error('Unable to reset password. Please try again.');
-    if (!data?.success) throw new Error(data?.error || 'Password reset failed.');
+    const result = await res.json();
+    if (!res.ok || result.error) {
+      throw new Error(result.error || 'Password reset failed. Please try again.');
+    }
 
+    window._studentResetUserId = null;
     resetSuccess('Password reset successfully! Redirecting to student login...');
     setTimeout(() => {
       window.location.href = 'portals/student/login.html';

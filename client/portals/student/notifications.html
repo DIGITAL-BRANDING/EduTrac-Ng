@@ -86,19 +86,22 @@ let ctx, allNotifs=[], activeFilter='all', activeTab='all';
 
 async function loadNotifications(){
   const {session} = ctx;
-  const { data: notifResp, error } = await db.rpc('get_student_notifications', {
-    p_student_id: session.id,
-    p_school_id:  session.school_id
-  });
+  const { data: notifData, error } = await db
+    .from('notifications')
+    .select('id,title,body,type,is_read,created_at')
+    .eq('school_id', session.school_id)
+    .or(`recipient_id.eq.${session.id},recipient_type.eq.student,recipient_type.eq.all`)
+    .order('created_at', { ascending: false })
+    .limit(60);
 
-  if (error || !notifResp || !notifResp.ok) {
+  if (error) {
     allNotifs = [];
     document.getElementById('notifList').innerHTML =
       '<div style="padding:2rem;color:red;">Failed to load notifications.</div>';
     return;
   }
 
-  allNotifs = notifResp.notifs || [];
+  allNotifs = notifData || [];
   const unread = allNotifs.filter(n=>!n.is_read).length;
 
   document.getElementById('notifSubtitle').textContent =
@@ -175,11 +178,7 @@ function expandNotif(id){
 async function markRead(id){
   const n=allNotifs.find(x=>x.id===id);
   if(!n||n.is_read) return;
-  await db.rpc('mark_notification_read', {
-    p_student_id:      ctx.session.id,
-    p_school_id:       ctx.session.school_id,
-    p_notification_id: id
-  });
+  await db.from('notifications').update({ is_read: true }).eq('id', id);
   n.is_read=true;
   // Update UI
   const card=document.getElementById('nc-'+id);
@@ -198,10 +197,8 @@ async function markRead(id){
 async function markAllRead(){
   const unread=allNotifs.filter(n=>!n.is_read);
   if(!unread.length) return;
-  await db.rpc('mark_all_notifications_read', {
-    p_student_id: ctx.session.id,
-    p_school_id:  ctx.session.school_id
-  });
+  const unreadIds = unread.map(n => n.id);
+  if (unreadIds.length) await db.from('notifications').update({ is_read: true }).in('id', unreadIds);
   unread.forEach(n=>n.is_read=true);
   document.getElementById('notifSubtitle').textContent=`${allNotifs.length} notifications · All read`;
   document.getElementById('markAllBtn').style.display='none';

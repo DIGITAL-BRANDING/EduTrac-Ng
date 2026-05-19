@@ -22,7 +22,7 @@
   const [{ data: term }, { data: school }, { data: payments }, { data: feeTypes }, { data: students }] = await Promise.all([
     db.from('terms').select('*').eq('school_id', user.school_id).eq('is_current', true).maybeSingle(),
     db.from('schools').select('name,logo_url').eq('id', user.school_id).single(),
-    db.from('payments').select('amount_paid,payment_date,fee_type_id').eq('school_id', user.school_id),
+    db.from('payments').select('amount_paid,paid_at,fee_type_id').eq('school_id', user.school_id),
     db.from('fee_types').select('id,name,amount').eq('school_id', user.school_id),
     db.from('students').select('id').eq('school_id', user.school_id).eq('is_active', true),
   ]);

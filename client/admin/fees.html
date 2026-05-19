@@ -267,7 +267,7 @@ async function loadFees() {
 
   const [{ data: ft, error: ftErr }, { data: pmt, error: pmtErr }] = await Promise.all([
     db.from('fee_types').select('*,classes(name,level),terms(name)').eq('school_id', sid).order('created_at'),
-    db.from('payments').select('*,students(full_name,admission_no),fee_types(name)').eq('school_id', sid).order('payment_date', { ascending: false }).limit(50),
+    db.from('payments').select('*,students(full_name,admission_no),fee_types(name)').eq('school_id', sid).order('paid_at', { ascending: false }).limit(50),
   ]);
 
   if (ftErr) { showError('#feeContent', 'Failed to load fee types: ' + ftErr.message); return; }
@@ -353,7 +353,7 @@ async function loadFees() {
                 <td style="padding:10px 14px;">
                   <span style="background:var(--surface-3);padding:2px 8px;border-radius:4px;font-size:.72rem;font-weight:600;">${p.payment_method || '—'}</span>
                 </td>
-                <td style="padding:10px 14px;font-size:.78rem;color:var(--ink-3);">${p.payment_date || '—'}</td>
+                <td style="padding:10px 14px;font-size:.78rem;color:var(--ink-3);">${p.paid_at || '—'}</td>
                 <td style="padding:10px 14px;">
                   <button class="btn btn--ghost btn--sm" style="color:var(--danger);" onclick="deletePayment('${p.id}')">
                     <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
@@ -537,11 +537,10 @@ async function savePayment() {
     student_id: stuId,
     amount_paid: amount,
     payment_method: document.getElementById('payMethod').value,
-    payment_date: document.getElementById('payDate').value,
-    reference_no: document.getElementById('payRef').value.trim() || null,
+    reference: document.getElementById('payRef').value.trim() || null,
     notes: document.getElementById('payNotes').value.trim() || null,
     fee_type_id: document.getElementById('payFeeType').value || null,
-    status: 'completed',
+    received_by: currentUser.id,
   };
   const { error } = await db.from('payments').insert(payload);
   btn.disabled = false; btn.textContent = 'Record Payment';

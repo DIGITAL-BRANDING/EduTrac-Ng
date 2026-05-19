@@ -62,7 +62,7 @@ async function load() {
     db.from('fee_types').select('*').eq('school_id', currentUser.school_id),
     db.from('payments').select('*, fee_types(name,amount)')
       .eq('student_id', studentId).eq('term_id', currentTerm.id)
-      .order('payment_date', {ascending: false})
+      .order('paid_at', {ascending: false})
   ]);
 
   const totalExpected = (feeTypes || []).reduce((s, f) => s + Number(f.amount), 0);
@@ -158,7 +158,7 @@ async function load() {
                 <td>${p.fee_types?.name || '—'}</td>
                 <td style="color:var(--success);font-weight:600;">${formatMoney(p.amount_paid)}</td>
                 <td><span class="chip">${p.payment_method || '—'}</span></td>
-                <td style="font-size:13px;color:var(--ink-3);">${formatDate(p.payment_date)}</td>
+                <td style="font-size:13px;color:var(--ink-3);">${formatDate(p.paid_at)}</td>
               </tr>`).join('')}
             </tbody>
           </table>
