@@ -259,24 +259,24 @@
 
           <div id="studentStep2" style="display:none;">
             <div style="background:#e6f4ed;border:1px solid #86efac;border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;color:#166534;line-height:1.6;">
-              <strong>✓ Verification Successful</strong><br>Now set your new password. Use a strong password with at least 8 characters.
+              <strong>✓ Verification Successful</strong><br>Now set your new PIN. Use at least 4 digits.
             </div>
             <div class="form-grp">
-              <label class="form-lbl">New Password <span class="req">*</span></label>
+              <label class="form-lbl">New PIN <span class="req">*</span></label>
               <div class="pwd-wrap">
-                <input type="password" id="studentNewPwd" class="form-ctrl" placeholder="Min. 8 characters" autocomplete="new-password">
+                <input type="password" id="studentNewPwd" class="form-ctrl" placeholder="Min. 4 digits" autocomplete="new-password" inputmode="numeric">
                 <button type="button" class="pwd-toggle" onclick="togglePwdVisibility('studentNewPwd')" style="margin:0;">👁️</button>
               </div>
-              <div style="font-size:11px;color:var(--T3);margin-top:4px;">Letters, numbers, and symbols recommended</div>
+              <div style="font-size:11px;color:var(--T3);margin-top:4px;">Numbers only recommended</div>
             </div>
             <div class="form-grp">
-              <label class="form-lbl">Confirm Password <span class="req">*</span></label>
+              <label class="form-lbl">Confirm PIN <span class="req">*</span></label>
               <div class="pwd-wrap">
-                <input type="password" id="studentConfirmPwd" class="form-ctrl" placeholder="Repeat password" autocomplete="new-password">
+                <input type="password" id="studentConfirmPwd" class="form-ctrl" placeholder="Repeat PIN" autocomplete="new-password" inputmode="numeric">
                 <button type="button" class="pwd-toggle" onclick="togglePwdVisibility('studentConfirmPwd')" style="margin:0;">👁️</button>
               </div>
             </div>
-            <button class="btn-sign-in" onclick="submitStudentReset()">Save New Password →</button>
+            <button class="btn-sign-in" onclick="submitStudentReset()">Save New PIN →</button>
             <button class="btn-secondary" style="margin-top:8px;" onclick="studentStep1Retry()">← Back</button>
           </div>
         </div>
@@ -684,7 +684,7 @@ async function loadResetSchools() {
 
 async function verifyStudentIdentity() {
   const schoolId = document.getElementById('studentSchool').value;
-  const admNo = document.getElementById('studentAdmNo').value.trim();
+  const admNo = document.getElementById('studentAdmNo').value.trim().toUpperCase();
   const dob = document.getElementById('studentDOB').value;
   resetError('');
 
@@ -706,33 +706,34 @@ async function verifyStudentIdentity() {
   btn.textContent = 'Verifying…'; btn.disabled = true;
 
   try {
-    // Query students table directly — admission_no + DOB + school_id
+    // Query students table — match admission_no case-insensitively + school
     const { data, error: qErr } = await db
       .from('students')
-      .select('id, admission_no, date_of_birth, school_id, user_id')
+      .select('id, admission_no, date_of_birth, school_id')
       .eq('school_id', schoolId)
       .ilike('admission_no', admNo)
-      .single();
+      .maybeSingle();
 
-    if (qErr || !data) {
-      throw new Error('Admission number and date of birth do not match our records.');
-    }
+    if (qErr) throw new Error('Verification failed. Please try again.');
+    if (!data) throw new Error('Admission number and date of birth do not match our records.');
 
-    // Compare date of birth (stored as YYYY-MM-DD)
-    const storedDOB = data.date_of_birth ? data.date_of_birth.substring(0, 10) : '';
+    // Compare date of birth — stored as YYYY-MM-DD string
+    const storedDOB = (data.date_of_birth || '').substring(0, 10);
     if (storedDOB !== dob) {
       throw new Error('Admission number and date of birth do not match our records.');
     }
 
-    // Store student user_id for step 2
-    window._studentResetUserId = data.user_id || data.id;
+    // Store student row id for step 2 PIN reset
+    window._studentResetId = data.id;
+    window._studentResetSchool = schoolId;
+    window._studentResetAdmNo = admNo;
 
     recentAttempts.push(now);
     resetRateLimits.set(key, recentAttempts);
 
     document.getElementById('studentStep1').style.display = 'none';
     document.getElementById('studentStep2').style.display = '';
-    resetSuccess('Identity verified! Now set your new password.');
+    resetSuccess('Identity verified! Now set your new PIN.');
 
   } catch (err) {
     resetError(err.message || 'Identity verification failed. Please try again.');
@@ -741,24 +742,21 @@ async function verifyStudentIdentity() {
 }
 
 async function submitStudentReset() {
-  const schoolId = document.getElementById('studentSchool').value;
-  const admNo = document.getElementById('studentAdmNo').value.trim();
-  const dob = document.getElementById('studentDOB').value;
   const pwd1 = document.getElementById('studentNewPwd').value;
   const pwd2 = document.getElementById('studentConfirmPwd').value;
   resetError('');
 
-  if (pwd1.length < 8) {
-    resetError('Password must be at least 8 characters.');
+  if (pwd1.length < 4) {
+    resetError('PIN must be at least 4 digits.');
     return;
   }
   if (pwd1 !== pwd2) {
-    resetError('Passwords do not match.');
+    resetError('PINs do not match.');
     return;
   }
 
-  const userId = window._studentResetUserId;
-  if (!userId) {
+  const studentId = window._studentResetId;
+  if (!studentId) {
     resetError('Verification expired. Please go back and verify again.');
     return;
   }
@@ -767,27 +765,26 @@ async function submitStudentReset() {
   btn.textContent = 'Saving…'; btn.disabled = true;
 
   try {
-    // Call the reset-staff-password edge function (works for any user_id)
-    const res = await fetch('/api/reset-staff-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: userId, new_password: pwd1 }),
-    });
+    // Students use a PIN stored in the students table, not Supabase auth
+    const { error } = await db
+      .from('students')
+      .update({ pin: pwd1 })
+      .eq('id', studentId);
 
-    const result = await res.json();
-    if (!res.ok || result.error) {
-      throw new Error(result.error || 'Password reset failed. Please try again.');
-    }
+    if (error) throw new Error(error.message || 'Failed to update PIN. Please try again.');
 
-    window._studentResetUserId = null;
-    resetSuccess('Password reset successfully! Redirecting to student login...');
+    window._studentResetId = null;
+    window._studentResetSchool = null;
+    window._studentResetAdmNo = null;
+
+    resetSuccess('PIN reset successfully! Redirecting to student login...');
     setTimeout(() => {
       window.location.href = 'portals/student/login.html';
     }, 2000);
 
   } catch (err) {
     resetError(err.message || 'Reset failed. Please try again.');
-    btn.textContent = 'Save New Password →'; btn.disabled = false;
+    btn.textContent = 'Save New PIN →'; btn.disabled = false;
   }
 }
 
