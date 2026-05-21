@@ -454,21 +454,42 @@ img{display:block;max-width:100%}
 .sc-btn:hover{background:var(--G3);transform:translateY(-2px);box-shadow:0 10px 28px rgba(10,110,63,.45)}
 
 /* =========================================================
-   FEATURES — editorial grid
+   FEATURES — Venlearn-style grid redesign
    ========================================================= */
-.feat-sec{background:var(--S)}
+.feat-sec{background:var(--W)}
 .feat-top{
-  display:grid;grid-template-columns:1fr 1fr;
-  gap:48px;align-items:end;margin-bottom:60px;
+  text-align:center;margin-bottom:48px;
 }
+/* Sub-button pills */
+.feat-pills{
+  display:flex;flex-wrap:wrap;gap:10px;
+  justify-content:center;margin-bottom:56px;
+}
+.feat-pill{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:9px 18px;border-radius:100px;
+  border:1.5px solid var(--BD);
+  background:var(--W);
+  font-size:13px;font-weight:600;color:var(--T2);
+  cursor:pointer;transition:all .2s;white-space:nowrap;
+  font-family:var(--B);
+}
+.feat-pill:hover,.feat-pill.active{
+  background:var(--G);color:white;
+  border-color:var(--G);
+  box-shadow:0 4px 16px rgba(10,110,63,.25);
+  transform:translateY(-1px);
+}
+.feat-pill svg{width:15px;height:15px;stroke:currentColor;fill:none;flex-shrink:0}
+/* Feature cards grid — 4 cols */
 .feat-grid{
   display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:20px;
+  grid-template-columns:repeat(4,1fr);
+  gap:16px;
 }
 .fc{
   background:var(--W);border:1.5px solid var(--BD);
-  border-radius:20px;padding:28px;
+  border-radius:18px;padding:24px;
   transition:all .25s;position:relative;overflow:hidden;
   cursor:default;
 }
@@ -494,24 +515,34 @@ img{display:block;max-width:100%}
 .fc:hover::before{transform:scaleX(1)}
 .fc-ico{
   width:52px;height:52px;border-radius:14px;
-  background:var(--GL);
+  background:var(--GL);color:var(--G);
   display:flex;align-items:center;justify-content:center;
   font-size:22px;margin-bottom:18px;
-  transition:background .25s;
+  transition:background .25s,color .25s;
 }
-.fc:hover .fc-ico{background:var(--G)}
-.fc-h{font-family:var(--H);font-size:16px;font-weight:700;color:var(--INK);margin-bottom:8px}
-.fc-p{font-size:13px;color:var(--T2);line-height:1.7}
-.fc.large{
+.fc-ico svg{stroke:currentColor;fill:none;width:22px;height:22px}
+.fc:hover .fc-ico{background:var(--G);color:white}
+.fc-h{font-family:var(--H);font-size:15px;font-weight:700;color:var(--INK);margin-bottom:7px}
+.fc-p{font-size:13px;color:var(--T2);line-height:1.7;margin-bottom:14px}
+.fc-link{
+  font-size:12px;font-weight:700;color:var(--G);
+  display:inline-flex;align-items:center;gap:4px;
+  transition:gap .2s;
+}
+.fc:hover .fc-link{gap:8px}
+/* Featured (wide) card — span 2 cols */
+.fc.featured{
   grid-column:span 2;
   background:var(--INK);border-color:rgba(255,255,255,.06);
   display:grid;grid-template-columns:1fr 1fr;
-  gap:32px;align-items:center;padding:36px;
+  gap:28px;align-items:center;padding:32px;
 }
-.fc.large::before{background:var(--AU)}
-.fc.large .fc-h{color:white}
-.fc.large .fc-p{color:rgba(255,255,255,.5)}
-.fc.large .fc-ico{background:rgba(10,110,63,.2)}
+.fc.featured::before{background:var(--AU)}
+.fc.featured .fc-h{color:white;font-size:17px}
+.fc.featured .fc-p{color:rgba(255,255,255,.5)}
+.fc.featured .fc-ico{background:rgba(10,110,63,.25);color:#4ade80}
+.fc.featured:hover .fc-ico{background:var(--G3);color:white}
+.fc.featured .fc-link{color:#4ade80}
 .fc-screen{
   background:var(--INK2);border-radius:12px;
   border:1px solid rgba(255,255,255,.07);
@@ -523,6 +554,17 @@ img{display:block;max-width:100%}
 }
 .fcs-d{width:8px;height:8px;border-radius:50%}
 .fcs-body{padding:12px}
+/* More features button */
+.feat-more-row{text-align:center;margin-top:36px}
+.feat-more-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:13px 32px;border-radius:100px;
+  border:1.5px solid var(--BD);
+  background:var(--W);font-size:14px;font-weight:700;
+  color:var(--T2);cursor:pointer;transition:all .22s;
+  font-family:var(--B);
+}
+.feat-more-btn:hover{border-color:var(--G);color:var(--G);background:var(--GL);transform:translateY(-1px)}
 
 /* =========================================================
    HOW IT WORKS
@@ -548,10 +590,12 @@ img{display:block;max-width:100%}
 }
 .hw-ico{
   width:54px;height:54px;border-radius:15px;
-  background:rgba(10,110,63,.18);border:1px solid rgba(10,110,63,.3);
+  background:rgba(10,110,63,.2);border:1px solid rgba(10,110,63,.4);
   display:flex;align-items:center;justify-content:center;
   font-size:24px;margin-bottom:22px;position:relative;z-index:1;
+  color:#4ade80;
 }
+.hw-ico svg{stroke:currentColor;fill:none;width:22px;height:22px}
 .hw-h{font-family:var(--H);font-size:16px;font-weight:700;color:white;margin-bottom:8px;position:relative;z-index:1}
 .hw-p{font-size:13px;color:rgba(255,255,255,.38);line-height:1.7;position:relative;z-index:1}
 .hw-t{
@@ -640,9 +684,12 @@ img{display:block;max-width:100%}
 .nga-item:hover{background:rgba(255,255,255,.04);border-color:rgba(10,110,63,.3)}
 .nga-ico{
   width:46px;height:46px;border-radius:13px;flex-shrink:0;
-  background:rgba(10,110,63,.18);border:1px solid rgba(10,110,63,.25);
+  background:rgba(10,110,63,.22);border:1px solid rgba(10,110,63,.4);
   display:flex;align-items:center;justify-content:center;font-size:20px;
+  color:#4ade80;transition:background .2s,border-color .2s;
 }
+.nga-ico svg{stroke:currentColor;fill:none;width:20px;height:20px}
+.nga-item:hover .nga-ico{background:rgba(10,110,63,.35);border-color:rgba(74,222,128,.4)}
 .nga-text h4{font-family:var(--H);font-size:14px;font-weight:700;color:white;margin-bottom:5px}
 .nga-text p{font-size:13px;color:rgba(255,255,255,.38);line-height:1.65}
 .nga-card{
@@ -799,8 +846,8 @@ footer{background:var(--INK);padding:68px clamp(20px,5vw,72px) 32px}
 .reveal-r{opacity:0;transform:translateX(30px);transition:opacity .6s ease,transform .6s ease}
 .reveal-r.in{opacity:1;transform:none}
 @media(max-width:1024px){
-  .feat-grid{grid-template-columns:1fr 1fr}
-  .fc.large{grid-column:span 2}
+  .feat-grid{grid-template-columns:repeat(2,1fr)}
+  .fc.featured{grid-column:span 2}
   .learning-grid,.auto-grid,.nga-grid,.split-grid{grid-template-columns:1fr;gap:40px}
   .split-content{padding:44px 36px}
 }
@@ -808,8 +855,8 @@ footer{background:var(--INK);padding:68px clamp(20px,5vw,72px) 32px}
   .nav-links,.nav-end .n-login{display:none}
   .ham{display:block}
   .feat-top{grid-template-columns:1fr;gap:20px}
-  .feat-grid{grid-template-columns:1fr}
-  .fc.large{grid-column:span 1;grid-template-columns:1fr}
+  .feat-grid{grid-template-columns:1fr 1fr}
+  .fc.featured{grid-column:span 2;grid-template-columns:1fr}
   .how-steps{grid-template-columns:1fr 1fr}
   .portals-grid{grid-template-columns:1fr}
   .price-grid{grid-template-columns:1fr}
@@ -856,6 +903,72 @@ footer{background:var(--INK);padding:68px clamp(20px,5vw,72px) 32px}
 .wa-btn svg{width:32px;height:32px;}
 .wa-close{position:absolute;top:-8px;right:-8px;width:22px;height:22px;background:#ef4444;color:white;border:none;border-radius:50%;font-size:13px;line-height:22px;text-align:center;cursor:pointer;display:block;z-index:1;}
 @keyframes waPulse{0%,100%{box-shadow:0 6px 24px rgba(37,211,102,.45);}50%{box-shadow:0 6px 32px rgba(37,211,102,.8),0 0 0 12px rgba(37,211,102,.1);}}
+
+/* =========================================================
+   THEME SWITCHER
+   ========================================================= */
+/* — Theme variable overrides — */
+body[data-theme="blue"]{
+  --G:#1a56db;--G2:#1240a5;--G3:#2563eb;--GL:#dbeafe;--GL2:#bfdbfe;
+  --AU:#f59e0b;
+}
+body[data-theme="purple"]{
+  --G:#7c3aed;--G2:#5b21b6;--G3:#8b5cf6;--GL:#ede9fe;--GL2:#ddd6fe;
+  --AU:#f59e0b;
+}
+body[data-theme="red"]{
+  --G:#dc2626;--G2:#b91c1c;--G3:#ef4444;--GL:#fee2e2;--GL2:#fecaca;
+  --AU:#f59e0b;
+}
+body[data-theme="teal"]{
+  --G:#0d9488;--G2:#0f766e;--G3:#14b8a6;--GL:#ccfbf1;--GL2:#99f6e4;
+  --AU:#f59e0b;
+}
+body[data-theme="dark"]{
+  --G:#22c55e;--G2:#16a34a;--G3:#4ade80;--GL:#14532d;--GL2:#166534;
+  --AU:#fbbf24;--W:#111827;--S:#1f2937;--S2:#374151;--BD:#374151;
+  --T:#f9fafb;--T2:#d1d5db;--T3:#9ca3af;--INK:#030712;
+}
+
+/* — Switcher widget — */
+.theme-switcher{
+  position:fixed;left:20px;bottom:28px;z-index:9990;
+  display:flex;flex-direction:column;align-items:flex-start;gap:8px;
+}
+.theme-toggle-btn{
+  width:46px;height:46px;border-radius:50%;
+  background:var(--G);color:white;border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 18px rgba(0,0,0,.2);
+  transition:transform .2s,box-shadow .2s;
+  font-size:18px;
+}
+.theme-toggle-btn:hover{transform:scale(1.08);box-shadow:0 6px 24px rgba(0,0,0,.28)}
+.theme-panel{
+  background:white;border:1px solid var(--BD);
+  border-radius:18px;padding:14px 16px;
+  box-shadow:0 12px 40px rgba(0,0,0,.15);
+  display:none;flex-direction:column;gap:10px;
+  min-width:170px;
+}
+.theme-panel.open{display:flex}
+.theme-panel-title{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:var(--T3);margin-bottom:2px}
+.theme-options{display:flex;flex-direction:column;gap:6px}
+.theme-opt{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 10px;border-radius:10px;border:none;
+  background:transparent;cursor:pointer;font-family:var(--B);
+  font-size:13px;font-weight:600;color:var(--T);
+  transition:background .15s;text-align:left;width:100%;
+}
+.theme-opt:hover{background:var(--S)}
+.theme-opt.active{background:var(--GL);color:var(--G)}
+.theme-swatch{
+  width:22px;height:22px;border-radius:50%;flex-shrink:0;
+  border:2px solid rgba(0,0,0,.08);
+  box-shadow:0 1px 4px rgba(0,0,0,.12);
+}
+.theme-opt.active .theme-swatch{box-shadow:0 0 0 3px var(--G)}
 </style>
 </head>
 <body>
@@ -889,13 +1002,209 @@ footer{background:var(--INK);padding:68px clamp(20px,5vw,72px) 32px}
 <section class="split-sec" id="showcase"><div class="split-grid"><div class="split-img reveal-l"><img src="icons/school_5.jpg" alt="Chaotic school records" loading="lazy"><div class="split-img-overlay"><div class="sio-tag" style="color:#d40d0d">&#128196; The Problem</div><div class="sio-title">Hours lost every week to manual records, paper registers &amp; spreadsheets</div><div class="sio-sub">Sound familiar? Most Nigerian schools still run like this.</div></div></div><div class="split-content reveal-r"><div class="sc-label">The EduTrack NG Solution</div><h2 class="sc-h">Replace Every File,<br>Register &amp; Spreadsheet</h2><p class="sc-p">EduTrack NG brings every administrative task into one fast, mobile-friendly system your teachers will actually enjoy using.</p><ul class="sc-points"><li>Admit students with automatic subject registration</li><li>Take full class attendance in under 30 seconds</li><li>Enter CA &amp; exam scores — grades compute instantly</li><li>Track fees, print receipts, see who owes what</li><li>Parents check results from their phone anytime</li></ul><button class="sc-btn" onclick="location.href='login.html'">Start Free Today<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg></button></div></div></section>
 
 <!-- ═══ FEATURES (updated with more items) ══════════════════════════════════════════ -->
-<section class="sec feat-sec" id="features"><div class="wrap"><div class="feat-top"><div class="reveal-l"><span class="label">Features</span><h2 class="sec-h">Everything your school<br>needs in one place</h2></div><p class="sec-p reveal-r" style="margin-left:auto">From admissions to report cards — every workflow built for Nigerian schools.</p></div><div class="feat-grid"><div class="fc large reveal"><div><div class="fc-ico"><span class="icon-svg" style="display:inline-flex;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10 2v8L4.72 20.55A1 1 0 0 0 5.6 22h12.8a1 1 0 0 0 .88-1.45L14 10V2"/><line x1="8.5" y1="2" x2="15.5" y2="2"/></svg></span></div><div class="fc-h">Subject Combinations with Auto-Enrolment</div><div class="fc-p">Assign a student to Science, Art, or Commercial — all subjects register instantly. Core subjects pre-configured using Nigerian standards.</div></div><div class="fc-screen"><div class="fcs-bar"><div class="fcs-d" style="background:#bd1108"></div><div class="fcs-d" style="background:#febc2e"></div><div class="fcs-d" style="background:#28c840"></div></div><div class="fcs-body"><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px"><div style="border:1.5px solid var(--G);border-radius:8px;padding:10px;text-align:center;background:rgba(10,110,63,.12)"><div style="font-size:18px;margin-bottom:3px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10 2v8L4.72 20.55A1 1 0 0 0 5.6 22h12.8a1 1 0 0 0 .88-1.45L14 10V2"/><line x1="8.5" y1="2" x2="15.5" y2="2"/></svg></div><div style="font-size:9px;font-weight:800;color:#4ade80">Science</div><div style="font-size:7px;color:rgba(255,255,255,.3);margin-top:2px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg> Selected</div></div><div style="border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px;text-align:center"><div style="font-size:18px;margin-bottom:3px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg></div><div style="font-size:9px;font-weight:700;color:rgba(255,255,255,.4)">Art</div></div><div style="border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px;text-align:center"><div style="font-size:18px;margin-bottom:3px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div><div style="font-size:9px;font-weight:700;color:rgba(255,255,255,.4)">Commercial</div></div></div><div style="background:rgba(10,110,63,.1);border:1px solid rgba(10,110,63,.2);border-radius:7px;padding:8px"><div style="font-size:8px;font-weight:700;color:#4ade80;margin-bottom:5px">Auto-registered subjects:</div><div style="display:flex;flex-wrap:wrap;gap:3px"><span style="background:rgba(10,110,63,.2);color:#4ade80;padding:1px 6px;border-radius:3px;font-size:8px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg> English</span><span style="background:rgba(10,110,63,.2);color:#4ade80;padding:1px 6px;border-radius:3px;font-size:8px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg> Maths</span><span style="background:rgba(59,130,246,.2);color:#93c5fd;padding:1px 6px;border-radius:3px;font-size:8px">◆ Physics</span><span style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.35);padding:1px 6px;border-radius:3px;font-size:8px">+9 more</span></div></div></div></div></div>
-<div class="fc reveal"><div class="fc-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="fc-h">Students & Staff Management</div><div class="fc-p">Keep student profiles, guardians, staff records, and role-based access organized in one place.</div></div>
-<div class="fc reveal"><div class="fc-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div><div class="fc-h">Results & Report Cards</div><div class="fc-p">Enter CA1, CA2, Exam scores. Weighted averages compute automatically. Print report cards in one click.</div></div>
-<div class="fc reveal"><div class="fc-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg></div><div class="fc-h">One-Tap Attendance</div><div class="fc-p">Mark Present, Absent, Late, or Excused per student. Full class done in under 30 seconds.</div></div>
-<div class="fc reveal"><div class="fc-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div><div class="fc-h">Fee & Payment Tracking</div><div class="fc-p">Cash, transfer, POS. Outstanding balances auto-calculated. Print receipts instantly.</div></div>
-<div class="fc reveal"><div class="fc-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div><div class="fc-h">Offline PWA</div><div class="fc-p">Installs on any Android phone. Loads instantly without internet. Built for Nigerian 3G networks.</div></div>
-</div></div></section>
+<section class="sec feat-sec" id="features">
+<div class="wrap">
+  <!-- Section Header -->
+  <div class="feat-top reveal">
+    <span class="label" style="justify-content:center">Features</span>
+    <h2 class="sec-h">Everything your school<br>needs in one place</h2>
+    <p class="sec-p" style="margin:0 auto">From admissions to report cards — every workflow built for Nigerian schools.</p>
+  </div>
+
+  <!-- Sub-button pills (like Venlearn) -->
+  <div class="feat-pills reveal">
+    <button class="feat-pill active">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Students Management
+    </button>
+    <button class="feat-pill">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Staff Management
+    </button>
+    <button class="feat-pill">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Guardians Management
+    </button>
+    <button class="feat-pill">
+      <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      Fee Collection
+    </button>
+    <button class="feat-pill">
+      <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      Results &amp; Report Cards
+    </button>
+    <button class="feat-pill">
+      <svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="9" y1="12" x2="15" y2="12"/></svg>
+      CBT (Offline &amp; Online)
+    </button>
+    <button class="feat-pill">
+      <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      Digital Learning &amp; eLibrary
+    </button>
+    <button class="feat-pill">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      Attendance
+    </button>
+    <button class="feat-pill">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Event Calendar
+    </button>
+    <button class="feat-pill">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Messaging &amp; Communication
+    </button>
+    <button class="feat-pill">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Payments &amp; Receipts
+    </button>
+    <button class="feat-pill">
+      <svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+      Offline PWA
+    </button>
+  </div>
+
+  <!-- Feature cards grid (4 columns, like Venlearn) -->
+  <div class="feat-grid">
+
+    <!-- Featured wide card -->
+    <div class="fc featured reveal">
+      <div>
+        <div class="fc-ico">
+          <svg viewBox="0 0 24 24"><path d="M10 2v8L4.72 20.55A1 1 0 0 0 5.6 22h12.8a1 1 0 0 0 .88-1.45L14 10V2"/><line x1="8.5" y1="2" x2="15.5" y2="2"/></svg>
+        </div>
+        <div class="fc-h">Subject Auto-Enrolment</div>
+        <div class="fc-p">Assign Science, Art, or Commercial — all subjects register instantly. Core subjects pre-configured to Nigerian WAEC/NECO standards.</div>
+        <a class="fc-link" href="login.html">Learn more →</a>
+      </div>
+      <div class="fc-screen">
+        <div class="fcs-bar"><div class="fcs-d" style="background:#bd1108"></div><div class="fcs-d" style="background:#febc2e"></div><div class="fcs-d" style="background:#28c840"></div></div>
+        <div class="fcs-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px">
+            <div style="border:1.5px solid var(--G);border-radius:8px;padding:10px;text-align:center;background:rgba(10,110,63,.12)">
+              <div style="margin-bottom:3px;color:#4ade80"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10 2v8L4.72 20.55A1 1 0 0 0 5.6 22h12.8a1 1 0 0 0 .88-1.45L14 10V2"/><line x1="8.5" y1="2" x2="15.5" y2="2"/></svg></div>
+              <div style="font-size:9px;font-weight:800;color:#4ade80">Science</div>
+              <div style="font-size:7px;color:rgba(255,255,255,.3);margin-top:2px">✓ Selected</div>
+            </div>
+            <div style="border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px;text-align:center">
+              <div style="margin-bottom:3px;color:rgba(255,255,255,.35)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
+              <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,.4)">Art</div>
+            </div>
+            <div style="border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px;text-align:center">
+              <div style="margin-bottom:3px;color:rgba(255,255,255,.35)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>
+              <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,.4)">Commercial</div>
+            </div>
+          </div>
+          <div style="background:rgba(10,110,63,.1);border:1px solid rgba(10,110,63,.2);border-radius:7px;padding:8px">
+            <div style="font-size:8px;font-weight:700;color:#4ade80;margin-bottom:5px">Auto-registered subjects:</div>
+            <div style="display:flex;flex-wrap:wrap;gap:3px">
+              <span style="background:rgba(10,110,63,.2);color:#4ade80;padding:1px 6px;border-radius:3px;font-size:8px">✓ English</span>
+              <span style="background:rgba(10,110,63,.2);color:#4ade80;padding:1px 6px;border-radius:3px;font-size:8px">✓ Maths</span>
+              <span style="background:rgba(59,130,246,.2);color:#93c5fd;padding:1px 6px;border-radius:3px;font-size:8px">◆ Physics</span>
+              <span style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.35);padding:1px 6px;border-radius:3px;font-size:8px">+9 more</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Students Management -->
+    <div class="fc reveal">
+      <div class="fc-ico"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+      <div class="fc-h">Students Management</div>
+      <div class="fc-p">Keep student profiles, classes, academic history, guardians, and status changes organized in one place.</div>
+      <a class="fc-link" href="login.html">Learn more →</a>
+    </div>
+
+    <!-- Staff Management -->
+    <div class="fc reveal">
+      <div class="fc-ico"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <div class="fc-h">Staff Management</div>
+      <div class="fc-p">Manage teachers and administrative staff with roles, departments, assignments, contact details, and work records.</div>
+      <a class="fc-link" href="login.html">Learn more →</a>
+    </div>
+
+    <!-- Guardians Management -->
+    <div class="fc reveal">
+      <div class="fc-ico"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></div>
+      <div class="fc-h">Guardians Management</div>
+      <div class="fc-p">Connect parents and guardians to each learner with accurate contacts, access permissions, and communication records.</div>
+      <a class="fc-link" href="login.html">Learn more →</a>
+    </div>
+
+    <!-- Fee Collection -->
+    <div class="fc reveal">
+      <div class="fc-ico"><svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
+      <div class="fc-h">Fee Collection</div>
+      <div class="fc-p">Create invoices, collect payments, track balances, record receipts, and follow up on outstanding fees easily.</div>
+      <a class="fc-link" href="login.html">Learn more →</a>
+    </div>
+
+    <!-- Results & Report Cards -->
+    <div class="fc reveal">
+      <div class="fc-ico"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+      <div class="fc-h">Results &amp; Report Cards</div>
+      <div class="fc-p">Compile assessments, grades, remarks, class positions, and publish polished report cards to families in one click.</div>
+      <a class="fc-link" href="login.html">Learn more →</a>
+    </div>
+
+    <!-- CBT -->
+    <div class="fc reveal">
+      <div class="fc-ico"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="11" y2="16"/></svg></div>
+      <div class="fc-h">CBT (Offline &amp; Online)</div>
+      <div class="fc-p">Run computer-based tests in school or remotely with question banks, timing, grading, result summaries, and online publishing.</div>
+      <a class="fc-link" href="login.html">Learn more →</a>
+    </div>
+
+    <!-- Digital Learning & eLibrary -->
+    <div class="fc reveal">
+      <div class="fc-ico"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+      <div class="fc-h">Digital Learning &amp; eLibrary</div>
+      <div class="fc-p">Share lessons, notes, books, practice materials, and learning resources students can access anytime.</div>
+      <a class="fc-link" href="#learning">Learn more →</a>
+    </div>
+
+    <!-- Attendance -->
+    <div class="fc reveal">
+      <div class="fc-ico"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="fc-h">Attendance</div>
+      <div class="fc-p">Track student and staff attendance by day, class, subject, event, or hostel with clear absence reports.</div>
+      <a class="fc-link" href="login.html">Learn more →</a>
+    </div>
+
+    <!-- Timetable -->
+    <div class="fc reveal">
+      <div class="fc-ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+      <div class="fc-h">Event Calendar</div>
+      <div class="fc-p">Schedule school events, public holidays, term dates, and parent-teacher meetings — all in one shared calendar.</div>
+      <a class="fc-link" href="login.html">Learn more →</a>
+    </div>
+
+    <!-- Messaging -->
+    <div class="fc reveal">
+      <div class="fc-ico"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+      <div class="fc-h">Messaging &amp; Communication</div>
+      <div class="fc-p">Send SMS, WhatsApp, and in-app notifications to parents, students, and staff. Fee reminders and alerts automated.</div>
+      <a class="fc-link" href="login.html">Learn more →</a>
+    </div>
+
+    <!-- Offline PWA -->
+    <div class="fc reveal">
+      <div class="fc-ico"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div>
+      <div class="fc-h">Offline PWA</div>
+      <div class="fc-p">Installs on any Android phone including ₦30,000 budget devices. Loads instantly without internet — built for Nigerian 3G networks.</div>
+      <a class="fc-link" href="login.html">Learn more →</a>
+    </div>
+
+  </div>
+
+  <div class="feat-more-row reveal">
+    <button class="feat-more-btn" onclick="location.href='login.html'">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      View All Features
+    </button>
+  </div>
+</div>
+</section>
 
 <!-- ═══ NEW: DIGITAL LEARNING & eLIBRARY SECTION ═════════════════════ -->
 <section class="sec learning-sec" id="learning">
@@ -959,11 +1268,76 @@ document.addEventListener('DOMContentLoaded',function(){
   window.toggleNav=function(){let m=document.getElementById('mobNav'),h=document.getElementById('ham');if(m&&h){let o=m.style.display==='flex';m.style.display=o?'none':'flex';h.innerHTML=o?'☰':'✕';}};
   document.addEventListener('click',function(e){let m=document.getElementById('mobNav'),h=document.getElementById('ham');if(m&&h&&m.style.display==='flex'&&!m.contains(e.target)&&!h.contains(e.target)){m.style.display='none';h.innerHTML='☰';}});
   updateScroll();
+  // Feature pill toggle
+  document.querySelectorAll('.feat-pill').forEach(function(pill){
+    pill.addEventListener('click',function(){
+      document.querySelectorAll('.feat-pill').forEach(function(p){p.classList.remove('active');});
+      this.classList.add('active');
+    });
+  });
   if('IntersectionObserver' in window){let ro=new IntersectionObserver(e=>{e.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('in');ro.unobserve(entry.target);}});},{threshold:0.1});document.querySelectorAll('.reveal,.reveal-l,.reveal-r').forEach(el=>ro.observe(el));}else{document.querySelectorAll('.reveal,.reveal-l,.reveal-r').forEach(el=>el.classList.add('in'));}
   let deferredPrompt=null;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;let btn=document.getElementById('pwa-install-btn');if(btn){btn.style.display='inline-flex';btn.onclick=()=>{deferredPrompt.prompt();deferredPrompt.userChoice.then(choice=>{if(choice.outcome==='accepted')deferredPrompt=null;});};}});
 });
 setTimeout(()=>{let b=document.getElementById('waBubble'),c=document.getElementById('waBubbleClose');if(b){b.style.display='block';if(c)c.style.display='block';}},5000);
 </script>
 <div class="wa-float" id="waFloat"><div class="wa-bubble" id="waBubble"><button class="wa-close" id="waBubbleClose" onclick="document.getElementById('waBubble').style.display='none'">✕</button><strong>💬 Hi! Welcome to EduTrack.NG</strong>Chat with us on WhatsApp for subscription, demo access, or any enquiries.<a href="https://wa.me/2348037289774?text=Hello%2C%20I%27m%20interested%20in%20EduTrack%20NG" target="_blank" style="display:block;margin-top:10px;background:#25D366;color:white;text-align:center;padding:9px;border-radius:8px;font-weight:700;">Start Chat</a></div><button class="wa-btn" id="waMainBtn" onclick="let b=document.getElementById('waBubble');b.style.display=b.style.display==='flex'?'none':'block';"><svg viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg></button></div>
+<!-- ═══ THEME SWITCHER ════════════════════════════════════════════════ -->
+<div class="theme-switcher" id="themeSwitcher">
+  <div class="theme-panel" id="themePanel">
+    <div class="theme-panel-title">🎨 Choose Theme</div>
+    <div class="theme-options">
+      <button class="theme-opt active" data-theme="green" onclick="applyTheme('green',this)">
+        <span class="theme-swatch" style="background:#0a6e3f"></span>Forest Green
+      </button>
+      <button class="theme-opt" data-theme="blue" onclick="applyTheme('blue',this)">
+        <span class="theme-swatch" style="background:#1a56db"></span>Royal Blue
+      </button>
+      <button class="theme-opt" data-theme="purple" onclick="applyTheme('purple',this)">
+        <span class="theme-swatch" style="background:#7c3aed"></span>Deep Purple
+      </button>
+      <button class="theme-opt" data-theme="red" onclick="applyTheme('red',this)">
+        <span class="theme-swatch" style="background:#dc2626"></span>Ember Red
+      </button>
+      <button class="theme-opt" data-theme="teal" onclick="applyTheme('teal',this)">
+        <span class="theme-swatch" style="background:#0d9488"></span>Ocean Teal
+      </button>
+      <button class="theme-opt" data-theme="dark" onclick="applyTheme('dark',this)">
+        <span class="theme-swatch" style="background:#22c55e;border-color:#14532d"></span>Dark Mode
+      </button>
+    </div>
+  </div>
+  <button class="theme-toggle-btn" id="themeToggleBtn" title="Change Theme" onclick="document.getElementById('themePanel').classList.toggle('open')">
+    🎨
+  </button>
+</div>
+
+<script>
+function applyTheme(theme,el){
+  var body=document.body;
+  if(theme==='green'){body.removeAttribute('data-theme');}
+  else{body.setAttribute('data-theme',theme);}
+  document.querySelectorAll('.theme-opt').forEach(function(o){o.classList.remove('active');});
+  el.classList.add('active');
+  localStorage.setItem('edutrack-theme',theme);
+  document.getElementById('themePanel').classList.remove('open');
+}
+// Restore saved theme
+(function(){
+  var saved=localStorage.getItem('edutrack-theme');
+  if(saved&&saved!=='green'){
+    document.body.setAttribute('data-theme',saved);
+    var btn=document.querySelector('[data-theme="'+saved+'"]');
+    if(btn){
+      document.querySelectorAll('.theme-opt').forEach(function(o){o.classList.remove('active');});
+      btn.classList.add('active');
+    }
+  }
+})();
+// Close panel when clicking outside
+document.addEventListener('click',function(e){
+  var sw=document.getElementById('themeSwitcher');
+  if(sw&&!sw.contains(e.target)){document.getElementById('themePanel').classList.remove('open');}
+});
+</script>
 </body>
 </html>
