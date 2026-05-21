@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/icons/icon-96.png" type="image/png">
+  <meta name="theme-color" content="#0a6e3f">
+  <title>Curriculum Portal · EduTrack NG</title>
+  <link rel="stylesheet" href="../assets/css/global.css">
+<style>
+/* ── Page-specific only — all utilities from global.css ── */
+.cur-hero {
+  background: linear-gradient(130deg,#1e1b4b 0%,#3730a3 55%,#4f46e5 100%);
+  border-radius: 12px; padding: 24px 28px; margin-bottom: 20px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  color: #fff; position: relative; overflow: hidden;
+}
+.cur-hero::before {
+  content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 40%;
+  background-image: radial-gradient(rgba(255,255,255,.05) 1px, transparent 1px);
+  background-size: 16px 16px; pointer-events: none;
+}
+.cur-hero-text { position: relative; z-index: 1; }
+.cur-hero-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 4px; }
+.cur-hero-sub   { font-size: .8rem; color: rgba(255,255,255,.65); }
+.cur-hero-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.cur-hero-pill  {
+  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15);
+  border-radius: 20px; padding: 3px 12px; font-size: .7rem; font-weight: 600;
+  display: flex; align-items: center; gap: 5px;
+}
+
+.kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 20px; }
+.kpi-box { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; position: relative; overflow: hidden; }
+.kpi-box::after { content: attr(data-icon); position: absolute; right: -2px; bottom: -8px; font-size: 40px; opacity: .06; }
+.kpi-accent { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; border-radius: 10px 0 0 10px; }
+.kpi-lbl { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); margin-bottom: 6px; }
+.kpi-val { font-size: 1.7rem; font-weight: 900; letter-spacing: -.5px; line-height: 1; }
+
+.tab-row { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 18px; }
+.tab-pill {
+  padding: 9px 16px; font-size: .82rem; font-weight: 600;
+  color: var(--ink-3); cursor: pointer; border-bottom: 2px solid transparent;
+  margin-bottom: -2px; background: none; border-top: none; border-left: none; border-right: none;
+  transition: .15s; display: flex; align-items: center; gap: 6px; white-space: nowrap;
+}
+.tab-pill:hover { color: var(--ink-2); }
+.tab-pill.active { color: #4f46e5; border-bottom-color: #4f46e5; }
+.tab-count {
+  font-size: .65rem; font-weight: 700;
+  background: var(--surface-2); color: var(--ink-3);
+  padding: 1px 6px; border-radius: 20px;
+}
+.tab-pill.active .tab-count { background: #4f46e5; color: #fff; }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; animation: fadeUp .2s ease; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+
+/* Status badges */
+.sbadge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 5px; font-size: .68rem; font-weight: 700;
+  border: 1px solid transparent; white-space: nowrap;
+}
+.sbadge::before { content:''; width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+.s-Approved  { background:#dcfce7; color:#15803d; border-color:rgba(21,128,61,.15); }
+.s-Approved::before  { background:#15803d; }
+.s-Submitted { background:#fef9c3; color:#d97706; border-color:rgba(217,119,6,.15); }
+.s-Submitted::before { background:#d97706; }
+.s-Draft     { background:var(--surface-2); color:var(--ink-3); border-color:var(--border); }
+.s-Draft::before     { background:var(--ink-4,#9ca3af); }
+.s-Returned  { background:#fee2e2; color:#dc2626; border-color:rgba(220,38,38,.15); }
+.s-Returned::before  { background:#dc2626; }
+
+/* Table card */
+.tbl-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.tbl-card-head {
+  padding: 12px 18px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+}
+.tbl-card-title { font-size: .88rem; font-weight: 700; }
+
+table.ctbl { width: 100%; border-collapse: collapse; }
+table.ctbl thead { background: var(--surface-2); }
+table.ctbl th {
+  text-align: left; padding: 10px 14px; font-size: .67rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3);
+  border-bottom: 1px solid var(--border); white-space: nowrap;
+}
+table.ctbl td { padding: 12px 14px; border-bottom: 1px solid var(--border); font-size: .84rem; vertical-align: middle; }
+table.ctbl tr:last-child td { border-bottom: none; }
+table.ctbl tbody tr:hover td { background: var(--surface-2); }
+
+.class-tag {
+  display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 5px;
+  font-size: .67rem; font-weight: 700; letter-spacing: .03em;
+  background: rgba(79,70,229,.08); color: #4f46e5;
+  border: 1px solid rgba(79,70,229,.15); font-family: var(--mono,monospace);
+}
+.week-col { font-family: var(--mono,monospace); font-size: .76rem; font-weight: 600; color: var(--ink-3); }
+.date-col { font-family: var(--mono,monospace); font-size: .76rem; color: var(--ink-3); }
+.topic-col { font-weight: 600; }
+
+/* Filter bar */
+.filter-bar {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px 18px; display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;
+  margin-bottom: 16px;
+}
+.filter-bar .form-group { margin-bottom: 0; }
+
+/* Bulk bar */
+.bulk-bar {
+  display: none; background: #4f46e5; color: #fff;
+  padding: 8px 16px; border-radius: 8px; align-items: center; gap: 12px;
+  margin-bottom: 10px; font-size: .84rem; font-weight: 600;
+}
+.bulk-bar.visible { display: flex; animation: fadeUp .2s ease; }
+
+/* Doc cards grid */
+.doc-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(290px,1fr)); gap: 14px; }
+.doc-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  overflow: hidden; transition: .15s; display: flex; flex-direction: column;
+}
+.doc-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: var(--border-2); }
+.doc-card-stripe { height: 3px; }
+.doc-card-hd { padding: 14px 16px 10px; border-bottom: 1px solid var(--border); }
+.doc-card-eyebrow { font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 5px; display: flex; align-items: center; gap: 5px; }
+.doc-card-title { font-size: .9rem; font-weight: 700; line-height: 1.35; }
+.doc-card-body { padding: 10px 16px; flex: 1; }
+.doc-card-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.doc-card-desc { font-size: .75rem; color: var(--ink-3); line-height: 1.55; }
+.doc-card-ft {
+  padding: 10px 16px; border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--surface-2);
+}
+
+.prog-sm { height: 4px; background: var(--surface-3,#e5e7eb); border-radius: 2px; overflow: hidden; margin-top: 5px; }
+.prog-sm-fill { height: 100%; border-radius: 2px; }
+
+/* Slide-in detail panel */
+.detail-panel {
+  position: fixed; top: 0; right: 0; bottom: 0; width: 440px;
+  background: var(--surface); border-left: 1px solid var(--border-2);
+  box-shadow: -8px 0 32px rgba(0,0,0,.12); z-index: 400;
+  transform: translateX(100%); transition: transform .3s cubic-bezier(.4,0,.2,1);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.detail-panel.open { transform: translateX(0); }
+.dp-head {
+  padding: 18px 20px; border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+}
+.dp-eyebrow { font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-3); margin-bottom: 3px; }
+.dp-title   { font-size: 1rem; font-weight: 700; line-height: 1.3; }
+.dp-meta    { display: flex; gap: 6px; margin-top: 7px; flex-wrap: wrap; }
+.dp-body    { flex: 1; overflow-y: auto; padding: 20px; }
+.dp-foot    { padding: 13px 20px; border-top: 1px solid var(--border); display: flex; gap: 8px; flex-wrap: wrap; }
+.dp-section { margin-bottom: 18px; }
+.dp-section-lbl { font-size: .67rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-3); margin-bottom: 7px; }
+.dp-content { font-size: .84rem; color: var(--ink-2); line-height: 1.7; }
+
+.lesson-step {
+  display: flex; gap: 10px; padding: 10px 12px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 8px; margin-bottom: 7px;
+}
+.step-num {
+  width: 22px; height: 22px; border-radius: 50%; background: #4f46e5; color: #fff;
+  font-size: .68rem; font-weight: 700; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-family: var(--mono,monospace);
+}
+.step-title { font-size: .78rem; font-weight: 700; color: var(--ink); }
+.step-desc  { font-size: .72rem; color: var(--ink-3); }
+
+/* Week accordion inside panel */
+.week-acc { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.week-acc-row {
+  display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+  cursor: pointer; border-bottom: 1px solid var(--border); background: var(--surface);
+  transition: background .1s;
+}
+.week-acc-row:hover { background: var(--surface-2); }
+.week-acc-row:last-of-type { border-bottom: none; }
+.wk-num   { font-family: var(--mono,monospace); font-size: .7rem; font-weight: 600; color: var(--ink-3); min-width: 50px; }
+.wk-topic { flex: 1; font-size: .84rem; }
+.wk-chev  { font-size: .7rem; color: var(--ink-4,#9ca3af); transition: transform .2s; }
+.week-acc-row.open .wk-chev { transform: rotate(180deg); }
+.week-acc-detail {
+  display: none; padding: 10px 14px;
+  background: var(--surface-2); border-bottom: 1px solid var(--border);
+  font-size: .8rem; color: var(--ink-3); line-height: 1.6;
+}
+.week-acc-detail.open { display: block; }
+
+/* Form grid helpers used in modals */
+.fg2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.fg3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.col-full { grid-column: 1/-1; }
+
+@media(max-width:900px) {
+  .kpi-row { grid-template-columns: 1fr 1fr; }
+  .fg2,.fg3 { grid-template-columns: 1fr; }
+  .detail-panel { width: 100%; }
+}
+@media(max-width:550px) {
+  .kpi-row { grid-template-columns: 1fr; }
+  .doc-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<!-- Slide-in Detail Panel -->
+<div class="detail-panel" id="detailPanel">
+  <div class="dp-head">
+    <div>
+      <div class="dp-eyebrow" id="dpEyebrow">—</div>
+      <div class="dp-title"   id="dpTitle">—</div>
+      <div class="dp-meta"    id="dpMeta"></div>
+    </div>
+    <button class="modal__close" onclick="closePanel()" style="flex-shrink:0">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="dp-body" id="dpBody"></div>
+  <div class="dp-foot" id="dpFoot"></div>
+</div>
+<div id="panelOverlay" onclick="closePanel()"
+     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:399"></div>
+
+<!-- ══ LESSON PLAN MODAL ══════════════════════════════════════ -->
+<div class="modal" id="modalPlan">
+  <div class="modal__box" style="max-width:580px">
+    <div class="modal__header">
+      <h2 class="modal__title" id="planModalTitle">New Lesson Plan</h2>
+      <button class="modal__close" onclick="closeModal('modalPlan')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal__body">
+      <div class="fg2">
+        <div class="form-group">
+          <label class="form-label">Class <span class="required">*</span></label>
+          <select id="np_class" class="form-control">
+            <option>JSS 1</option><option>JSS 2</option><option>JSS 3</option>
+            <option>SSS 1</option><option>SSS 2</option><option>SSS 3</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Subject <span class="required">*</span></label>
+          <select id="np_subject" class="form-control">
+            <option>Mathematics</option><option>English Language</option><option>Biology</option>
+            <option>Physics</option><option>Chemistry</option><option>Economics</option>
+            <option>Government</option><option>Literature in English</option>
+            <option>Geography</option><option>Agricultural Science</option>
+            <option>Civic Education</option><option>Computer Science</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Week</label>
+          <select id="np_week" class="form-control">
+            ${Array.from({length:13},(_,i)=>`<option>Week ${i+1}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date</label>
+          <input type="date" id="np_date" class="form-control">
+        </div>
+        <div class="form-group col-full">
+          <label class="form-label">Lesson Topic <span class="required">*</span></label>
+          <input type="text" id="np_topic" class="form-control" placeholder="e.g. Quadratic Equations and Factorisation">
+        </div>
+        <div class="form-group col-full">
+          <label class="form-label">Learning Objectives</label>
+          <textarea id="np_objectives" class="form-control" rows="2"
+            placeholder="By the end of this lesson, students should be able to…"></textarea>
+        </div>
+        <div class="form-group col-full">
+          <label class="form-label">Teaching &amp; Learning Materials</label>
+          <input type="text" id="np_materials" class="form-control"
+            placeholder="e.g. Textbook, Charts, Calculator, Markers">
+        </div>
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--secondary" onclick="closeModal('modalPlan')">Cancel</button>
+      <button class="btn btn--secondary" id="saveDraftBtn"   onclick="savePlan('Draft')">Save as Draft</button>
+      <button class="btn btn--primary"   id="saveSubmitBtn"  onclick="savePlan('Submitted')">Submit for Review</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCHEME OF WORK MODAL ══════════════════════════════════ -->
+<div class="modal" id="modalScheme">
+  <div class="modal__box" style="max-width:540px">
+    <div class="modal__header">
+      <h2 class="modal__title">Add Scheme of Work</h2>
+      <button class="modal__close" onclick="closeModal('modalScheme')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal__body">
+      <div class="fg2">
+        <div class="form-group col-full">
+          <label class="form-label">Scheme Title <span class="required">*</span></label>
+          <input type="text" id="ns_title" class="form-control"
+            placeholder="e.g. JSS 1 Mathematics — First Term Scheme">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Class</label>
+          <select id="ns_class" class="form-control">
+            <option>JSS 1</option><option>JSS 2</option><option>JSS 3</option>
+            <option>SSS 1</option><option>SSS 2</option><option>SSS 3</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Subject</label>
+          <select id="ns_subject" class="form-control">
+            <option>Mathematics</option><option>English Language</option><option>Biology</option>
+            <option>Physics</option><option>Chemistry</option><option>Economics</option>
+            <option>Government</option><option>Literature in English</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Term</label>
+          <select id="ns_term" class="form-control">
+            <option>First Term</option><option>Second Term</option><option>Third Term</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Duration (weeks)</label>
+          <input type="number" id="ns_weeks" class="form-control" placeholder="13" min="1" max="20" value="13">
+        </div>
+        <div class="form-group col-full">
+          <label class="form-label">Weekly Topics (comma-separated)</label>
+          <textarea id="ns_topics" class="form-control" rows="3"
+            placeholder="Algebra, Fractions, Decimals, Ratio, Proportion, Simple Interest…"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--secondary" onclick="closeModal('modalScheme')">Cancel</button>
+      <button class="btn btn--primary" id="saveSchemeBtn" onclick="saveScheme()">Save Scheme</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ LESSON NOTE MODAL ═════════════════════════════════════ -->
+<div class="modal" id="modalNote">
+  <div class="modal__box" style="max-width:520px">
+    <div class="modal__header">
+      <h2 class="modal__title">Create Lesson Note</h2>
+      <button class="modal__close" onclick="closeModal('modalNote')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal__body">
+      <div class="fg2">
+        <div class="form-group col-full">
+          <label class="form-label">Note Title <span class="required">*</span></label>
+          <input type="text" id="nn_title" class="form-control"
+            placeholder="e.g. Cell Theory and Organelles — Detailed Note">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Subject</label>
+          <select id="nn_subject" class="form-control">
+            <option>Mathematics</option><option>English Language</option><option>Biology</option>
+            <option>Physics</option><option>Chemistry</option><option>Economics</option>
+            <option>Government</option><option>Literature in English</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Class</label>
+          <select id="nn_class" class="form-control">
+            <option>JSS 1</option><option>JSS 2</option><option>JSS 3</option>
+            <option>SSS 1</option><option>SSS 2</option><option>SSS 3</option>
+          </select>
+        </div>
+        <div class="form-group col-full">
+          <label class="form-label">Note Content</label>
+          <textarea id="nn_content" class="form-control" rows="5"
+            placeholder="Enter objectives, step-by-step presentation, evaluation questions…"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--secondary" onclick="closeModal('modalNote')">Cancel</button>
+      <button class="btn btn--primary" id="saveNoteBtn" onclick="saveNote()">Save Note</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
+<script src="../js/config.js"></script>
+<script src="../js/supabase.js"></script>
+<script src="../js/layout.js"></script>
+<script>
+/* ============================================================
+   CURRICULUM PORTAL — uses project's initAdminLayout, db,
+   toast(), openModal(), closeModal(), showLoader(), showEmpty()
+   Tables: cur_lesson_plans, cur_schemes, cur_lesson_notes
+============================================================ */
+let _user, _sid;
+let _allPlans = [];
+
+/* ── Init ───────────────────────────────────────────────────── */
+(async () => {
+  _user = await initAdminLayout('curriculum', 'Curriculum Portal');
+  if (!_user) return;
+  _sid = _user.school_id;
+  document.getElementById('topbarActions').innerHTML =
+    `<button class="btn btn--primary btn--sm" onclick="openModal('modalPlan')">+ New Plan</button>`;
+  await renderPage();
+})();
+
+/* ── Main render ────────────────────────────────────────────── */
+async function renderPage() {
+  const body = document.getElementById('pageBody');
+  showLoader(body, 'Loading Curriculum portal…');
+
+  const [plRes, schRes, notRes] = await Promise.all([
+    db.from('cur_lesson_plans').select('id,status').eq('school_id', _sid),
+    db.from('cur_schemes').select('id').eq('school_id', _sid),
+    db.from('cur_lesson_notes').select('id').eq('school_id', _sid),
+  ]);
+
+  const plans   = plRes.data  || [];
+  const schemes = schRes.data || [];
+  const notes   = notRes.data || [];
+
+  const approved  = plans.filter(p => p.status === 'Approved').length;
+  const pending   = plans.filter(p => p.status === 'Submitted').length;
+  const returned  = plans.filter(p => p.status === 'Returned').length;
+  const drafts    = plans.filter(p => p.status === 'Draft').length;
+
+  body.innerHTML = `
+    <div class="cur-hero">
+      <div class="cur-hero-text">
+        <div class="cur-hero-title">📋 Curriculum Management Portal</div>
+        <div class="cur-hero-sub">Create and manage lesson plans, schemes of work, and detailed lesson notes.</div>
+        <div class="cur-hero-pills">
+          <div class="cur-hero-pill">✅ ${approved} Approved</div>
+          <div class="cur-hero-pill">📖 ${schemes.length} Schemes</div>
+          <div class="cur-hero-pill">📝 ${notes.length} Notes</div>
+        </div>
+      </div>
+      <button class="btn btn--sm" style="background:#fff;color:#4f46e5;font-weight:700;position:relative;z-index:1"
+        onclick="openModal('modalPlan')">+ New Plan</button>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi-box" data-icon="✓"><div class="kpi-accent" style="background:#15803d"></div><div class="kpi-lbl">Approved</div><div class="kpi-val" style="color:#15803d">${approved}</div></div>
+      <div class="kpi-box" data-icon="⧖"><div class="kpi-accent" style="background:#d97706"></div><div class="kpi-lbl">Pending Review</div><div class="kpi-val" style="color:#d97706">${pending}</div></div>
+      <div class="kpi-box" data-icon="↩"><div class="kpi-accent" style="background:#dc2626"></div><div class="kpi-lbl">Returned</div><div class="kpi-val" style="color:#dc2626">${returned}</div></div>
+      <div class="kpi-box" data-icon="◌"><div class="kpi-accent" style="background:var(--ink-3)"></div><div class="kpi-lbl">Drafts</div><div class="kpi-val" style="color:var(--ink-3)">${drafts}</div></div>
+    </div>
+
+    <div class="tab-row">
+      <button class="tab-pill active" id="tp-plans"     onclick="switchTab('plans')">
+        📅 Lesson Plans <span class="tab-count" id="tc-plans">${plans.length}</span>
+      </button>
+      <button class="tab-pill" id="tp-schemes"   onclick="switchTab('schemes')">
+        📖 Scheme of Work <span class="tab-count" id="tc-schemes">${schemes.length}</span>
+      </button>
+      <button class="tab-pill" id="tp-notes"     onclick="switchTab('notes')">
+        📝 Lesson Notes <span class="tab-count" id="tc-notes">${notes.length}</span>
+      </button>
+      <button class="tab-pill" id="tp-templates" onclick="switchTab('templates')">
+        🗂 Templates
+      </button>
+    </div>
+
+    <div class="tab-pane active" id="pane-plans"></div>
+    <div class="tab-pane" id="pane-schemes"></div>
+    <div class="tab-pane" id="pane-notes"></div>
+    <div class="tab-pane" id="pane-templates"></div>
+  `;
+
+  await loadPlansPane();
+}
+
+/* ══ TAB: LESSON PLANS ══════════════════════════════════════ */
+async function loadPlansPane() {
+  const pane = document.getElementById('pane-plans');
+  showLoader(pane, 'Loading lesson plans…');
+
+  const { data, error } = await db.from('cur_lesson_plans')
+    .select('*')
+    .eq('school_id', _sid)
+    .order('created_at', { ascending: false });
+
+  if (error) { showError(pane, error.message); return; }
+  _allPlans = data || [];
+  renderPlansPane();
+}
+
+function renderPlansPane() {
+  const pane = document.getElementById('pane-plans');
+  const subjects = [...new Set(_allPlans.map(p => p.subject).filter(Boolean))];
+  const classes  = [...new Set(_allPlans.map(p => p.class_level).filter(Boolean))];
+
+  pane.innerHTML = `
+    <div class="filter-bar">
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">Search</label>
+        <input id="pl_q" class="form-control" placeholder="Topic, subject…" oninput="filterPlans()" style="min-width:150px">
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">Subject</label>
+        <select id="pl_subj" class="form-control" onchange="filterPlans()">
+          <option value="">All Subjects</option>
+          ${subjects.map(s => `<option>${s}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">Class</label>
+        <select id="pl_cls" class="form-control" onchange="filterPlans()">
+          <option value="">All Classes</option>
+          ${classes.map(c => `<option>${c}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">Status</label>
+        <select id="pl_stat" class="form-control" onchange="filterPlans()">
+          <option value="">All</option>
+          <option>Approved</option><option>Submitted</option>
+          <option>Draft</option><option>Returned</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="bulk-bar" id="bulkBar">
+      <span id="bulkCount">0 selected</span>
+      <button class="btn btn--sm" style="background:rgba(255,255,255,.2);color:#fff" onclick="bulkSubmit()">Submit Selected</button>
+      <button class="btn btn--sm" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.7)" onclick="clearBulk()">Cancel</button>
+    </div>
+
+    <div class="tbl-card">
+      <div class="tbl-card-head">
+        <span class="tbl-card-title">Lesson Plans</span>
+        <button class="btn btn--primary btn--sm" onclick="openModal('modalPlan')">+ New Plan</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="ctbl">
+          <thead>
+            <tr>
+              <th style="width:36px"><input type="checkbox" id="selAll" onchange="toggleSelAll(this)"></th>
+              <th>Week</th><th>Date</th><th>Topic</th><th>Class</th>
+              <th>Subject</th><th>Status</th><th>Note</th><th style="width:110px">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="plansBody"></tbody>
+        </table>
+      </div>
+      <div id="plansEmpty" style="display:none"></div>
+    </div>`;
+
+  filterPlans();
+}
+
+function filterPlans() {
+  const q    = (document.getElementById('pl_q')?.value    || '').toLowerCase();
+  const subj =  document.getElementById('pl_subj')?.value || '';
+  const cls  =  document.getElementById('pl_cls')?.value  || '';
+  const stat =  document.getElementById('pl_stat')?.value || '';
+
+  const filtered = _allPlans.filter(p => {
+    if (subj && p.subject     !== subj) return false;
+    if (cls  && p.class_level !== cls)  return false;
+    if (stat && p.status      !== stat) return false;
+    if (q && !(p.topic||'').toLowerCase().includes(q)
+          && !(p.subject||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  const tc    = document.getElementById('tc-plans');
+  const tbody = document.getElementById('plansBody');
+  const empty = document.getElementById('plansEmpty');
+  if (tc) tc.textContent = filtered.length;
+
+  if (!tbody) return;
+
+  if (!filtered.length) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    empty.innerHTML = `<div class="et-empty"><div class="et-empty__icon">📋</div>
+      <p>No lesson plans found. <button class="btn btn--ghost btn--sm" onclick="openModal('modalPlan')">Create one</button></p></div>`;
+    return;
+  }
+
+  empty.style.display = 'none';
+  tbody.innerHTML = filtered.map(p => {
+    const daysLeft = p.date ? Math.ceil((new Date(p.date) - new Date()) / 86400000) : null;
+    const dateColor = daysLeft !== null && daysLeft < 0 ? 'color:#dc2626'
+      : daysLeft !== null && daysLeft <= 2 ? 'color:#d97706' : '';
+    const noteHtml = p.reviewer_note && p.reviewer_note !== '—' && p.reviewer_note
+      ? `<span style="font-size:.72rem;color:#d97706;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block"
+           title="${esc(p.reviewer_note)}">💬 ${esc(p.reviewer_note.substring(0,28))}${p.reviewer_note.length>28?'…':''}</span>`
+      : `<span style="color:var(--ink-4,#9ca3af);font-size:.75rem">—</span>`;
+
+    return `<tr>
+      <td><input type="checkbox" class="plan-cb" data-id="${p.id}" onchange="updateBulk()"></td>
+      <td class="week-col">${esc(p.week||'—')}</td>
+      <td class="date-col" style="${dateColor}">${p.date||'—'}</td>
+      <td class="topic-col" style="cursor:pointer" onclick="openPlanDetail('${p.id}')">
+        ${esc(p.topic)} <span style="font-size:.7rem;color:var(--ink-4,#9ca3af)">↗</span>
+      </td>
+      <td><span class="class-tag">${esc(p.class_level||'—')}</span></td>
+      <td style="font-size:.82rem">${esc(p.subject||'—')}</td>
+      <td><span class="sbadge s-${p.status||'Draft'}">${p.status||'Draft'}</span></td>
+      <td>${noteHtml}</td>
+      <td>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn--ghost btn--sm" title="View" onclick="openPlanDetail('${p.id}')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+          ${p.status === 'Draft' ? `
+          <button class="btn btn--ghost btn--sm" title="Submit" onclick="submitPlan('${p.id}')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+          </button>` : ''}
+          <button class="btn btn--ghost btn--sm" style="color:var(--danger)" title="Delete" onclick="deletePlan('${p.id}')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+            </svg>
+          </button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+/* ══ TAB: SCHEMES ═══════════════════════════════════════════ */
+async function loadSchemesPane() {
+  const pane = document.getElementById('pane-schemes');
+  showLoader(pane, 'Loading schemes…');
+
+  const { data, error } = await db.from('cur_schemes').select('*')
+    .eq('school_id', _sid).order('created_at', { ascending: false });
+
+  if (error) { showError(pane, error.message); return; }
+  const schemes = data || [];
+
+  const tc = document.getElementById('tc-schemes');
+  if (tc) tc.textContent = schemes.length;
+
+  if (!schemes.length) {
+    pane.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div><strong>Scheme of Work</strong><span style="font-size:.75rem;color:var(--ink-3);margin-left:8px">Term-by-term curriculum outlines</span></div>
+        <button class="btn btn--primary btn--sm" onclick="openModal('modalScheme')">+ Add Scheme</button>
+      </div>`;
+    showEmpty(pane.appendChild(document.createElement('div')), 'No schemes yet. Add your first scheme of work.', '📖');
+    return;
+  }
+
+  pane.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <div><strong style="font-size:.95rem">Scheme of Work</strong>
+        <span style="font-size:.75rem;color:var(--ink-3);margin-left:8px">Term-by-term curriculum outlines</span>
+      </div>
+      <button class="btn btn--primary btn--sm" onclick="openModal('modalScheme')">+ Add Scheme</button>
+    </div>
+    <div class="doc-grid">
+      ${schemes.map(s => {
+        const prog = s.progress || 0;
+        return `
+        <div class="doc-card">
+          <div class="doc-card-stripe" style="background:#4f46e5"></div>
+          <div class="doc-card-hd">
+            <div class="doc-card-eyebrow" style="color:#4f46e5">📖 SCHEME OF WORK</div>
+            <div class="doc-card-title">${esc(s.title)}</div>
+          </div>
+          <div class="doc-card-body">
+            <div class="doc-card-meta">
+              <span class="class-tag">${esc(s.class_level||'—')}</span>
+              <span class="sbadge s-Approved" style="font-size:.65rem">${esc(s.term||'—')}</span>
+              <span style="background:var(--surface-2);color:var(--ink-3);padding:2px 7px;border-radius:4px;font-size:.65rem;font-weight:600;font-family:var(--mono,monospace)">${s.weeks_count||0} wks</span>
+            </div>
+            <div class="doc-card-desc">${esc((s.topics||'').substring(0,90))}${(s.topics||'').length>90?'…':''}</div>
+            <div style="margin-top:10px">
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                <span style="font-size:.7rem;color:var(--ink-3)">Completion</span>
+                <span style="font-size:.7rem;font-weight:700;font-family:var(--mono,monospace);color:#4f46e5">${prog}%</span>
+              </div>
+              <div class="prog-sm"><div class="prog-sm-fill" style="width:${prog}%;background:#4f46e5"></div></div>
+            </div>
+          </div>
+          <div class="doc-card-ft">
+            <span style="font-size:.75rem;color:var(--ink-3)">${esc(s.subject||'—')}</span>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn--secondary btn--sm" onclick="openSchemeDetail('${s.id}')">View Weeks</button>
+              <button class="btn btn--ghost btn--sm" style="color:var(--danger)" onclick="deleteScheme('${s.id}')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+/* ══ TAB: NOTES ═════════════════════════════════════════════ */
+async function loadNotesPane() {
+  const pane = document.getElementById('pane-notes');
+  showLoader(pane, 'Loading lesson notes…');
+
+  const { data, error } = await db.from('cur_lesson_notes').select('*')
+    .eq('school_id', _sid).order('created_at', { ascending: false });
+
+  if (error) { showError(pane, error.message); return; }
+  const notes = data || [];
+
+  const tc = document.getElementById('tc-notes');
+  if (tc) tc.textContent = notes.length;
+
+  pane.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <div><strong style="font-size:.95rem">Lesson Notes</strong>
+        <span style="font-size:.75rem;color:var(--ink-3);margin-left:8px">Detailed instructional content</span>
+      </div>
+      <button class="btn btn--primary btn--sm" onclick="openModal('modalNote')">+ Create Note</button>
+    </div>
+    ${notes.length ? `<div class="doc-grid">
+      ${notes.map(n => `
+      <div class="doc-card">
+        <div class="doc-card-stripe" style="background:#d97706"></div>
+        <div class="doc-card-hd">
+          <div class="doc-card-eyebrow" style="color:#d97706">📝 LESSON NOTE</div>
+          <div class="doc-card-title">${esc(n.title)}</div>
+        </div>
+        <div class="doc-card-body">
+          <div class="doc-card-meta">
+            <span class="class-tag">${esc(n.class_level||'—')}</span>
+            <span style="background:#fef9c3;color:#d97706;padding:2px 7px;border-radius:4px;font-size:.65rem;font-weight:700">${esc(n.subject||'—')}</span>
+            <span style="background:var(--surface-2);color:var(--ink-3);padding:2px 7px;border-radius:4px;font-size:.65rem;font-weight:600;font-family:var(--mono,monospace)">${n.pages||1} pg${(n.pages||1)>1?'s':''}</span>
+          </div>
+          <div class="doc-card-desc">${esc((n.content||'').substring(0,90))}${(n.content||'').length>90?'…':''}</div>
+        </div>
+        <div class="doc-card-ft">
+          <span style="font-size:.7rem;color:var(--ink-3);font-family:var(--mono,monospace)">${(n.created_at||'').split('T')[0]}</span>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn--secondary btn--sm" onclick="openNoteDetail('${n.id}')">Read</button>
+            <button class="btn btn--ghost btn--sm" style="color:var(--danger)" onclick="deleteNote('${n.id}')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>`).join('')}
+    </div>` : `<div class="et-empty"><div class="et-empty__icon">📝</div>
+      <p>No lesson notes yet. <button class="btn btn--ghost btn--sm" onclick="openModal('modalNote')">Create the first one</button></p></div>`}`;
+}
+
+/* ══ TAB: TEMPLATES ═════════════════════════════════════════ */
+function loadTemplatesPane() {
+  const templates = [
+    { name:'Standard Lesson Plan (Nigeria)', type:'Lesson Plan', icon:'📋', col:'#4f46e5',
+      fields:'Date, Class, Subject, Topic, Previous Knowledge, Objectives, Instructional Materials, Introduction, Presentation, Evaluation, Assignment' },
+    { name:'Detailed Lesson Note Format', type:'Lesson Note', icon:'📝', col:'#d97706',
+      fields:'Subject, Class, Topic, Previous Knowledge, Objectives, Step-by-step Presentation (5 stages), Evaluation Questions, Assignment' },
+    { name:'Scheme of Work — Full Term', type:'Scheme', icon:'📖', col:'#15803d',
+      fields:'Week No., Topic, Sub-topics, Learning Objectives, Learning Activities, Teaching Aids, Evaluation Method' },
+    { name:'Micro-Teaching Plan', type:'Lesson Plan', icon:'⏱️', col:'#7c3aed',
+      fields:'Time Slots (5-min blocks), Topic, Skill Focus, Peer Assessment Criteria, Reflective Notes' },
+  ];
+
+  document.getElementById('pane-templates').innerHTML = `
+    <div style="margin-bottom:16px">
+      <strong style="font-size:.95rem">Lesson Plan Templates</strong>
+      <span style="font-size:.75rem;color:var(--ink-3);margin-left:8px">Click to use as a starting point</span>
+    </div>
+    <div class="doc-grid">
+      ${templates.map(t => `
+      <div class="doc-card">
+        <div class="doc-card-stripe" style="background:${t.col}"></div>
+        <div class="doc-card-hd">
+          <div class="doc-card-eyebrow" style="color:${t.col}">${t.icon} ${t.type.toUpperCase()}</div>
+          <div class="doc-card-title">${t.name}</div>
+        </div>
+        <div class="doc-card-body">
+          <div class="doc-card-meta">
+            <span style="background:${t.col}18;color:${t.col};padding:2px 8px;border-radius:4px;font-size:.65rem;font-weight:700">${t.type}</span>
+          </div>
+          <div class="doc-card-desc"><strong>Fields:</strong> ${t.fields}</div>
+        </div>
+        <div class="doc-card-ft">
+          <span></span>
+          <button class="btn btn--primary btn--sm" style="background:${t.col}" onclick="useTemplate('${t.type}')">
+            Use Template →
+          </button>
+        </div>
+      </div>`).join('')}
+    </div>`;
+}
+
+function useTemplate(type) {
+  if (type === 'Lesson Plan') openModal('modalPlan');
+  else if (type === 'Scheme') openModal('modalScheme');
+  else if (type === 'Lesson Note') openModal('modalNote');
+  toast('Template loaded — fill in the form', 'success');
+}
+
+/* ══ TAB SWITCHER ═══════════════════════════════════════════ */
+function switchTab(tab) {
+  document.querySelectorAll('.tab-pill').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('tp-' + tab).classList.add('active');
+  document.getElementById('pane-' + tab).classList.add('active');
+  if (tab === 'schemes'   && !document.getElementById('pane-schemes').querySelector('.doc-card'))   loadSchemesPane();
+  if (tab === 'notes'     && !document.getElementById('pane-notes').querySelector('.doc-card'))     loadNotesPane();
+  if (tab === 'templates' && !document.getElementById('pane-templates').querySelector('.doc-card')) loadTemplatesPane();
+}
+
+/* ══ DETAIL PANEL ═══════════════════════════════════════════ */
+function openPanel() {
+  document.getElementById('detailPanel').classList.add('open');
+  document.getElementById('panelOverlay').style.display = 'block';
+}
+function closePanel() {
+  document.getElementById('detailPanel').classList.remove('open');
+  document.getElementById('panelOverlay').style.display = 'none';
+}
+
+function openPlanDetail(id) {
+  const p = _allPlans.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('dpEyebrow').textContent = `${p.class_level||''} · ${p.week||''}`;
+  document.getElementById('dpTitle').textContent   = p.topic;
+  document.getElementById('dpMeta').innerHTML = `
+    <span class="sbadge s-${p.status||'Draft'}">${p.status||'Draft'}</span>
+    <span class="class-tag">${esc(p.class_level||'—')}</span>
+    <span style="background:var(--surface-2);padding:2px 8px;border-radius:4px;font-size:.7rem;font-weight:600;font-family:var(--mono,monospace)">${p.date||'—'}</span>`;
+  document.getElementById('dpBody').innerHTML = `
+    <div class="dp-section">
+      <div class="dp-section-lbl">Subject</div>
+      <div class="dp-content">${esc(p.subject||'—')}</div>
+    </div>
+    <div class="dp-section">
+      <div class="dp-section-lbl">Learning Objectives</div>
+      <div class="dp-content">${esc(p.objectives||'Not specified')}</div>
+    </div>
+    <div class="dp-section">
+      <div class="dp-section-lbl">Teaching &amp; Learning Materials</div>
+      <div class="dp-content">${esc(p.materials||'Not specified')}</div>
+    </div>
+    <div class="dp-section">
+      <div class="dp-section-lbl">Lesson Structure</div>
+      ${[
+        ['Introduction / Set Induction (5 min)', 'Review previous lesson and introduce new topic with a real-world example.'],
+        ['Development / Presentation (25 min)',   'Step-by-step teaching using the board, worked examples and class participation.'],
+        ['Class Activity (10 min)',               'Students solve practice problems individually or in pairs.'],
+        ['Summary &amp; Assignment (5 min)',      'Recap key points and assign homework from textbook exercises.'],
+      ].map((s,i)=>`
+      <div class="lesson-step">
+        <div class="step-num">${i+1}</div>
+        <div><div class="step-title">${s[0]}</div><div class="step-desc">${s[1]}</div></div>
+      </div>`).join('')}
+    </div>
+    ${p.reviewer_note && p.reviewer_note !== '—' ? `
+    <div class="dp-section">
+      <div class="dp-section-lbl" style="color:#d97706">Reviewer Comment</div>
+      <div style="background:#fffbeb;border:1px solid rgba(217,119,6,.2);border-radius:8px;padding:11px 13px;font-size:.82rem;color:#d97706;line-height:1.6">
+        💬 ${esc(p.reviewer_note)}
+      </div>
+    </div>` : ''}`;
+  document.getElementById('dpFoot').innerHTML = `
+    ${p.status === 'Draft' ? `<button class="btn btn--primary btn--sm" onclick="submitPlan('${p.id}');closePanel()">Submit for Review</button>` : ''}
+    ${p.status === 'Returned' ? `<button class="btn btn--secondary btn--sm" onclick="toast('Edit mode coming soon','info')">✏️ Revise &amp; Resubmit</button>` : ''}
+    <button class="btn btn--ghost btn--sm" onclick="closePanel()">Close</button>`;
+  openPanel();
+}
+
+async function openSchemeDetail(id) {
+  const { data: s, error } = await db.from('cur_schemes').select('*').eq('id', id).single();
+  if (error || !s) { toast('Could not load scheme', 'error'); return; }
+
+  const topics    = (s.topics||'').split(',').map(t => t.trim()).filter(Boolean);
+  const doneCount = Math.ceil(topics.length * (s.progress||0) / 100);
+
+  document.getElementById('dpEyebrow').textContent = `${s.class_level||''} · ${s.term||''}`;
+  document.getElementById('dpTitle').textContent   = s.title;
+  document.getElementById('dpMeta').innerHTML = `
+    <span class="class-tag">${esc(s.class_level||'—')}</span>
+    <span class="sbadge s-Approved" style="font-size:.65rem">${esc(s.term||'—')}</span>
+    <span style="background:var(--surface-2);padding:2px 8px;border-radius:4px;font-size:.7rem;font-weight:600;font-family:var(--mono,monospace)">${s.weeks_count||0} weeks</span>`;
+  document.getElementById('dpBody').innerHTML = `
+    <div class="dp-section">
+      <div class="dp-section-lbl">Weekly Breakdown</div>
+      <div class="week-acc">
+        ${topics.map((t,i) => `
+        <div class="week-acc-row" onclick="toggleWeek(this)">
+          <div class="wk-num">WK ${String(i+1).padStart(2,'0')}</div>
+          <div class="wk-topic">${esc(t)}</div>
+          <span class="sbadge ${i < doneCount ? 's-Approved' : 's-Draft'}" style="font-size:.63rem">${i < doneCount ? 'Done' : 'Pending'}</span>
+          <span class="wk-chev">▾</span>
+        </div>
+        <div class="week-acc-detail">
+          <strong>Week ${i+1}:</strong> ${esc(t)}<br>
+          Link lesson plans to this week by selecting Week ${i+1} when creating a plan for <em>${esc(s.subject||'')}</em>.
+        </div>`).join('')}
+      </div>
+    </div>`;
+  document.getElementById('dpFoot').innerHTML =
+    `<button class="btn btn--ghost btn--sm" onclick="closePanel()">Close</button>`;
+  openPanel();
+}
+
+async function openNoteDetail(id) {
+  const { data: n, error } = await db.from('cur_lesson_notes').select('*').eq('id', id).single();
+  if (error || !n) { toast('Could not load note', 'error'); return; }
+
+  document.getElementById('dpEyebrow').textContent = `${n.class_level||''} · ${n.subject||''}`;
+  document.getElementById('dpTitle').textContent   = n.title;
+  document.getElementById('dpMeta').innerHTML = `
+    <span class="class-tag">${esc(n.class_level||'—')}</span>
+    <span style="background:#fef9c3;color:#d97706;padding:2px 7px;border-radius:4px;font-size:.65rem;font-weight:700">${esc(n.subject||'—')}</span>
+    <span style="background:var(--surface-2);color:var(--ink-3);padding:2px 7px;border-radius:4px;font-size:.65rem;font-weight:600;font-family:var(--mono,monospace)">${n.pages||1} pages</span>`;
+  document.getElementById('dpBody').innerHTML = `
+    <div class="dp-section">
+      <div class="dp-section-lbl">Content</div>
+      <div class="dp-content" style="white-space:pre-wrap">${esc(n.content||'No content added.')}</div>
+    </div>
+    <div class="dp-section">
+      <div class="dp-section-lbl">Created</div>
+      <div class="dp-content" style="font-family:var(--mono,monospace);font-size:.8rem">${(n.created_at||'').split('T')[0]}</div>
+    </div>`;
+  document.getElementById('dpFoot').innerHTML = `
+    <button class="btn btn--ghost btn--sm" onclick="toast('PDF export coming soon','info')">⬇ PDF</button>
+    <button class="btn btn--ghost btn--sm" onclick="closePanel()">Close</button>`;
+  openPanel();
+}
+
+function toggleWeek(row) {
+  row.classList.toggle('open');
+  const detail = row.nextElementSibling;
+  if (detail) detail.classList.toggle('open');
+}
+
+/* ══ PLAN CRUD ═══════════════════════════════════════════════ */
+async function savePlan(status) {
+  const topic = document.getElementById('np_topic')?.value.trim();
+  if (!topic) { toast('Lesson topic is required', 'error'); return; }
+
+  const draftBtn  = document.getElementById('saveDraftBtn');
+  const submitBtn = document.getElementById('saveSubmitBtn');
+  if (draftBtn)  draftBtn.disabled  = true;
+  if (submitBtn) submitBtn.disabled = true;
+
+  const { data: row, error } = await db.from('cur_lesson_plans').insert({
+    school_id:    _sid,
+    week:         document.getElementById('np_week')?.value,
+    date:         document.getElementById('np_date')?.value || null,
+    topic,
+    subject:      document.getElementById('np_subject')?.value,
+    class_level:  document.getElementById('np_class')?.value,
+    objectives:   document.getElementById('np_objectives')?.value.trim() || null,
+    materials:    document.getElementById('np_materials')?.value.trim()  || null,
+    status,
+    reviewer_note: '—',
+    created_by:   _user.id,
+  }).select().single();
+
+  if (draftBtn)  draftBtn.disabled  = false;
+  if (submitBtn) submitBtn.disabled = false;
+
+  if (error) { toast('Error: ' + error.message, 'error'); return; }
+
+  closeModal('modalPlan');
+  ['np_topic','np_objectives','np_materials'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+
+  if (row) { _allPlans.unshift(row); filterPlans(); }
+  const tc = document.getElementById('tc-plans');
+  if (tc) tc.textContent = _allPlans.length;
+
+  toast(`Plan "${topic.substring(0,28)}${topic.length>28?'…':''}" ${status === 'Draft' ? 'saved as draft' : 'submitted for review'}`, 'success');
+}
+
+async function submitPlan(id) {
+  const { error } = await db.from('cur_lesson_plans').update({ status: 'Submitted' }).eq('id', id);
+  if (error) { toast('Error: ' + error.message, 'error'); return; }
+  const p = _allPlans.find(x => x.id === id);
+  if (p) p.status = 'Submitted';
+  filterPlans();
+  toast('Plan submitted for review', 'success');
+}
+
+async function deletePlan(id) {
+  if (!confirm('Delete this lesson plan? This cannot be undone.')) return;
+  const { error } = await db.from('cur_lesson_plans').delete().eq('id', id);
+  if (error) { toast('Error: ' + error.message, 'error'); return; }
+  _allPlans = _allPlans.filter(p => p.id !== id);
+  filterPlans();
+  toast('Lesson plan deleted', 'success');
+}
+
+/* ══ SCHEME CRUD ════════════════════════════════════════════ */
+async function saveScheme() {
+  const title = document.getElementById('ns_title')?.value.trim();
+  if (!title) { toast('Scheme title is required', 'error'); return; }
+  const btn = document.getElementById('saveSchemeBtn');
+  if (btn) btn.disabled = true;
+
+  const { error } = await db.from('cur_schemes').insert({
+    school_id:   _sid,
+    title,
+    class_level: document.getElementById('ns_class')?.value,
+    subject:     document.getElementById('ns_subject')?.value,
+    term:        document.getElementById('ns_term')?.value,
+    weeks_count: parseInt(document.getElementById('ns_weeks')?.value) || 13,
+    topics:      document.getElementById('ns_topics')?.value.trim() || 'Topics TBD',
+    progress:    0,
+    created_by:  _user.id,
+  });
+
+  if (btn) btn.disabled = false;
+  if (error) { toast('Error: ' + error.message, 'error'); return; }
+
+  closeModal('modalScheme');
+  document.getElementById('ns_title').value  = '';
+  document.getElementById('ns_topics').value = '';
+  toast('Scheme of Work saved!', 'success');
+  await loadSchemesPane();
+}
+
+async function deleteScheme(id) {
+  if (!confirm('Delete this scheme?')) return;
+  const { error } = await db.from('cur_schemes').delete().eq('id', id);
+  if (error) { toast('Error: ' + error.message, 'error'); return; }
+  toast('Scheme deleted', 'success');
+  await loadSchemesPane();
+}
+
+/* ══ NOTE CRUD ══════════════════════════════════════════════ */
+async function saveNote() {
+  const title = document.getElementById('nn_title')?.value.trim();
+  if (!title) { toast('Note title is required', 'error'); return; }
+  const btn = document.getElementById('saveNoteBtn');
+  if (btn) btn.disabled = true;
+
+  const content = document.getElementById('nn_content')?.value.trim() || '';
+  const { error } = await db.from('cur_lesson_notes').insert({
+    school_id:   _sid,
+    title,
+    subject:     document.getElementById('nn_subject')?.value,
+    class_level: document.getElementById('nn_class')?.value,
+    content,
+    pages:       Math.max(1, Math.ceil(content.length / 300)),
+    created_by:  _user.id,
+  });
+
+  if (btn) btn.disabled = false;
+  if (error) { toast('Error: ' + error.message, 'error'); return; }
+
+  closeModal('modalNote');
+  document.getElementById('nn_title').value   = '';
+  document.getElementById('nn_content').value = '';
+  toast('Lesson note saved!', 'success');
+  await loadNotesPane();
+}
+
+async function deleteNote(id) {
+  if (!confirm('Delete this lesson note?')) return;
+  const { error } = await db.from('cur_lesson_notes').delete().eq('id', id);
+  if (error) { toast('Error: ' + error.message, 'error'); return; }
+  toast('Note deleted', 'success');
+  await loadNotesPane();
+}
+
+/* ══ BULK ACTIONS ═══════════════════════════════════════════ */
+function toggleSelAll(cb) {
+  document.querySelectorAll('.plan-cb').forEach(c => c.checked = cb.checked);
+  updateBulk();
+}
+function updateBulk() {
+  const sel = document.querySelectorAll('.plan-cb:checked');
+  const bar = document.getElementById('bulkBar');
+  if (!bar) return;
+  bar.classList.toggle('visible', sel.length > 0);
+  const bc = document.getElementById('bulkCount');
+  if (bc) bc.textContent = `${sel.length} selected`;
+}
+function clearBulk() {
+  document.querySelectorAll('.plan-cb, #selAll').forEach(c => c.checked = false);
+  document.getElementById('bulkBar')?.classList.remove('visible');
+}
+async function bulkSubmit() {
+  const ids = [...document.querySelectorAll('.plan-cb:checked')].map(c => c.dataset.id);
+  if (!ids.length) return;
+  const draftIds = ids.filter(id => _allPlans.find(p => p.id === id && p.status === 'Draft'));
+  if (!draftIds.length) { toast('No draft plans selected', 'error'); return; }
+  const { error } = await db.from('cur_lesson_plans').update({ status: 'Submitted' }).in('id', draftIds);
+  if (error) { toast('Error: ' + error.message, 'error'); return; }
+  draftIds.forEach(id => { const p = _allPlans.find(x => x.id === id); if (p) p.status = 'Submitted'; });
+  clearBulk(); filterPlans();
+  toast(`${draftIds.length} plan${draftIds.length > 1 ? 's' : ''} submitted for review`, 'success');
+}
+
+/* ══ UTILS ══════════════════════════════════════════════════ */
+function esc(s) {
+  return String(s||'').replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// Pre-fill today's date when plan modal opens
+document.getElementById('modalPlan').addEventListener('click', e => {
+  if (e.target === document.getElementById('modalPlan')) closeModal('modalPlan');
+});
+document.addEventListener('DOMContentLoaded', () => {
+  const d = document.getElementById('np_date');
+  if (d && !d.value) d.value = new Date().toISOString().split('T')[0];
+});
+</script>
+<script src="/js/pwa-v2.1.js"></script>
+<script src="../js/ai-assistant.js" defer></script>
+</body>
+</html>
