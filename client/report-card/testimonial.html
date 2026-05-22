@@ -2,357 +2,535 @@
 <html lang="en">
 <head>
 <link rel="icon" href="/icons/icon-96.png" type="image/png">
-  <meta charset="UTF-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>School Leaving Testimonial</title>
+<title>School Testimonial</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
 <script src="../js/config.js"></script>
 <script src="../js/supabase.js"></script>
 <style>
+/* ─── RESET ─── */
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:#1e3a1e;font-family:'Poppins',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;}
+body{background:#1a2744;font-family:'Poppins',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;}
 
-/* ── ORIENTATION MODAL ── */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(4px);}
-.modal{background:white;border-radius:12px;padding:36px 40px;max-width:460px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5);}
-.modal-logo{font-size:40px;margin-bottom:14px;}
-.modal h2{font-family:'Cinzel',serif;font-size:20px;color:#1e3a1e;margin-bottom:8px;}
-.modal p{font-size:13px;color:#666;margin-bottom:24px;line-height:1.6;}
-.orient-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;}
-.orient-btn{border:2px solid #e0e0e0;border-radius:10px;padding:18px 12px;cursor:pointer;background:white;transition:all .2s;}
-.orient-btn:hover{border-color:#2d7a2d;background:#f0faf0;}
-.orient-btn.selected{border-color:#2d7a2d;background:linear-gradient(135deg,#f0faf0,#e8f5e9);box-shadow:0 0 0 3px rgba(45,122,45,.15);}
-.orient-preview{margin:0 auto 10px;border:2px solid #ddd;background:#f5f5f5;position:relative;}
-.orient-preview.land{width:80px;height:56px;}
-.orient-preview.port{width:56px;height:80px;}
-.orient-preview::after{content:'T';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:20px;font-weight:700;color:#ccc;}
-.orient-label{font-family:'Cinzel',serif;font-size:12px;color:#333;font-weight:700;letter-spacing:1px;}
-.orient-sub{font-size:10px;color:#888;margin-top:3px;}
-.modal-gen-btn{width:100%;padding:12px;background:linear-gradient(135deg,#1e3a1e,#2d7a2d);border:none;border-radius:8px;font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:white;cursor:pointer;letter-spacing:.5px;transition:filter .2s;}
-.modal-gen-btn:hover{filter:brightness(1.1);}
-.modal-back{display:block;margin-top:12px;font-size:12px;color:#999;cursor:pointer;text-decoration:underline;}
+/* ─── MODAL ─── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(5px);}
+.modal{background:#fff;border-radius:14px;padding:32px 36px;max-width:500px;width:93%;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.55);}
+.modal-logo{font-size:36px;margin-bottom:10px;}
+.modal h2{font-family:'Cinzel',serif;font-size:19px;color:#0d2060;margin-bottom:6px;}
+.modal p{font-size:12.5px;color:#666;margin-bottom:20px;line-height:1.6;}
+.modal-section-label{font-family:'Cinzel',serif;font-size:11px;color:#0d2060;letter-spacing:1.5px;font-weight:700;text-transform:uppercase;margin-bottom:10px;}
+.sect-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+.sect-btn{border:2px solid #ddd;border-radius:10px;padding:16px 12px;cursor:pointer;background:#fff;transition:all .2s;}
+.sect-btn:hover{border-color:#0d2060;background:#f0f4ff;}
+.sect-btn.selected{border-color:#0d2060;background:linear-gradient(135deg,#f0f4ff,#e6eeff);box-shadow:0 0 0 3px rgba(13,32,96,.12);}
+.sect-icon{font-size:26px;margin-bottom:6px;}
+.sect-label{font-family:'Cinzel',serif;font-size:11.5px;color:#0d2060;font-weight:700;letter-spacing:.5px;}
+.sect-sub{font-size:10px;color:#888;margin-top:3px;}
+.orient-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px;}
+.orient-btn{border:2px solid #ddd;border-radius:10px;padding:14px 10px;cursor:pointer;background:#fff;transition:all .2s;}
+.orient-btn:hover{border-color:#0d2060;background:#f0f4ff;}
+.orient-btn.selected{border-color:#0d2060;background:linear-gradient(135deg,#f0f4ff,#e6eeff);box-shadow:0 0 0 3px rgba(13,32,96,.12);}
+.orient-preview{margin:0 auto 8px;border:2px solid #ddd;background:#f5f5f5;position:relative;}
+.orient-preview.land{width:78px;height:55px;}
+.orient-preview.port{width:55px;height:78px;}
+.orient-preview::after{content:'T';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:18px;font-weight:700;color:#ccc;}
+.orient-label{font-family:'Cinzel',serif;font-size:11px;color:#333;font-weight:700;letter-spacing:1px;}
+.orient-sub{font-size:10px;color:#888;margin-top:2px;}
+.modal-divider{height:1px;background:#eee;margin:14px 0;}
+.modal-gen-btn{width:100%;padding:13px;background:linear-gradient(135deg,#0d2060,#1a4fd6);border:none;border-radius:8px;font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:#fff;cursor:pointer;letter-spacing:.5px;transition:filter .2s;}
+.modal-gen-btn:hover{filter:brightness(1.12);}
+.modal-back{display:block;margin-top:10px;font-size:12px;color:#aaa;cursor:pointer;text-decoration:underline;}
 
-/* ── CONTROL BAR ── */
-.ctrl{background:#0f1f0f;color:white;width:100%;padding:10px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-.ctrl-title{font-family:'Cinzel',serif;font-size:13px;letter-spacing:1px;color:#4ade80;flex:1;}
-.ctrl-btn{padding:7px 16px;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Cinzel',serif;letter-spacing:.4px;display:flex;align-items:center;gap:6px;}
-.btn-print{background:linear-gradient(135deg,#1e6b1e,#2d9e2d);color:white;}
-.btn-back{background:rgba(255,255,255,.1);color:white;border:1px solid rgba(255,255,255,.2);}
-.btn-orient{background:rgba(255,255,255,.08);color:#4ade80;border:1px solid rgba(74,222,128,.3);}
-.ctrl-badge{font-size:10px;background:rgba(45,122,45,.2);border:1px solid rgba(45,122,45,.4);color:#4ade80;padding:3px 10px;border-radius:20px;font-family:sans-serif;letter-spacing:.5px;}
-
-.loading{color:#4ade80;font-family:'Cinzel',serif;font-size:16px;letter-spacing:2px;padding:60px;text-align:center;animation:pulse 1.5s ease-in-out infinite;}
+/* ─── CONTROL BAR ─── */
+.ctrl{background:#080f2a;color:#fff;width:100%;padding:10px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.ctrl-title{font-family:'Cinzel',serif;font-size:13px;letter-spacing:1px;color:#7cb4ff;flex:1;}
+.ctrl-btn{padding:7px 15px;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Cinzel',serif;letter-spacing:.4px;display:flex;align-items:center;gap:5px;}
+.btn-print{background:linear-gradient(135deg,#0d47a1,#1a4fd6);color:#fff;}
+.btn-back{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.18);}
+.btn-orient{background:rgba(255,255,255,.06);color:#7cb4ff;border:1px solid rgba(124,180,255,.25);}
+.ctrl-badge{font-size:10px;background:rgba(26,79,214,.2);border:1px solid rgba(26,79,214,.4);color:#7cb4ff;padding:3px 10px;border-radius:20px;font-family:sans-serif;letter-spacing:.5px;}
+.loading{color:#7cb4ff;font-family:'Cinzel',serif;font-size:16px;letter-spacing:2px;padding:60px;text-align:center;animation:pulse 1.5s ease-in-out infinite;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
-
 .test-page-wrap{padding:20px;width:100%;display:flex;justify-content:center;}
 
-/* ═══════════════════════════════════════
-   PORTRAIT TESTIMONIAL (Primary design — inspired by ref image 2)
-   Green/white school formal letter
-   ═══════════════════════════════════════ */
-.test-portrait{
-  width:210mm;min-height:297mm;
-  background:white;position:relative;overflow:hidden;
-  box-shadow:0 8px 40px rgba(0,0,0,.4);
-  font-family:'Poppins',sans-serif;
+/* ════════════════════════════════════════════
+   SHARED CERTIFICATE PARTS
+════════════════════════════════════════════ */
+/* Diamond pattern helper classes */
+.dp-primary{
+  background-color:#ffd600;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 22 22'%3E%3Cpolygon points='11,1 21,11 11,21 1,11' fill='%230d47a1'/%3E%3C/svg%3E");
+  background-size:22px 22px;
 }
-/* Top green band */
-.tp-top-band{
-  height:12px;
-  background:linear-gradient(90deg,#1e3a1e,#2d7a2d,#1e3a1e);
+.dp-secondary{
+  background-color:#b8d0f8;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 22 22'%3E%3Cpolygon points='11,1 21,11 11,21 1,11' fill='%230d2060'/%3E%3C/svg%3E");
+  background-size:22px 22px;
 }
-/* Gold line under top band */
-.tp-gold-line{height:4px;background:linear-gradient(90deg,#c8860a,#f0c040,#c8860a);}
 
-/* Header area */
-.tp-header{
-  display:flex;align-items:center;gap:16px;
-  padding:16px 24px 12px;
-  border-bottom:3px solid #1e3a1e;
-  background:linear-gradient(135deg,#f0faf0 0%,#e8f5e9 100%);
-}
-.tp-shield{
-  width:82px;height:96px;flex-shrink:0;
-  background:linear-gradient(180deg,#1e3a1e 0%,#2d7a2d 100%);
-  clip-path:polygon(50% 0%,100% 15%,100% 70%,50% 100%,0% 70%,0% 15%);
+/* Field lines */
+.cf-row{display:flex;align-items:flex-end;gap:6px;margin-bottom:7px;font-size:12px;color:#1a1a1a;flex-wrap:wrap;}
+.cf-label{font-weight:700;color:#1a1a1a;white-space:nowrap;}
+.cf-line{flex:1;border-bottom:1.5px solid #333;min-height:16px;min-width:60px;font-family:'EB Garamond',serif;font-size:13px;font-style:italic;padding:0 3px 1px;}
+.cf-text{font-size:12px;color:#1a1a1a;}
+
+/* Stamp */
+.cert-stamp{
+  width:72px;height:72px;border-radius:50%;
+  border:3px double #c0000a;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  position:relative;overflow:hidden;
+  text-align:center;font-family:'Cinzel',serif;font-size:6.5px;font-weight:700;
+  color:#c0000a;letter-spacing:.4px;line-height:1.5;padding:8px;
+  background:radial-gradient(circle,rgba(255,200,200,.2),white);
+  flex-shrink:0;
 }
-.tp-shield::before{
-  content:'';position:absolute;inset:5px;
-  background:linear-gradient(180deg,#2d9e2d 0%,#1e5a1e 100%);
-  clip-path:polygon(50% 0%,100% 15%,100% 70%,50% 100%,0% 70%,0% 15%);
-}
-.tp-shield-inner{
-  position:relative;z-index:1;text-align:center;
-}
-.tp-shield-logo{width:44px;height:44px;border-radius:50%;background:white;overflow:hidden;display:flex;align-items:center;justify-content:center;margin:0 auto 3px;}
-.tp-shield-logo img{width:100%;height:100%;object-fit:cover;}
-.tp-shield-fb{font-family:'Cinzel',serif;font-size:6px;font-weight:700;color:white;text-align:center;line-height:1.2;}
-.tp-hc{flex:1;text-align:center;}
-.tp-school-name{font-family:'Cinzel',serif;font-size:clamp(13px,2.2vw,18px);font-weight:900;color:#1e3a1e;letter-spacing:.4px;line-height:1.2;}
-.tp-school-sub{font-size:10px;color:#2d7a2d;font-weight:600;margin-top:2px;letter-spacing:.5px;text-transform:uppercase;}
-.tp-school-meta{font-size:10px;color:#555;margin-top:2px;font-style:italic;}
-.tp-school-motto{font-style:italic;color:#1e3a1e;font-size:11px;font-weight:700;margin-top:4px;letter-spacing:.5px;}
-.tp-pp{
-  width:80px;height:98px;flex-shrink:0;
-  border:3px solid #1e3a1e;overflow:hidden;background:#f0faf0;
-  display:flex;align-items:center;justify-content:center;
-}
-.tp-pp img{width:100%;height:100%;object-fit:cover;}
-.tp-pp-ph{text-align:center;font-size:9px;color:#aaa;font-family:sans-serif;line-height:1.4;padding:4px;}
+.cert-stamp-sm{width:58px;height:58px;font-size:5.5px;padding:6px;}
+.cert-stamp-lg{width:86px;height:86px;font-size:7.5px;padding:10px;}
 
-/* TESTIMONIALS title bar */
-.tp-title-bar{
-  background:linear-gradient(135deg,#1e3a1e,#2d7a2d);
-  padding:10px 24px;text-align:center;
+/* ════════════════════════════════════════════
+   PRIMARY — PORTRAIT  (.pp-*)
+   A4 210mm × 297mm
+════════════════════════════════════════════ */
+.pp-outer{
+  width:210mm;min-height:297mm;
+  padding:14px;
+  display:flex;flex-direction:column;
+  box-shadow:0 8px 40px rgba(0,0,0,.5);
 }
-.tp-title-word{
-  font-family:'Cinzel',serif;font-size:22px;font-weight:900;
-  color:white;letter-spacing:4px;text-transform:uppercase;
-}
-.tp-title-sub{
-  font-size:11px;color:#90ee90;letter-spacing:1.5px;margin-top:2px;font-style:italic;
+.pp-inner{
+  flex:1;background:#fff;display:flex;flex-direction:column;
+  border:1.5px solid #0d2060;
+  min-height:calc(297mm - 28px);
+  overflow:hidden;
 }
 
-/* Gold divider */
-.tp-gold-div{height:3px;background:linear-gradient(90deg,#c8860a,#f0c040,#c8860a);}
+/* Header */
+.pp-header{
+  background:linear-gradient(135deg,#0d2060 0%,#1a3a8a 60%,#0d2060 100%);
+  padding:10px 14px;
+  display:flex;align-items:center;gap:10px;
+}
+.pp-logo-wrap{
+  width:62px;height:62px;border-radius:50%;
+  border:3px solid rgba(255,215,0,.6);
+  overflow:hidden;background:rgba(255,255,255,.12);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.pp-logo-wrap img{width:100%;height:100%;object-fit:cover;}
+.pp-logo-ph{font-family:'Cinzel',serif;font-size:8px;font-weight:700;color:rgba(255,255,255,.6);text-align:center;line-height:1.3;padding:4px;}
+.pp-hc{flex:1;text-align:center;}
+.pp-school-name{font-family:'Cinzel',serif;font-size:clamp(13px,2vw,17px);font-weight:900;color:#ffd600;letter-spacing:.5px;line-height:1.2;text-shadow:0 1px 3px rgba(0,0,0,.4);}
+.pp-school-sub{font-family:'Cinzel',serif;font-size:10px;font-weight:700;color:#fff;letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
+.pp-school-addr{font-size:9px;color:rgba(255,255,255,.75);margin-top:2px;font-style:italic;}
+.pp-photo-box{
+  width:62px;height:76px;flex-shrink:0;
+  border:2.5px solid rgba(255,215,0,.7);
+  background:rgba(255,255,255,.12);
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+}
+.pp-photo-box img{width:100%;height:100%;object-fit:cover;}
+.pp-photo-ph{font-size:8px;color:rgba(255,255,255,.55);text-align:center;font-family:sans-serif;line-height:1.4;padding:4px;}
 
-/* Certify intro */
-.tp-certify{
-  padding:14px 24px 8px;text-align:center;
-  font-family:'EB Garamond',Georgia,serif;font-size:14px;color:#333;font-style:italic;
-}
-.tp-certify strong{font-style:normal;font-weight:700;font-size:15px;color:#1e3a1e;}
-
-/* Student name banner */
-.tp-name-row{
-  background:#f0faf0;border-top:2px solid #1e3a1e;border-bottom:2px solid #1e3a1e;
-  padding:10px 24px;text-align:center;margin:4px 0;
-}
-.tp-student-name{
-  font-family:'Playfair Display',serif;font-size:clamp(18px,3vw,26px);
-  font-weight:700;font-style:italic;color:#1e3a1e;
+/* Motto bar (green) */
+.pp-motto{
+  background:linear-gradient(90deg,#1b5e20,#2e7d32,#1b5e20);
+  padding:6px 14px;text-align:center;
+  font-family:'Cinzel',serif;font-size:11px;font-weight:700;
+  color:#fff;letter-spacing:1.5px;text-transform:uppercase;
+  border-top:2px solid #ffd600;border-bottom:2px solid #ffd600;
 }
 
-/* Form fields */
-.tp-form{padding:8px 24px;font-size:12px;}
-.tp-form-row{
-  display:flex;align-items:baseline;gap:8px;
-  border-bottom:1px solid #cde8cd;padding:6px 0;
+/* Title section */
+.pp-title-area{
+  text-align:center;padding:12px 14px 6px;
 }
-.tp-form-row:last-child{border-bottom:none;}
-.tp-label{font-weight:700;color:#1e3a1e;white-space:nowrap;min-width:155px;font-size:11.5px;}
-.tp-value{flex:1;border-bottom:1px dotted #888;min-height:16px;color:#222;padding-left:4px;font-family:'EB Garamond',Georgia,serif;font-size:13px;font-style:italic;padding-bottom:1px;}
-.tp-form-2col{display:grid;grid-template-columns:1fr 1fr;gap:0;}
-.tp-form-2col .tp-form-row:nth-child(odd){border-right:1px solid #cde8cd;padding-right:12px;}
-.tp-form-2col .tp-form-row:nth-child(even){padding-left:12px;}
+.pp-title{
+  font-family:'Playfair Display',serif;font-size:36px;font-weight:700;
+  font-style:italic;color:#0d2060;
+  line-height:1;margin-bottom:4px;
+}
+.pp-subtitle{
+  font-family:'EB Garamond',serif;font-size:13px;font-style:italic;
+  color:#555;letter-spacing:.3px;
+}
+.pp-rule{
+  height:2px;
+  background:linear-gradient(90deg,transparent,#0d2060 20%,#ffd600 50%,#0d2060 80%,transparent);
+  margin:8px 14px 0;
+}
 
-/* Education level section */
-.tp-edu-hdr{
-  background:linear-gradient(90deg,#2d7a2d,#1e5a1e);
-  color:white;font-family:'Cinzel',serif;font-size:10px;
-  letter-spacing:2px;padding:5px 24px;text-transform:uppercase;font-weight:700;
-  margin-top:6px;
+/* Body */
+.pp-body{
+  padding:10px 18px;flex:1;
 }
-.tp-edu-row{
-  display:flex;align-items:center;gap:12px;padding:7px 24px;
-  border-bottom:1px solid #e0f0e0;font-size:12px;background:#f8fff8;
+.pp-intro{
+  font-family:'EB Garamond',serif;font-size:13px;font-style:italic;
+  color:#222;margin-bottom:8px;text-align:center;font-weight:500;
 }
-.tp-edu-label{font-weight:700;color:#1e3a1e;min-width:155px;font-size:11.5px;}
-.tp-edu-value{font-family:'EB Garamond',serif;font-size:13px;font-style:italic;color:#222;border-bottom:1px dotted #aaa;flex:1;min-height:14px;padding-left:2px;}
-
-/* Conduct table */
-.tp-conduct{
-  margin:6px 24px;border:2px solid #1e3a1e;border-radius:3px;overflow:hidden;
+.pp-from-row{
+  display:flex;align-items:flex-end;gap:4px;margin-bottom:7px;font-size:12px;
+  flex-wrap:wrap;line-height:1.8;
 }
-.tp-conduct-hdr{
-  background:linear-gradient(90deg,#1e3a1e,#2d7a2d);color:white;
-  font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;
-  padding:5px 14px;text-transform:uppercase;display:grid;grid-template-columns:repeat(4,1fr);text-align:center;
+.pp-from-row .cf-line{min-width:90px;}
+.pp-completion{
+  font-family:'EB Garamond',serif;font-size:13px;font-style:italic;
+  color:#333;margin-bottom:10px;border-bottom:1.5px solid #333;
+  padding-bottom:2px;
 }
-.tp-conduct-vals{display:grid;grid-template-columns:repeat(4,1fr);text-align:center;padding:8px 14px;gap:4px;}
-.tp-conduct-item{text-align:center;}
-.tp-conduct-label{font-size:9px;color:#666;text-transform:uppercase;letter-spacing:.5px;display:block;}
-.tp-conduct-val{font-family:'Cinzel',serif;font-size:15px;font-weight:700;color:#1e3a1e;display:block;border-bottom:1px solid #cde8cd;min-height:20px;}
+.pp-fields{margin-top:4px;}
 
 /* Recommendation */
-.tp-rec-hdr{
-  background:linear-gradient(90deg,#2d7a2d,#1e5a1e);color:white;
-  font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;
-  padding:5px 24px;text-transform:uppercase;font-weight:700;margin-top:6px;
-}
-.tp-rec-body{
-  padding:10px 24px 6px;
-  font-family:'EB Garamond',Georgia,serif;font-size:13px;color:#333;
-  line-height:1.8;text-align:justify;
+.pp-rec{
+  background:#f0f4ff;border-left:3.5px solid #0d2060;
+  padding:8px 12px;margin:10px 0;
+  font-family:'EB Garamond',serif;font-size:13px;font-style:italic;
+  color:#1a1a1a;line-height:1.7;
 }
 
 /* Signature area */
-.tp-sig-area{
-  padding:8px 24px;
-  border-top:2px solid #1e3a1e;
-  display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:end;
-  margin-top:6px;
+.pp-sig-area{
+  display:flex;justify-content:space-between;align-items:flex-end;
+  padding:8px 18px 12px;border-top:2px solid #0d2060;
+  margin-top:auto;
 }
-.tp-sig-blk{text-align:center;}
-.tp-sig-img{min-height:38px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:3px;}
-.tp-sig-img img{max-height:36px;max-width:90%;object-fit:contain;}
-.tp-sig-line{border-top:1.5px solid #1e3a1e;width:85%;margin:0 auto 4px;}
-.tp-sig-la{font-family:'Cinzel',serif;font-size:9px;color:#1e3a1e;letter-spacing:.5px;font-weight:700;}
-.tp-sig-sl{font-size:8px;color:#888;margin-top:1px;}
-.tp-sig-date{font-size:10px;color:#333;margin-top:4px;border-top:1px dotted #aaa;padding-top:2px;font-family:sans-serif;}
-/* Red official stamp circle */
-.tp-stamp{
-  width:74px;height:74px;border-radius:50%;
-  border:3px double #cc1111;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  text-align:center;font-family:'Cinzel',serif;font-size:6.5px;font-weight:700;
-  color:#cc1111;letter-spacing:.4px;line-height:1.4;padding:8px;
-  background:radial-gradient(circle,rgba(255,220,220,.3),white);
-}
-
-/* Ref number */
-.tp-ref-row{
-  background:#f0faf0;border-top:1px solid #cde8cd;
-  padding:5px 24px;font-size:10px;color:#555;font-family:sans-serif;
-  display:flex;justify-content:space-between;
-}
+.pp-sig-blk{text-align:center;flex:1;}
+.pp-sig-img{min-height:36px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:2px;}
+.pp-sig-img img{max-height:32px;max-width:90%;object-fit:contain;}
+.pp-sig-line{border-top:1.5px solid #0d2060;width:85%;margin:0 auto 4px;}
+.pp-sig-title{font-family:'Cinzel',serif;font-size:8.5px;color:#0d2060;font-weight:700;letter-spacing:.4px;}
+.pp-sig-date{font-size:9px;color:#555;margin-top:3px;font-family:sans-serif;}
 
 /* Bottom band */
-.tp-bot-band{
-  position:absolute;bottom:0;left:0;right:0;
-}
-.tp-bot-green{height:5px;background:linear-gradient(90deg,#1e3a1e,#2d7a2d,#1e3a1e);}
-.tp-bot-gold{height:3px;background:linear-gradient(90deg,#c8860a,#f0c040,#c8860a);}
+.pp-bot{height:8px;background:linear-gradient(90deg,#0d2060,#ffd600 50%,#0d2060);}
 
-/* ═══════════════════════════════════════
-   LANDSCAPE TESTIMONIAL
-   ═══════════════════════════════════════ */
-.test-landscape{
-  width:280mm;min-height:198mm;
-  background:white;position:relative;overflow:hidden;
-  box-shadow:0 8px 40px rgba(0,0,0,.4);
-  font-family:'Poppins',sans-serif;
+/* ════════════════════════════════════════════
+   PRIMARY — LANDSCAPE  (.pl-*)
+   A4 297mm × 210mm
+════════════════════════════════════════════ */
+.pl-outer{
+  width:297mm;min-height:210mm;
+  padding:14px;
+  display:flex;flex-direction:column;
+  box-shadow:0 8px 40px rgba(0,0,0,.5);
 }
-.tl-top-band{height:10px;background:linear-gradient(90deg,#1e3a1e,#2d7a2d,#1e3a1e);}
-.tl-gold-line{height:3px;background:linear-gradient(90deg,#c8860a,#f0c040,#c8860a);}
-.tl-header{
-  display:flex;align-items:center;gap:14px;
-  padding:14px 24px 10px;
-  border-bottom:2px solid #1e3a1e;
-  background:linear-gradient(135deg,#f0faf0,#e8f5e9);
+.pl-inner{
+  flex:1;background:#fff;display:flex;flex-direction:column;
+  border:1.5px solid #0d2060;
+  min-height:calc(210mm - 28px);
+  overflow:hidden;
 }
-.tl-shield{
-  width:70px;height:82px;flex-shrink:0;
-  background:linear-gradient(180deg,#1e3a1e,#2d7a2d);
-  clip-path:polygon(50% 0%,100% 15%,100% 70%,50% 100%,0% 70%,0% 15%);
-  display:flex;align-items:center;justify-content:center;position:relative;
+/* Same header, motto, title as pp but compact */
+.pl-header{
+  background:linear-gradient(135deg,#0d2060,#1a3a8a,#0d2060);
+  padding:8px 14px;
+  display:flex;align-items:center;gap:10px;
 }
-.tl-shield::before{
-  content:'';position:absolute;inset:5px;
-  background:linear-gradient(180deg,#2d9e2d,#1e5a1e);
-  clip-path:polygon(50% 0%,100% 15%,100% 70%,50% 100%,0% 70%,0% 15%);
+.pl-logo-wrap{
+  width:52px;height:52px;border-radius:50%;
+  border:2.5px solid rgba(255,215,0,.6);
+  overflow:hidden;background:rgba(255,255,255,.12);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
 }
-.tl-shield-inner{position:relative;z-index:1;text-align:center;}
-.tl-shield-logo{width:36px;height:36px;border-radius:50%;background:white;overflow:hidden;display:flex;align-items:center;justify-content:center;margin:0 auto 2px;}
-.tl-shield-logo img{width:100%;height:100%;object-fit:cover;}
-.tl-shield-fb{font-family:'Cinzel',serif;font-size:5.5px;font-weight:700;color:white;text-align:center;line-height:1.2;}
-.tl-hc{flex:1;text-align:center;}
-.tl-school-name{font-family:'Cinzel',serif;font-size:clamp(12px,2vw,17px);font-weight:900;color:#1e3a1e;letter-spacing:.4px;}
-.tl-school-sub{font-size:9px;color:#2d7a2d;font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-top:1px;}
-.tl-school-meta{font-size:9px;color:#555;font-style:italic;margin-top:1px;}
-.tl-motto{font-style:italic;color:#1e3a1e;font-size:10px;font-weight:700;margin-top:3px;}
-.tl-pp{width:70px;height:85px;flex-shrink:0;border:2px solid #1e3a1e;overflow:hidden;background:#f0faf0;display:flex;align-items:center;justify-content:center;}
-.tl-pp img{width:100%;height:100%;object-fit:cover;}
-.tl-pp-ph{text-align:center;font-size:8px;color:#aaa;font-family:sans-serif;padding:3px;}
-.tl-title-bar{background:linear-gradient(135deg,#1e3a1e,#2d7a2d);padding:7px 24px;text-align:center;}
-.tl-title-word{font-family:'Cinzel',serif;font-size:17px;font-weight:900;color:white;letter-spacing:3px;}
-.tl-title-sub{font-size:9px;color:#90ee90;letter-spacing:1px;margin-top:1px;font-style:italic;}
-.tl-gold-div{height:3px;background:linear-gradient(90deg,#c8860a,#f0c040,#c8860a);}
-.tl-body{display:grid;grid-template-columns:1fr 1fr;padding:10px 20px;gap:0;border-bottom:2px solid #1e3a1e;}
-.tl-left{border-right:1.5px solid #cde8cd;padding-right:16px;}
-.tl-right{padding-left:16px;}
-.tl-certify{font-family:'EB Garamond',Georgia,serif;font-size:12.5px;color:#333;font-style:italic;margin-bottom:5px;text-align:center;}
-.tl-certify strong{font-style:normal;font-weight:700;color:#1e3a1e;}
-.tl-name{font-family:'Playfair Display',serif;font-size:clamp(16px,2.5vw,22px);font-weight:700;font-style:italic;color:#1e3a1e;text-align:center;margin-bottom:5px;}
-.tl-name-line{width:90%;height:1px;background:linear-gradient(90deg,transparent,#1e3a1e,transparent);margin:0 auto 8px;}
-.tl-fr{display:flex;align-items:baseline;gap:5px;border-bottom:1px solid #e0f0e0;padding:4px 0;font-size:11px;}
-.tl-fl{font-weight:700;color:#1e3a1e;min-width:110px;font-size:10.5px;}
-.tl-fv{flex:1;border-bottom:1px dotted #888;min-height:13px;font-family:'EB Garamond',serif;font-size:12px;font-style:italic;color:#222;padding-left:2px;}
-.tl-sec-hdr{font-family:'Cinzel',serif;font-size:8.5px;letter-spacing:2px;color:#1e3a1e;text-transform:uppercase;font-weight:700;margin:8px 0 4px;border-bottom:1px solid #cde8cd;padding-bottom:3px;}
-.tl-conduct-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
-.tl-ci{display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid #e8f5e8;font-size:10.5px;}
-.tl-cl{color:#555;}
-.tl-cv{font-weight:700;color:#1e3a1e;border-bottom:1px solid #888;min-width:40px;text-align:center;font-family:'EB Garamond',serif;font-size:12px;font-style:italic;}
-.tl-rec{font-family:'EB Garamond',Georgia,serif;font-size:12px;color:#333;line-height:1.7;text-align:justify;}
-.tl-sig-area{
-  padding:8px 20px;
-  display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:end;
+.pl-logo-wrap img{width:100%;height:100%;object-fit:cover;}
+.pl-logo-ph{font-family:'Cinzel',serif;font-size:7px;font-weight:700;color:rgba(255,255,255,.6);text-align:center;padding:3px;}
+.pl-hc{flex:1;text-align:center;}
+.pl-school-name{font-family:'Cinzel',serif;font-size:clamp(12px,1.8vw,15px);font-weight:900;color:#ffd600;letter-spacing:.5px;text-shadow:0 1px 3px rgba(0,0,0,.4);}
+.pl-school-sub{font-family:'Cinzel',serif;font-size:9px;font-weight:700;color:#fff;letter-spacing:1px;text-transform:uppercase;margin-top:1px;}
+.pl-school-addr{font-size:8.5px;color:rgba(255,255,255,.75);margin-top:1px;font-style:italic;}
+.pl-photo-box{
+  width:52px;height:64px;flex-shrink:0;
+  border:2px solid rgba(255,215,0,.7);
+  background:rgba(255,255,255,.12);
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
 }
-.tl-sig-blk{text-align:center;}
-.tl-sig-img{min-height:32px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:2px;}
-.tl-sig-img img{max-height:30px;max-width:90%;object-fit:contain;}
-.tl-sig-line{border-top:1.5px solid #1e3a1e;width:85%;margin:0 auto 3px;}
-.tl-sig-la{font-family:'Cinzel',serif;font-size:8.5px;color:#1e3a1e;letter-spacing:.5px;font-weight:700;}
-.tl-sig-sl{font-size:7.5px;color:#888;margin-top:1px;}
-.tl-stamp{
-  width:60px;height:60px;border-radius:50%;
-  border:2.5px double #cc1111;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  text-align:center;font-family:'Cinzel',serif;font-size:6px;font-weight:700;
-  color:#cc1111;letter-spacing:.3px;line-height:1.3;padding:6px;
-  background:radial-gradient(circle,rgba(255,220,220,.3),white);
+.pl-photo-box img{width:100%;height:100%;object-fit:cover;}
+.pl-photo-ph{font-size:7.5px;color:rgba(255,255,255,.55);text-align:center;font-family:sans-serif;padding:3px;}
+.pl-motto{
+  background:linear-gradient(90deg,#1b5e20,#2e7d32,#1b5e20);
+  padding:5px 14px;text-align:center;
+  font-family:'Cinzel',serif;font-size:10px;font-weight:700;
+  color:#fff;letter-spacing:1.5px;text-transform:uppercase;
+  border-top:2px solid #ffd600;border-bottom:2px solid #ffd600;
 }
-.tl-ref{background:#f0faf0;border-top:1px solid #cde8cd;padding:4px 20px;font-size:9px;color:#555;font-family:sans-serif;display:flex;justify-content:space-between;}
-.tl-bot-band{position:absolute;bottom:0;left:0;right:0;}
-.tl-bot-green{height:5px;background:linear-gradient(90deg,#1e3a1e,#2d7a2d,#1e3a1e);}
-.tl-bot-gold{height:3px;background:linear-gradient(90deg,#c8860a,#f0c040,#c8860a);}
+.pl-title-row{
+  display:flex;align-items:center;gap:0;
+  border-bottom:2px solid #0d2060;
+}
+.pl-title-block{
+  text-align:center;padding:8px 14px;
+  border-right:2px solid #0d2060;
+  min-width:180px;
+}
+.pl-title{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;font-style:italic;color:#0d2060;line-height:1;}
+.pl-subtitle{font-family:'EB Garamond',serif;font-size:11.5px;font-style:italic;color:#555;margin-top:3px;}
+.pl-body-cols{display:grid;grid-template-columns:1fr 1fr;gap:0;flex:1;padding:0 0 0 0;}
+.pl-col{padding:10px 16px;}
+.pl-col:first-child{border-right:1.5px solid #d0d8f0;}
+.pl-rec{
+  background:#f0f4ff;border-left:3px solid #0d2060;
+  padding:6px 10px;margin:6px 0;
+  font-family:'EB Garamond',serif;font-size:12px;font-style:italic;
+  color:#1a1a1a;line-height:1.6;
+}
+.pl-sig-area{
+  display:flex;justify-content:space-around;align-items:flex-end;
+  padding:6px 18px 10px;border-top:2px solid #0d2060;
+}
+.pl-sig-blk{text-align:center;}
+.pl-sig-img{min-height:28px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:2px;}
+.pl-sig-img img{max-height:26px;max-width:90%;object-fit:contain;}
+.pl-sig-line{border-top:1.5px solid #0d2060;width:90px;margin:0 auto 3px;}
+.pl-sig-title{font-family:'Cinzel',serif;font-size:8px;color:#0d2060;font-weight:700;letter-spacing:.4px;}
+.pl-sig-date{font-size:8.5px;color:#555;margin-top:2px;font-family:sans-serif;}
+.pl-bot{height:7px;background:linear-gradient(90deg,#0d2060,#ffd600 50%,#0d2060);}
 
+/* ════════════════════════════════════════════
+   SECONDARY — PORTRAIT  (.sp-*)
+   A4 210mm × 297mm
+════════════════════════════════════════════ */
+.sp-outer{
+  width:210mm;min-height:297mm;
+  padding:14px;
+  display:flex;flex-direction:column;
+  box-shadow:0 8px 40px rgba(0,0,0,.5);
+}
+.sp-inner{
+  flex:1;background:#fff;display:flex;flex-direction:column;
+  border:1.5px solid #111;
+  min-height:calc(297mm - 28px);
+  overflow:hidden;
+}
+/* Black header */
+.sp-header{
+  background:#0a0a0a;
+  padding:10px 14px 12px;text-align:center;
+}
+.sp-school-name{
+  font-family:'Cinzel',serif;font-size:clamp(16px,2.5vw,24px);
+  font-weight:900;color:#1a4fd6;letter-spacing:.5px;
+  line-height:1.1;text-shadow:0 0 20px rgba(26,79,214,.4);
+}
+.sp-school-type{
+  font-family:'Cinzel',serif;font-size:11px;font-weight:700;
+  color:#fff;letter-spacing:2px;text-transform:uppercase;margin-top:3px;
+}
+.sp-school-addr{font-size:9.5px;color:rgba(255,255,255,.65);margin-top:3px;font-style:italic;}
+
+/* Red motto */
+.sp-motto{
+  background:linear-gradient(90deg,#b71c1c,#e53935,#b71c1c);
+  padding:6px 14px;text-align:center;
+  font-family:'Cinzel',serif;font-size:11px;font-weight:700;
+  color:#fff;letter-spacing:1.5px;text-transform:uppercase;
+}
+
+/* Centered logo */
+.sp-logo-center{
+  display:flex;justify-content:center;padding:14px 0 6px;
+}
+.sp-logo-circle{
+  width:80px;height:80px;border-radius:50%;
+  border:3px solid #0a0a0a;
+  overflow:hidden;background:#f5f5f5;
+  display:flex;align-items:center;justify-content:center;
+}
+.sp-logo-circle img{width:100%;height:100%;object-fit:cover;}
+.sp-logo-ph{font-family:'Cinzel',serif;font-size:8px;font-weight:700;color:#aaa;text-align:center;padding:4px;}
+
+/* Title */
+.sp-title-area{text-align:center;padding:2px 14px 8px;}
+.sp-title{
+  font-family:'Playfair Display',serif;font-size:44px;font-weight:700;
+  font-style:italic;color:#0a0a0a;line-height:1;margin-bottom:4px;
+}
+.sp-subtitle{
+  font-family:'EB Garamond',serif;font-size:13px;color:#444;
+  font-style:italic;letter-spacing:.5px;
+}
+.sp-rule{
+  height:2px;
+  background:linear-gradient(90deg,transparent,#111 30%,#111 70%,transparent);
+  margin:8px 14px 0;
+}
+
+/* Body */
+.sp-body{padding:12px 22px;flex:1;}
+.sp-fields{}
+.sp-remark-hdr{
+  font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;
+  color:#1a1a1a;margin:10px 0 6px;
+}
+.sp-conduct-row{display:flex;align-items:flex-end;gap:6px;margin-bottom:7px;font-size:12px;}
+
+/* Date area */
+.sp-date-area{
+  padding:8px 22px 10px;
+  font-size:12px;font-weight:700;color:#1a1a1a;
+  display:flex;align-items:flex-end;gap:8px;
+}
+.sp-date-line{border-bottom:1.5px solid #333;min-width:90px;height:16px;display:inline-block;}
+
+/* Footer sig */
+.sp-footer{
+  padding:6px 22px 12px;
+  display:flex;justify-content:flex-end;align-items:flex-end;gap:14px;
+}
+.sp-sig-blk{text-align:center;}
+.sp-sig-img{min-height:34px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:2px;}
+.sp-sig-img img{max-height:30px;max-width:90%;object-fit:contain;}
+.sp-sig-line{border-top:1.5px solid #333;width:110px;margin:0 auto 4px;}
+.sp-sig-title{font-family:'Cinzel',serif;font-size:8.5px;color:#1a1a1a;font-weight:700;letter-spacing:.4px;}
+.sp-sig-sub{font-size:8px;color:#555;margin-top:2px;}
+
+/* Bottom band */
+.sp-bot{height:8px;background:#0a0a0a;}
+.sp-bot-red{height:5px;background:linear-gradient(90deg,#b71c1c,#e53935,#b71c1c);}
+
+/* ════════════════════════════════════════════
+   SECONDARY — LANDSCAPE  (.sl-*)
+   A4 297mm × 210mm
+════════════════════════════════════════════ */
+.sl-outer{
+  width:297mm;min-height:210mm;
+  padding:14px;
+  display:flex;flex-direction:column;
+  box-shadow:0 8px 40px rgba(0,0,0,.5);
+}
+.sl-inner{
+  flex:1;background:#fff;display:flex;flex-direction:column;
+  border:1.5px solid #111;
+  min-height:calc(210mm - 28px);
+  overflow:hidden;
+}
+.sl-header{
+  background:#0a0a0a;
+  padding:8px 14px 10px;text-align:center;
+}
+.sl-school-name{
+  font-family:'Cinzel',serif;font-size:clamp(14px,2vw,20px);
+  font-weight:900;color:#1a4fd6;letter-spacing:.5px;line-height:1.1;
+  text-shadow:0 0 20px rgba(26,79,214,.4);
+}
+.sl-school-type{
+  font-family:'Cinzel',serif;font-size:9.5px;font-weight:700;
+  color:#fff;letter-spacing:2px;text-transform:uppercase;margin-top:2px;
+}
+.sl-school-addr{font-size:8.5px;color:rgba(255,255,255,.65);margin-top:2px;font-style:italic;}
+.sl-motto{
+  background:linear-gradient(90deg,#b71c1c,#e53935,#b71c1c);
+  padding:5px 14px;text-align:center;
+  font-family:'Cinzel',serif;font-size:10px;font-weight:700;
+  color:#fff;letter-spacing:1.5px;text-transform:uppercase;
+}
+/* Content row: logo center + two-column body */
+.sl-content{display:flex;gap:0;flex:1;border-bottom:1.5px solid #111;}
+.sl-logo-col{
+  width:100px;flex-shrink:0;
+  border-right:1.5px solid #ddd;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  padding:10px 6px;
+  background:#fafafa;
+}
+.sl-logo-circle{
+  width:72px;height:72px;border-radius:50%;
+  border:2.5px solid #111;overflow:hidden;background:#f5f5f5;
+  display:flex;align-items:center;justify-content:center;
+}
+.sl-logo-circle img{width:100%;height:100%;object-fit:cover;}
+.sl-logo-ph{font-family:'Cinzel',serif;font-size:7px;font-weight:700;color:#aaa;text-align:center;padding:4px;}
+.sl-title-vert{
+  text-align:center;margin-top:8px;
+}
+.sl-title-v{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;font-style:italic;color:#0a0a0a;line-height:1.1;}
+.sl-subtitle-v{font-family:'EB Garamond',serif;font-size:9.5px;color:#444;font-style:italic;margin-top:3px;}
+.sl-body-cols{display:grid;grid-template-columns:1fr 1fr;flex:1;}
+.sl-col{padding:10px 14px;}
+.sl-col:first-child{border-right:1.5px solid #e0e0e0;}
+.sl-remark-hdr{font-family:'Poppins',sans-serif;font-size:11px;font-weight:700;color:#1a1a1a;margin:7px 0 5px;}
+.sl-rec{
+  background:#fff8f8;border-left:3px solid #e53935;
+  padding:5px 8px;margin:6px 0;
+  font-family:'EB Garamond',serif;font-size:11.5px;font-style:italic;
+  color:#1a1a1a;line-height:1.6;
+}
+.sl-sig-row{
+  display:flex;justify-content:space-between;align-items:flex-end;
+  padding:6px 14px 8px;border-top:1.5px solid #111;
+}
+.sl-sig-blk{text-align:center;}
+.sl-sig-img{min-height:26px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:2px;}
+.sl-sig-img img{max-height:24px;max-width:90%;object-fit:contain;}
+.sl-sig-line{border-top:1.5px solid #333;width:90px;margin:0 auto 3px;}
+.sl-sig-title{font-family:'Cinzel',serif;font-size:8px;color:#1a1a1a;font-weight:700;letter-spacing:.3px;}
+.sl-sig-sub{font-size:7.5px;color:#555;margin-top:2px;}
+.sl-bot{height:6px;background:#0a0a0a;}
+.sl-bot-red{height:4px;background:linear-gradient(90deg,#b71c1c,#e53935,#b71c1c);}
+
+/* ─── PRINT ─── */
 @media print{
   body{background:white;}
   .ctrl{display:none!important;}
   .test-page-wrap{padding:0;}
-  .test-portrait,.test-landscape{box-shadow:none!important;}
+  .pp-outer,.pl-outer,.sp-outer,.sl-outer{box-shadow:none!important;}
   @page{margin:0;}
 }
-@media screen and (max-width:600px){
-  .test-landscape{width:100%;min-height:auto;}
-  .test-portrait{width:100%;min-height:auto;}
+@media screen and (max-width:640px){
+  .pp-outer,.sp-outer{width:100%;min-height:auto;}
+  .pl-outer,.sl-outer{width:100%;min-height:auto;}
 }
 </style>
 </head>
 <body>
 
-<!-- ORIENTATION MODAL -->
+<!-- ORIENTATION + SECTION MODAL -->
 <div class="modal-bg" id="modalBg">
   <div class="modal">
     <div class="modal-logo">📜</div>
-    <h2>School Leaving Testimonial</h2>
-    <p>Choose your preferred orientation for the testimonial document.</p>
+    <h2>School Testimonial Generator</h2>
+    <p>Select the school section and preferred page orientation.</p>
+
+    <div class="modal-section-label">School Section</div>
+    <div class="sect-grid">
+      <div class="sect-btn selected" id="btnPri" onclick="selectSection('primary')">
+        <div class="sect-icon">🏫</div>
+        <div class="sect-label">PRIMARY / NURSERY</div>
+        <div class="sect-sub">Nur, KG &amp; Primary classes</div>
+      </div>
+      <div class="sect-btn" id="btnSec" onclick="selectSection('secondary')">
+        <div class="sect-icon">🎓</div>
+        <div class="sect-label">JUNIOR / SENIOR</div>
+        <div class="sect-sub">JSS &amp; SSS classes</div>
+      </div>
+    </div>
+
+    <div class="modal-divider"></div>
+    <div class="modal-section-label" style="margin-bottom:10px">Page Orientation</div>
     <div class="orient-grid">
       <div class="orient-btn selected" id="btnPort" onclick="selectOrient('portrait')">
         <div class="orient-preview port"></div>
         <div class="orient-label">PORTRAIT</div>
-        <div class="orient-sub">210mm × 297mm<br>Recommended</div>
+        <div class="orient-sub">210mm × 297mm</div>
       </div>
       <div class="orient-btn" id="btnLand" onclick="selectOrient('landscape')">
         <div class="orient-preview land"></div>
         <div class="orient-label">LANDSCAPE</div>
-        <div class="orient-sub">297mm × 210mm<br>A4 Horizontal</div>
+        <div class="orient-sub">297mm × 210mm</div>
       </div>
     </div>
-    <button class="modal-gen-btn" id="genBtn" onclick="generateTest()">✦ Generate Testimonial</button>
+
+    <button class="modal-gen-btn" onclick="generateTest()">✦ Generate Testimonial</button>
     <span class="modal-back" onclick="history.back()">← Go back</span>
   </div>
 </div>
 
 <!-- CONTROL BAR -->
 <div class="ctrl" id="ctrlBar" style="display:none">
-  <span class="ctrl-title">📜 School Leaving Testimonial</span>
+  <span class="ctrl-title">📜 School Testimonial</span>
+  <span class="ctrl-badge" id="sectBadge">PRIMARY</span>
   <span class="ctrl-badge" id="orientBadge">PORTRAIT</span>
-  <button class="ctrl-btn btn-orient" onclick="changeOrient()">⟳ Change Orientation</button>
+  <button class="ctrl-btn btn-orient" onclick="changeOrient()">⟳ Change Options</button>
   <button class="ctrl-btn btn-print" onclick="window.print()">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
     Print / Save PDF
@@ -369,9 +547,15 @@ const p = new URLSearchParams(location.search);
 const STUDENT_ID = p.get('student_id');
 const TERM_ID    = p.get('term_id');
 
-let _orient = 'portrait';
-let _data   = null;
+let _orient  = 'portrait';
+let _section = 'primary';
+let _data    = null;
 
+function selectSection(s) {
+  _section = s;
+  document.getElementById('btnPri').classList.toggle('selected', s === 'primary');
+  document.getElementById('btnSec').classList.toggle('selected', s === 'secondary');
+}
 function selectOrient(o) {
   _orient = o;
   document.getElementById('btnLand').classList.toggle('selected', o === 'landscape');
@@ -385,7 +569,14 @@ function changeOrient() {
 async function generateTest() {
   document.getElementById('modalBg').style.display = 'none';
   document.getElementById('ctrlBar').style.display = 'flex';
+  document.getElementById('sectBadge').textContent  = _section === 'primary' ? 'NUR/PRIMARY' : 'JSS/SSS';
   document.getElementById('orientBadge').textContent = _orient.toUpperCase();
+
+  const styleId = 'print-orient-style';
+  let st = document.getElementById(styleId);
+  if (!st) { st = document.createElement('style'); st.id = styleId; document.head.appendChild(st); }
+  st.textContent = `@page { size: ${_orient === 'landscape' ? 'A4 landscape' : 'A4 portrait'}; margin: 0; }`;
+
   if (_data) { renderTest(_data); return; }
   document.getElementById('mainContent').innerHTML = '<div class="loading">Fetching student data…</div>';
   await loadData();
@@ -409,6 +600,13 @@ function fmtDate(d) {
   catch { return d; }
 }
 
+/* Auto-detect section from class level/section data */
+function detectSection(className, classLevel, classSection) {
+  const s = ((classSection || '') + ' ' + (classLevel || '') + ' ' + (className || '')).toLowerCase();
+  if (/nur|nursery|kg|kinder|pri|primary|pry|basic\s*[1-6]|grade\s*[1-6]/.test(s)) return 'primary';
+  return 'secondary';
+}
+
 async function loadData() {
   if (!STUDENT_ID || !TERM_ID) {
     await showStudentPicker('testimonial');
@@ -420,14 +618,13 @@ async function loadData() {
     const schoolId = student.school_id;
 
     const [school, scale, term, results, affective] = await Promise.all([
-      sq('School', db.from('schools').select('name,logo_url,address,state,lga,phone,email,motto,principal_signature_url,class_teacher_signature_url').eq('id', schoolId).single()),
-      sq('Scale',  db.from('grading_scales').select('*').eq('school_id', schoolId).order('min_score', { ascending: false })),
-      sq('Term',   db.from('terms').select('*,academic_years(label)').eq('id', TERM_ID).single()),
-      sq('Results', db.from('results').select('score,subject_id,subjects(name),exams(max_score,weight)').eq('student_id', STUDENT_ID).eq('term_id', TERM_ID)),
+      sq('School',    db.from('schools').select('name,logo_url,address,state,lga,phone,email,motto,principal_signature_url,class_teacher_signature_url').eq('id', schoolId).single()),
+      sq('Scale',     db.from('grading_scales').select('*').eq('school_id', schoolId).order('min_score', { ascending: false })),
+      sq('Term',      db.from('terms').select('*,academic_years(label)').eq('id', TERM_ID).single()),
+      sq('Results',   db.from('results').select('score,subject_id,subjects(name),exams(max_score,weight)').eq('student_id', STUDENT_ID).eq('term_id', TERM_ID)),
       sq('Affective', db.from('affective_domain').select('*').eq('student_id', STUDENT_ID).eq('term_id', TERM_ID).maybeSingle()),
     ]);
 
-    // Build unique subjects
     const subMap = new Map();
     (results || []).forEach(r => {
       if (!subMap.has(r.subject_id)) subMap.set(r.subject_id, { name: r.subjects?.name || '—', rows: [] });
@@ -446,255 +643,429 @@ async function loadData() {
     const og = gradeFromScale(avg, scale || []);
     const sessLabel = (term?.academic_years?.label || term?.name) || 'Current Session';
     const enr = await sq('Enrollment', db.from('enrollments').select('class_id,classes(id,name,level,section)').eq('student_id', STUDENT_ID).eq('term_id', TERM_ID).maybeSingle());
-    const className = enr?.classes?.name || '—';
+    const className  = enr?.classes?.name    || '—';
+    const classLevel  = enr?.classes?.level  || '';
+    const classSection= enr?.classes?.section|| '';
 
-    _data = { student, school, scale, term, subRows, avg, passedSubjects, og, sessLabel, affective, className };
+    /* Auto-detect section and pre-select in modal if not yet shown */
+    const autoSection = detectSection(className, classLevel, classSection);
+    if (autoSection !== _section) {
+      _section = autoSection;
+      selectSection(_section);
+      document.getElementById('sectBadge').textContent = _section === 'primary' ? 'NUR/PRIMARY' : 'JSS/SSS';
+    }
+
+    _data = { student, school, scale, term, subRows, avg, passedSubjects, og, sessLabel, affective, className, classLevel, classSection };
     renderTest(_data);
   } catch(e) {
     document.getElementById('mainContent').innerHTML = `<div class="loading" style="color:#f87171">Error: ${e.message}</div>`;
   }
 }
 
+/* ──────────────────────────────────────────
+   RENDER DISPATCHER
+────────────────────────────────────────── */
 function renderTest(d) {
-  const { student, school, subRows, avg, passedSubjects, og, sessLabel, affective, className } = d;
-  const certNo = `TEST-${new Date().getFullYear()}-${student.id?.slice(0, 6).toUpperCase() || '000000'}`;
-  const today = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
-  const parts = [school?.address, school?.lga, school?.state].filter(Boolean).join(', ');
-  const meta = school?.phone ? `${parts} | Tel: ${school.phone}` : parts;
-  const pp = student.photo_url || student.passport_url || student.avatar_url || '';
-
-  const shieldLogoH = school?.logo_url
-    ? `<div class="${_orient === 'portrait' ? 'tp' : 'tl'}-shield-logo"><img src="${school.logo_url}" alt="logo"></div>`
-    : `<div class="${_orient === 'portrait' ? 'tp' : 'tl'}-shield-fb">CREST</div>`;
-
-  const ppH = pp
-    ? `<img src="${pp}" alt="Student">`
-    : `<div class="${_orient === 'portrait' ? 'tp' : 'tl'}-pp-ph">Affix<br>Passport<br>Photo</div>`;
-
-  const conductFields = [
-    ['Character', affective?.conduct || '—'],
-    ['Conduct', affective?.behaviour || affective?.conduct || '—'],
-    ['Sincerity', affective?.sincerity || '—'],
-    ['Punctuality', affective?.punctuality || '—'],
-  ];
-
-  const recText = affective?.class_teacher_remark
-    ? `"${affective.class_teacher_remark}" &mdash; <em>Class Teacher</em><br><br>`
-    : '';
-
-  const mainRec = `${recText}This testimonial is issued on the request of the student and/or parent/guardian for
-    whatever legitimate purpose it may serve. ${school?.name || 'This institution'} hereby confirms
-    the authenticity of all information stated herein.`;
-
-  let html = '';
-
-  if (_orient === 'portrait') {
-    html = `
-<div class="test-page-wrap">
-<div class="test-portrait">
-  <div class="tp-top-band"></div>
-  <div class="tp-gold-line"></div>
-
-  <div class="tp-header">
-    <div class="tp-shield">
-      <div class="tp-shield-inner">${shieldLogoH}</div>
-    </div>
-    <div class="tp-hc">
-      <div class="tp-school-name">${school?.name || 'School Name'}</div>
-      <div class="tp-school-sub">Nur, Pri &amp; Sec School</div>
-      <div class="tp-school-meta">${meta || '&nbsp;'}</div>
-      ${school?.motto ? `<div class="tp-school-motto">Motto: ${school.motto}</div>` : ''}
-    </div>
-    <div class="tp-pp">${ppH}</div>
-  </div>
-
-  <div class="tp-title-bar">
-    <div class="tp-title-word">TESTIMONIALS</div>
-    <div class="tp-title-sub">This is to certify that</div>
-  </div>
-  <div class="tp-gold-div"></div>
-
-  <div class="tp-certify">
-    This document is issued under the authority of <strong>${school?.name || 'this institution'}</strong>
-  </div>
-
-  <div class="tp-name-row">
-    <div class="tp-student-name">${student.full_name || 'Student Full Name'}</div>
-  </div>
-
-  <div class="tp-form">
-    <div class="tp-form-row">
-      <span class="tp-label">Has been a Pupil of this School</span>
-      <span class="tp-value">From <strong>${fmtDate(student.admission_date || student.created_at)}</strong> to <strong>${today}</strong></span>
-    </div>
-    <div class="tp-form-row">
-      <span class="tp-label">Where He/She Completed</span>
-      <span class="tp-value">${className} — ${sessLabel}</span>
-    </div>
-    <div class="tp-form-row">
-      <span class="tp-label">Admission No.</span>
-      <span class="tp-value">${student.admission_no || student.roll_no || '—'}</span>
-    </div>
-    <div class="tp-form-row">
-      <span class="tp-label">Date of Birth</span>
-      <span class="tp-value">${fmtDate(student.dob || student.date_of_birth)}</span>
-    </div>
-    <div class="tp-form-row">
-      <span class="tp-label">Father's / Guardian's Name</span>
-      <span class="tp-value">${student.father_name || student.guardian_name || '—'}</span>
-    </div>
-    <div class="tp-form-row">
-      <span class="tp-label">Scholar No.</span>
-      <span class="tp-value">${student.scholar_no || student.id?.slice(0, 8).toUpperCase() || '—'}</span>
-    </div>
-    ${avg !== null ? `<div class="tp-form-row">
-      <span class="tp-label">Academic Performance</span>
-      <span class="tp-value">Average: <strong>${avg}%</strong> &nbsp;|&nbsp; Grade: <strong>${og.grade}</strong> &nbsp;|&nbsp; Passed: <strong>${passedSubjects}/${subRows.length}</strong> subjects</span>
-    </div>` : ''}
-    <div class="tp-form-row">
-      <span class="tp-label">Hobby</span>
-      <span class="tp-value">&nbsp;</span>
-    </div>
-    <div class="tp-form-row">
-      <span class="tp-label">Post Held in School</span>
-      <span class="tp-value">${affective?.post_held || '&nbsp;'}</span>
-    </div>
-  </div>
-
-  <div class="tp-edu-hdr">Character &amp; Conduct Record</div>
-  <div class="tp-conduct">
-    <div class="tp-conduct-hdr">
-      <span>Character</span><span>Conduct</span><span>Sincerity</span><span>Punctuality</span>
-    </div>
-    <div class="tp-conduct-vals">
-      ${conductFields.map(([l, v]) => `<div class="tp-conduct-item"><span class="tp-conduct-val">${v}</span></div>`).join('')}
-    </div>
-  </div>
-
-  <div class="tp-rec-hdr">Recommendation</div>
-  <div class="tp-rec-body">
-    I strongly recommend him/her to wherever may need his/her service or further academic pursuit.
-    ${school?.name || 'Our institution'} wishes him/her great success in all future endeavours.
-  </div>
-
-  <div class="tp-sig-area">
-    <div class="tp-sig-blk">
-      <div class="tp-sig-img">${school?.class_teacher_signature_url ? `<img src="${school.class_teacher_signature_url}">` : ''}</div>
-      <div class="tp-sig-line"></div>
-      <div class="tp-sig-la">Head Master / Class Teacher</div>
-      <div class="tp-sig-sl">Signature</div>
-      <div class="tp-sig-date">Date: ${today}</div>
-    </div>
-    <div class="tp-stamp">OFFICIAL<br>SCHOOL<br>STAMP<br>&amp; SEAL</div>
-    <div class="tp-sig-blk">
-      <div class="tp-sig-img"></div>
-      <div class="tp-sig-line"></div>
-      <div class="tp-sig-la">Student Signature</div>
-      <div class="tp-sig-sl">Signature</div>
-      <div class="tp-sig-date">Date: _______________</div>
-    </div>
-  </div>
-
-  <div class="tp-ref-row">
-    <span>Ref No.: <strong>${certNo}</strong></span>
-    <span>Generated by EduTrack NG &nbsp;·&nbsp; ${today}</span>
-  </div>
-
-  <div class="tp-bot-band">
-    <div class="tp-bot-gold"></div>
-    <div class="tp-bot-green"></div>
-  </div>
-</div>
-</div>`;
-
-  } else {
-    html = `
-<div class="test-page-wrap">
-<div class="test-landscape">
-  <div class="tl-top-band"></div>
-  <div class="tl-gold-line"></div>
-
-  <div class="tl-header">
-    <div class="tl-shield">
-      <div class="tl-shield-inner">${school?.logo_url ? `<div class="tl-shield-logo"><img src="${school.logo_url}" alt="logo"></div>` : `<div class="tl-shield-fb">CREST</div>`}</div>
-    </div>
-    <div class="tl-hc">
-      <div class="tl-school-name">${school?.name || 'School Name'}</div>
-      <div class="tl-school-sub">Nur, Pri &amp; Sec School</div>
-      <div class="tl-school-meta">${meta || '&nbsp;'}</div>
-      ${school?.motto ? `<div class="tl-motto">Motto: ${school.motto}</div>` : ''}
-    </div>
-    <div class="tl-pp">${pp ? `<img src="${pp}" alt="Student">` : `<div class="tl-pp-ph">Affix Photo</div>`}</div>
-  </div>
-
-  <div class="tl-title-bar">
-    <div class="tl-title-word">TESTIMONIALS</div>
-    <div class="tl-title-sub">This is to certify that</div>
-  </div>
-  <div class="tl-gold-div"></div>
-
-  <div class="tl-body">
-    <div class="tl-left">
-      <div class="tl-certify">This testimonial is issued under the authority of <strong>${school?.name || 'this institution'}</strong></div>
-      <div class="tl-name">${student.full_name || 'Student Full Name'}</div>
-      <div class="tl-name-line"></div>
-      <div class="tl-fr"><span class="tl-fl">Has been a Pupil</span><span class="tl-fv">From ${fmtDate(student.admission_date || student.created_at)} to ${today}</span></div>
-      <div class="tl-fr"><span class="tl-fl">Class Completed</span><span class="tl-fv">${className} — ${sessLabel}</span></div>
-      <div class="tl-fr"><span class="tl-fl">Admission No.</span><span class="tl-fv">${student.admission_no || student.roll_no || '—'}</span></div>
-      <div class="tl-fr"><span class="tl-fl">Date of Birth</span><span class="tl-fv">${fmtDate(student.dob || student.date_of_birth)}</span></div>
-      <div class="tl-fr"><span class="tl-fl">Father / Guardian</span><span class="tl-fv">${student.father_name || student.guardian_name || '—'}</span></div>
-      ${avg !== null ? `<div class="tl-fr"><span class="tl-fl">Academic Result</span><span class="tl-fv">Avg: ${avg}% | Grade: ${og.grade} | ${passedSubjects}/${subRows.length} subjects passed</span></div>` : ''}
-      <div class="tl-fr"><span class="tl-fl">Post Held</span><span class="tl-fv">${affective?.post_held || '&nbsp;'}</span></div>
-    </div>
-    <div class="tl-right">
-      <div class="tl-sec-hdr">Character &amp; Conduct Record</div>
-      <div class="tl-conduct-grid">
-        ${conductFields.map(([l, v]) => `<div class="tl-ci"><span class="tl-cl">${l}</span><span class="tl-cv">${v}</span></div>`).join('')}
-      </div>
-      <div class="tl-sec-hdr" style="margin-top:10px">Recommendation</div>
-      <div class="tl-rec">
-        I strongly recommend him/her to wherever may need his/her service or further academic pursuit.
-        ${school?.name || 'Our institution'} wishes him/her great success in all future endeavours.
-      </div>
-    </div>
-  </div>
-
-  <div class="tl-sig-area">
-    <div class="tl-sig-blk">
-      <div class="tl-sig-img">${school?.class_teacher_signature_url ? `<img src="${school.class_teacher_signature_url}">` : ''}</div>
-      <div class="tl-sig-line"></div>
-      <div class="tl-sig-la">Head Master / Class Teacher</div>
-      <div class="tl-sig-sl">Signature &nbsp; Date: ${today}</div>
-    </div>
-    <div class="tl-stamp">OFFICIAL<br>SCHOOL<br>STAMP</div>
-    <div class="tl-sig-blk">
-      <div class="tl-sig-img"></div>
-      <div class="tl-sig-line"></div>
-      <div class="tl-sig-la">Student Signature</div>
-      <div class="tl-sig-sl">Signature &nbsp; Date: ___________</div>
-    </div>
-  </div>
-
-  <div class="tl-ref">
-    <span>Ref No.: <strong>${certNo}</strong></span>
-    <span>Generated by EduTrack NG &nbsp;·&nbsp; ${today}</span>
-  </div>
-
-  <div class="tl-bot-band">
-    <div class="tl-bot-gold"></div>
-    <div class="tl-bot-green"></div>
-  </div>
-</div>
-</div>`;
-  }
-
-  document.getElementById('mainContent').innerHTML = html;
-  const styleId = 'print-orient-style';
-  let st = document.getElementById(styleId);
-  if (!st) { st = document.createElement('style'); st.id = styleId; document.head.appendChild(st); }
-  st.textContent = `@page { size: ${_orient === 'landscape' ? 'A4 landscape' : 'A4 portrait'}; margin: 0; }`;
+  if (_section === 'primary' && _orient === 'portrait')   renderPrimaryPortrait(d);
+  else if (_section === 'primary' && _orient === 'landscape') renderPrimaryLandscape(d);
+  else if (_section === 'secondary' && _orient === 'portrait') renderSecondaryPortrait(d);
+  else renderSecondaryLandscape(d);
 }
 
+/* ──────────────────────────────────────────
+   HELPERS
+────────────────────────────────────────── */
+function common(d) {
+  const { student, school, subRows, avg, passedSubjects, og, sessLabel, affective, className } = d;
+  const certNo  = `TEST-${new Date().getFullYear()}-${student.id?.slice(0,6).toUpperCase() || '000000'}`;
+  const today   = new Date().toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' });
+  const parts   = [school?.address, school?.lga, school?.state].filter(Boolean).join(', ');
+  const meta    = school?.phone ? `${parts} | Tel: ${school.phone}` : parts;
+  const pp      = student.photo_url || student.passport_url || student.avatar_url || '';
+  const logo    = school?.logo_url || '';
+  const hmSig   = school?.class_teacher_signature_url || '';
+  const admDate = fmtDate(student.admission_date || student.created_at);
+  const conduct = affective?.conduct || affective?.behaviour || '—';
+  const sinc    = affective?.sincerity || '—';
+  const punct   = affective?.punctuality || '—';
+  const post    = affective?.post_held || '';
+  const hobby   = affective?.hobby || '';
+  return { student, school, certNo, today, meta, pp, logo, hmSig, admDate,
+           conduct, sinc, punct, post, hobby, sessLabel, className, avg, passedSubjects, og, affective };
+}
+
+function logoHtml(logo, cls) {
+  return logo
+    ? `<img src="${logo}" alt="Logo">`
+    : `<div class="${cls}">SCHOOL<br>CREST</div>`;
+}
+
+function photoHtml(pp, cls) {
+  return pp
+    ? `<img src="${pp}" alt="Student">`
+    : `<div class="${cls}">Affix<br>Passport<br>Photo</div>`;
+}
+
+function field(label, value, extraClass='') {
+  return `<div class="cf-row ${extraClass}">
+    <span class="cf-label">${label}:</span>
+    <span class="cf-line">${value||'&nbsp;'}</span>
+  </div>`;
+}
+
+/* ══════════════════════════════════════════
+   1. PRIMARY — PORTRAIT
+══════════════════════════════════════════ */
+function renderPrimaryPortrait(d) {
+  const c = common(d);
+  const html = `
+<div class="test-page-wrap">
+<div class="pp-outer dp-primary">
+<div class="pp-inner">
+
+  <div class="pp-header">
+    <div class="pp-logo-wrap">${logoHtml(c.logo,'pp-logo-ph')}</div>
+    <div class="pp-hc">
+      <div class="pp-school-name">${c.school?.name || 'SCHOOL NAME'}</div>
+      <div class="pp-school-sub">Nur, Pri &amp; Sec School</div>
+      <div class="pp-school-addr">${c.meta || '&nbsp;'}</div>
+    </div>
+    <div class="pp-photo-box">${photoHtml(c.pp,'pp-photo-ph')}</div>
+  </div>
+
+  ${c.school?.motto ? `<div class="pp-motto">Motto: ${c.school.motto}</div>` : ''}
+
+  <div class="pp-title-area">
+    <div class="pp-title">Testimonial</div>
+    <div class="pp-subtitle">"this is to satisfy that"</div>
+  </div>
+  <div class="pp-rule"></div>
+
+  <div class="pp-body">
+    <div class="pp-intro">Has been a pupil of this school</div>
+
+    <div class="cf-row">
+      <span class="cf-text">From</span>
+      <span class="cf-line">${c.admDate}</span>
+      <span class="cf-text">to</span>
+      <span class="cf-line">${c.today}</span>
+    </div>
+    <div style="font-family:'EB Garamond',serif;font-size:13px;font-style:italic;color:#333;border-bottom:1.5px solid #333;padding-bottom:2px;margin-bottom:8px;">
+      where he/she completed his/her <strong>${c.className !== '—' ? c.className : 'primary'}</strong> school education
+      &nbsp;(${c.sessLabel})
+    </div>
+
+    <div class="pp-fields">
+      ${field('Admission No', c.student.admission_no || c.student.roll_no || '—')}
+      ${field('Date of Birth', fmtDate(c.student.dob || c.student.date_of_birth))}
+      ${field('Father / Guardian', c.student.father_name || c.student.guardian_name || '—')}
+      ${field('Conduct', c.conduct)}
+      ${field('Hobby', c.hobby)}
+      ${field('Post Held', c.post)}
+      ${c.avg !== null ? field('Academic Performance', `Average: ${c.avg}% &nbsp;|&nbsp; Grade: ${c.og.grade} &nbsp;|&nbsp; ${c.passedSubjects}/${d.subRows.length} subjects passed`) : ''}
+    </div>
+
+    <div class="pp-rec">
+      I strongly recommend him/her to wherever may need his/her service or further
+      academic pursuit. ${c.school?.name || 'This institution'} wishes him/her
+      great success in all future endeavours.
+    </div>
+
+    <div style="font-size:9px;color:#888;font-family:sans-serif;text-align:right;margin-top:4px;">
+      Ref: ${c.certNo} &nbsp;·&nbsp; Generated: ${c.today}
+    </div>
+  </div>
+
+  <div class="pp-sig-area">
+    <div class="pp-sig-blk">
+      <div class="pp-sig-img">${c.hmSig ? `<img src="${c.hmSig}">` : ''}</div>
+      <div class="pp-sig-line"></div>
+      <div class="pp-sig-title">Headmaster's Signature</div>
+      <div class="pp-sig-date">Date: ${c.today}</div>
+    </div>
+    <div class="cert-stamp cert-stamp-lg">OFFICIAL<br>SCHOOL<br>STAMP<br>&amp; SEAL</div>
+    <div class="pp-sig-blk">
+      <div class="pp-sig-img"></div>
+      <div class="pp-sig-line"></div>
+      <div class="pp-sig-title">Pupil's Signature</div>
+      <div class="pp-sig-date">Date: _______________</div>
+    </div>
+  </div>
+
+  <div class="pp-bot"></div>
+</div>
+</div>
+</div>`;
+  document.getElementById('mainContent').innerHTML = html;
+}
+
+/* ══════════════════════════════════════════
+   2. PRIMARY — LANDSCAPE
+══════════════════════════════════════════ */
+function renderPrimaryLandscape(d) {
+  const c = common(d);
+  const html = `
+<div class="test-page-wrap">
+<div class="pl-outer dp-primary">
+<div class="pl-inner">
+
+  <div class="pl-header">
+    <div class="pl-logo-wrap">${logoHtml(c.logo,'pl-logo-ph')}</div>
+    <div class="pl-hc">
+      <div class="pl-school-name">${c.school?.name || 'SCHOOL NAME'}</div>
+      <div class="pl-school-sub">Nur, Pri &amp; Sec School</div>
+      <div class="pl-school-addr">${c.meta || '&nbsp;'}</div>
+    </div>
+    <div class="pl-photo-box">${photoHtml(c.pp,'pl-photo-ph')}</div>
+  </div>
+
+  ${c.school?.motto ? `<div class="pl-motto">Motto: ${c.school.motto}</div>` : ''}
+
+  <div class="pl-title-row">
+    <div class="pl-title-block">
+      <div class="pl-title">Testimonial</div>
+      <div class="pl-subtitle">"this is to satisfy that"</div>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:8px 16px;">
+      <div style="font-family:'EB Garamond',serif;font-size:12.5px;font-style:italic;color:#222;margin-bottom:4px;">
+        Has been a pupil of this school
+      </div>
+      <div class="cf-row">
+        <span class="cf-text" style="font-size:11.5px;">From</span>
+        <span class="cf-line">${c.admDate}</span>
+        <span class="cf-text" style="font-size:11.5px;">to</span>
+        <span class="cf-line">${c.today}</span>
+      </div>
+      <div style="font-family:'EB Garamond',serif;font-size:12px;font-style:italic;color:#333;border-bottom:1.5px solid #333;padding-bottom:2px;margin-top:2px;">
+        where he/she completed his/her <strong>${c.className !== '—' ? c.className : 'primary'}</strong> school education (${c.sessLabel})
+      </div>
+    </div>
+  </div>
+
+  <div class="pl-body-cols">
+    <div class="pl-col">
+      <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:1.5px;color:#0d2060;font-weight:700;text-transform:uppercase;margin-bottom:7px;border-bottom:1px solid #d0d8f0;padding-bottom:4px;">Student Details</div>
+      ${field('Admission No', c.student.admission_no || c.student.roll_no || '—')}
+      ${field('Date of Birth', fmtDate(c.student.dob || c.student.date_of_birth))}
+      ${field('Father / Guardian', c.student.father_name || c.student.guardian_name || '—')}
+      ${field('Hobby', c.hobby)}
+      ${field('Post Held', c.post)}
+      ${c.avg !== null ? field('Academic Avg', `${c.avg}% — Grade ${c.og.grade}`) : ''}
+    </div>
+    <div class="pl-col">
+      <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:1.5px;color:#0d2060;font-weight:700;text-transform:uppercase;margin-bottom:7px;border-bottom:1px solid #d0d8f0;padding-bottom:4px;">Conduct &amp; Recommendation</div>
+      ${field('Conduct', c.conduct)}
+      ${field('Sincerity', c.sinc)}
+      ${field('Punctuality', c.punct)}
+      <div class="pl-rec">
+        I strongly recommend him/her to wherever may need his/her service or further academic pursuit.
+        ${c.school?.name || 'This institution'} wishes him/her great success.
+      </div>
+      <div style="font-size:8.5px;color:#888;font-family:sans-serif;margin-top:4px;">Ref: ${c.certNo} &nbsp;·&nbsp; ${c.today}</div>
+    </div>
+  </div>
+
+  <div class="pl-sig-area">
+    <div class="pl-sig-blk">
+      <div class="pl-sig-img">${c.hmSig ? `<img src="${c.hmSig}">` : ''}</div>
+      <div class="pl-sig-line"></div>
+      <div class="pl-sig-title">Headmaster's Signature</div>
+      <div class="pl-sig-date">Date: ${c.today}</div>
+    </div>
+    <div class="cert-stamp cert-stamp-sm">OFFICIAL<br>SCHOOL<br>STAMP</div>
+    <div class="pl-sig-blk">
+      <div class="pl-sig-img"></div>
+      <div class="pl-sig-line"></div>
+      <div class="pl-sig-title">Pupil's Signature</div>
+      <div class="pl-sig-date">Date: _______________</div>
+    </div>
+  </div>
+
+  <div class="pl-bot"></div>
+</div>
+</div>
+</div>`;
+  document.getElementById('mainContent').innerHTML = html;
+}
+
+/* ══════════════════════════════════════════
+   3. SECONDARY — PORTRAIT
+══════════════════════════════════════════ */
+function renderSecondaryPortrait(d) {
+  const c = common(d);
+  const html = `
+<div class="test-page-wrap">
+<div class="sp-outer dp-secondary">
+<div class="sp-inner">
+
+  <div class="sp-header">
+    <div class="sp-school-name">${c.school?.name || 'SCHOOL NAME'}</div>
+    <div class="sp-school-type">Nur, Pri &amp; Sec School</div>
+    <div class="sp-school-addr">${c.meta || '&nbsp;'}</div>
+  </div>
+
+  ${c.school?.motto ? `<div class="sp-motto">Motto: ${c.school.motto}</div>` : '<div class="sp-motto">Motto: &nbsp;</div>'}
+
+  <div class="sp-logo-center">
+    <div class="sp-logo-circle">${logoHtml(c.logo,'sp-logo-ph')}</div>
+  </div>
+
+  <div class="sp-title-area">
+    <div class="sp-title">Testimonial</div>
+    <div class="sp-subtitle">To whom it may concern</div>
+  </div>
+  <div class="sp-rule"></div>
+
+  <div class="sp-body">
+    ${field('Name', c.student.full_name || '—')}
+    ${field('Admission No', c.student.admission_no || c.student.roll_no || '—')}
+    ${field('Date of Birth', fmtDate(c.student.dob || c.student.date_of_birth))}
+    ${field('Father / Guardian', c.student.father_name || c.student.guardian_name || '—')}
+
+    <div class="cf-row" style="flex-wrap:wrap;margin-top:4px;">
+      <span class="cf-text">Was a Pupil of this school from</span>
+      <span class="cf-line" style="min-width:120px;">${c.admDate}</span>
+      <span class="cf-text">to</span>
+      <span class="cf-line" style="min-width:120px;">${c.today}</span>
+    </div>
+    <div style="font-family:'EB Garamond',serif;font-size:13px;font-style:italic;color:#333;border-bottom:1.5px solid #333;padding-bottom:2px;margin-bottom:10px;">
+      Where he/she completed his/her <strong>${c.className !== '—' ? c.className : ''}</strong> education
+      &nbsp;(${c.sessLabel})
+    </div>
+
+    ${c.avg !== null ? field('Academic Performance', `Average: ${c.avg}% &nbsp;|&nbsp; Grade: ${c.og.grade} &nbsp;|&nbsp; ${c.passedSubjects}/${d.subRows.length} subjects`) : ''}
+
+    <div class="sp-remark-hdr">Remark by the Headmaster</div>
+    ${field('CONDUCT', c.conduct)}
+    ${field('Post Held', c.post)}
+
+    <div style="font-size:12px;font-weight:700;color:#1a1a1a;margin:10px 0 5px;">
+      He/she held the following offices of responsibility
+    </div>
+    <div style="border-bottom:1.5px solid #333;min-height:22px;margin-bottom:6px;">${c.post || '&nbsp;'}</div>
+    <div style="border-bottom:1.5px solid #333;min-height:22px;margin-bottom:10px;">&nbsp;</div>
+
+    <div style="font-family:'EB Garamond',serif;font-size:13px;font-style:italic;color:#333;line-height:1.7;margin-bottom:6px;">
+      I strongly recommend him/her to wherever may need his/her service or further
+      academic pursuit. ${c.school?.name || 'This institution'} wishes him/her great success.
+    </div>
+  </div>
+
+  <div class="sp-date-area">
+    <span>DATE:</span>
+    <span class="sp-date-line">${c.today}</span>
+    <span style="margin-left:12px;">20</span>
+    <span class="sp-date-line" style="min-width:60px;"></span>
+  </div>
+
+  <div class="sp-footer">
+    <div class="cert-stamp cert-stamp-lg">OFFICIAL<br>SCHOOL<br>STAMP<br>&amp; SEAL</div>
+    <div class="sp-sig-blk">
+      <div class="sp-sig-img">${c.hmSig ? `<img src="${c.hmSig}">` : ''}</div>
+      <div class="sp-sig-line"></div>
+      <div class="sp-sig-title">Headmaster's Signature &amp; Stamp</div>
+      <div class="sp-sig-sub">Date: ${c.today}</div>
+    </div>
+  </div>
+
+  <div style="font-size:8.5px;color:#aaa;font-family:sans-serif;text-align:right;padding:2px 14px 4px;">
+    Ref: ${c.certNo} &nbsp;·&nbsp; EduTrack NG &nbsp;·&nbsp; ${c.today}
+  </div>
+
+  <div class="sp-bot-red"></div>
+  <div class="sp-bot"></div>
+</div>
+</div>
+</div>`;
+  document.getElementById('mainContent').innerHTML = html;
+}
+
+/* ══════════════════════════════════════════
+   4. SECONDARY — LANDSCAPE
+══════════════════════════════════════════ */
+function renderSecondaryLandscape(d) {
+  const c = common(d);
+  const html = `
+<div class="test-page-wrap">
+<div class="sl-outer dp-secondary">
+<div class="sl-inner">
+
+  <div class="sl-header">
+    <div class="sl-school-name">${c.school?.name || 'SCHOOL NAME'}</div>
+    <div class="sl-school-type">Nur, Pri &amp; Sec School</div>
+    <div class="sl-school-addr">${c.meta || '&nbsp;'}</div>
+  </div>
+
+  ${c.school?.motto ? `<div class="sl-motto">Motto: ${c.school.motto}</div>` : '<div class="sl-motto">&nbsp;</div>'}
+
+  <div style="display:flex;flex:1;">
+
+    <div class="sl-logo-col">
+      <div class="sl-logo-circle">${logoHtml(c.logo,'sl-logo-ph')}</div>
+      <div class="sl-title-vert">
+        <div class="sl-title-v">Testimonial</div>
+        <div class="sl-subtitle-v">To whom it may concern</div>
+      </div>
+    </div>
+
+    <div class="sl-body-cols" style="flex:1;">
+      <div class="sl-col">
+        <div style="font-family:'Cinzel',serif;font-size:8.5px;letter-spacing:1.5px;color:#0a0a0a;font-weight:700;text-transform:uppercase;margin-bottom:6px;border-bottom:1px solid #ddd;padding-bottom:3px;">Student Information</div>
+        ${field('Name', c.student.full_name || '—')}
+        ${field('Admission No', c.student.admission_no || c.student.roll_no || '—')}
+        ${field('Date of Birth', fmtDate(c.student.dob || c.student.date_of_birth))}
+        ${field('Father / Guardian', c.student.father_name || c.student.guardian_name || '—')}
+        <div class="cf-row" style="flex-wrap:wrap;font-size:11px;">
+          <span class="cf-text">Pupil from</span>
+          <span class="cf-line">${c.admDate}</span>
+          <span class="cf-text">to</span>
+          <span class="cf-line">${c.today}</span>
+        </div>
+        <div style="font-family:'EB Garamond',serif;font-size:11.5px;font-style:italic;color:#333;border-bottom:1.5px solid #333;padding-bottom:2px;margin-bottom:5px;">
+          Where he/she completed <strong>${c.className !== '—' ? c.className : ''}</strong> education (${c.sessLabel})
+        </div>
+        ${c.avg !== null ? field('Academic Avg', `${c.avg}% — Grade ${c.og.grade}`) : ''}
+      </div>
+
+      <div class="sl-col">
+        <div class="sl-remark-hdr">Remark by the Headmaster</div>
+        ${field('CONDUCT', c.conduct)}
+        ${field('Post Held', c.post)}
+        <div style="border-bottom:1.5px solid #333;min-height:18px;margin-bottom:5px;">&nbsp;</div>
+        <div class="sl-rec">
+          I strongly recommend him/her to wherever may need his/her service or further academic pursuit.
+          ${c.school?.name || 'This institution'} wishes him/her great success in all future endeavours.
+        </div>
+        <div style="font-size:8.5px;color:#aaa;font-family:sans-serif;margin-top:5px;text-align:right;">Ref: ${c.certNo} &nbsp;·&nbsp; ${c.today}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sl-sig-row">
+    <div style="font-size:11.5px;font-weight:700;color:#1a1a1a;font-family:'Poppins',sans-serif;">
+      DATE: <span style="border-bottom:1.5px solid #333;display:inline-block;min-width:100px;padding:0 4px;">${c.today}</span>
+      &nbsp;&nbsp; 20 <span style="border-bottom:1.5px solid #333;display:inline-block;min-width:50px;"></span>
+    </div>
+    <div class="cert-stamp">OFFICIAL<br>SCHOOL<br>STAMP<br>&amp; SEAL</div>
+    <div class="sl-sig-blk">
+      <div class="sl-sig-img">${c.hmSig ? `<img src="${c.hmSig}">` : ''}</div>
+      <div class="sl-sig-line"></div>
+      <div class="sl-sig-title">Headmaster's Signature &amp; Stamp</div>
+      <div class="sl-sig-sub">Date: ${c.today}</div>
+    </div>
+  </div>
+
+  <div class="sl-bot-red"></div>
+  <div class="sl-bot"></div>
+</div>
+</div>
+</div>`;
+  document.getElementById('mainContent').innerHTML = html;
+}
+
+/* ──────────────────────────────────────────
+   STUDENT PICKER (no URL params)
+────────────────────────────────────────── */
 async function showStudentPicker(pageType) {
   document.getElementById('modalBg').style.display = 'none';
   document.getElementById('ctrlBar').style.display = 'flex';
@@ -718,22 +1089,23 @@ async function showStudentPicker(pageType) {
       return `<option value="${t.id}"${t.is_current?' selected':''}>${label}</option>`;
     }).join('');
     mc.innerHTML = `
-      <div style="max-width:560px;margin:40px auto;background:rgba(255,255,255,.06);border:1px solid rgba(74,222,128,.2);border-radius:12px;padding:32px;">
-        <h2 style="font-family:'Cinzel',serif;color:#4ade80;font-size:18px;margin-bottom:6px">📜 Generate Testimonial</h2>
-        <p style="font-size:13px;color:#aaa;margin-bottom:24px">Select a class and term, then choose a student to generate their testimonial / leaving certificate.</p>
-        <label style="display:block;font-size:12px;color:#4ade80;margin-bottom:6px">Class</label>
-        <select id="pickerClass" style="width:100%;padding:10px;border-radius:7px;border:1px solid #333;background:#0a1f0a;color:white;font-size:13px;margin-bottom:14px">${classOpts}</select>
-        <label style="display:block;font-size:12px;color:#4ade80;margin-bottom:6px">Term</label>
-        <select id="pickerTerm" style="width:100%;padding:10px;border-radius:7px;border:1px solid #333;background:#0a1f0a;color:white;font-size:13px;margin-bottom:14px">${termOpts}</select>
-        <label style="display:block;font-size:12px;color:#4ade80;margin-bottom:6px">Student</label>
-        <select id="pickerStudent" style="width:100%;padding:10px;border-radius:7px;border:1px solid #333;background:#0a1f0a;color:white;font-size:13px;margin-bottom:20px"><option value="">-- Select class and term first --</option></select>
-        <button onclick="pickerLoadStudents()" style="padding:9px 20px;background:rgba(74,222,128,.15);color:#4ade80;border:1px solid #4ade80;border-radius:7px;cursor:pointer;font-size:13px;margin-bottom:10px;margin-right:10px">Load Students</button>
-        <button onclick="pickerGo('testimonial')" style="padding:9px 22px;background:linear-gradient(135deg,#166534,#4ade80);color:#0a1f0a;border:none;border-radius:7px;cursor:pointer;font-weight:700;font-size:13px">Generate →</button>
+      <div style="max-width:560px;margin:40px auto;background:rgba(255,255,255,.06);border:1px solid rgba(124,180,255,.2);border-radius:12px;padding:32px;">
+        <h2 style="font-family:'Cinzel',serif;color:#7cb4ff;font-size:18px;margin-bottom:6px">📜 Generate Testimonial</h2>
+        <p style="font-size:13px;color:#aaa;margin-bottom:24px">Select a class and term, then choose a student.</p>
+        <label style="display:block;font-size:12px;color:#7cb4ff;margin-bottom:6px">Class</label>
+        <select id="pickerClass" style="width:100%;padding:10px;border-radius:7px;border:1px solid #333;background:#0a1428;color:white;font-size:13px;margin-bottom:14px">${classOpts}</select>
+        <label style="display:block;font-size:12px;color:#7cb4ff;margin-bottom:6px">Term</label>
+        <select id="pickerTerm" style="width:100%;padding:10px;border-radius:7px;border:1px solid #333;background:#0a1428;color:white;font-size:13px;margin-bottom:14px">${termOpts}</select>
+        <label style="display:block;font-size:12px;color:#7cb4ff;margin-bottom:6px">Student</label>
+        <select id="pickerStudent" style="width:100%;padding:10px;border-radius:7px;border:1px solid #333;background:#0a1428;color:white;font-size:13px;margin-bottom:20px"><option value="">-- Select class and term first --</option></select>
+        <button onclick="pickerLoadStudents()" style="padding:9px 20px;background:rgba(124,180,255,.15);color:#7cb4ff;border:1px solid #7cb4ff;border-radius:7px;cursor:pointer;font-size:13px;margin-bottom:10px;margin-right:10px">Load Students</button>
+        <button onclick="pickerGo('testimonial')" style="padding:9px 22px;background:linear-gradient(135deg,#0d47a1,#1a4fd6);color:white;border:none;border-radius:7px;cursor:pointer;font-weight:700;font-size:13px">Generate →</button>
       </div>`;
   } catch(e) {
     mc.innerHTML = `<div class="loading" style="color:#f87171">⚠ Error: ${e.message}</div>`;
   }
 }
+
 async function pickerLoadStudents() {
   const classId = document.getElementById('pickerClass')?.value;
   const termId  = document.getElementById('pickerTerm')?.value;
@@ -753,12 +1125,12 @@ async function pickerLoadStudents() {
   const {data:studs} = await db.from('students').select('id,full_name,admission_no').in('id',ids).order('full_name');
   sel.innerHTML = (studs||[]).map(s=>`<option value="${s.id}">${s.full_name}${s.admission_no?' ('+s.admission_no+')':''}</option>`).join('');
 }
+
 function pickerGo(pageType) {
   const studentId = document.getElementById('pickerStudent')?.value;
   const termId    = document.getElementById('pickerTerm')?.value;
   if (!studentId || !termId) { alert('Please select a student and term.'); return; }
-  const target = pageType === 'certificate' ? 'certificate.html' : 'testimonial.html';
-  location.href = `${target}?student_id=${encodeURIComponent(studentId)}&term_id=${encodeURIComponent(termId)}`;
+  location.href = `testimonial.html?student_id=${encodeURIComponent(studentId)}&term_id=${encodeURIComponent(termId)}`;
 }
 
 window.addEventListener('DOMContentLoaded', () => {
