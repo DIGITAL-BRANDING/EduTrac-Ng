@@ -1,1145 +1,824 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="icon" href="/icons/icon-96.png" type="image/png">
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>School Testimonial</title>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
-<script src="../js/config.js"></script>
-<script src="../js/supabase.js"></script>
-<style>
-/* ─── RESET ─── */
-*{box-sizing:border-box;margin:0;padding:0;}
-body{background:#1a2744;font-family:'Poppins',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Testimonial Scholar | Academic Registry</title>
+  <!-- Premium Typography: Cormorant Garamond + Manrope + Cinzel for elegance -->
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Manrope:wght@300;400;500;600;700&family=Cinzel:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-/* ─── MODAL ─── */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(5px);}
-.modal{background:#fff;border-radius:14px;padding:32px 36px;max-width:500px;width:93%;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.55);}
-.modal-logo{font-size:36px;margin-bottom:10px;}
-.modal h2{font-family:'Cinzel',serif;font-size:19px;color:#0d2060;margin-bottom:6px;}
-.modal p{font-size:12.5px;color:#666;margin-bottom:20px;line-height:1.6;}
-.modal-section-label{font-family:'Cinzel',serif;font-size:11px;color:#0d2060;letter-spacing:1.5px;font-weight:700;text-transform:uppercase;margin-bottom:10px;}
-.sect-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
-.sect-btn{border:2px solid #ddd;border-radius:10px;padding:16px 12px;cursor:pointer;background:#fff;transition:all .2s;}
-.sect-btn:hover{border-color:#0d2060;background:#f0f4ff;}
-.sect-btn.selected{border-color:#0d2060;background:linear-gradient(135deg,#f0f4ff,#e6eeff);box-shadow:0 0 0 3px rgba(13,32,96,.12);}
-.sect-icon{font-size:26px;margin-bottom:6px;}
-.sect-label{font-family:'Cinzel',serif;font-size:11.5px;color:#0d2060;font-weight:700;letter-spacing:.5px;}
-.sect-sub{font-size:10px;color:#888;margin-top:3px;}
-.orient-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px;}
-.orient-btn{border:2px solid #ddd;border-radius:10px;padding:14px 10px;cursor:pointer;background:#fff;transition:all .2s;}
-.orient-btn:hover{border-color:#0d2060;background:#f0f4ff;}
-.orient-btn.selected{border-color:#0d2060;background:linear-gradient(135deg,#f0f4ff,#e6eeff);box-shadow:0 0 0 3px rgba(13,32,96,.12);}
-.orient-preview{margin:0 auto 8px;border:2px solid #ddd;background:#f5f5f5;position:relative;}
-.orient-preview.land{width:78px;height:55px;}
-.orient-preview.port{width:55px;height:78px;}
-.orient-preview::after{content:'T';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:18px;font-weight:700;color:#ccc;}
-.orient-label{font-family:'Cinzel',serif;font-size:11px;color:#333;font-weight:700;letter-spacing:1px;}
-.orient-sub{font-size:10px;color:#888;margin-top:2px;}
-.modal-divider{height:1px;background:#eee;margin:14px 0;}
-.modal-gen-btn{width:100%;padding:13px;background:linear-gradient(135deg,#0d2060,#1a4fd6);border:none;border-radius:8px;font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:#fff;cursor:pointer;letter-spacing:.5px;transition:filter .2s;}
-.modal-gen-btn:hover{filter:brightness(1.12);}
-.modal-back{display:block;margin-top:10px;font-size:12px;color:#aaa;cursor:pointer;text-decoration:underline;}
+    /* Educational, refined palette: deep navy, parchment, burgundy accents */
+    :root {
+      --navy-deep: #0a1c3a;
+      --parchment: #faf6ed;
+      --parchment-dark: #ede5d3;
+      --burgundy: #7a2e3a;
+      --gold-muted: #b8944c;
+      --slate: #2c3e4e;
+      --border-light: #dcd0b0;
+      --shadow-sm: 0 12px 28px rgba(0, 0, 0, 0.08);
+      --shadow-md: 0 20px 35px -12px rgba(0, 0, 0, 0.15);
+    }
 
-/* ─── CONTROL BAR ─── */
-.ctrl{background:#080f2a;color:#fff;width:100%;padding:10px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-.ctrl-title{font-family:'Cinzel',serif;font-size:13px;letter-spacing:1px;color:#7cb4ff;flex:1;}
-.ctrl-btn{padding:7px 15px;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Cinzel',serif;letter-spacing:.4px;display:flex;align-items:center;gap:5px;}
-.btn-print{background:linear-gradient(135deg,#0d47a1,#1a4fd6);color:#fff;}
-.btn-back{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.18);}
-.btn-orient{background:rgba(255,255,255,.06);color:#7cb4ff;border:1px solid rgba(124,180,255,.25);}
-.ctrl-badge{font-size:10px;background:rgba(26,79,214,.2);border:1px solid rgba(26,79,214,.4);color:#7cb4ff;padding:3px 10px;border-radius:20px;font-family:sans-serif;letter-spacing:.5px;}
-.loading{color:#7cb4ff;font-family:'Cinzel',serif;font-size:16px;letter-spacing:2px;padding:60px;text-align:center;animation:pulse 1.5s ease-in-out infinite;}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
-.test-page-wrap{padding:20px;width:100%;display:flex;justify-content:center;}
+    body {
+      background: linear-gradient(145deg, #d4cdb4 0%, #c2b68e 100%);
+      font-family: 'Manrope', sans-serif;
+      padding: 2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      position: relative;
+    }
+    
+    /* subtle herringbone pattern overlay */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" opacity="0.08"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="%233b2f2a" stroke-width="1.2"/></svg>');
+      background-repeat: repeat;
+      pointer-events: none;
+      z-index: 0;
+    }
 
-/* ════════════════════════════════════════════
-   SHARED CERTIFICATE PARTS
-════════════════════════════════════════════ */
-/* Diamond pattern helper classes */
-.dp-primary{
-  background-color:#ffd600;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 22 22'%3E%3Cpolygon points='11,1 21,11 11,21 1,11' fill='%230d47a1'/%3E%3C/svg%3E");
-  background-size:22px 22px;
-}
-.dp-secondary{
-  background-color:#b8d0f8;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 22 22'%3E%3Cpolygon points='11,1 21,11 11,21 1,11' fill='%230d2060'/%3E%3C/svg%3E");
-  background-size:22px 22px;
-}
+    /* MAIN CONTROL PANEL – elegant card */
+    .control-panel {
+      max-width: 960px;
+      width: 100%;
+      background: var(--parchment);
+      border-radius: 28px;
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+      position: relative;
+      z-index: 2;
+      margin-bottom: 3rem;
+      border: 1px solid rgba(186, 148, 76, 0.3);
+      backdrop-filter: blur(0px);
+    }
 
-/* Field lines */
-.cf-row{display:flex;align-items:flex-end;gap:6px;margin-bottom:7px;font-size:12px;color:#1a1a1a;flex-wrap:wrap;}
-.cf-label{font-weight:700;color:#1a1a1a;white-space:nowrap;}
-.cf-line{flex:1;border-bottom:1.5px solid #333;min-height:16px;min-width:60px;font-family:'EB Garamond',serif;font-size:13px;font-style:italic;padding:0 3px 1px;}
-.cf-text{font-size:12px;color:#1a1a1a;}
+    .panel-header {
+      background: var(--navy-deep);
+      padding: 1.6rem 2.2rem;
+      border-bottom: 4px solid var(--gold-muted);
+    }
 
-/* Stamp */
-.cert-stamp{
-  width:72px;height:72px;border-radius:50%;
-  border:3px double #c0000a;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  text-align:center;font-family:'Cinzel',serif;font-size:6.5px;font-weight:700;
-  color:#c0000a;letter-spacing:.4px;line-height:1.5;padding:8px;
-  background:radial-gradient(circle,rgba(255,200,200,.2),white);
-  flex-shrink:0;
-}
-.cert-stamp-sm{width:58px;height:58px;font-size:5.5px;padding:6px;}
-.cert-stamp-lg{width:86px;height:86px;font-size:7.5px;padding:10px;}
+    .panel-header h1 {
+      font-family: 'Cinzel', serif;
+      font-size: 1.8rem;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+      color: var(--parchment);
+      margin: 0;
+      line-height: 1.2;
+    }
 
-/* ════════════════════════════════════════════
-   PRIMARY — PORTRAIT  (.pp-*)
-   A4 210mm × 297mm
-════════════════════════════════════════════ */
-.pp-outer{
-  width:210mm;min-height:297mm;
-  padding:14px;
-  display:flex;flex-direction:column;
-  box-shadow:0 8px 40px rgba(0,0,0,.5);
-}
-.pp-inner{
-  flex:1;background:#fff;display:flex;flex-direction:column;
-  border:1.5px solid #0d2060;
-  min-height:calc(297mm - 28px);
-  overflow:hidden;
-}
+    .panel-header p {
+      font-family: 'Manrope', sans-serif;
+      font-size: 0.85rem;
+      color: rgba(250, 246, 237, 0.75);
+      margin-top: 0.5rem;
+      letter-spacing: 0.3px;
+    }
 
-/* Header */
-.pp-header{
-  background:linear-gradient(135deg,#0d2060 0%,#1a3a8a 60%,#0d2060 100%);
-  padding:10px 14px;
-  display:flex;align-items:center;gap:10px;
-}
-.pp-logo-wrap{
-  width:62px;height:62px;border-radius:50%;
-  border:3px solid rgba(255,215,0,.6);
-  overflow:hidden;background:rgba(255,255,255,.12);
-  display:flex;align-items:center;justify-content:center;flex-shrink:0;
-}
-.pp-logo-wrap img{width:100%;height:100%;object-fit:cover;}
-.pp-logo-ph{font-family:'Cinzel',serif;font-size:8px;font-weight:700;color:rgba(255,255,255,.6);text-align:center;line-height:1.3;padding:4px;}
-.pp-hc{flex:1;text-align:center;}
-.pp-school-name{font-family:'Cinzel',serif;font-size:clamp(13px,2vw,17px);font-weight:900;color:#ffd600;letter-spacing:.5px;line-height:1.2;text-shadow:0 1px 3px rgba(0,0,0,.4);}
-.pp-school-sub{font-family:'Cinzel',serif;font-size:10px;font-weight:700;color:#fff;letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
-.pp-school-addr{font-size:9px;color:rgba(255,255,255,.75);margin-top:2px;font-style:italic;}
-.pp-photo-box{
-  width:62px;height:76px;flex-shrink:0;
-  border:2.5px solid rgba(255,215,0,.7);
-  background:rgba(255,255,255,.12);
-  display:flex;align-items:center;justify-content:center;overflow:hidden;
-}
-.pp-photo-box img{width:100%;height:100%;object-fit:cover;}
-.pp-photo-ph{font-size:8px;color:rgba(255,255,255,.55);text-align:center;font-family:sans-serif;line-height:1.4;padding:4px;}
+    .panel-body {
+      padding: 2rem 2.2rem;
+    }
 
-/* Motto bar (green) */
-.pp-motto{
-  background:linear-gradient(90deg,#1b5e20,#2e7d32,#1b5e20);
-  padding:6px 14px;text-align:center;
-  font-family:'Cinzel',serif;font-size:11px;font-weight:700;
-  color:#fff;letter-spacing:1.5px;text-transform:uppercase;
-  border-top:2px solid #ffd600;border-bottom:2px solid #ffd600;
-}
+    /* section grid - clean professional tabs */
+    .section-nav {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+      border-bottom: 1.5px solid var(--border-light);
+      padding-bottom: 1rem;
+    }
 
-/* Title section */
-.pp-title-area{
-  text-align:center;padding:12px 14px 6px;
-}
-.pp-title{
-  font-family:'Playfair Display',serif;font-size:36px;font-weight:700;
-  font-style:italic;color:#0d2060;
-  line-height:1;margin-bottom:4px;
-}
-.pp-subtitle{
-  font-family:'EB Garamond',serif;font-size:13px;font-style:italic;
-  color:#555;letter-spacing:.3px;
-}
-.pp-rule{
-  height:2px;
-  background:linear-gradient(90deg,transparent,#0d2060 20%,#ffd600 50%,#0d2060 80%,transparent);
-  margin:8px 14px 0;
-}
+    .section-tab {
+      background: transparent;
+      border: none;
+      padding: 0.7rem 1.6rem;
+      font-family: 'Cinzel', serif;
+      font-weight: 500;
+      font-size: 0.85rem;
+      letter-spacing: 0.8px;
+      color: var(--slate);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border-radius: 40px;
+    }
 
-/* Body */
-.pp-body{
-  padding:10px 18px;flex:1;
-}
-.pp-intro{
-  font-family:'EB Garamond',serif;font-size:13px;font-style:italic;
-  color:#222;margin-bottom:8px;text-align:center;font-weight:500;
-}
-.pp-from-row{
-  display:flex;align-items:flex-end;gap:4px;margin-bottom:7px;font-size:12px;
-  flex-wrap:wrap;line-height:1.8;
-}
-.pp-from-row .cf-line{min-width:90px;}
-.pp-completion{
-  font-family:'EB Garamond',serif;font-size:13px;font-style:italic;
-  color:#333;margin-bottom:10px;border-bottom:1.5px solid #333;
-  padding-bottom:2px;
-}
-.pp-fields{margin-top:4px;}
+    .section-tab.active {
+      background: var(--navy-deep);
+      color: var(--parchment);
+      box-shadow: 0 4px 10px rgba(10, 28, 58, 0.2);
+    }
 
-/* Recommendation */
-.pp-rec{
-  background:#f0f4ff;border-left:3.5px solid #0d2060;
-  padding:8px 12px;margin:10px 0;
-  font-family:'EB Garamond',serif;font-size:13px;font-style:italic;
-  color:#1a1a1a;line-height:1.7;
-}
+    .section-tab:hover:not(.active) {
+      background: var(--parchment-dark);
+      color: var(--burgundy);
+    }
 
-/* Signature area */
-.pp-sig-area{
-  display:flex;justify-content:space-between;align-items:flex-end;
-  padding:8px 18px 12px;border-top:2px solid #0d2060;
-  margin-top:auto;
-}
-.pp-sig-blk{text-align:center;flex:1;}
-.pp-sig-img{min-height:36px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:2px;}
-.pp-sig-img img{max-height:32px;max-width:90%;object-fit:contain;}
-.pp-sig-line{border-top:1.5px solid #0d2060;width:85%;margin:0 auto 4px;}
-.pp-sig-title{font-family:'Cinzel',serif;font-size:8.5px;color:#0d2060;font-weight:700;letter-spacing:.4px;}
-.pp-sig-date{font-size:9px;color:#555;margin-top:3px;font-family:sans-serif;}
+    /* filter row */
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      margin-bottom: 1.8rem;
+    }
 
-/* Bottom band */
-.pp-bot{height:8px;background:linear-gradient(90deg,#0d2060,#ffd600 50%,#0d2060);}
+    .field-group {
+      flex: 1;
+      min-width: 180px;
+    }
 
-/* ════════════════════════════════════════════
-   PRIMARY — LANDSCAPE  (.pl-*)
-   A4 297mm × 210mm
-════════════════════════════════════════════ */
-.pl-outer{
-  width:297mm;min-height:210mm;
-  padding:14px;
-  display:flex;flex-direction:column;
-  box-shadow:0 8px 40px rgba(0,0,0,.5);
-}
-.pl-inner{
-  flex:1;background:#fff;display:flex;flex-direction:column;
-  border:1.5px solid #0d2060;
-  min-height:calc(210mm - 28px);
-  overflow:hidden;
-}
-/* Same header, motto, title as pp but compact */
-.pl-header{
-  background:linear-gradient(135deg,#0d2060,#1a3a8a,#0d2060);
-  padding:8px 14px;
-  display:flex;align-items:center;gap:10px;
-}
-.pl-logo-wrap{
-  width:52px;height:52px;border-radius:50%;
-  border:2.5px solid rgba(255,215,0,.6);
-  overflow:hidden;background:rgba(255,255,255,.12);
-  display:flex;align-items:center;justify-content:center;flex-shrink:0;
-}
-.pl-logo-wrap img{width:100%;height:100%;object-fit:cover;}
-.pl-logo-ph{font-family:'Cinzel',serif;font-size:7px;font-weight:700;color:rgba(255,255,255,.6);text-align:center;padding:3px;}
-.pl-hc{flex:1;text-align:center;}
-.pl-school-name{font-family:'Cinzel',serif;font-size:clamp(12px,1.8vw,15px);font-weight:900;color:#ffd600;letter-spacing:.5px;text-shadow:0 1px 3px rgba(0,0,0,.4);}
-.pl-school-sub{font-family:'Cinzel',serif;font-size:9px;font-weight:700;color:#fff;letter-spacing:1px;text-transform:uppercase;margin-top:1px;}
-.pl-school-addr{font-size:8.5px;color:rgba(255,255,255,.75);margin-top:1px;font-style:italic;}
-.pl-photo-box{
-  width:52px;height:64px;flex-shrink:0;
-  border:2px solid rgba(255,215,0,.7);
-  background:rgba(255,255,255,.12);
-  display:flex;align-items:center;justify-content:center;overflow:hidden;
-}
-.pl-photo-box img{width:100%;height:100%;object-fit:cover;}
-.pl-photo-ph{font-size:7.5px;color:rgba(255,255,255,.55);text-align:center;font-family:sans-serif;padding:3px;}
-.pl-motto{
-  background:linear-gradient(90deg,#1b5e20,#2e7d32,#1b5e20);
-  padding:5px 14px;text-align:center;
-  font-family:'Cinzel',serif;font-size:10px;font-weight:700;
-  color:#fff;letter-spacing:1.5px;text-transform:uppercase;
-  border-top:2px solid #ffd600;border-bottom:2px solid #ffd600;
-}
-.pl-title-row{
-  display:flex;align-items:center;gap:0;
-  border-bottom:2px solid #0d2060;
-}
-.pl-title-block{
-  text-align:center;padding:8px 14px;
-  border-right:2px solid #0d2060;
-  min-width:180px;
-}
-.pl-title{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;font-style:italic;color:#0d2060;line-height:1;}
-.pl-subtitle{font-family:'EB Garamond',serif;font-size:11.5px;font-style:italic;color:#555;margin-top:3px;}
-.pl-body-cols{display:grid;grid-template-columns:1fr 1fr;gap:0;flex:1;padding:0 0 0 0;}
-.pl-col{padding:10px 16px;}
-.pl-col:first-child{border-right:1.5px solid #d0d8f0;}
-.pl-rec{
-  background:#f0f4ff;border-left:3px solid #0d2060;
-  padding:6px 10px;margin:6px 0;
-  font-family:'EB Garamond',serif;font-size:12px;font-style:italic;
-  color:#1a1a1a;line-height:1.6;
-}
-.pl-sig-area{
-  display:flex;justify-content:space-around;align-items:flex-end;
-  padding:6px 18px 10px;border-top:2px solid #0d2060;
-}
-.pl-sig-blk{text-align:center;}
-.pl-sig-img{min-height:28px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:2px;}
-.pl-sig-img img{max-height:26px;max-width:90%;object-fit:contain;}
-.pl-sig-line{border-top:1.5px solid #0d2060;width:90px;margin:0 auto 3px;}
-.pl-sig-title{font-family:'Cinzel',serif;font-size:8px;color:#0d2060;font-weight:700;letter-spacing:.4px;}
-.pl-sig-date{font-size:8.5px;color:#555;margin-top:2px;font-family:sans-serif;}
-.pl-bot{height:7px;background:linear-gradient(90deg,#0d2060,#ffd600 50%,#0d2060);}
+    .field-group label {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--burgundy);
+      margin-bottom: 0.5rem;
+    }
 
-/* ════════════════════════════════════════════
-   SECONDARY — PORTRAIT  (.sp-*)
-   A4 210mm × 297mm
-════════════════════════════════════════════ */
-.sp-outer{
-  width:210mm;min-height:297mm;
-  padding:14px;
-  display:flex;flex-direction:column;
-  box-shadow:0 8px 40px rgba(0,0,0,.5);
-}
-.sp-inner{
-  flex:1;background:#fff;display:flex;flex-direction:column;
-  border:1.5px solid #111;
-  min-height:calc(297mm - 28px);
-  overflow:hidden;
-}
-/* Black header */
-.sp-header{
-  background:#0a0a0a;
-  padding:10px 14px 12px;text-align:center;
-}
-.sp-school-name{
-  font-family:'Cinzel',serif;font-size:clamp(16px,2.5vw,24px);
-  font-weight:900;color:#1a4fd6;letter-spacing:.5px;
-  line-height:1.1;text-shadow:0 0 20px rgba(26,79,214,.4);
-}
-.sp-school-type{
-  font-family:'Cinzel',serif;font-size:11px;font-weight:700;
-  color:#fff;letter-spacing:2px;text-transform:uppercase;margin-top:3px;
-}
-.sp-school-addr{font-size:9.5px;color:rgba(255,255,255,.65);margin-top:3px;font-style:italic;}
+    select, input {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      background: white;
+      border: 1.5px solid var(--border-light);
+      border-radius: 14px;
+      font-family: 'Manrope', sans-serif;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+      color: var(--navy-deep);
+    }
 
-/* Red motto */
-.sp-motto{
-  background:linear-gradient(90deg,#b71c1c,#e53935,#b71c1c);
-  padding:6px 14px;text-align:center;
-  font-family:'Cinzel',serif;font-size:11px;font-weight:700;
-  color:#fff;letter-spacing:1.5px;text-transform:uppercase;
-}
+    select:focus, input:focus {
+      outline: none;
+      border-color: var(--gold-muted);
+      box-shadow: 0 0 0 3px rgba(184, 148, 76, 0.2);
+    }
 
-/* Centered logo */
-.sp-logo-center{
-  display:flex;justify-content:center;padding:14px 0 6px;
-}
-.sp-logo-circle{
-  width:80px;height:80px;border-radius:50%;
-  border:3px solid #0a0a0a;
-  overflow:hidden;background:#f5f5f5;
-  display:flex;align-items:center;justify-content:center;
-}
-.sp-logo-circle img{width:100%;height:100%;object-fit:cover;}
-.sp-logo-ph{font-family:'Cinzel',serif;font-size:8px;font-weight:700;color:#aaa;text-align:center;padding:4px;}
+    /* radio cards - professional */
+    .selection-mode {
+      background: var(--parchment-dark);
+      border-radius: 20px;
+      padding: 1.2rem 1.8rem;
+      margin: 1.2rem 0 1.5rem;
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+      border: 1px solid var(--border-light);
+    }
 
-/* Title */
-.sp-title-area{text-align:center;padding:2px 14px 8px;}
-.sp-title{
-  font-family:'Playfair Display',serif;font-size:44px;font-weight:700;
-  font-style:italic;color:#0a0a0a;line-height:1;margin-bottom:4px;
-}
-.sp-subtitle{
-  font-family:'EB Garamond',serif;font-size:13px;color:#444;
-  font-style:italic;letter-spacing:.5px;
-}
-.sp-rule{
-  height:2px;
-  background:linear-gradient(90deg,transparent,#111 30%,#111 70%,transparent);
-  margin:8px 14px 0;
-}
+    .mode-option {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.9rem;
+      color: var(--navy-deep);
+    }
 
-/* Body */
-.sp-body{padding:12px 22px;flex:1;}
-.sp-fields{}
-.sp-remark-hdr{
-  font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;
-  color:#1a1a1a;margin:10px 0 6px;
-}
-.sp-conduct-row{display:flex;align-items:flex-end;gap:6px;margin-bottom:7px;font-size:12px;}
+    .mode-option input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--burgundy);
+    }
 
-/* Date area */
-.sp-date-area{
-  padding:8px 22px 10px;
-  font-size:12px;font-weight:700;color:#1a1a1a;
-  display:flex;align-items:flex-end;gap:8px;
-}
-.sp-date-line{border-bottom:1.5px solid #333;min-width:90px;height:16px;display:inline-block;}
+    /* dynamic containers */
+    .dynamic-container {
+      margin: 1rem 0 1.2rem;
+      transition: all 0.2s;
+    }
 
-/* Footer sig */
-.sp-footer{
-  padding:6px 22px 12px;
-  display:flex;justify-content:flex-end;align-items:flex-end;gap:14px;
-}
-.sp-sig-blk{text-align:center;}
-.sp-sig-img{min-height:34px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:2px;}
-.sp-sig-img img{max-height:30px;max-width:90%;object-fit:contain;}
-.sp-sig-line{border-top:1.5px solid #333;width:110px;margin:0 auto 4px;}
-.sp-sig-title{font-family:'Cinzel',serif;font-size:8.5px;color:#1a1a1a;font-weight:700;letter-spacing:.4px;}
-.sp-sig-sub{font-size:8px;color:#555;margin-top:2px;}
+    /* color customization row */
+    .customize-row {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      padding: 1rem 0;
+      margin-top: 0.5rem;
+      border-top: 1px dashed var(--border-light);
+    }
 
-/* Bottom band */
-.sp-bot{height:8px;background:#0a0a0a;}
-.sp-bot-red{height:5px;background:linear-gradient(90deg,#b71c1c,#e53935,#b71c1c);}
+    .color-picker {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      background: white;
+      padding: 0.4rem 1rem 0.4rem 0.8rem;
+      border-radius: 40px;
+      border: 1px solid var(--border-light);
+    }
 
-/* ════════════════════════════════════════════
-   SECONDARY — LANDSCAPE  (.sl-*)
-   A4 297mm × 210mm
-════════════════════════════════════════════ */
-.sl-outer{
-  width:297mm;min-height:210mm;
-  padding:14px;
-  display:flex;flex-direction:column;
-  box-shadow:0 8px 40px rgba(0,0,0,.5);
-}
-.sl-inner{
-  flex:1;background:#fff;display:flex;flex-direction:column;
-  border:1.5px solid #111;
-  min-height:calc(210mm - 28px);
-  overflow:hidden;
-}
-.sl-header{
-  background:#0a0a0a;
-  padding:8px 14px 10px;text-align:center;
-}
-.sl-school-name{
-  font-family:'Cinzel',serif;font-size:clamp(14px,2vw,20px);
-  font-weight:900;color:#1a4fd6;letter-spacing:.5px;line-height:1.1;
-  text-shadow:0 0 20px rgba(26,79,214,.4);
-}
-.sl-school-type{
-  font-family:'Cinzel',serif;font-size:9.5px;font-weight:700;
-  color:#fff;letter-spacing:2px;text-transform:uppercase;margin-top:2px;
-}
-.sl-school-addr{font-size:8.5px;color:rgba(255,255,255,.65);margin-top:2px;font-style:italic;}
-.sl-motto{
-  background:linear-gradient(90deg,#b71c1c,#e53935,#b71c1c);
-  padding:5px 14px;text-align:center;
-  font-family:'Cinzel',serif;font-size:10px;font-weight:700;
-  color:#fff;letter-spacing:1.5px;text-transform:uppercase;
-}
-/* Content row: logo center + two-column body */
-.sl-content{display:flex;gap:0;flex:1;border-bottom:1.5px solid #111;}
-.sl-logo-col{
-  width:100px;flex-shrink:0;
-  border-right:1.5px solid #ddd;
-  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
-  padding:10px 6px;
-  background:#fafafa;
-}
-.sl-logo-circle{
-  width:72px;height:72px;border-radius:50%;
-  border:2.5px solid #111;overflow:hidden;background:#f5f5f5;
-  display:flex;align-items:center;justify-content:center;
-}
-.sl-logo-circle img{width:100%;height:100%;object-fit:cover;}
-.sl-logo-ph{font-family:'Cinzel',serif;font-size:7px;font-weight:700;color:#aaa;text-align:center;padding:4px;}
-.sl-title-vert{
-  text-align:center;margin-top:8px;
-}
-.sl-title-v{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;font-style:italic;color:#0a0a0a;line-height:1.1;}
-.sl-subtitle-v{font-family:'EB Garamond',serif;font-size:9.5px;color:#444;font-style:italic;margin-top:3px;}
-.sl-body-cols{display:grid;grid-template-columns:1fr 1fr;flex:1;}
-.sl-col{padding:10px 14px;}
-.sl-col:first-child{border-right:1.5px solid #e0e0e0;}
-.sl-remark-hdr{font-family:'Poppins',sans-serif;font-size:11px;font-weight:700;color:#1a1a1a;margin:7px 0 5px;}
-.sl-rec{
-  background:#fff8f8;border-left:3px solid #e53935;
-  padding:5px 8px;margin:6px 0;
-  font-family:'EB Garamond',serif;font-size:11.5px;font-style:italic;
-  color:#1a1a1a;line-height:1.6;
-}
-.sl-sig-row{
-  display:flex;justify-content:space-between;align-items:flex-end;
-  padding:6px 14px 8px;border-top:1.5px solid #111;
-}
-.sl-sig-blk{text-align:center;}
-.sl-sig-img{min-height:26px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:2px;}
-.sl-sig-img img{max-height:24px;max-width:90%;object-fit:contain;}
-.sl-sig-line{border-top:1.5px solid #333;width:90px;margin:0 auto 3px;}
-.sl-sig-title{font-family:'Cinzel',serif;font-size:8px;color:#1a1a1a;font-weight:700;letter-spacing:.3px;}
-.sl-sig-sub{font-size:7.5px;color:#555;margin-top:2px;}
-.sl-bot{height:6px;background:#0a0a0a;}
-.sl-bot-red{height:4px;background:linear-gradient(90deg,#b71c1c,#e53935,#b71c1c);}
+    .color-picker span {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--slate);
+    }
 
-/* ─── PRINT ─── */
-@media print{
-  body{background:white;}
-  .ctrl{display:none!important;}
-  .test-page-wrap{padding:0;}
-  .pp-outer,.pl-outer,.sp-outer,.sl-outer{box-shadow:none!important;}
-  @page{margin:0;}
-}
-@media screen and (max-width:640px){
-  .pp-outer,.sp-outer{width:100%;min-height:auto;}
-  .pl-outer,.sl-outer{width:100%;min-height:auto;}
-}
-</style>
+    input[type="color"] {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 2px solid white;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      cursor: pointer;
+      padding: 0;
+    }
+
+    /* action buttons */
+    .action-buttons {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-top: 1.5rem;
+    }
+
+    .btn {
+      padding: 0.9rem 1.8rem;
+      border-radius: 40px;
+      font-family: 'Cinzel', serif;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      font-size: 0.8rem;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1.5px solid var(--navy-deep);
+      color: var(--navy-deep);
+    }
+
+    .btn-outline:hover {
+      background: var(--navy-deep);
+      color: white;
+    }
+
+    .btn-primary {
+      background: var(--burgundy);
+      color: white;
+      box-shadow: 0 4px 12px rgba(122, 46, 58, 0.3);
+    }
+
+    .btn-primary:hover {
+      background: #5f2430;
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: var(--gold-muted);
+      color: var(--navy-deep);
+    }
+
+    /* TESTIMONIAL DISPLAY AREA - A4 ready, centered, artistic */
+    .testimonial-stage {
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: center;
+      background: rgba(42, 38, 32, 0.2);
+      border-radius: 32px;
+      padding: 2rem 1rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* The actual testimonial certificate - elegant classic */
+    .testimonial-certificate {
+      max-width: 1000px;
+      width: 100%;
+      background: var(--parchment);
+      border-radius: 20px;
+      box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.35);
+      overflow: hidden;
+      transition: all 0.2s;
+      border: 1px solid rgba(186, 148, 76, 0.5);
+      position: relative;
+    }
+    
+    /* creative inner background pattern (educational vintage) */
+    .testimonial-certificate::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" opacity="0.04"><path fill="none" d="M70 30 L130 30 L150 70 L130 110 L70 110 L50 70 Z" stroke="%237a2e3a" stroke-width="2"/><circle cx="100" cy="70" r="18" stroke="%23b8944c" stroke-width="1.5" fill="none"/><path d="M85 85 L115 85 M100 75 L100 95" stroke="%230a1c3a" stroke-width="1.2"/></svg>');
+      background-repeat: repeat;
+      background-size: 42px;
+      pointer-events: none;
+      opacity: 0.2;
+      border-radius: 20px;
+    }
+
+    .certificate-inner {
+      padding: 2.5rem 2.8rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* header emblem */
+    .cert-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      border-bottom: 2px solid var(--gold-muted);
+      padding-bottom: 1rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .crest {
+      width: 75px;
+      height: 75px;
+      background: linear-gradient(135deg, var(--navy-deep), #152c4e);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Cinzel', serif;
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--gold-muted);
+      text-align: center;
+      line-height: 1.3;
+      border: 2px solid var(--gold-muted);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .institution h2 {
+      font-family: 'Cinzel', serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--navy-deep);
+      letter-spacing: -0.3px;
+    }
+
+    .institution .motto {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 0.8rem;
+      color: var(--burgundy);
+    }
+
+    .testimonial-head {
+      text-align: center;
+      margin: 1rem 0 1rem;
+    }
+
+    .testimonial-head h3 {
+      font-family: 'Cinzel', serif;
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--burgundy);
+    }
+
+    .divider-line {
+      width: 90px;
+      height: 2px;
+      background: var(--gold-muted);
+      margin: 0.5rem auto;
+    }
+
+    /* grid info */
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.2rem 1.8rem;
+      margin: 1.8rem 0;
+    }
+
+    .info-item {
+      font-family: 'Manrope', sans-serif;
+      font-size: 0.85rem;
+      border-bottom: 1px dashed #e2d8c0;
+      padding-bottom: 0.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+
+    .info-label {
+      font-weight: 700;
+      color: var(--navy-deep);
+      letter-spacing: 0.3px;
+    }
+
+    .info-value {
+      color: #3a2c24;
+      font-weight: 500;
+    }
+
+    .recommendation {
+      background: rgba(184, 148, 76, 0.08);
+      padding: 1rem 1.5rem;
+      border-left: 5px solid var(--burgundy);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem;
+      font-style: italic;
+      margin: 1.2rem 0;
+      border-radius: 0 16px 16px 0;
+    }
+
+    .signature-area {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-top: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .signature-block {
+      text-align: center;
+      min-width: 150px;
+    }
+
+    .signature-line {
+      width: 160px;
+      border-top: 1.8px solid var(--navy-deep);
+      margin: 0.5rem auto;
+    }
+
+    .official-stamp {
+      border: 2.5px double var(--burgundy);
+      padding: 0.7rem 1.2rem;
+      font-family: 'Cinzel', serif;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--burgundy);
+      transform: rotate(-3deg);
+      background: rgba(255,255,240,0.5);
+    }
+
+    .ref-footer {
+      text-align: right;
+      font-size: 0.7rem;
+      font-family: monospace;
+      margin-top: 1.2rem;
+      color: #6e5c4b;
+      border-top: 1px solid var(--border-light);
+      padding-top: 0.8rem;
+    }
+
+    /* print */
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+      .control-panel, .action-buttons, .customize-row, .section-nav, .filter-row, .selection-mode, .dynamic-container {
+        display: none !important;
+      }
+      .testimonial-stage {
+        background: white;
+        padding: 0;
+      }
+      .testimonial-certificate {
+        box-shadow: none;
+        border: 1px solid #ccc;
+      }
+      @page {
+        size: A4;
+        margin: 1.6cm;
+      }
+    }
+
+    .placeholder-message {
+      text-align: center;
+      padding: 3rem;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      color: var(--navy-deep);
+      background: var(--parchment);
+      border-radius: 24px;
+    }
+  </style>
 </head>
 <body>
 
-<!-- ORIENTATION + SECTION MODAL -->
-<div class="modal-bg" id="modalBg">
-  <div class="modal">
-    <div class="modal-logo">📜</div>
-    <h2>School Testimonial Generator</h2>
-    <p>Select the school section and preferred page orientation.</p>
+<div class="control-panel">
+  <div class="panel-header">
+    <h1>Testimonial Scholar · Academic Registry</h1>
+    <p>Official character reference & completion testimonial | Session based issuance</p>
+  </div>
+  <div class="panel-body">
+    <!-- Four sections -->
+    <div class="section-nav">
+      <button class="section-tab" data-section="nursery">Nursery Section</button>
+      <button class="section-tab" data-section="primary">Primary Section</button>
+      <button class="section-tab" data-section="junior">Junior Section (JSS)</button>
+      <button class="section-tab active" data-section="senior">Senior Section (SSS)</button>
+    </div>
 
-    <div class="modal-section-label">School Section</div>
-    <div class="sect-grid">
-      <div class="sect-btn selected" id="btnPri" onclick="selectSection('primary')">
-        <div class="sect-icon">🏫</div>
-        <div class="sect-label">PRIMARY / NURSERY</div>
-        <div class="sect-sub">Nur, KG &amp; Primary classes</div>
+    <div class="filter-row">
+      <div class="field-group">
+        <label>Select Class</label>
+        <select id="classSelect"><option>— Choose section first —</option></select>
       </div>
-      <div class="sect-btn" id="btnSec" onclick="selectSection('secondary')">
-        <div class="sect-icon">🎓</div>
-        <div class="sect-label">JUNIOR / SENIOR</div>
-        <div class="sect-sub">JSS &amp; SSS classes</div>
+      <div class="field-group">
+        <label>Academic Session</label>
+        <select id="sessionSelect">
+          <option>2023/2024</option>
+          <option>2024/2025</option>
+          <option selected>2025/2026</option>
+          <option>2026/2027</option>
+        </select>
       </div>
     </div>
 
-    <div class="modal-divider"></div>
-    <div class="modal-section-label" style="margin-bottom:10px">Page Orientation</div>
-    <div class="orient-grid">
-      <div class="orient-btn selected" id="btnPort" onclick="selectOrient('portrait')">
-        <div class="orient-preview port"></div>
-        <div class="orient-label">PORTRAIT</div>
-        <div class="orient-sub">210mm × 297mm</div>
-      </div>
-      <div class="orient-btn" id="btnLand" onclick="selectOrient('landscape')">
-        <div class="orient-preview land"></div>
-        <div class="orient-label">LANDSCAPE</div>
-        <div class="orient-sub">297mm × 210mm</div>
+    <div class="selection-mode">
+      <label class="mode-option">
+        <input type="radio" name="genMode" value="all" checked> Entire Class Batch
+      </label>
+      <label class="mode-option">
+        <input type="radio" name="genMode" value="single"> Select Individual Student
+      </label>
+      <label class="mode-option">
+        <input type="radio" name="genMode" value="admission"> Admission Number
+      </label>
+    </div>
+
+    <div id="studentSelectContainer" class="dynamic-container" style="display: none;">
+      <div class="field-group">
+        <label>Student Full Name</label>
+        <select id="studentSelectDropdown"><option>— Load class roster —</option></select>
       </div>
     </div>
 
-    <button class="modal-gen-btn" onclick="generateTest()">✦ Generate Testimonial</button>
-    <span class="modal-back" onclick="history.back()">← Go back</span>
+    <div id="admissionContainer" class="dynamic-container" style="display: none;">
+      <div class="field-group">
+        <label>Admission Number</label>
+        <input type="text" id="admissionNumberInput" placeholder="e.g., ALH/25/JS/001088">
+      </div>
+    </div>
+
+    <div class="customize-row">
+      <div class="color-picker">
+        <span>Primary Color</span>
+        <input type="color" id="primaryColor" value="#7a2e3a">
+      </div>
+      <div class="color-picker">
+        <span>Accent Color</span>
+        <input type="color" id="accentColor" value="#b8944c">
+      </div>
+      <div style="font-size: 0.7rem; color:#5f4c3b;">Customize school theme</div>
+    </div>
+
+    <div class="action-buttons">
+      <button class="btn btn-outline" id="loadRosterBtn">Load Class Roster</button>
+      <button class="btn btn-primary" id="generateBtn">Generate Testimonial</button>
+      <button class="btn btn-secondary" id="printPdfBtn">Print / Save PDF</button>
+    </div>
   </div>
 </div>
 
-<!-- CONTROL BAR -->
-<div class="ctrl" id="ctrlBar" style="display:none">
-  <span class="ctrl-title">📜 School Testimonial</span>
-  <span class="ctrl-badge" id="sectBadge">PRIMARY</span>
-  <span class="ctrl-badge" id="orientBadge">PORTRAIT</span>
-  <button class="ctrl-btn btn-orient" onclick="changeOrient()">⟳ Change Options</button>
-  <button class="ctrl-btn btn-print" onclick="window.print()">
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-    Print / Save PDF
-  </button>
-  <button class="ctrl-btn btn-back" onclick="history.back()">← Back</button>
-</div>
-
-<div id="mainContent">
-  <div class="loading">Loading testimonial data…</div>
+<div class="testimonial-stage" id="testimonialStage">
+  <div class="placeholder-message">Select section, class and load roster. Generate official testimonial (session based).</div>
 </div>
 
 <script>
-const p = new URLSearchParams(location.search);
-const STUDENT_ID = p.get('student_id');
-const TERM_ID    = p.get('term_id');
+  // ---------------- ACADEMIC DATABASE with extended profiles ----------------
+  const SCHOOL_DATA = {
+    nursery: { classes: [{ id: "nur1", name: "NURSERY 1", students: ["Amina Yusuf", "Zainab Idris", "Ibrahim Musa", "Safiya Bello"] }, { id: "nur2", name: "NURSERY 2", students: ["Fatima Kano", "Hassan Lawal", "Rukayya Sani"] }] },
+    primary: { classes: [{ id: "basic3", name: "BASIC 3", students: ["Precious John", "Esther Obi", "David Okafor", "Miracle Eze"] }, { id: "basic5", name: "BASIC 5", students: ["Chiamaka Nwachukwu", "Emmanuel Okafor", "Favour Nduka"] }, { id: "basic6", name: "BASIC 6", students: ["Daniel Nnamdi", "Praise Okafor", "Joshua Adekunle"] }] },
+    junior: { classes: [{ id: "jss1a", name: "JSS 1A", students: ["RABIATUSANI", "Michael Eze", "Blessing Okonkwo", "Chinedu Obi"] }, { id: "jss2b", name: "JSS 2B", students: ["Samuel Adeyemi", "Victoria James", "Emeka Okafor"] }, { id: "jss3c", name: "JSS 3C", students: ["Patience Bassey", "Joseph Udo", "Mercy Effiong"] }] },
+    senior: { classes: [{ id: "sss1sci", name: "SSS 1 SCIENCE", students: ["Grace Emmanuel", "Peter Oyewole", "Daniel Idowu"] }, { id: "sss2art", name: "SSS 2 ART", students: ["Mariam Bello", "Chinedu Obi", "Omotola Hassan"] }, { id: "sss3com", name: "SSS 3 COMMERCE", students: ["Taiwo Hassan", "Kehinde Akin", "Oluwaseun Adeola", "Ruth Samuel"] }] }
+  };
 
-let _orient  = 'portrait';
-let _section = 'primary';
-let _data    = null;
+  const STUDENT_DETAILS = {
+    "RABIATUSANI": { admission: "ALH/25/JS/001088", dob: "25 April 2012", father: "Alhaji Musa Aliyu", conduct: "Exemplary", hobby: "Debate & Literature", post: "Senior Class Prefect", avg: 98.2, grade: "A1" },
+    "Michael Eze": { admission: "MIC/JS/002301", dob: "15 May 2011", father: "Chief Emmanuel Eze", conduct: "Very Good", hobby: "Football", post: "Sports Prefect", avg: 78.4, grade: "B2" },
+    "Blessing Okonkwo": { admission: "BLE/JS/004512", dob: "2 Feb 2012", father: "Mr. Peter Okonkwo", conduct: "Good", hobby: "Drawing & Arts", post: "", avg: 85.6, grade: "B+" },
+    "Grace Emmanuel": { admission: "GRA/SSS/1023", dob: "12 Sep 2006", father: "Chief Emmanuel Udo", conduct: "Outstanding", hobby: "Public Speaking", post: "Head Girl", avg: 96.5, grade: "A1" },
+    "Samuel Adeyemi": { admission: "SAM/JS/006734", dob: "30 Aug 2010", father: "Pastor Adeyemi", conduct: "Excellent", hobby: "Chess", post: "Assistant Head Boy", avg: 94.2, grade: "A1" },
+    "Amina Yusuf": { admission: "AMN/NUR/023", dob: "10 Jan 2018", father: "Alhaji Yusuf", conduct: "Polite & Diligent", hobby: "Recitation", post: "Class Monitor", avg: 91.0, grade: "A" },
+    "Precious John": { admission: "PRE/PRI/101", dob: "14 Aug 2015", father: "Mr. John Okafor", conduct: "Satisfactory", hobby: "Mathematics", post: "", avg: 68.5, grade: "C+" },
+    "Joshua Adekunle": { admission: "JSH/PRI/889", dob: "5 Jul 2014", father: "Elder Adekunle", conduct: "Good", hobby: "Science Club", post: "Library Prefect", avg: 82.0, grade: "B+" },
+    "Taiwo Hassan": { admission: "TAI/SSS/4452", dob: "12 Oct 2007", father: "Mr. Hassan Bello", conduct: "Very Good", hobby: "Technology", post: "ICT Prefect", avg: 88.4, grade: "A" },
+    "Victoria James": { admission: "VIC/JS/3412", dob: "21 Mar 2011", father: "Mr. James Okon", conduct: "Commendable", hobby: "Singing", post: "Culture Prefect", avg: 81.2, grade: "B+" }
+  };
 
-function selectSection(s) {
-  _section = s;
-  document.getElementById('btnPri').classList.toggle('selected', s === 'primary');
-  document.getElementById('btnSec').classList.toggle('selected', s === 'secondary');
-}
-function selectOrient(o) {
-  _orient = o;
-  document.getElementById('btnLand').classList.toggle('selected', o === 'landscape');
-  document.getElementById('btnPort').classList.toggle('selected', o === 'portrait');
-}
-function changeOrient() {
-  document.getElementById('ctrlBar').style.display = 'none';
-  document.getElementById('modalBg').style.display = 'flex';
-  document.getElementById('mainContent').innerHTML = '<div class="loading">Ready to regenerate…</div>';
-}
-async function generateTest() {
-  document.getElementById('modalBg').style.display = 'none';
-  document.getElementById('ctrlBar').style.display = 'flex';
-  document.getElementById('sectBadge').textContent  = _section === 'primary' ? 'NUR/PRIMARY' : 'JSS/SSS';
-  document.getElementById('orientBadge').textContent = _orient.toUpperCase();
-
-  const styleId = 'print-orient-style';
-  let st = document.getElementById(styleId);
-  if (!st) { st = document.createElement('style'); st.id = styleId; document.head.appendChild(st); }
-  st.textContent = `@page { size: ${_orient === 'landscape' ? 'A4 landscape' : 'A4 portrait'}; margin: 0; }`;
-
-  if (_data) { renderTest(_data); return; }
-  document.getElementById('mainContent').innerHTML = '<div class="loading">Fetching student data…</div>';
-  await loadData();
-}
-
-async function sq(label, query) {
-  try {
-    const { data, error } = await query;
-    if (error) { console.warn(label, error.message); return null; }
-    return data;
-  } catch(e) { console.warn(label, e); return null; }
-}
-function gradeFromScale(score, scale) {
-  if (score === null || score === undefined || !scale?.length) return { grade: '—', remark: '' };
-  const g = scale.find(s => score >= s.min_score && score <= s.max_score);
-  return g ? { grade: g.grade, remark: g.remark || '' } : { grade: '—', remark: '' };
-}
-function fmtDate(d) {
-  if (!d) return '—';
-  try { return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }); }
-  catch { return d; }
-}
-
-/* Auto-detect section from class level/section data */
-function detectSection(className, classLevel, classSection) {
-  const s = ((classSection || '') + ' ' + (classLevel || '') + ' ' + (className || '')).toLowerCase();
-  if (/nur|nursery|kg|kinder|pri|primary|pry|basic\s*[1-6]|grade\s*[1-6]/.test(s)) return 'primary';
-  return 'secondary';
-}
-
-async function loadData() {
-  if (!STUDENT_ID || !TERM_ID) {
-    await showStudentPicker('testimonial');
-    return;
+  function getStudentProfile(name) {
+    return STUDENT_DETAILS[name] || { admission: `SCH/${Math.floor(1000+Math.random()*9000)}`, dob: "1 Jan 2015", father: "Mr. Guardian", conduct: "Good Standing", hobby: "Creative Writing", post: "—", avg: 76.4, grade: "B" };
   }
-  try {
-    const student = await sq('Student', db.from('students').select('*').eq('id', STUDENT_ID).single());
-    if (!student) throw new Error('Student not found');
-    const schoolId = student.school_id;
 
-    const [school, scale, term, results, affective] = await Promise.all([
-      sq('School',    db.from('schools').select('name,logo_url,address,state,lga,phone,email,motto,principal_signature_url,class_teacher_signature_url').eq('id', schoolId).single()),
-      sq('Scale',     db.from('grading_scales').select('*').eq('school_id', schoolId).order('min_score', { ascending: false })),
-      sq('Term',      db.from('terms').select('*,academic_years(label)').eq('id', TERM_ID).single()),
-      sq('Results',   db.from('results').select('score,subject_id,subjects(name),exams(max_score,weight)').eq('student_id', STUDENT_ID).eq('term_id', TERM_ID)),
-      sq('Affective', db.from('affective_domain').select('*').eq('student_id', STUDENT_ID).eq('term_id', TERM_ID).maybeSingle()),
-    ]);
+  let currentSection = "senior";
+  let currentClassObj = null;
+  let currentStudentsList = [];
 
-    const subMap = new Map();
-    (results || []).forEach(r => {
-      if (!subMap.has(r.subject_id)) subMap.set(r.subject_id, { name: r.subjects?.name || '—', rows: [] });
-      subMap.get(r.subject_id).rows.push(r);
+  // DOM refs
+  const classSelect = document.getElementById('classSelect');
+  const studentSelectDropdown = document.getElementById('studentSelectDropdown');
+  const studentSelectContainer = document.getElementById('studentSelectContainer');
+  const admissionContainer = document.getElementById('admissionContainer');
+  const loadRosterBtn = document.getElementById('loadRosterBtn');
+  const generateBtn = document.getElementById('generateBtn');
+  const printBtn = document.getElementById('printPdfBtn');
+  const stage = document.getElementById('testimonialStage');
+  const primaryColorPicker = document.getElementById('primaryColor');
+  const accentColorPicker = document.getElementById('accentColor');
+
+  function populateClasses() {
+    const classes = SCHOOL_DATA[currentSection]?.classes || [];
+    classSelect.innerHTML = '<option value="">— Select Class —</option>';
+    classes.forEach(cls => {
+      const opt = document.createElement('option');
+      opt.value = cls.id;
+      opt.textContent = cls.name;
+      classSelect.appendChild(opt);
     });
-    const subRows = [...subMap.values()].map(sub => {
-      const tw = sub.rows.reduce((s, r) => s + (r.exams?.weight || 1), 0);
-      const ws = sub.rows.reduce((s, r) => s + (r.score / (r.exams?.max_score || 100)) * 100 * (r.exams?.weight || 1), 0);
-      const total = tw > 0 ? Math.round(ws / tw * 10) / 10 : null;
-      const g = gradeFromScale(total, scale || []);
-      return { name: sub.name, total, grade: g.grade };
+    studentSelectDropdown.innerHTML = '<option>— Load class first —</option>';
+  }
+
+  function loadClassDetails() {
+    const classId = classSelect.value;
+    if (!classId) { alert("Please select a class before loading roster."); return false; }
+    const section = SCHOOL_DATA[currentSection];
+    const found = section.classes.find(c => c.id === classId);
+    if (!found) return false;
+    currentClassObj = found;
+    currentStudentsList = [...found.students];
+    studentSelectDropdown.innerHTML = '<option value="">— Select student —</option>';
+    currentStudentsList.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s;
+      opt.textContent = s;
+      studentSelectDropdown.appendChild(opt);
     });
-    const ws2 = subRows.filter(s => s.total !== null);
-    const avg = ws2.length ? Math.round(ws2.reduce((s, r) => s + r.total, 0) / ws2.length * 10) / 10 : null;
-    const passedSubjects = subRows.filter(s => s.grade && s.grade !== 'F' && s.grade !== '—').length;
-    const og = gradeFromScale(avg, scale || []);
-    const sessLabel = (term?.academic_years?.label || term?.name) || 'Current Session';
-    const enr = await sq('Enrollment', db.from('enrollments').select('class_id,classes(id,name,level,section)').eq('student_id', STUDENT_ID).eq('term_id', TERM_ID).maybeSingle());
-    const className  = enr?.classes?.name    || '—';
-    const classLevel  = enr?.classes?.level  || '';
-    const classSection= enr?.classes?.section|| '';
+    alert(`Roster loaded: ${currentStudentsList.length} students in ${currentClassObj.name}`);
+    return true;
+  }
 
-    /* Auto-detect section and pre-select in modal if not yet shown */
-    const autoSection = detectSection(className, classLevel, classSection);
-    if (autoSection !== _section) {
-      _section = autoSection;
-      selectSection(_section);
-      document.getElementById('sectBadge').textContent = _section === 'primary' ? 'NUR/PRIMARY' : 'JSS/SSS';
+  function toggleModeFields() {
+    const mode = document.querySelector('input[name="genMode"]:checked').value;
+    studentSelectContainer.style.display = mode === 'single' ? 'block' : 'none';
+    admissionContainer.style.display = mode === 'admission' ? 'block' : 'none';
+  }
+
+  function findStudentByAdmission(admNo) {
+    const search = admNo.trim().toLowerCase();
+    for (const [name, details] of Object.entries(STUDENT_DETAILS)) {
+      if (details.admission && details.admission.toLowerCase().includes(search)) return { name, details };
     }
-
-    _data = { student, school, scale, term, subRows, avg, passedSubjects, og, sessLabel, affective, className, classLevel, classSection };
-    renderTest(_data);
-  } catch(e) {
-    document.getElementById('mainContent').innerHTML = `<div class="loading" style="color:#f87171">Error: ${e.message}</div>`;
-  }
-}
-
-/* ──────────────────────────────────────────
-   RENDER DISPATCHER
-────────────────────────────────────────── */
-function renderTest(d) {
-  if (_section === 'primary' && _orient === 'portrait')   renderPrimaryPortrait(d);
-  else if (_section === 'primary' && _orient === 'landscape') renderPrimaryLandscape(d);
-  else if (_section === 'secondary' && _orient === 'portrait') renderSecondaryPortrait(d);
-  else renderSecondaryLandscape(d);
-}
-
-/* ──────────────────────────────────────────
-   HELPERS
-────────────────────────────────────────── */
-function common(d) {
-  const { student, school, subRows, avg, passedSubjects, og, sessLabel, affective, className } = d;
-  const certNo  = `TEST-${new Date().getFullYear()}-${student.id?.slice(0,6).toUpperCase() || '000000'}`;
-  const today   = new Date().toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' });
-  const parts   = [school?.address, school?.lga, school?.state].filter(Boolean).join(', ');
-  const meta    = school?.phone ? `${parts} | Tel: ${school.phone}` : parts;
-  const pp      = student.photo_url || student.passport_url || student.avatar_url || '';
-  const logo    = school?.logo_url || '';
-  const hmSig   = school?.class_teacher_signature_url || '';
-  const admDate = fmtDate(student.admission_date || student.created_at);
-  const conduct = affective?.conduct || affective?.behaviour || '—';
-  const sinc    = affective?.sincerity || '—';
-  const punct   = affective?.punctuality || '—';
-  const post    = affective?.post_held || '';
-  const hobby   = affective?.hobby || '';
-  return { student, school, certNo, today, meta, pp, logo, hmSig, admDate,
-           conduct, sinc, punct, post, hobby, sessLabel, className, avg, passedSubjects, og, affective };
-}
-
-function logoHtml(logo, cls) {
-  return logo
-    ? `<img src="${logo}" alt="Logo">`
-    : `<div class="${cls}">SCHOOL<br>CREST</div>`;
-}
-
-function photoHtml(pp, cls) {
-  return pp
-    ? `<img src="${pp}" alt="Student">`
-    : `<div class="${cls}">Affix<br>Passport<br>Photo</div>`;
-}
-
-function field(label, value, extraClass='') {
-  return `<div class="cf-row ${extraClass}">
-    <span class="cf-label">${label}:</span>
-    <span class="cf-line">${value||'&nbsp;'}</span>
-  </div>`;
-}
-
-/* ══════════════════════════════════════════
-   1. PRIMARY — PORTRAIT
-══════════════════════════════════════════ */
-function renderPrimaryPortrait(d) {
-  const c = common(d);
-  const html = `
-<div class="test-page-wrap">
-<div class="pp-outer dp-primary">
-<div class="pp-inner">
-
-  <div class="pp-header">
-    <div class="pp-logo-wrap">${logoHtml(c.logo,'pp-logo-ph')}</div>
-    <div class="pp-hc">
-      <div class="pp-school-name">${c.school?.name || 'SCHOOL NAME'}</div>
-      <div class="pp-school-sub">Nur, Pri &amp; Sec School</div>
-      <div class="pp-school-addr">${c.meta || '&nbsp;'}</div>
-    </div>
-    <div class="pp-photo-box">${photoHtml(c.pp,'pp-photo-ph')}</div>
-  </div>
-
-  ${c.school?.motto ? `<div class="pp-motto">Motto: ${c.school.motto}</div>` : ''}
-
-  <div class="pp-title-area">
-    <div class="pp-title">Testimonial</div>
-    <div class="pp-subtitle">"this is to satisfy that"</div>
-  </div>
-  <div class="pp-rule"></div>
-
-  <div class="pp-body">
-    <div class="pp-intro">Has been a pupil of this school</div>
-
-    <div class="cf-row">
-      <span class="cf-text">From</span>
-      <span class="cf-line">${c.admDate}</span>
-      <span class="cf-text">to</span>
-      <span class="cf-line">${c.today}</span>
-    </div>
-    <div style="font-family:'EB Garamond',serif;font-size:13px;font-style:italic;color:#333;border-bottom:1.5px solid #333;padding-bottom:2px;margin-bottom:8px;">
-      where he/she completed his/her <strong>${c.className !== '—' ? c.className : 'primary'}</strong> school education
-      &nbsp;(${c.sessLabel})
-    </div>
-
-    <div class="pp-fields">
-      ${field('Admission No', c.student.admission_no || c.student.roll_no || '—')}
-      ${field('Date of Birth', fmtDate(c.student.dob || c.student.date_of_birth))}
-      ${field('Father / Guardian', c.student.father_name || c.student.guardian_name || '—')}
-      ${field('Conduct', c.conduct)}
-      ${field('Hobby', c.hobby)}
-      ${field('Post Held', c.post)}
-      ${c.avg !== null ? field('Academic Performance', `Average: ${c.avg}% &nbsp;|&nbsp; Grade: ${c.og.grade} &nbsp;|&nbsp; ${c.passedSubjects}/${d.subRows.length} subjects passed`) : ''}
-    </div>
-
-    <div class="pp-rec">
-      I strongly recommend him/her to wherever may need his/her service or further
-      academic pursuit. ${c.school?.name || 'This institution'} wishes him/her
-      great success in all future endeavours.
-    </div>
-
-    <div style="font-size:9px;color:#888;font-family:sans-serif;text-align:right;margin-top:4px;">
-      Ref: ${c.certNo} &nbsp;·&nbsp; Generated: ${c.today}
-    </div>
-  </div>
-
-  <div class="pp-sig-area">
-    <div class="pp-sig-blk">
-      <div class="pp-sig-img">${c.hmSig ? `<img src="${c.hmSig}">` : ''}</div>
-      <div class="pp-sig-line"></div>
-      <div class="pp-sig-title">Headmaster's Signature</div>
-      <div class="pp-sig-date">Date: ${c.today}</div>
-    </div>
-    <div class="cert-stamp cert-stamp-lg">OFFICIAL<br>SCHOOL<br>STAMP<br>&amp; SEAL</div>
-    <div class="pp-sig-blk">
-      <div class="pp-sig-img"></div>
-      <div class="pp-sig-line"></div>
-      <div class="pp-sig-title">Pupil's Signature</div>
-      <div class="pp-sig-date">Date: _______________</div>
-    </div>
-  </div>
-
-  <div class="pp-bot"></div>
-</div>
-</div>
-</div>`;
-  document.getElementById('mainContent').innerHTML = html;
-}
-
-/* ══════════════════════════════════════════
-   2. PRIMARY — LANDSCAPE
-══════════════════════════════════════════ */
-function renderPrimaryLandscape(d) {
-  const c = common(d);
-  const html = `
-<div class="test-page-wrap">
-<div class="pl-outer dp-primary">
-<div class="pl-inner">
-
-  <div class="pl-header">
-    <div class="pl-logo-wrap">${logoHtml(c.logo,'pl-logo-ph')}</div>
-    <div class="pl-hc">
-      <div class="pl-school-name">${c.school?.name || 'SCHOOL NAME'}</div>
-      <div class="pl-school-sub">Nur, Pri &amp; Sec School</div>
-      <div class="pl-school-addr">${c.meta || '&nbsp;'}</div>
-    </div>
-    <div class="pl-photo-box">${photoHtml(c.pp,'pl-photo-ph')}</div>
-  </div>
-
-  ${c.school?.motto ? `<div class="pl-motto">Motto: ${c.school.motto}</div>` : ''}
-
-  <div class="pl-title-row">
-    <div class="pl-title-block">
-      <div class="pl-title">Testimonial</div>
-      <div class="pl-subtitle">"this is to satisfy that"</div>
-    </div>
-    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:8px 16px;">
-      <div style="font-family:'EB Garamond',serif;font-size:12.5px;font-style:italic;color:#222;margin-bottom:4px;">
-        Has been a pupil of this school
-      </div>
-      <div class="cf-row">
-        <span class="cf-text" style="font-size:11.5px;">From</span>
-        <span class="cf-line">${c.admDate}</span>
-        <span class="cf-text" style="font-size:11.5px;">to</span>
-        <span class="cf-line">${c.today}</span>
-      </div>
-      <div style="font-family:'EB Garamond',serif;font-size:12px;font-style:italic;color:#333;border-bottom:1.5px solid #333;padding-bottom:2px;margin-top:2px;">
-        where he/she completed his/her <strong>${c.className !== '—' ? c.className : 'primary'}</strong> school education (${c.sessLabel})
-      </div>
-    </div>
-  </div>
-
-  <div class="pl-body-cols">
-    <div class="pl-col">
-      <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:1.5px;color:#0d2060;font-weight:700;text-transform:uppercase;margin-bottom:7px;border-bottom:1px solid #d0d8f0;padding-bottom:4px;">Student Details</div>
-      ${field('Admission No', c.student.admission_no || c.student.roll_no || '—')}
-      ${field('Date of Birth', fmtDate(c.student.dob || c.student.date_of_birth))}
-      ${field('Father / Guardian', c.student.father_name || c.student.guardian_name || '—')}
-      ${field('Hobby', c.hobby)}
-      ${field('Post Held', c.post)}
-      ${c.avg !== null ? field('Academic Avg', `${c.avg}% — Grade ${c.og.grade}`) : ''}
-    </div>
-    <div class="pl-col">
-      <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:1.5px;color:#0d2060;font-weight:700;text-transform:uppercase;margin-bottom:7px;border-bottom:1px solid #d0d8f0;padding-bottom:4px;">Conduct &amp; Recommendation</div>
-      ${field('Conduct', c.conduct)}
-      ${field('Sincerity', c.sinc)}
-      ${field('Punctuality', c.punct)}
-      <div class="pl-rec">
-        I strongly recommend him/her to wherever may need his/her service or further academic pursuit.
-        ${c.school?.name || 'This institution'} wishes him/her great success.
-      </div>
-      <div style="font-size:8.5px;color:#888;font-family:sans-serif;margin-top:4px;">Ref: ${c.certNo} &nbsp;·&nbsp; ${c.today}</div>
-    </div>
-  </div>
-
-  <div class="pl-sig-area">
-    <div class="pl-sig-blk">
-      <div class="pl-sig-img">${c.hmSig ? `<img src="${c.hmSig}">` : ''}</div>
-      <div class="pl-sig-line"></div>
-      <div class="pl-sig-title">Headmaster's Signature</div>
-      <div class="pl-sig-date">Date: ${c.today}</div>
-    </div>
-    <div class="cert-stamp cert-stamp-sm">OFFICIAL<br>SCHOOL<br>STAMP</div>
-    <div class="pl-sig-blk">
-      <div class="pl-sig-img"></div>
-      <div class="pl-sig-line"></div>
-      <div class="pl-sig-title">Pupil's Signature</div>
-      <div class="pl-sig-date">Date: _______________</div>
-    </div>
-  </div>
-
-  <div class="pl-bot"></div>
-</div>
-</div>
-</div>`;
-  document.getElementById('mainContent').innerHTML = html;
-}
-
-/* ══════════════════════════════════════════
-   3. SECONDARY — PORTRAIT
-══════════════════════════════════════════ */
-function renderSecondaryPortrait(d) {
-  const c = common(d);
-  const html = `
-<div class="test-page-wrap">
-<div class="sp-outer dp-secondary">
-<div class="sp-inner">
-
-  <div class="sp-header">
-    <div class="sp-school-name">${c.school?.name || 'SCHOOL NAME'}</div>
-    <div class="sp-school-type">Nur, Pri &amp; Sec School</div>
-    <div class="sp-school-addr">${c.meta || '&nbsp;'}</div>
-  </div>
-
-  ${c.school?.motto ? `<div class="sp-motto">Motto: ${c.school.motto}</div>` : '<div class="sp-motto">Motto: &nbsp;</div>'}
-
-  <div class="sp-logo-center">
-    <div class="sp-logo-circle">${logoHtml(c.logo,'sp-logo-ph')}</div>
-  </div>
-
-  <div class="sp-title-area">
-    <div class="sp-title">Testimonial</div>
-    <div class="sp-subtitle">To whom it may concern</div>
-  </div>
-  <div class="sp-rule"></div>
-
-  <div class="sp-body">
-    ${field('Name', c.student.full_name || '—')}
-    ${field('Admission No', c.student.admission_no || c.student.roll_no || '—')}
-    ${field('Date of Birth', fmtDate(c.student.dob || c.student.date_of_birth))}
-    ${field('Father / Guardian', c.student.father_name || c.student.guardian_name || '—')}
-
-    <div class="cf-row" style="flex-wrap:wrap;margin-top:4px;">
-      <span class="cf-text">Was a Pupil of this school from</span>
-      <span class="cf-line" style="min-width:120px;">${c.admDate}</span>
-      <span class="cf-text">to</span>
-      <span class="cf-line" style="min-width:120px;">${c.today}</span>
-    </div>
-    <div style="font-family:'EB Garamond',serif;font-size:13px;font-style:italic;color:#333;border-bottom:1.5px solid #333;padding-bottom:2px;margin-bottom:10px;">
-      Where he/she completed his/her <strong>${c.className !== '—' ? c.className : ''}</strong> education
-      &nbsp;(${c.sessLabel})
-    </div>
-
-    ${c.avg !== null ? field('Academic Performance', `Average: ${c.avg}% &nbsp;|&nbsp; Grade: ${c.og.grade} &nbsp;|&nbsp; ${c.passedSubjects}/${d.subRows.length} subjects`) : ''}
-
-    <div class="sp-remark-hdr">Remark by the Headmaster</div>
-    ${field('CONDUCT', c.conduct)}
-    ${field('Post Held', c.post)}
-
-    <div style="font-size:12px;font-weight:700;color:#1a1a1a;margin:10px 0 5px;">
-      He/she held the following offices of responsibility
-    </div>
-    <div style="border-bottom:1.5px solid #333;min-height:22px;margin-bottom:6px;">${c.post || '&nbsp;'}</div>
-    <div style="border-bottom:1.5px solid #333;min-height:22px;margin-bottom:10px;">&nbsp;</div>
-
-    <div style="font-family:'EB Garamond',serif;font-size:13px;font-style:italic;color:#333;line-height:1.7;margin-bottom:6px;">
-      I strongly recommend him/her to wherever may need his/her service or further
-      academic pursuit. ${c.school?.name || 'This institution'} wishes him/her great success.
-    </div>
-  </div>
-
-  <div class="sp-date-area">
-    <span>DATE:</span>
-    <span class="sp-date-line">${c.today}</span>
-    <span style="margin-left:12px;">20</span>
-    <span class="sp-date-line" style="min-width:60px;"></span>
-  </div>
-
-  <div class="sp-footer">
-    <div class="cert-stamp cert-stamp-lg">OFFICIAL<br>SCHOOL<br>STAMP<br>&amp; SEAL</div>
-    <div class="sp-sig-blk">
-      <div class="sp-sig-img">${c.hmSig ? `<img src="${c.hmSig}">` : ''}</div>
-      <div class="sp-sig-line"></div>
-      <div class="sp-sig-title">Headmaster's Signature &amp; Stamp</div>
-      <div class="sp-sig-sub">Date: ${c.today}</div>
-    </div>
-  </div>
-
-  <div style="font-size:8.5px;color:#aaa;font-family:sans-serif;text-align:right;padding:2px 14px 4px;">
-    Ref: ${c.certNo} &nbsp;·&nbsp; EduTrack NG &nbsp;·&nbsp; ${c.today}
-  </div>
-
-  <div class="sp-bot-red"></div>
-  <div class="sp-bot"></div>
-</div>
-</div>
-</div>`;
-  document.getElementById('mainContent').innerHTML = html;
-}
-
-/* ══════════════════════════════════════════
-   4. SECONDARY — LANDSCAPE
-══════════════════════════════════════════ */
-function renderSecondaryLandscape(d) {
-  const c = common(d);
-  const html = `
-<div class="test-page-wrap">
-<div class="sl-outer dp-secondary">
-<div class="sl-inner">
-
-  <div class="sl-header">
-    <div class="sl-school-name">${c.school?.name || 'SCHOOL NAME'}</div>
-    <div class="sl-school-type">Nur, Pri &amp; Sec School</div>
-    <div class="sl-school-addr">${c.meta || '&nbsp;'}</div>
-  </div>
-
-  ${c.school?.motto ? `<div class="sl-motto">Motto: ${c.school.motto}</div>` : '<div class="sl-motto">&nbsp;</div>'}
-
-  <div style="display:flex;flex:1;">
-
-    <div class="sl-logo-col">
-      <div class="sl-logo-circle">${logoHtml(c.logo,'sl-logo-ph')}</div>
-      <div class="sl-title-vert">
-        <div class="sl-title-v">Testimonial</div>
-        <div class="sl-subtitle-v">To whom it may concern</div>
-      </div>
-    </div>
-
-    <div class="sl-body-cols" style="flex:1;">
-      <div class="sl-col">
-        <div style="font-family:'Cinzel',serif;font-size:8.5px;letter-spacing:1.5px;color:#0a0a0a;font-weight:700;text-transform:uppercase;margin-bottom:6px;border-bottom:1px solid #ddd;padding-bottom:3px;">Student Information</div>
-        ${field('Name', c.student.full_name || '—')}
-        ${field('Admission No', c.student.admission_no || c.student.roll_no || '—')}
-        ${field('Date of Birth', fmtDate(c.student.dob || c.student.date_of_birth))}
-        ${field('Father / Guardian', c.student.father_name || c.student.guardian_name || '—')}
-        <div class="cf-row" style="flex-wrap:wrap;font-size:11px;">
-          <span class="cf-text">Pupil from</span>
-          <span class="cf-line">${c.admDate}</span>
-          <span class="cf-text">to</span>
-          <span class="cf-line">${c.today}</span>
-        </div>
-        <div style="font-family:'EB Garamond',serif;font-size:11.5px;font-style:italic;color:#333;border-bottom:1.5px solid #333;padding-bottom:2px;margin-bottom:5px;">
-          Where he/she completed <strong>${c.className !== '—' ? c.className : ''}</strong> education (${c.sessLabel})
-        </div>
-        ${c.avg !== null ? field('Academic Avg', `${c.avg}% — Grade ${c.og.grade}`) : ''}
-      </div>
-
-      <div class="sl-col">
-        <div class="sl-remark-hdr">Remark by the Headmaster</div>
-        ${field('CONDUCT', c.conduct)}
-        ${field('Post Held', c.post)}
-        <div style="border-bottom:1.5px solid #333;min-height:18px;margin-bottom:5px;">&nbsp;</div>
-        <div class="sl-rec">
-          I strongly recommend him/her to wherever may need his/her service or further academic pursuit.
-          ${c.school?.name || 'This institution'} wishes him/her great success in all future endeavours.
-        </div>
-        <div style="font-size:8.5px;color:#aaa;font-family:sans-serif;margin-top:5px;text-align:right;">Ref: ${c.certNo} &nbsp;·&nbsp; ${c.today}</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="sl-sig-row">
-    <div style="font-size:11.5px;font-weight:700;color:#1a1a1a;font-family:'Poppins',sans-serif;">
-      DATE: <span style="border-bottom:1.5px solid #333;display:inline-block;min-width:100px;padding:0 4px;">${c.today}</span>
-      &nbsp;&nbsp; 20 <span style="border-bottom:1.5px solid #333;display:inline-block;min-width:50px;"></span>
-    </div>
-    <div class="cert-stamp">OFFICIAL<br>SCHOOL<br>STAMP<br>&amp; SEAL</div>
-    <div class="sl-sig-blk">
-      <div class="sl-sig-img">${c.hmSig ? `<img src="${c.hmSig}">` : ''}</div>
-      <div class="sl-sig-line"></div>
-      <div class="sl-sig-title">Headmaster's Signature &amp; Stamp</div>
-      <div class="sl-sig-sub">Date: ${c.today}</div>
-    </div>
-  </div>
-
-  <div class="sl-bot-red"></div>
-  <div class="sl-bot"></div>
-</div>
-</div>
-</div>`;
-  document.getElementById('mainContent').innerHTML = html;
-}
-
-/* ──────────────────────────────────────────
-   STUDENT PICKER (no URL params)
-────────────────────────────────────────── */
-async function showStudentPicker(pageType) {
-  document.getElementById('modalBg').style.display = 'none';
-  document.getElementById('ctrlBar').style.display = 'flex';
-  const mc = document.getElementById('mainContent');
-  mc.innerHTML = '<div class="loading">Loading classes…</div>';
-  try {
-    const userData = await getCurrentUser();
-    const schoolId = userData?.school_id || userData?.schools?.id;
-    if (!schoolId) { window.location.href = '/login.html'; return; }
-    const {data:classes} = await db.from('classes').select('id,name,level,section').eq('school_id',schoolId).order('name');
-    const {data:terms}   = await db.from('terms').select('*,academic_years(label)').eq('school_id',schoolId).order('start_date',{ascending:false});
-    if (!classes?.length || !terms?.length) {
-      mc.innerHTML = '<div class="loading" style="color:#f87171">⚠ No classes or terms found.</div>'; return;
+    if (currentStudentsList) {
+      const foundName = currentStudentsList.find(n => getStudentProfile(n).admission.toLowerCase().includes(search));
+      if (foundName) return { name: foundName, details: getStudentProfile(foundName) };
     }
-    const classOpts = classes.map(c => {
-      const sec=(c.section||c.level||'').toUpperCase();
-      return `<option value="${c.id}">${c.name}${sec ? ' — '+sec : ''}</option>`;
-    }).join('');
-    const termOpts = terms.map(t => {
-      const label = t.academic_years?.label ? `${t.name} — ${t.academic_years.label}` : t.name;
-      return `<option value="${t.id}"${t.is_current?' selected':''}>${label}</option>`;
-    }).join('');
-    mc.innerHTML = `
-      <div style="max-width:560px;margin:40px auto;background:rgba(255,255,255,.06);border:1px solid rgba(124,180,255,.2);border-radius:12px;padding:32px;">
-        <h2 style="font-family:'Cinzel',serif;color:#7cb4ff;font-size:18px;margin-bottom:6px">📜 Generate Testimonial</h2>
-        <p style="font-size:13px;color:#aaa;margin-bottom:24px">Select a class and term, then choose a student.</p>
-        <label style="display:block;font-size:12px;color:#7cb4ff;margin-bottom:6px">Class</label>
-        <select id="pickerClass" style="width:100%;padding:10px;border-radius:7px;border:1px solid #333;background:#0a1428;color:white;font-size:13px;margin-bottom:14px">${classOpts}</select>
-        <label style="display:block;font-size:12px;color:#7cb4ff;margin-bottom:6px">Term</label>
-        <select id="pickerTerm" style="width:100%;padding:10px;border-radius:7px;border:1px solid #333;background:#0a1428;color:white;font-size:13px;margin-bottom:14px">${termOpts}</select>
-        <label style="display:block;font-size:12px;color:#7cb4ff;margin-bottom:6px">Student</label>
-        <select id="pickerStudent" style="width:100%;padding:10px;border-radius:7px;border:1px solid #333;background:#0a1428;color:white;font-size:13px;margin-bottom:20px"><option value="">-- Select class and term first --</option></select>
-        <button onclick="pickerLoadStudents()" style="padding:9px 20px;background:rgba(124,180,255,.15);color:#7cb4ff;border:1px solid #7cb4ff;border-radius:7px;cursor:pointer;font-size:13px;margin-bottom:10px;margin-right:10px">Load Students</button>
-        <button onclick="pickerGo('testimonial')" style="padding:9px 22px;background:linear-gradient(135deg,#0d47a1,#1a4fd6);color:white;border:none;border-radius:7px;cursor:pointer;font-weight:700;font-size:13px">Generate →</button>
-      </div>`;
-  } catch(e) {
-    mc.innerHTML = `<div class="loading" style="color:#f87171">⚠ Error: ${e.message}</div>`;
+    return null;
   }
-}
 
-async function pickerLoadStudents() {
-  const classId = document.getElementById('pickerClass')?.value;
-  const termId  = document.getElementById('pickerTerm')?.value;
-  const sel     = document.getElementById('pickerStudent');
-  if (!classId || !termId || !sel) return;
-  sel.innerHTML = '<option>Loading…</option>';
-  const {data:enr} = await db.from('enrollments').select('student_id').eq('class_id',classId).eq('term_id',termId);
-  if (!enr?.length) {
-    const {data:enr2} = await db.from('enrollments').select('student_id').eq('class_id',classId);
-    if (!enr2?.length) { sel.innerHTML='<option>No students enrolled</option>'; return; }
-    const ids = enr2.map(e=>e.student_id);
-    const {data:studs} = await db.from('students').select('id,full_name,admission_no').in('id',ids).order('full_name');
-    sel.innerHTML = (studs||[]).map(s=>`<option value="${s.id}">${s.full_name}${s.admission_no?' ('+s.admission_no+')':''}</option>`).join('');
-    return;
+  // RENDER TESTIMONIAL (session based, no term)
+  function renderTestimonial(studentName, className, sessionLabel) {
+    const profile = getStudentProfile(studentName);
+    const primary = primaryColorPicker.value;
+    const accent = accentColorPicker.value;
+    const schoolName = "DEMO SCIENCE & TECHNICAL ACADEMY";
+    const address = "Nasarawai Kano, Nasarawa State";
+    const todayDate = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    const refCode = `TST/${sessionLabel.replace('/', '-')}/${profile.admission.slice(-6)}`;
+    return `
+      <div class="testimonial-certificate" style="border-top: 5px solid ${primary};">
+        <div class="certificate-inner">
+          <div class="cert-header">
+            <div class="crest" style="background: ${primary}; border-color: ${accent};">ACADEMIC<br>SEAL</div>
+            <div class="institution">
+              <h2 style="color: ${primary};">${schoolName}</h2>
+              <div class="motto">“Enriching Souls, Guiding Minds”</div>
+              <div style="font-size: 0.7rem;">${address} | Established 1998</div>
+            </div>
+          </div>
+          <div class="testimonial-head">
+            <h3 style="color: ${primary};">TESTIMONIAL OF MERIT</h3>
+            <div class="divider-line" style="background: ${accent};"></div>
+            <p style="font-family: 'Cormorant Garamond'; font-size: 0.9rem;">This certifies the academic & character standing</p>
+          </div>
+          <div class="info-grid">
+            <div class="info-item"><span class="info-label">Student Name:</span><span class="info-value">${studentName}</span></div>
+            <div class="info-item"><span class="info-label">Admission No:</span><span class="info-value">${profile.admission}</span></div>
+            <div class="info-item"><span class="info-label">Date of Birth:</span><span class="info-value">${profile.dob}</span></div>
+            <div class="info-item"><span class="info-label">Father / Guardian:</span><span class="info-value">${profile.father}</span></div>
+            <div class="info-item"><span class="info-label">Conduct:</span><span class="info-value">${profile.conduct}</span></div>
+            <div class="info-item"><span class="info-label">Post Held:</span><span class="info-value">${profile.post || '—'}</span></div>
+            <div class="info-item"><span class="info-label">Academic Avg:</span><span class="info-value">${profile.avg}% (Grade ${profile.grade})</span></div>
+            <div class="info-item"><span class="info-label">Hobby / Interest:</span><span class="info-value">${profile.hobby}</span></div>
+            <div class="info-item"><span class="info-label">Class & Session:</span><span class="info-value">${className} · ${sessionLabel}</span></div>
+            <div class="info-item"><span class="info-label">Period of Study:</span><span class="info-value">${sessionLabel.split('/')[0]} – ${sessionLabel.split('/')[1]}</span></div>
+          </div>
+          <div class="recommendation" style="border-left-color: ${primary};">
+            <strong>Official Remark by the Headmaster:</strong> I strongly recommend ${studentName} to any institution of higher learning or place of service. Throughout the ${sessionLabel} session, the student displayed diligence, integrity, and intellectual curiosity. The school wishes continued excellence.
+          </div>
+          <div class="signature-area">
+            <div class="signature-block">
+              <div class="signature-line"></div>
+              <span style="font-size: 0.75rem;">Headmaster's Signature</span>
+              <div style="font-size: 0.65rem;">Date: ${todayDate}</div>
+            </div>
+            <div class="official-stamp" style="border-color: ${primary}; color: ${primary};">OFFICIAL SCHOOL STAMP</div>
+            <div class="signature-block">
+              <div class="signature-line"></div>
+              <span style="font-size: 0.75rem;">Student's Signature</span>
+            </div>
+          </div>
+          <div class="ref-footer">Reference: ${refCode} · Issued on ${todayDate} · Academic Registry</div>
+        </div>
+      </div>
+    `;
   }
-  const ids = enr.map(e=>e.student_id);
-  const {data:studs} = await db.from('students').select('id,full_name,admission_no').in('id',ids).order('full_name');
-  sel.innerHTML = (studs||[]).map(s=>`<option value="${s.id}">${s.full_name}${s.admission_no?' ('+s.admission_no+')':''}</option>`).join('');
-}
 
-function pickerGo(pageType) {
-  const studentId = document.getElementById('pickerStudent')?.value;
-  const termId    = document.getElementById('pickerTerm')?.value;
-  if (!studentId || !termId) { alert('Please select a student and term.'); return; }
-  location.href = `testimonial.html?student_id=${encodeURIComponent(studentId)}&term_id=${encodeURIComponent(termId)}`;
-}
-
-window.addEventListener('DOMContentLoaded', () => {
-  if (!STUDENT_ID || !TERM_ID) {
-    document.getElementById('modalBg').style.display = 'none';
-    document.getElementById('ctrlBar').style.display = 'flex';
-    showStudentPicker('testimonial');
+  function generateBatch() {
+    if (!currentClassObj || !currentStudentsList.length) {
+      alert("Load class roster first (use 'Load Class Roster')");
+      return false;
+    }
+    const session = document.getElementById('sessionSelect').value;
+    let batchHtml = '';
+    currentStudentsList.forEach((student, idx) => {
+      batchHtml += renderTestimonial(student, currentClassObj.name, session);
+      if (idx !== currentStudentsList.length - 1) batchHtml += '<div style="page-break-after: always; break-before: page; margin: 20px 0;"></div>';
+    });
+    stage.innerHTML = batchHtml;
+    return true;
   }
-});
+
+  async function generateSingle() {
+    const mode = document.querySelector('input[name="genMode"]:checked').value;
+    const session = document.getElementById('sessionSelect').value;
+    if (mode === 'single') {
+      const selected = studentSelectDropdown.value;
+      if (!selected || selected.includes('Load class')) { alert("Select a student from dropdown after loading class"); return false; }
+      const className = currentClassObj ? currentClassObj.name : "Selected Class";
+      stage.innerHTML = renderTestimonial(selected, className, session);
+      return true;
+    } 
+    else if (mode === 'admission') {
+      const admVal = document.getElementById('admissionNumberInput').value.trim();
+      if (!admVal) { alert("Enter admission number"); return false; }
+      const found = findStudentByAdmission(admVal);
+      if (!found) { alert("No student found with this admission number."); return false; }
+      const className = currentClassObj ? currentClassObj.name : "—";
+      stage.innerHTML = renderTestimonial(found.name, className, session);
+      return true;
+    }
+    return false;
+  }
+
+  function handleGenerate() {
+    const mode = document.querySelector('input[name="genMode"]:checked').value;
+    if (mode === 'all') generateBatch();
+    else generateSingle();
+    stage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function printTestimonial() {
+    const content = stage.innerHTML;
+    if (!content || content.includes("placeholder-message")) { alert("Generate testimonial first"); return; }
+    const win = window.open('', '_blank');
+    const styles = Array.from(document.querySelectorAll('style')).map(s => s.innerHTML).join('');
+    win.document.write(`<!DOCTYPE html><html><head><title>Testimonial Document</title><meta charset="UTF-8"><style>${styles} body { background: white; padding: 1.5rem; } .control-panel, .action-buttons, .customize-row, .selection-mode, .filter-row, .section-nav, .dynamic-container { display: none; } .testimonial-stage { background: none; padding: 0; } @page { size: A4; margin: 1.5cm; }</style></head><body>${content}</body></html>`);
+    win.document.close();
+    win.print();
+  }
+
+  // event listeners
+  document.querySelectorAll('.section-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      currentSection = tab.getAttribute('data-section');
+      populateClasses();
+      currentClassObj = null;
+      stage.innerHTML = '<div class="placeholder-message">Select class and load roster to generate testimonial.</div>';
+    });
+  });
+
+  loadRosterBtn.addEventListener('click', loadClassDetails);
+  generateBtn.addEventListener('click', handleGenerate);
+  printBtn.addEventListener('click', printTestimonial);
+  document.querySelectorAll('input[name="genMode"]').forEach(radio => radio.addEventListener('change', toggleModeFields));
+
+  populateClasses();
+  toggleModeFields();
 </script>
 </body>
 </html>
