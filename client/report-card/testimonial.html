@@ -499,6 +499,63 @@ function filterClasses(classes,sec){
 ════════════════════════════════════════════ */
 let _allClasses=[],_sessions=[],_pickerStudents=[],_genMode='all';
 
+/* ── Robust session fetcher — tries 4 strategies ── */
+async function fetchSessions(schoolId){
+  console.log('[Testimonial] fetchSessions for school:', schoolId);
+  /* Strategy 1: academic_years with school_id + start_date order */
+  try{
+    const {data,error}=await db.from('academic_years')
+      .select('id,label,name,is_current,start_date')
+      .eq('school_id',schoolId)
+      .order('start_date',{ascending:false});
+    if(!error && data?.length){ console.log('[Testimonial] sessions via strategy 1:', data.length); return normSessions(data); }
+  }catch(e){ console.warn('[Testimonial] strategy 1 error:',e); }
+
+  /* Strategy 2: academic_years with school_id, no start_date sort */
+  try{
+    const {data,error}=await db.from('academic_years')
+      .select('id,label,name,is_current')
+      .eq('school_id',schoolId);
+    if(!error && data?.length) return normSessions(data);
+  }catch(e){}
+
+  /* Strategy 3: academic_years global (no school_id column) */
+  try{
+    const {data,error}=await db.from('academic_years')
+      .select('id,label,name,is_current,start_date')
+      .order('start_date',{ascending:false});
+    if(!error && data?.length) return normSessions(data);
+  }catch(e){}
+
+  /* Strategy 4: derive sessions from terms table */
+  try{
+    const {data:terms,error}=await db.from('terms')
+      .select('academic_year_id,academic_years(id,label,name,is_current)')
+      .eq('school_id',schoolId);
+    if(!error && terms?.length){
+      const seen=new Set();
+      const sessions=[];
+      for(const t of terms){
+        if(t.academic_years && !seen.has(t.academic_year_id)){
+          seen.add(t.academic_year_id);
+          sessions.push(t.academic_years);
+        }
+      }
+      if(sessions.length) return normSessions(sessions);
+    }
+  }catch(e){}
+
+  return [];
+}
+
+/* Normalise: ensure every session has a .label and .id */
+function normSessions(rows){
+  return rows.map(s=>({
+    ...s,
+    label: s.label||s.name||`Session ${s.id?.slice(0,6)||'?'}`,
+  }));
+}
+
 async function showPicker(){
   const MC=document.getElementById('MC');
   MC.innerHTML='<div class="loading">Loading…</div>';
@@ -507,16 +564,19 @@ async function showPicker(){
     _schoolId=ud?.school_id||ud?.schools?.id;
     if(!_schoolId){window.location.href='/login.html';return;}
 
-    const [{data:classes},{data:sessions}]=await Promise.all([
-      db.from('classes').select('id,name,level,section').eq('school_id',_schoolId).order('name'),
-      db.from('academic_years').select('id,label,is_current').eq('school_id',_schoolId).order('start_date',{ascending:false}),
+    const [classRes,sessions]=await Promise.all([
+      sq(db.from('classes').select('id,name,level,section').eq('school_id',_schoolId).order('name')),
+      fetchSessions(_schoolId),
     ]);
+    const classes=classRes||[];
 
-    if(!classes?.length){
+    if(!classes.length){
       MC.innerHTML='<div class="loading" style="color:#f87171">⚠ No classes found. Please set up classes first.</div>'; return;
     }
-    if(!sessions?.length){
-      MC.innerHTML='<div class="loading" style="color:#f87171">⚠ No academic sessions found. Please create an academic year first.</div>'; return;
+    if(!sessions.length){
+      MC.innerHTML=`<div class="loading" style="color:#f87171">⚠ No academic sessions found for this school.<br><br>
+        <span style="font-size:12px;font-family:sans-serif;">Please create an academic year under Settings → Academic Years, then try again.</span></div>`;
+      return;
     }
 
     _allClasses=classes;
@@ -652,11 +712,30 @@ function chkAll(v){document.querySelectorAll('.sc').forEach(c=>c.checked=v);}
 
 /* get unique student IDs enrolled in class for a given session */
 async function getStudentIdsForClassSession(clsId,sessId){
-  const {data:terms}=await db.from('terms').select('id').eq('academic_year_id',sessId).eq('school_id',_schoolId);
-  if(!terms?.length) return [];
-  const termIds=terms.map(t=>t.id);
-  const {data:enr}=await db.from('enrollments').select('student_id').eq('class_id',clsId).in('term_id',termIds);
-  return [...new Set((enr||[]).map(e=>e.student_id))];
+  /* Strategy A: terms linked by academic_year_id */
+  try{
+    const {data:terms,error}=await db.from('terms')
+      .select('id').eq('academic_year_id',sessId).eq('school_id',_schoolId);
+    if(!error && terms?.length){
+      const termIds=terms.map(t=>t.id);
+      const {data:enr}=await db.from('enrollments').select('student_id').eq('class_id',clsId).in('term_id',termIds);
+      const ids=[...new Set((enr||[]).map(e=>e.student_id))];
+      if(ids.length) return ids;
+    }
+  }catch(e){}
+  /* Strategy B: enrollments have session_id directly */
+  try{
+    const {data:enr,error}=await db.from('enrollments')
+      .select('student_id').eq('class_id',clsId).eq('session_id',sessId);
+    if(!error && enr?.length)
+      return [...new Set(enr.map(e=>e.student_id))];
+  }catch(e){}
+  /* Strategy C: fall back to all enrollments for this class */
+  try{
+    const {data:enr}=await db.from('enrollments').select('student_id').eq('class_id',clsId);
+    return [...new Set((enr||[]).map(e=>e.student_id))];
+  }catch(e){}
+  return [];
 }
 
 /* ════════════════════════════════════════════
@@ -736,18 +815,37 @@ async function genBatch(studentIds,sessId){
   const total=studentIds.length;
   showProg(`Fetching data for ${total} student(s)…`,10);
 
-  /* 1. Get all terms for this session */
-  const {data:sTerms}=await db.from('terms').select('id,name,start_date').eq('academic_year_id',sessId).eq('school_id',_schoolId).order('start_date');
-  const termIds=(sTerms||[]).map(t=>t.id);
+  /* 1. Get all terms for this session — resilient fetch */
+  let termIds=[];
+  try{
+    /* Try with academic_year_id link */
+    const {data:sTerms,error}=await db.from('terms')
+      .select('id').eq('academic_year_id',sessId).eq('school_id',_schoolId);
+    if(!error && sTerms?.length){ termIds=sTerms.map(t=>t.id); }
+    else{
+      /* Fallback: all terms for school */
+      const {data:allTerms}=await db.from('terms').select('id').eq('school_id',_schoolId);
+      termIds=(allTerms||[]).map(t=>t.id);
+    }
+  }catch(e){
+    const {data:allTerms}=await db.from('terms').select('id').eq('school_id',_schoolId).limit(3);
+    termIds=(allTerms||[]).map(t=>t.id);
+  }
 
   const [students,school,scale,session,allResults,affList,enrList]=await Promise.all([
     sq(db.from('students').select('*').in('id',studentIds)),
     sq(db.from('schools').select('name,logo_url,address,state,lga,phone,email,motto,principal_signature_url,class_teacher_signature_url').eq('id',_schoolId).single()),
     sq(db.from('grading_scales').select('*').eq('school_id',_schoolId).order('min_score',{ascending:false})),
-    sq(db.from('academic_years').select('*').eq('id',sessId).single()),
+    (async()=>{ const cached=_sessions.find(s=>s.id===sessId); if(cached) return cached; return await sq(db.from('academic_years').select('*').eq('id',sessId).single()); })(),
     sq(db.from('results').select('score,student_id,subject_id,term_id,subjects(name),exams(max_score,weight)').in('student_id',studentIds).in('term_id',termIds.length?termIds:['_'])),
     sq(db.from('affective_domain').select('*').in('student_id',studentIds).in('term_id',termIds.length?termIds:['_']).order('term_id',{ascending:false})),
-    sq(db.from('enrollments').select('student_id,class_id,classes(id,name,level,section)').in('student_id',studentIds).in('term_id',termIds.length?termIds:['_']).order('term_id',{ascending:false})),
+    (async()=>{
+      if(termIds.length){
+        const r=await sq(db.from('enrollments').select('student_id,class_id,classes(id,name,level,section)').in('student_id',studentIds).in('term_id',termIds).order('term_id',{ascending:false}));
+        if(r?.length) return r;
+      }
+      return await sq(db.from('enrollments').select('student_id,class_id,classes(id,name,level,section)').in('student_id',studentIds).order('student_id'));
+    })(),
   ]);
 
   showProg(`Rendering ${total} testimonial(s)…`,70);
@@ -1204,4 +1302,4 @@ window.addEventListener('DOMContentLoaded',async()=>{
 });
 </script>
 </body>
-</html>to
+</html>
