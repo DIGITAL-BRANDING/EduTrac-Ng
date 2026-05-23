@@ -499,61 +499,89 @@ function filterClasses(classes,sec){
 ════════════════════════════════════════════ */
 let _allClasses=[],_sessions=[],_pickerStudents=[],_genMode='all';
 
-/* ── Robust session fetcher — tries 4 strategies ── */
+/* ════════════════════════════════════
+   SESSION FETCHER — 7 STRATEGIES
+   Works even if academic_years is RLS-blocked,
+   has no school_id, or the table name differs.
+════════════════════════════════════ */
 async function fetchSessions(schoolId){
-  console.log('[Testimonial] fetchSessions for school:', schoolId);
-  /* Strategy 1: academic_years with school_id + start_date order */
+  console.log('[TEST] fetchSessions start, school:', schoolId);
+  const log=(n,r)=>console.log(`[TEST] S${n}:`, r?.length??'err', r);
+
+  /* ── S1: academic_years filtered by school_id ── */
   try{
     const {data,error}=await db.from('academic_years')
-      .select('id,label,name,is_current,start_date')
-      .eq('school_id',schoolId)
-      .order('start_date',{ascending:false});
-    if(!error && data?.length){ console.log('[Testimonial] sessions via strategy 1:', data.length); return normSessions(data); }
-  }catch(e){ console.warn('[Testimonial] strategy 1 error:',e); }
+      .select('id,label,name,is_current,start_date').eq('school_id',schoolId);
+    log(1,data); if(!error&&data?.length) return normSess(data);
+    if(error) console.warn('[TEST] S1 error:',error.message);
+  }catch(e){console.warn('[TEST] S1 throw:',e.message);}
 
-  /* Strategy 2: academic_years with school_id, no start_date sort */
+  /* ── S2: academic_years global (no school_id column) ── */
   try{
     const {data,error}=await db.from('academic_years')
-      .select('id,label,name,is_current')
-      .eq('school_id',schoolId);
-    if(!error && data?.length) return normSessions(data);
-  }catch(e){}
+      .select('id,label,name,is_current,start_date');
+    log(2,data); if(!error&&data?.length) return normSess(data);
+    if(error) console.warn('[TEST] S2 error:',error.message);
+  }catch(e){console.warn('[TEST] S2 throw:',e.message);}
 
-  /* Strategy 3: academic_years global (no school_id column) */
+  /* ── S3: get term academic_year_ids → fetch years by id ── */
   try{
-    const {data,error}=await db.from('academic_years')
-      .select('id,label,name,is_current,start_date')
-      .order('start_date',{ascending:false});
-    if(!error && data?.length) return normSessions(data);
-  }catch(e){}
+    const {data:trows,error:te}=await db.from('terms')
+      .select('id,name,academic_year_id,is_current').eq('school_id',schoolId);
+    console.log('[TEST] S3 terms:', trows?.length, te?.message);
+    if(!te && trows?.length){
+      const yids=[...new Set(trows.filter(t=>t.academic_year_id).map(t=>t.academic_year_id))];
+      if(yids.length){
+        const {data:yrows,error:ye}=await db.from('academic_years')
+          .select('id,label,name,is_current').in('id',yids);
+        console.log('[TEST] S3 years:', yrows?.length, ye?.message);
+        if(!ye && yrows?.length) return normSess(yrows);
+      }
 
-  /* Strategy 4: derive sessions from terms table */
-  try{
-    const {data:terms,error}=await db.from('terms')
-      .select('academic_year_id,academic_years(id,label,name,is_current)')
-      .eq('school_id',schoolId);
-    if(!error && terms?.length){
-      const seen=new Set();
-      const sessions=[];
-      for(const t of terms){
-        if(t.academic_years && !seen.has(t.academic_year_id)){
+      /* ── S4: synthesise sessions from academic_year_id groups ── */
+      const seen=new Set(); const synth=[];
+      for(const t of trows){
+        if(t.academic_year_id && !seen.has(t.academic_year_id)){
           seen.add(t.academic_year_id);
-          sessions.push(t.academic_years);
+          // Use the term's name as a label hint e.g. "1st Term 2024/2025" → "2024/2025"
+          const yearHint=t.name?.match(/\d{4}[\/-]\d{2,4}/)?.[0]||
+                         t.name?.match(/\d{4}/)?.[0]||'';
+          synth.push({id:t.academic_year_id,
+            label:yearHint?`${yearHint} Session`:`Session (${t.academic_year_id.slice(0,8)})`,
+            is_current:t.is_current||false});
         }
       }
-      if(sessions.length) return normSessions(sessions);
-    }
-  }catch(e){}
+      if(synth.length){ console.log('[TEST] S4 synthetic:',synth.length); return synth; }
 
-  return [];
+      /* ── S5: no academic_year_id at all — use terms as sessions ── */
+      const termSess=trows.map(t=>({
+        id:t.id,
+        label:t.name||`Term ${t.id.slice(0,6)}`,
+        is_current:t.is_current||false,
+        _isTerm:true,
+      }));
+      if(termSess.length){ console.log('[TEST] S5 terms-as-sessions:',termSess.length); return termSess; }
+    }
+  }catch(e){console.warn('[TEST] S3-S5 throw:',e.message);}
+
+  /* ── S6: try table name "academic_sessions" ── */
+  try{
+    const {data,error}=await db.from('academic_sessions')
+      .select('id,label,name,is_current').eq('school_id',schoolId);
+    log(6,data); if(!error&&data?.length) return normSess(data);
+    if(error) console.warn('[TEST] S6 error:',error.message);
+  }catch(e){console.warn('[TEST] S6 throw:',e.message);}
+
+  /* ── S7: nuclear fallback — one synthetic "All Sessions" ── */
+  console.warn('[TEST] All strategies failed. Using nuclear fallback.');
+  return [{id:'__ALL__',label:'All Sessions (Fallback)',is_current:true,_fallback:true}];
 }
 
-/* Normalise: ensure every session has a .label and .id */
-function normSessions(rows){
-  return rows.map(s=>({
-    ...s,
-    label: s.label||s.name||`Session ${s.id?.slice(0,6)||'?'}`,
-  }));
+/* Normalise rows — ensure .label and .id always exist */
+function normSess(rows){
+  return rows
+    .map(s=>({...s, label:s.label||s.name||`Session ${(s.id||'').slice(0,8)}`}))
+    .sort((a,b)=>(b.is_current?1:0)-(a.is_current?1:0)); // current first
 }
 
 async function showPicker(){
@@ -574,9 +602,8 @@ async function showPicker(){
       MC.innerHTML='<div class="loading" style="color:#f87171">⚠ No classes found. Please set up classes first.</div>'; return;
     }
     if(!sessions.length){
-      MC.innerHTML=`<div class="loading" style="color:#f87171">⚠ No academic sessions found for this school.<br><br>
-        <span style="font-size:12px;font-family:sans-serif;">Please create an academic year under Settings → Academic Years, then try again.</span></div>`;
-      return;
+      // This should not happen given S7 nuclear fallback, but just in case:
+      sessions.push({id:'__ALL__',label:'All Sessions',is_current:true,_fallback:true});
     }
 
     _allClasses=classes;
@@ -712,29 +739,54 @@ function chkAll(v){document.querySelectorAll('.sc').forEach(c=>c.checked=v);}
 
 /* get unique student IDs enrolled in class for a given session */
 async function getStudentIdsForClassSession(clsId,sessId){
-  /* Strategy A: terms linked by academic_year_id */
+  console.log('[TEST] getStudentIds cls:',clsId,'sess:',sessId);
+
+  /* Nuclear fallback session — just return all students in class */
+  if(sessId==='__ALL__'){
+    const {data:enr}=await db.from('enrollments').select('student_id').eq('class_id',clsId);
+    return [...new Set((enr||[]).map(e=>e.student_id))];
+  }
+
+  /* Check if sessId is actually a term id (_isTerm flag set by S5) */
+  const sessMeta=_sessions.find(s=>s.id===sessId);
+  if(sessMeta?._isTerm){
+    /* sessId is a term id directly */
+    const {data:enr}=await db.from('enrollments').select('student_id').eq('class_id',clsId).eq('term_id',sessId);
+    const ids=[...new Set((enr||[]).map(e=>e.student_id))];
+    if(ids.length) return ids;
+    /* fallback: all class enrolments */
+    const {data:enr2}=await db.from('enrollments').select('student_id').eq('class_id',clsId);
+    return [...new Set((enr2||[]).map(e=>e.student_id))];
+  }
+
+  /* Strategy A: terms have academic_year_id → get their IDs → filter enrollments */
   try{
     const {data:terms,error}=await db.from('terms')
       .select('id').eq('academic_year_id',sessId).eq('school_id',_schoolId);
+    console.log('[TEST] getStudentIds A terms:',terms?.length,error?.message);
     if(!error && terms?.length){
       const termIds=terms.map(t=>t.id);
       const {data:enr}=await db.from('enrollments').select('student_id').eq('class_id',clsId).in('term_id',termIds);
       const ids=[...new Set((enr||[]).map(e=>e.student_id))];
       if(ids.length) return ids;
     }
-  }catch(e){}
+  }catch(e){console.warn('[TEST] getStudentIds A:',e.message);}
+
   /* Strategy B: enrollments have session_id directly */
   try{
     const {data:enr,error}=await db.from('enrollments')
       .select('student_id').eq('class_id',clsId).eq('session_id',sessId);
-    if(!error && enr?.length)
-      return [...new Set(enr.map(e=>e.student_id))];
+    if(!error && enr?.length) return [...new Set(enr.map(e=>e.student_id))];
   }catch(e){}
-  /* Strategy C: fall back to all enrollments for this class */
+
+  /* Strategy C: all enrollments for this class (ignore session) */
   try{
     const {data:enr}=await db.from('enrollments').select('student_id').eq('class_id',clsId);
-    return [...new Set((enr||[]).map(e=>e.student_id))];
-  }catch(e){}
+    const ids=[...new Set((enr||[]).map(e=>e.student_id))];
+    console.log('[TEST] getStudentIds C fallback:',ids.length);
+    return ids;
+  }catch(e){console.warn('[TEST] getStudentIds C:',e.message);}
+
   return [];
 }
 
@@ -815,28 +867,45 @@ async function genBatch(studentIds,sessId){
   const total=studentIds.length;
   showProg(`Fetching data for ${total} student(s)…`,10);
 
-  /* 1. Get all terms for this session — resilient fetch */
+  /* 1. Get all terms for this session — resilient */
   let termIds=[];
-  try{
-    /* Try with academic_year_id link */
-    const {data:sTerms,error}=await db.from('terms')
-      .select('id').eq('academic_year_id',sessId).eq('school_id',_schoolId);
-    if(!error && sTerms?.length){ termIds=sTerms.map(t=>t.id); }
-    else{
-      /* Fallback: all terms for school */
-      const {data:allTerms}=await db.from('terms').select('id').eq('school_id',_schoolId);
-      termIds=(allTerms||[]).map(t=>t.id);
+  const sessMeta2=_sessions.find(s=>s.id===sessId);
+  if(sessId==='__ALL__'){
+    const {data:at}=await db.from('terms').select('id').eq('school_id',_schoolId);
+    termIds=(at||[]).map(t=>t.id);
+    console.log('[TEST] genBatch __ALL__ termIds:',termIds.length);
+  } else if(sessMeta2?._isTerm){
+    termIds=[sessId];
+  } else {
+    try{
+      const {data:st,error}=await db.from('terms')
+        .select('id').eq('academic_year_id',sessId).eq('school_id',_schoolId);
+      console.log('[TEST] genBatch terms:',st?.length,error?.message);
+      if(!error && st?.length){ termIds=st.map(t=>t.id); }
+      else{
+        const {data:at}=await db.from('terms').select('id').eq('school_id',_schoolId);
+        termIds=(at||[]).map(t=>t.id);
+      }
+    }catch(e){
+      const {data:at}=await db.from('terms').select('id').eq('school_id',_schoolId);
+      termIds=(at||[]).map(t=>t.id);
     }
-  }catch(e){
-    const {data:allTerms}=await db.from('terms').select('id').eq('school_id',_schoolId).limit(3);
-    termIds=(allTerms||[]).map(t=>t.id);
   }
 
   const [students,school,scale,session,allResults,affList,enrList]=await Promise.all([
     sq(db.from('students').select('*').in('id',studentIds)),
     sq(db.from('schools').select('name,logo_url,address,state,lga,phone,email,motto,principal_signature_url,class_teacher_signature_url').eq('id',_schoolId).single()),
     sq(db.from('grading_scales').select('*').eq('school_id',_schoolId).order('min_score',{ascending:false})),
-    (async()=>{ const cached=_sessions.find(s=>s.id===sessId); if(cached) return cached; return await sq(db.from('academic_years').select('*').eq('id',sessId).single()); })(),
+    (async()=>{
+      const cached=_sessions.find(s=>s.id===sessId);
+      if(cached) return cached;
+      if(sessId==='__ALL__') return {label:'All Sessions',id:'__ALL__'};
+      try{
+        const {data,error}=await db.from('academic_years').select('*').eq('id',sessId).single();
+        if(!error&&data) return data;
+      }catch(e){}
+      return {label:`Session ${sessId.slice(0,8)}`,id:sessId};
+    })(),
     sq(db.from('results').select('score,student_id,subject_id,term_id,subjects(name),exams(max_score,weight)').in('student_id',studentIds).in('term_id',termIds.length?termIds:['_'])),
     sq(db.from('affective_domain').select('*').in('student_id',studentIds).in('term_id',termIds.length?termIds:['_']).order('term_id',{ascending:false})),
     (async()=>{
