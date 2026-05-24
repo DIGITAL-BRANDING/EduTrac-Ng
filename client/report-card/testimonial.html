@@ -155,43 +155,255 @@ body{background:#0f172a;font-family:'Poppins',sans-serif;min-height:100vh;displa
 
 /* ════════════════════════════════════════════
    ① PRIMARY / NURSERY — PORTRAIT  210×297mm
+   Matches reference image: diagonal border, large
+   bold heading, full-page content distribution
 ════════════════════════════════════════════ */
-.pp{width:210mm;height:297mm;padding:11px;display:flex;flex-direction:column;box-shadow:0 10px 50px rgba(0,0,0,.6);flex-shrink:0;}
-.pp-in{flex:1;background:#fff;display:flex;flex-direction:column;border:2px solid var(--c-pri);overflow:hidden;}
-/* header */
-.pp-hd{background:linear-gradient(135deg,var(--c-pri),var(--c-pri2) 55%,var(--c-pri));padding:9px 13px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
-.pp-logo{width:60px;height:60px;border-radius:50%;border:2.5px solid rgba(255,215,0,.55);overflow:hidden;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.pp-logo img,.pp-photo img{width:100%;height:100%;object-fit:cover;}
-.pp-logo-ph{font-family:'Cinzel',serif;font-size:7px;font-weight:700;color:rgba(255,255,255,.5);text-align:center;line-height:1.3;padding:3px;}
-.pp-hc{flex:1;text-align:center;}
-.pp-sname{font-family:'Cinzel',serif;font-size:clamp(12px,2.1vw,17px);font-weight:900;color:var(--c-acc);letter-spacing:.4px;line-height:1.2;text-shadow:0 1px 3px rgba(0,0,0,.4);}
-.pp-stype{font-family:'Cinzel',serif;font-size:9px;font-weight:700;color:rgba(255,255,255,.9);letter-spacing:1.2px;text-transform:uppercase;margin-top:2px;}
-.pp-saddr{font-size:8.5px;color:rgba(255,255,255,.7);margin-top:2px;font-style:italic;}
-.pp-photo{width:60px;height:74px;flex-shrink:0;border:2.5px solid rgba(255,215,0,.6);background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;overflow:hidden;}
-.pp-photo-ph{font-size:7.5px;color:rgba(255,255,255,.45);text-align:center;font-family:sans-serif;line-height:1.4;padding:3px;}
-/* motto */
-.pp-motto{background:linear-gradient(90deg,var(--c-g1),var(--c-g2),var(--c-g1));padding:5px 12px;text-align:center;flex-shrink:0;font-family:'Cinzel',serif;font-size:10px;font-weight:700;color:#fff;letter-spacing:1.6px;text-transform:uppercase;border-top:2px solid var(--c-acc);border-bottom:2px solid var(--c-acc);}
-/* title */
-.pp-title-area{text-align:center;padding:10px 14px 3px;flex-shrink:0;}
-.pp-title{font-family:'Playfair Display',serif;font-size:38px;font-weight:700;font-style:italic;color:var(--c-pri);line-height:1;margin-bottom:3px;}
-.pp-tsub{font-family:'EB Garamond',serif;font-size:13.5px;font-style:italic;color:#555;letter-spacing:.3px;}
-.pp-rule{height:0;border:none;border-top:2px solid transparent;background:linear-gradient(90deg,transparent,var(--c-pri) 20%,var(--c-acc) 50%,var(--c-pri) 80%,transparent);margin:6px 14px;flex-shrink:0;}
-/* body */
-.pp-body{padding:9px 17px 5px;flex:1;display:flex;flex-direction:column;overflow:hidden;}
-.pp-intro{font-family:'EB Garamond',serif;font-size:13px;font-style:italic;color:#222;margin-bottom:7px;text-align:center;}
-.pp-completion{font-family:'EB Garamond',serif;font-size:12.5px;font-style:italic;color:#333;margin-bottom:8px;padding-bottom:2px;border-bottom:1.5px solid #444;}
-.pp-sp{flex:1;}/* spacer pushes sigs down */
-.pp-rec{background:#f0f4ff;border-left:3.5px solid var(--c-pri);padding:8px 12px;margin:8px 0;font-family:'EB Garamond',serif;font-size:12.5px;font-style:italic;color:#1a1a1a;line-height:1.75;}
-.pp-ref{font-size:8.5px;color:#bbb;font-family:sans-serif;text-align:right;margin-top:4px;}
-/* sig */
-.pp-sig{display:flex;justify-content:space-between;align-items:flex-end;padding:7px 17px 9px;border-top:2px solid var(--c-pri);flex-shrink:0;}
-.pp-sb{text-align:center;flex:1;}
+/* Outer shell = the diagonal-stripe coloured border */
+.pp{
+  width:210mm;height:297mm;
+  padding:0;
+  display:flex;flex-direction:column;
+  box-shadow:0 10px 50px rgba(0,0,0,.6);
+  flex-shrink:0;
+  position:relative;
+  background:var(--c-pri);
+  overflow:hidden;
+}
+/* Diagonal stripe overlay on outer shell */
+.pp::before{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(
+    -45deg,
+    transparent 0px, transparent 10px,
+    rgba(255,255,255,.18) 10px, rgba(255,255,255,.18) 14px,
+    transparent 14px, transparent 24px,
+    var(--c-acc) 24px, var(--c-acc) 28px,
+    transparent 28px, transparent 38px
+  );
+  pointer-events:none;z-index:0;
+}
+/* White inner card */
+.pp-in{
+  margin:10px;
+  flex:1;background:#fff;display:flex;flex-direction:column;
+  border:3px solid var(--c-pri);
+  position:relative;z-index:1;
+  overflow:hidden;
+}
+/* ── Top header: white bg, large centred school name ── */
+.pp-hd{
+  background:#fff;
+  padding:14px 16px 10px;
+  text-align:center;
+  flex-shrink:0;
+  border-bottom:3px solid var(--c-pri);
+}
+.pp-sname{
+  font-family:'Arial Black','Poppins',sans-serif;
+  font-size:clamp(16px,4.5vw,26px);
+  font-weight:900;
+  color:var(--c-pri3);
+  letter-spacing:.5px;
+  line-height:1.15;
+  text-transform:uppercase;
+  margin-bottom:2px;
+}
+.pp-stype{
+  font-family:'Arial Black','Poppins',sans-serif;
+  font-size:clamp(11px,2.8vw,17px);
+  font-weight:900;
+  color:#1a1a1a;
+  letter-spacing:.3px;
+  text-transform:uppercase;
+  margin-bottom:2px;
+}
+.pp-saddr{
+  font-family:'Poppins',sans-serif;
+  font-size:clamp(8px,1.8vw,11px);
+  font-weight:700;
+  color:#222;
+  text-transform:uppercase;
+  letter-spacing:.3px;
+}
+/* ── Motto banner (red) ── */
+.pp-motto{
+  background:var(--c-r1);
+  padding:5px 16px;
+  text-align:center;
+  flex-shrink:0;
+  font-family:'Arial Black','Poppins',sans-serif;
+  font-size:clamp(9px,2.2vw,13px);
+  font-weight:900;
+  color:#fff;
+  letter-spacing:1px;
+  text-transform:uppercase;
+}
+/* ── Logo row: logo left | Testimonial title centre | passport photo right ── */
+.pp-logo-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 16px 8px;
+  flex-shrink:0;
+  border-bottom:2.5px solid var(--c-pri);
+}
+.pp-logo{
+  width:72px;height:72px;
+  border-radius:50%;
+  overflow:hidden;
+  background:#f5f5f5;
+  border:2.5px solid var(--c-pri);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.pp-logo img{width:100%;height:100%;object-fit:cover;}
+.pp-logo-ph{font-family:'Cinzel',serif;font-size:7px;font-weight:700;color:#888;text-align:center;line-height:1.3;padding:4px;}
+.pp-title-centre{flex:1;text-align:center;padding:0 10px;}
+.pp-title{
+  font-family:'Arial Black','Poppins',sans-serif;
+  font-size:clamp(28px,7vw,46px);
+  font-weight:900;
+  color:var(--c-pri3);
+  line-height:1;
+  letter-spacing:.5px;
+  margin-bottom:3px;
+}
+.pp-tsub{
+  font-family:'Poppins',sans-serif;
+  font-size:clamp(9px,2vw,13px);
+  font-weight:700;
+  color:var(--c-r1);
+  letter-spacing:.3px;
+}
+.pp-photo{
+  width:72px;height:88px;
+  flex-shrink:0;
+  border:2.5px solid var(--c-pri);
+  background:#f0f4ff;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+.pp-photo img{width:100%;height:100%;object-fit:cover;}
+.pp-photo-ph{font-size:8px;color:#888;text-align:center;font-family:sans-serif;line-height:1.5;padding:4px;}
+/* ── Body: fills remaining space, content evenly spaced ── */
+.pp-body{
+  padding:0 18px;
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between; /* KEY: distributes content top→bottom */
+  overflow:hidden;
+}
+.pp-body-top{padding-top:10px;}
+/* Student name block */
+.pp-stname{
+  font-family:'EB Garamond',serif;
+  font-size:clamp(15px,3.5vw,22px);
+  font-weight:600;
+  font-style:italic;
+  color:#111;
+  text-align:center;
+  margin-bottom:2px;
+  border-bottom:2px solid #333;
+  padding-bottom:4px;
+}
+.pp-pupil-sub{
+  font-family:'Poppins',sans-serif;
+  font-size:clamp(10px,2.2vw,14px);
+  font-weight:600;
+  color:#222;
+  text-align:center;
+  margin:6px 0 8px;
+  font-style:italic;
+}
+/* From–to row */
+.pp-from-row{
+  display:flex;align-items:flex-end;gap:6px;
+  flex-wrap:nowrap;
+  margin-bottom:0;
+}
+.pp-fr-lbl{
+  font-family:'Poppins',sans-serif;
+  font-size:clamp(11px,2.5vw,15px);
+  font-weight:700;
+  color:#111;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+.pp-fr-val{
+  flex:1;
+  border-bottom:2px solid #333;
+  min-height:18px;
+  font-family:'EB Garamond',serif;
+  font-size:clamp(11px,2.2vw,14px);
+  font-style:italic;
+  color:#111;
+  padding:0 4px 2px;
+}
+/* completion line */
+.pp-completion{
+  font-family:'Poppins',sans-serif;
+  font-size:clamp(10px,2.3vw,14px);
+  font-weight:600;
+  color:#111;
+  padding:7px 0 5px;
+  border-bottom:2px solid #333;
+}
+/* field rows (Admission No, Conduct, Hobby etc.) */
+.pp-field{
+  display:flex;align-items:flex-end;gap:0;
+  border-bottom:2px solid #333;
+  padding:5px 0 2px;
+}
+.pp-field-lbl{
+  font-family:'Poppins',sans-serif;
+  font-size:clamp(10px,2.3vw,14px);
+  font-weight:700;
+  color:#111;
+  white-space:nowrap;
+  margin-right:6px;
+  flex-shrink:0;
+}
+.pp-field-val{
+  flex:1;
+  font-family:'EB Garamond',serif;
+  font-size:clamp(11px,2.2vw,14px);
+  font-style:italic;
+  color:#111;
+  min-height:16px;
+  padding:0 3px;
+}
+/* Recommendation text */
+.pp-rec{
+  font-family:'Poppins',sans-serif;
+  font-size:clamp(10px,2.3vw,14px);
+  font-weight:600;
+  color:#111;
+  line-height:1.6;
+  padding:6px 0;
+}
+/* sig area */
+.pp-sig{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  padding:8px 0 12px;
+  flex-shrink:0;
+}
+.pp-sb{text-align:center;}
 .pp-simg{min-height:34px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:2px;}
 .pp-simg img{max-height:30px;max-width:90%;object-fit:contain;}
-.pp-sline{border-top:1.5px solid var(--c-pri);width:82%;margin:0 auto 3px;}
-.pp-stit{font-family:'Cinzel',serif;font-size:8px;color:var(--c-pri);font-weight:700;letter-spacing:.4px;}
-.pp-sdate{font-size:8.5px;color:#555;margin-top:2px;font-family:sans-serif;}
-.pp-bot{height:8px;background:linear-gradient(90deg,var(--c-pri),var(--c-acc) 50%,var(--c-pri));flex-shrink:0;}
+.pp-sline{border-top:2px solid #333;width:130px;margin:0 auto 4px;}
+.pp-stit{
+  font-family:'Poppins',sans-serif;
+  font-size:clamp(9px,2vw,12px);
+  font-weight:700;
+  color:#111;
+  letter-spacing:.2px;
+}
+.pp-sdate{font-size:clamp(9px,2vw,12px);font-weight:600;color:#111;margin-top:2px;font-family:'Poppins',sans-serif;}
+.pp-ref{font-size:8px;color:#bbb;font-family:sans-serif;text-align:right;padding:2px 0 0;}
+.pp-bot{height:0;}/* no extra bottom bar — outer shell IS the border */
 
 /* ════════════════════════════════════════════
    ② PRIMARY / NURSERY — LANDSCAPE  297×210mm
@@ -1002,258 +1214,305 @@ function renderCert(d){
 
 /* ═══════════════════════════════════════
    ① PRIMARY / NURSERY — PORTRAIT
+   Matches reference: diagonal border, bold headings,
+   content fills full A4 page, fields with wide underlines
 ═══════════════════════════════════════ */
 function certPP(d){
   const c=cmn(d);
   const subs=d.subRows||[];
+  const sectFull={nursery:'Nursery School Education',primary:'Primary School Education',junior:'Junior Secondary Education',senior:'Senior Secondary Education'}[_section]||'School Education';
+  const classDisplay=c.cls!=='—'?c.cls:sectFull;
+
+  function ppField(lbl,val){
+    return `<div class="pp-field">
+  <span class="pp-field-lbl">${lbl}:</span>
+  <span class="pp-field-val">${val||'&nbsp;'}</span>
+ </div>`;
+  }
+
   return `
-<div class="pp dp-a">
+<div class="pp">
 <div class="pp-in">
 
+ <!-- HEADER: school name centred, no logo in header -->
  <div class="pp-hd">
+  <div class="pp-sname">${c.school?.name||'SCHOOL NAME'}</div>
+  <div class="pp-stype">${sectLabel()}</div>
+  <div class="pp-saddr">${c.meta||'&nbsp;'}</div>
+ </div>
+
+ <!-- MOTTO banner -->
+ ${c.school?.motto?`<div class="pp-motto">MOTTO: ${c.school.motto}</div>`:`<div class="pp-motto">MOTTO: EDUCATION &amp; EXCELLENCE</div>`}
+
+ <!-- LOGO | TESTIMONIAL TITLE | PASSPORT PHOTO -->
+ <div class="pp-logo-row">
   <div class="pp-logo">${logoH(c.logo,'pp-logo-ph')}</div>
-  <div class="pp-hc">
-   <div class="pp-sname">${c.school?.name||'SCHOOL NAME'}</div>
-   <div class="pp-stype">${sectLabel()}</div>
-   <div class="pp-saddr">${c.meta||'&nbsp;'}</div>
+  <div class="pp-title-centre">
+   <div class="pp-title">Testimonial</div>
+   <div class="pp-tsub">This is to certify that</div>
   </div>
   <div class="pp-photo">${photoH(c.pp,'pp-photo-ph')}</div>
  </div>
 
- ${c.school?.motto?`<div class="pp-motto">✦ ${c.school.motto} ✦</div>`:''}
-
- <div class="pp-title-area">
-  <div class="pp-title">Testimonial</div>
-  <div class="pp-tsub">— this is to satisfy that —</div>
- </div>
- <div class="pp-rule" style="height:2px;background:linear-gradient(90deg,transparent,var(--c-pri) 18%,var(--c-acc) 50%,var(--c-pri) 82%,transparent);margin:6px 14px;"></div>
-
+ <!-- BODY: flex column, justify space-between fills the page -->
  <div class="pp-body">
-  <div class="pp-intro">
-   <strong>${c.student.full_name||'_____________________________'}</strong>
-  </div>
-  <div style="font-family:'EB Garamond',serif;font-size:13px;font-style:italic;color:#333;text-align:center;margin-bottom:8px;">has been a pupil of this school</div>
+  <div class="pp-body-top">
 
-  <div class="fl" style="justify-content:center;gap:8px;">
-   <span class="fl-txt">From</span>
-   <span class="fl-val" style="min-width:100px;">${c.admDate}</span>
-   <span class="fl-txt">to</span>
-   <span class="fl-val" style="min-width:100px;">${c.today}</span>
+   <!-- Student name -->
+   <div class="pp-stname">${c.student.full_name||'___________________________________'}</div>
+   <div class="pp-pupil-sub">Has been a pupil of this school</div>
+
+   <!-- From … to … where -->
+   <div class="pp-from-row">
+    <span class="pp-fr-lbl">From</span>
+    <span class="pp-fr-val">${c.admDate}</span>
+    <span class="pp-fr-lbl" style="margin-left:8px;">to</span>
+    <span class="pp-fr-val">${c.today}</span>
+    <span class="pp-fr-lbl" style="margin-left:8px;">where</span>
+   </div>
+
+   <!-- Completion line -->
+   <div class="pp-completion">
+    he/she completed his/her <strong>${classDisplay}</strong>&nbsp;&nbsp;(${c.sessLabel})
+   </div>
+
+   <!-- Fields -->
+   ${ppField('Admission No', c.student.admission_no||c.student.roll_no||'&nbsp;')}
+   ${ppField('Date of Birth', fmtDate(c.student.dob||c.student.date_of_birth))}
+   ${ppField('Father / Guardian', c.student.father_name||c.student.guardian_name||'&nbsp;')}
+   ${ppField('Conduct', c.conduct&&c.conduct!=='—'?c.conduct:'&nbsp;')}
+   ${ppField('Hobby', c.hobby||'&nbsp;')}
+   ${ppField('Post Held', c.post&&c.post!=='—'?c.post:'&nbsp;')}
+   ${c.avg!==null?ppField('Academic Performance',`Average: ${c.avg}% &nbsp;·&nbsp; Grade: ${c.og.grade} &nbsp;·&nbsp; ${c.passed}/${subs.length} subjects passed`):''}
   </div>
 
-  <div class="pp-completion">
-   where he/she completed his/her <strong>${c.cls!=='—'?c.cls:'primary'}</strong> school education
-   &nbsp;&nbsp;(Session: ${c.sessLabel})
+  <!-- Recommendation — pushed toward bottom by flex space-between -->
+  <div>
+   <div class="pp-rec">
+    I strongly recommend him/her to wherever may need his/her service or for further academic pursuit.
+   </div>
+   <div class="pp-ref">Ref: ${c.certNo} &nbsp;·&nbsp; ${c.today}</div>
   </div>
 
-  <div style="margin-top:6px;">
-   ${fl('Admission No.', c.student.admission_no||c.student.roll_no||'—')}
-   ${fl('Date of Birth', fmtDate(c.student.dob||c.student.date_of_birth))}
-   ${fl('Father / Guardian', c.student.father_name||c.student.guardian_name||'—')}
-   ${fl('Conduct', c.conduct)}
-   ${c.hobby?fl('Hobby',c.hobby):''}
-   ${c.post&&c.post!=='—'?fl('Post Held',c.post):''}
-   ${c.avg!==null?fl('Academic Performance',`Average: ${c.avg}% &nbsp;·&nbsp; Grade: ${c.og.grade} &nbsp;·&nbsp; ${c.passed}/${subs.length} subjects passed`):''}
+  <!-- Signatures -->
+  <div class="pp-sig">
+   <div class="pp-sb">
+    <div class="pp-simg">${c.hmSig?`<img src="${c.hmSig}">`:'&nbsp;'}</div>
+    <div class="pp-sline"></div>
+    <div class="pp-stit">Headmaster's Signature</div>
+    <div class="pp-sdate">Date: ${c.today}</div>
+   </div>
+   <div class="stamp stamp-lg">OFFICIAL<br>SCHOOL<br>STAMP<br>&amp; SEAL</div>
+   <div class="pp-sb">
+    <div class="pp-simg">&nbsp;</div>
+    <div class="pp-sline"></div>
+    <div class="pp-stit">Pupil's Signature</div>
+    <div class="pp-sdate">Date: _______________</div>
+   </div>
   </div>
-
-  <div class="pp-sp"></div>
-
-  <div class="pp-rec">
-   I strongly recommend him/her to wherever may need his/her service or for further academic
-   pursuit. ${c.school?.name||'This institution'} wishes him/her great success in all future endeavours.
-  </div>
-  <div class="pp-ref">Ref: ${c.certNo} &nbsp;·&nbsp; Date: ${c.today}</div>
  </div><!-- body -->
 
- <div class="pp-sig">
-  <div class="pp-sb">
-   <div class="pp-simg">${c.hmSig?`<img src="${c.hmSig}">`:'&nbsp;'}</div>
-   <div class="pp-sline"></div>
-   <div class="pp-stit">Headmaster's Signature</div>
-   <div class="pp-sdate">Date: ${c.today}</div>
-  </div>
-  <div class="stamp stamp-lg">OFFICIAL<br>SCHOOL<br>STAMP<br>&amp; SEAL</div>
-  <div class="pp-sb">
-   <div class="pp-simg">&nbsp;</div>
-   <div class="pp-sline"></div>
-   <div class="pp-stit">Pupil's Signature</div>
-   <div class="pp-sdate">Date: _______________</div>
-  </div>
- </div>
-
- <div class="pp-bot"></div>
 </div>
 </div>`;
 }
 
 /* ═══════════════════════════════════════
    ② PRIMARY / NURSERY — LANDSCAPE
+   Reference style: diagonal border, bold headings,
+   two-column body fills full 297×210mm page
 ═══════════════════════════════════════ */
 function certPL(d){
   const c=cmn(d);
   const subs=d.subRows||[];
+  const sectFull={nursery:'Nursery School Education',primary:'Primary School Education',junior:'Junior Secondary Education',senior:'Senior Secondary Education'}[_section]||'School Education';
+  const classDisplay=c.cls!=='—'?c.cls:sectFull;
+
+  function plField(lbl,val){
+    return `<div style="display:flex;align-items:flex-end;gap:0;border-bottom:1.8px solid #333;padding:4px 0 2px;margin-bottom:2px;">
+  <span style="font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;color:#111;white-space:nowrap;margin-right:5px;">${lbl}:</span>
+  <span style="flex:1;font-family:'EB Garamond',serif;font-size:12.5px;font-style:italic;color:#111;">${val||'&nbsp;'}</span>
+ </div>`;
+  }
+
   return `
-<div class="pl dp-a">
-<div class="pl-in">
+<div class="pl" style="padding:0;background:var(--c-pri);position:relative;overflow:hidden;">
+<div style="content:'';position:absolute;inset:0;background:repeating-linear-gradient(-45deg,transparent 0px,transparent 10px,rgba(255,255,255,.18) 10px,rgba(255,255,255,.18) 14px,transparent 14px,transparent 24px,var(--c-acc) 24px,var(--c-acc) 28px,transparent 28px,transparent 38px);pointer-events:none;z-index:0;"></div>
+<div style="margin:9px;flex:1;background:#fff;display:flex;flex-direction:column;border:3px solid var(--c-pri);position:relative;z-index:1;overflow:hidden;height:calc(210mm - 18px);">
 
- <div class="pl-hd">
-  <div class="pl-logo">${logoH(c.logo,'pl-logo-ph')}</div>
-  <div class="pl-hc">
-   <div class="pl-sname">${c.school?.name||'SCHOOL NAME'}</div>
-   <div class="pl-stype">${sectLabel()}</div>
-   <div class="pl-saddr">${c.meta||'&nbsp;'}</div>
-  </div>
-  <div class="pl-photo">${photoH(c.pp,'pl-photo-ph')}</div>
+ <!-- Header -->
+ <div style="background:#fff;padding:10px 16px 7px;text-align:center;flex-shrink:0;border-bottom:3px solid var(--c-pri);">
+  <div style="font-family:'Arial Black','Poppins',sans-serif;font-size:clamp(13px,3.2vw,21px);font-weight:900;color:var(--c-pri3);text-transform:uppercase;line-height:1.15;letter-spacing:.4px;">${c.school?.name||'SCHOOL NAME'}</div>
+  <div style="font-family:'Arial Black','Poppins',sans-serif;font-size:clamp(9px,2vw,13px);font-weight:900;color:#1a1a1a;text-transform:uppercase;margin:1px 0;">${sectLabel()}</div>
+  <div style="font-family:'Poppins',sans-serif;font-size:clamp(7px,1.5vw,10px);font-weight:700;color:#222;text-transform:uppercase;">${c.meta||'&nbsp;'}</div>
  </div>
 
- ${c.school?.motto?`<div class="pl-motto">✦ ${c.school.motto} ✦</div>`:''}
+ <!-- Motto -->
+ ${c.school?.motto?`<div style="background:var(--c-r1);padding:4px 16px;text-align:center;flex-shrink:0;font-family:'Arial Black','Poppins',sans-serif;font-size:clamp(8px,1.8vw,12px);font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:.5px;">MOTTO: ${c.school.motto}</div>`:`<div style="background:var(--c-r1);padding:4px 16px;text-align:center;font-family:'Arial Black','Poppins',sans-serif;font-size:11px;font-weight:900;color:#fff;text-transform:uppercase;">MOTTO: EDUCATION &amp; EXCELLENCE</div>`}
 
- <div class="pl-tstrip">
-  <div class="pl-tblk">
-   <div class="pl-ttxt">Testimonial</div>
-   <div class="pl-tsub">— this is to satisfy that —</div>
+ <!-- Logo | Testimonial title | Photo -->
+ <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 14px 6px;flex-shrink:0;border-bottom:2.5px solid var(--c-pri);">
+  <div style="width:58px;height:58px;border-radius:50%;overflow:hidden;background:#f5f5f5;border:2.5px solid var(--c-pri);display:flex;align-items:center;justify-content:center;flex-shrink:0;">${logoH(c.logo,'pp-logo-ph')}</div>
+  <div style="flex:1;text-align:center;padding:0 10px;">
+   <div style="font-family:'Arial Black','Poppins',sans-serif;font-size:clamp(22px,5.5vw,36px);font-weight:900;color:var(--c-pri3);line-height:1;letter-spacing:.5px;">Testimonial</div>
+   <div style="font-family:'Poppins',sans-serif;font-size:clamp(8px,1.8vw,12px);font-weight:700;color:var(--c-r1);">This is to certify that</div>
   </div>
-  <div class="pl-tinfo">
-   <div style="font-family:'EB Garamond',serif;font-size:12px;font-style:italic;color:#222;margin-bottom:4px;">
-    <strong>${c.student.full_name||'____________________________'}</strong> has been a pupil of this school
-   </div>
-   <div class="fl" style="margin-bottom:3px;">
-    <span class="fl-txt" style="font-size:11px;">From</span>
-    <span class="fl-val">${c.admDate}</span>
-    <span class="fl-txt" style="font-size:11px;">to</span>
-    <span class="fl-val">${c.today}</span>
-   </div>
-   <div class="pl-completion">
-    where he/she completed his/her <strong>${c.cls!=='—'?c.cls:'primary'}</strong> school education (Session: ${c.sessLabel})
-   </div>
-  </div>
+  <div style="width:58px;height:72px;flex-shrink:0;border:2.5px solid var(--c-pri);background:#f0f4ff;display:flex;align-items:center;justify-content:center;overflow:hidden;">${photoH(c.pp,'pp-photo-ph')}</div>
  </div>
 
- <div class="pl-cols">
-  <div class="pl-col">
-   <div class="pl-ch">Student Details</div>
-   ${fl('Admission No.', c.student.admission_no||c.student.roll_no||'—')}
-   ${fl('Date of Birth', fmtDate(c.student.dob||c.student.date_of_birth))}
-   ${fl('Father / Guardian', c.student.father_name||c.student.guardian_name||'—')}
-   ${fl('Conduct', c.conduct)}
-   ${c.hobby?fl('Hobby',c.hobby):''}
-   ${c.post&&c.post!=='—'?fl('Post Held',c.post):''}
-   ${c.avg!==null?fl('Academic Avg',`${c.avg}% — Grade ${c.og.grade}`):''}
-   <div class="pl-sp"></div>
-   <div style="font-size:8px;color:#bbb;font-family:sans-serif;margin-top:4px;">Ref: ${c.certNo} · ${c.today}</div>
+ <!-- Body: two-column content fills the rest -->
+ <div style="display:grid;grid-template-columns:1fr 1fr;flex:1;overflow:hidden;">
+
+  <!-- LEFT column -->
+  <div style="padding:9px 14px;display:flex;flex-direction:column;border-right:2px solid #ddd;overflow:hidden;">
+   <div style="font-family:'EB Garamond',serif;font-size:16px;font-weight:600;font-style:italic;color:#111;border-bottom:2px solid #333;padding-bottom:3px;margin-bottom:4px;">${c.student.full_name||'___________________________'}</div>
+   <div style="font-family:'Poppins',sans-serif;font-size:11px;font-weight:600;font-style:italic;color:#333;margin-bottom:5px;">Has been a pupil of this school</div>
+
+   <div style="display:flex;align-items:flex-end;gap:5px;flex-wrap:nowrap;border-bottom:1.8px solid #333;padding-bottom:2px;margin-bottom:3px;">
+    <span style="font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;color:#111;white-space:nowrap;">From</span>
+    <span style="flex:1;font-family:'EB Garamond',serif;font-size:12px;font-style:italic;color:#111;">${c.admDate}</span>
+    <span style="font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;color:#111;white-space:nowrap;">to</span>
+    <span style="flex:1;font-family:'EB Garamond',serif;font-size:12px;font-style:italic;color:#111;">${c.today}</span>
+    <span style="font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;color:#111;white-space:nowrap;">where</span>
+   </div>
+   <div style="font-family:'Poppins',sans-serif;font-size:11.5px;font-weight:600;color:#111;border-bottom:1.8px solid #333;padding:3px 0 4px;margin-bottom:5px;">
+    he/she completed his/her <strong>${classDisplay}</strong> (${c.sessLabel})
+   </div>
+
+   ${plField('Admission No', c.student.admission_no||c.student.roll_no||'&nbsp;')}
+   ${plField('Date of Birth', fmtDate(c.student.dob||c.student.date_of_birth))}
+   ${plField('Father / Guardian', c.student.father_name||c.student.guardian_name||'&nbsp;')}
+   <div style="flex:1;"></div>
+   <div style="font-size:7.5px;color:#bbb;font-family:sans-serif;text-align:right;">Ref: ${c.certNo} · ${c.today}</div>
   </div>
-  <div class="pl-col">
-   <div class="pl-ch">Conduct &amp; Recommendation</div>
-   ${fl('Sincerity', c.sinc)}
-   ${fl('Punctuality', c.punct)}
-   <div class="pl-sp"></div>
-   <div class="pl-rec">
+
+  <!-- RIGHT column -->
+  <div style="padding:9px 14px;display:flex;flex-direction:column;overflow:hidden;">
+   ${plField('Conduct', c.conduct&&c.conduct!=='—'?c.conduct:'&nbsp;')}
+   ${plField('Hobby', c.hobby||'&nbsp;')}
+   ${plField('Post Held', c.post&&c.post!=='—'?c.post:'&nbsp;')}
+   ${c.avg!==null?plField('Academic Avg',`${c.avg}% — Grade ${c.og.grade}`):''}
+   <div style="flex:1;"></div>
+   <div style="font-family:'Poppins',sans-serif;font-size:11.5px;font-weight:600;color:#111;line-height:1.6;padding:5px 0;">
     I strongly recommend him/her to wherever may need his/her service or for further academic pursuit.
-    ${c.school?.name||'This institution'} wishes him/her great success in all future endeavours.
+   </div>
+   <!-- Sigs -->
+   <div style="display:flex;justify-content:space-between;align-items:flex-end;padding-top:6px;border-top:2px solid var(--c-pri);">
+    <div style="text-align:center;">
+     <div style="min-height:24px;">${c.hmSig?`<img src="${c.hmSig}" style="max-height:22px;">`:'&nbsp;'}</div>
+     <div style="border-top:2px solid #333;width:110px;margin:0 auto 3px;"></div>
+     <div style="font-family:'Poppins',sans-serif;font-size:10px;font-weight:700;color:#111;">Headmaster's Signature</div>
+     <div style="font-family:'Poppins',sans-serif;font-size:10px;font-weight:600;color:#111;">Date: ${c.today}</div>
+    </div>
+    <div class="stamp stamp-sm">OFFICIAL<br>SCHOOL<br>STAMP</div>
+    <div style="text-align:center;">
+     <div style="min-height:24px;">&nbsp;</div>
+     <div style="border-top:2px solid #333;width:110px;margin:0 auto 3px;"></div>
+     <div style="font-family:'Poppins',sans-serif;font-size:10px;font-weight:700;color:#111;">Pupil's Signature</div>
+     <div style="font-family:'Poppins',sans-serif;font-size:10px;font-weight:600;color:#111;">Date: ___________</div>
+    </div>
    </div>
   </div>
- </div>
 
- <div class="pl-sig">
-  <div class="pl-sb">
-   <div class="pl-simg">${c.hmSig?`<img src="${c.hmSig}">`:'&nbsp;'}</div>
-   <div class="pl-sline"></div>
-   <div class="pl-stit">Headmaster's Signature</div>
-   <div class="pl-sdate">Date: ${c.today}</div>
-  </div>
-  <div class="stamp stamp-sm">OFFICIAL<br>SCHOOL<br>STAMP</div>
-  <div class="pl-sb">
-   <div class="pl-simg">&nbsp;</div>
-   <div class="pl-sline"></div>
-   <div class="pl-stit">Pupil's Signature</div>
-   <div class="pl-sdate">Date: _______________</div>
-  </div>
- </div>
-
- <div class="pl-bot"></div>
+ </div><!-- grid -->
 </div>
 </div>`;
 }
 
 /* ═══════════════════════════════════════
    ③ JUNIOR / SENIOR — PORTRAIT
+   Bold heading, diagonal stripe border, full A4 fill
 ═══════════════════════════════════════ */
 function certSP(d){
   const c=cmn(d);
   const subs=d.subRows||[];
-  return `
-<div class="sp dp-b">
-<div class="sp-in">
+  const sectFull={junior:'Junior Secondary Education',senior:'Senior Secondary Education'}[_section]||'Secondary Education';
+  const classDisplay=c.cls!=='—'?c.cls:sectFull;
 
- <div class="sp-hd">
-  <div class="sp-sname">${c.school?.name||'SCHOOL NAME'}</div>
-  <div class="sp-stype">${sectLabel()}</div>
-  <div class="sp-saddr">${c.meta||'&nbsp;'}</div>
- </div>
-
- ${c.school?.motto?`<div class="sp-motto">✦ ${c.school.motto} ✦</div>`:`<div class="sp-motto">&nbsp;</div>`}
-
- <div class="sp-lt">
-  <div class="sp-lc">${logoH(c.logo,'sp-lc-ph')}</div>
-  <div class="sp-ttxt">Testimonial</div>
-  <div class="sp-tsub">To whom it may concern</div>
- </div>
- <div class="sp-rule"></div>
-
- <div class="sp-body">
-  ${fl('Name', c.student.full_name||'—')}
-  ${fl('Admission No.', c.student.admission_no||c.student.roll_no||'—')}
-  ${fl('Date of Birth', fmtDate(c.student.dob||c.student.date_of_birth))}
-  ${fl('Father / Guardian', c.student.father_name||c.student.guardian_name||'—')}
-
-  <div style="display:flex;align-items:flex-end;gap:6px;flex-wrap:wrap;margin-bottom:5px;font-size:11.5px;">
-   <span class="fl-txt">Was a pupil of this school from</span>
-   <span class="fl-val" style="min-width:110px;">${c.admDate}</span>
-   <span class="fl-txt">to</span>
-   <span class="fl-val" style="min-width:110px;">${c.today}</span>
-  </div>
-  <div style="font-family:'EB Garamond',serif;font-size:13px;font-style:italic;color:#333;border-bottom:1.5px solid #444;padding-bottom:2px;margin-bottom:9px;">
-   where he/she completed his/her <strong>${c.cls!=='—'?c.cls:''}</strong> education &nbsp;(Session: ${c.sessLabel})
-  </div>
-
-  ${c.avg!==null?fl('Academic Performance',`Average: ${c.avg}% &nbsp;·&nbsp; Grade: ${c.og.grade} &nbsp;·&nbsp; ${c.passed}/${subs.length} subjects`):''}
-
-  <div class="sp-rh">Remark by the Headmaster</div>
-  ${fl('CONDUCT', c.conduct)}
-  ${c.post&&c.post!=='—'?`
-  <div style="font-size:11.5px;font-weight:700;color:#1a1a1a;margin:8px 0 4px;">He/She held the following office(s) of responsibility:</div>
-  <div style="border-bottom:1.5px solid #444;min-height:18px;padding:0 4px;font-family:'EB Garamond',serif;font-size:13px;font-style:italic;margin-bottom:6px;">${c.post}</div>`:''
+  function spField(lbl,val){
+    return `<div style="display:flex;align-items:flex-end;gap:0;border-bottom:2px solid #333;padding:5px 0 2px;margin-bottom:2px;">
+  <span style="font-family:'Poppins',sans-serif;font-size:clamp(10px,2.3vw,14px);font-weight:700;color:#111;white-space:nowrap;margin-right:6px;">${lbl}:</span>
+  <span style="flex:1;font-family:'EB Garamond',serif;font-size:clamp(11px,2.2vw,14px);font-style:italic;color:#111;">${val||'&nbsp;'}</span>
+ </div>`;
   }
 
-  <div class="sp-sp"></div>
+  return `
+<div class="sp" style="padding:0;background:var(--c-s1);position:relative;overflow:hidden;">
+<div style="position:absolute;inset:0;background:repeating-linear-gradient(-45deg,transparent 0px,transparent 10px,rgba(255,255,255,.12) 10px,rgba(255,255,255,.12) 14px,transparent 14px,transparent 24px,var(--c-r1) 24px,var(--c-r1) 28px,transparent 28px,transparent 38px);pointer-events:none;z-index:0;"></div>
+<div style="margin:10px;flex:1;background:#fff;display:flex;flex-direction:column;border:3px solid var(--c-s1);position:relative;z-index:1;overflow:hidden;height:calc(297mm - 20px);">
 
-  <div class="sp-rec">
-   I strongly recommend him/her to wherever may need his/her service or for further academic pursuit.
-   ${c.school?.name||'This institution'} wishes him/her great success in all future endeavours.
+ <!-- Header -->
+ <div style="background:#fff;padding:14px 16px 10px;text-align:center;flex-shrink:0;border-bottom:3px solid var(--c-s1);">
+  <div style="font-family:'Arial Black','Poppins',sans-serif;font-size:clamp(16px,4.5vw,26px);font-weight:900;color:var(--c-s2);text-transform:uppercase;line-height:1.15;letter-spacing:.5px;">${c.school?.name||'SCHOOL NAME'}</div>
+  <div style="font-family:'Arial Black','Poppins',sans-serif;font-size:clamp(10px,2.6vw,16px);font-weight:900;color:#1a1a1a;text-transform:uppercase;margin:2px 0;">${sectLabel()}</div>
+  <div style="font-family:'Poppins',sans-serif;font-size:clamp(8px,1.8vw,11px);font-weight:700;color:#222;text-transform:uppercase;">${c.meta||'&nbsp;'}</div>
+ </div>
+
+ <!-- Motto -->
+ ${c.school?.motto?`<div style="background:var(--c-r1);padding:5px 16px;text-align:center;flex-shrink:0;font-family:'Arial Black','Poppins',sans-serif;font-size:clamp(9px,2.2vw,13px);font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:.5px;">MOTTO: ${c.school.motto}</div>`:`<div style="background:var(--c-r1);padding:5px 16px;text-align:center;font-family:'Arial Black','Poppins',sans-serif;font-size:12px;font-weight:900;color:#fff;text-transform:uppercase;">TO WHOM IT MAY CONCERN</div>`}
+
+ <!-- Logo | Title | Photo -->
+ <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px 8px;flex-shrink:0;border-bottom:2.5px solid var(--c-s1);">
+  <div style="width:72px;height:72px;border-radius:50%;overflow:hidden;background:#f5f5f5;border:2.5px solid var(--c-s1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">${logoH(c.logo,'sp-lc-ph')}</div>
+  <div style="flex:1;text-align:center;padding:0 10px;">
+   <div style="font-family:'Arial Black','Poppins',sans-serif;font-size:clamp(28px,7vw,46px);font-weight:900;color:var(--c-s2);line-height:1;letter-spacing:.5px;">Testimonial</div>
+   <div style="font-family:'Poppins',sans-serif;font-size:clamp(9px,2vw,13px);font-weight:700;color:var(--c-r1);">To Whom It May Concern</div>
+  </div>
+  <div style="width:72px;height:88px;flex-shrink:0;border:2.5px solid var(--c-s1);background:#f8f8f8;display:flex;align-items:center;justify-content:center;overflow:hidden;">${photoH(c.pp,'pp-photo-ph')}</div>
+ </div>
+
+ <!-- Body -->
+ <div style="padding:0 18px;flex:1;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;">
+  <div style="padding-top:10px;">
+
+   <!-- Student name -->
+   <div style="font-family:'EB Garamond',serif;font-size:clamp(15px,3.5vw,22px);font-weight:600;font-style:italic;color:#111;text-align:center;border-bottom:2px solid #333;padding-bottom:4px;margin-bottom:6px;">${c.student.full_name||'___________________________________'}</div>
+
+   <!-- Was a pupil -->
+   <div style="display:flex;align-items:flex-end;gap:6px;flex-wrap:nowrap;margin-bottom:0;border-bottom:2px solid #333;padding-bottom:2px;">
+    <span style="font-family:'Poppins',sans-serif;font-size:clamp(11px,2.5vw,15px);font-weight:700;color:#111;white-space:nowrap;flex-shrink:0;">From</span>
+    <span style="flex:1;font-family:'EB Garamond',serif;font-size:13px;font-style:italic;color:#111;">${c.admDate}</span>
+    <span style="font-family:'Poppins',sans-serif;font-size:clamp(11px,2.5vw,15px);font-weight:700;color:#111;white-space:nowrap;flex-shrink:0;">to</span>
+    <span style="flex:1;font-family:'EB Garamond',serif;font-size:13px;font-style:italic;color:#111;">${c.today}</span>
+    <span style="font-family:'Poppins',sans-serif;font-size:clamp(11px,2.5vw,15px);font-weight:700;color:#111;white-space:nowrap;flex-shrink:0;">where</span>
+   </div>
+   <div style="font-family:'Poppins',sans-serif;font-size:clamp(10px,2.3vw,14px);font-weight:600;color:#111;padding:6px 0 5px;border-bottom:2px solid #333;">
+    he/she completed his/her <strong>${classDisplay}</strong>&nbsp;&nbsp;(${c.sessLabel})
+   </div>
+
+   ${spField('Admission No', c.student.admission_no||c.student.roll_no||'&nbsp;')}
+   ${spField('Date of Birth', fmtDate(c.student.dob||c.student.date_of_birth))}
+   ${spField('Father / Guardian', c.student.father_name||c.student.guardian_name||'&nbsp;')}
+   ${spField('Conduct', c.conduct&&c.conduct!=='—'?c.conduct:'&nbsp;')}
+   ${c.post&&c.post!=='—'?spField('Post Held',c.post):''}
+   ${c.avg!==null?spField('Academic Performance',`Average: ${c.avg}% · Grade: ${c.og.grade} · ${c.passed}/${subs.length} subjects`):''}
+  </div>
+
+  <!-- Recommendation -->
+  <div>
+   <div style="font-family:'Poppins',sans-serif;font-size:clamp(10px,2.3vw,14px);font-weight:600;color:#111;line-height:1.65;padding:6px 0;">
+    I strongly recommend him/her to wherever may need his/her service or for further academic pursuit.
+   </div>
+   <div style="font-size:8px;color:#bbb;font-family:sans-serif;text-align:right;">Ref: ${c.certNo} · ${c.today}</div>
+  </div>
+
+  <!-- Signatures -->
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;padding:8px 0 12px;border-top:2px solid var(--c-s1);">
+   <div style="text-align:center;">
+    <div style="min-height:34px;">${c.hmSig?`<img src="${c.hmSig}" style="max-height:28px;">`:'&nbsp;'}</div>
+    <div style="border-top:2px solid #333;width:130px;margin:0 auto 4px;"></div>
+    <div style="font-family:'Poppins',sans-serif;font-size:clamp(9px,2vw,12px);font-weight:700;color:#111;">Headmaster's Signature</div>
+    <div style="font-family:'Poppins',sans-serif;font-size:clamp(9px,2vw,12px);font-weight:600;color:#111;">Date: ${c.today}</div>
+   </div>
+   <div class="stamp stamp-lg">OFFICIAL<br>SCHOOL<br>STAMP<br>&amp; SEAL</div>
+   <div style="text-align:center;">
+    <div style="min-height:34px;">&nbsp;</div>
+    <div style="border-top:2px solid #333;width:130px;margin:0 auto 4px;"></div>
+    <div style="font-family:'Poppins',sans-serif;font-size:clamp(9px,2vw,12px);font-weight:700;color:#111;">Pupil's Signature</div>
+    <div style="font-family:'Poppins',sans-serif;font-size:clamp(9px,2vw,12px);font-weight:600;color:#111;">Date: _______________</div>
+   </div>
   </div>
  </div>
 
- <div class="sp-date">
-  <span>DATE:</span>
-  <span class="sp-dl">${c.today}</span>
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  <span>20</span>
-  <span class="sp-dl" style="min-width:55px;"></span>
- </div>
-
- <div class="sp-ft">
-  <div class="stamp stamp-lg">OFFICIAL<br>SCHOOL<br>STAMP<br>&amp; SEAL</div>
-  <div class="sp-sb">
-   <div class="sp-simg">${c.hmSig?`<img src="${c.hmSig}">`:'&nbsp;'}</div>
-   <div class="sp-sline"></div>
-   <div class="sp-stit">Headmaster's Signature &amp; Stamp</div>
-   <div class="sp-sdot">Date: ${c.today}</div>
-  </div>
- </div>
-
- <div class="sp-ref">Ref: ${c.certNo} &nbsp;·&nbsp; EduTrack NG &nbsp;·&nbsp; ${c.today}</div>
- <div class="sp-bott"></div>
- <div class="sp-botb"></div>
 </div>
 </div>`;
 }
@@ -1264,77 +1523,95 @@ function certSP(d){
 function certSL(d){
   const c=cmn(d);
   const subs=d.subRows||[];
+  const sectFull={junior:'Junior Secondary Education',senior:'Senior Secondary Education'}[_section]||'Secondary Education';
+  const classDisplay=c.cls!=='—'?c.cls:sectFull;
+
+  function slField(lbl,val){
+    return `<div style="display:flex;align-items:flex-end;gap:0;border-bottom:1.8px solid #333;padding:4px 0 2px;margin-bottom:2px;">
+  <span style="font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;color:#111;white-space:nowrap;margin-right:5px;">${lbl}:</span>
+  <span style="flex:1;font-family:'EB Garamond',serif;font-size:12.5px;font-style:italic;color:#111;">${val||'&nbsp;'}</span>
+ </div>`;
+  }
+
   return `
-<div class="sl dp-b">
-<div class="sl-in">
+<div class="sl" style="padding:0;background:var(--c-s1);position:relative;overflow:hidden;">
+<div style="position:absolute;inset:0;background:repeating-linear-gradient(-45deg,transparent 0px,transparent 10px,rgba(255,255,255,.12) 10px,rgba(255,255,255,.12) 14px,transparent 14px,transparent 24px,var(--c-r1) 24px,var(--c-r1) 28px,transparent 28px,transparent 38px);pointer-events:none;z-index:0;"></div>
+<div style="margin:9px;flex:1;background:#fff;display:flex;flex-direction:column;border:3px solid var(--c-s1);position:relative;z-index:1;overflow:hidden;height:calc(210mm - 18px);">
 
- <div class="sl-hd">
-  <div class="sl-sname">${c.school?.name||'SCHOOL NAME'}</div>
-  <div class="sl-stype">${sectLabel()}</div>
-  <div class="sl-saddr">${c.meta||'&nbsp;'}</div>
+ <!-- Header -->
+ <div style="background:#fff;padding:9px 16px 7px;text-align:center;flex-shrink:0;border-bottom:3px solid var(--c-s1);">
+  <div style="font-family:'Arial Black','Poppins',sans-serif;font-size:clamp(12px,3vw,19px);font-weight:900;color:var(--c-s2);text-transform:uppercase;line-height:1.15;letter-spacing:.4px;">${c.school?.name||'SCHOOL NAME'}</div>
+  <div style="font-family:'Arial Black','Poppins',sans-serif;font-size:clamp(8px,1.8vw,12px);font-weight:900;color:#1a1a1a;text-transform:uppercase;margin:1px 0;">${sectLabel()}</div>
+  <div style="font-family:'Poppins',sans-serif;font-size:clamp(7px,1.4vw,10px);font-weight:700;color:#222;text-transform:uppercase;">${c.meta||'&nbsp;'}</div>
  </div>
 
- ${c.school?.motto?`<div class="sl-motto">✦ ${c.school.motto} ✦</div>`:`<div class="sl-motto">&nbsp;</div>`}
+ <!-- Motto -->
+ ${c.school?.motto?`<div style="background:var(--c-r1);padding:4px 16px;text-align:center;flex-shrink:0;font-family:'Arial Black','Poppins',sans-serif;font-size:clamp(8px,1.8vw,11px);font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:.5px;">MOTTO: ${c.school.motto}</div>`:`<div style="background:var(--c-r1);padding:4px 16px;text-align:center;font-family:'Arial Black','Poppins',sans-serif;font-size:10px;font-weight:900;color:#fff;text-transform:uppercase;">TO WHOM IT MAY CONCERN</div>`}
 
- <div class="sl-cont">
-  <!-- left panel -->
-  <div class="sl-lp">
-   <div class="sl-lc">${logoH(c.logo,'sl-lc-ph')}</div>
-   <div class="sl-lttxt">Testimonial</div>
-   <div class="sl-ltsub">To whom it<br>may concern</div>
+ <!-- Logo | Title | Photo -->
+ <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 14px 6px;flex-shrink:0;border-bottom:2.5px solid var(--c-s1);">
+  <div style="width:58px;height:58px;border-radius:50%;overflow:hidden;background:#f5f5f5;border:2.5px solid var(--c-s1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">${logoH(c.logo,'sl-lc-ph')}</div>
+  <div style="flex:1;text-align:center;padding:0 8px;">
+   <div style="font-family:'Arial Black','Poppins',sans-serif;font-size:clamp(22px,5vw,34px);font-weight:900;color:var(--c-s2);line-height:1;letter-spacing:.5px;">Testimonial</div>
+   <div style="font-family:'Poppins',sans-serif;font-size:clamp(8px,1.8vw,11px);font-weight:700;color:var(--c-r1);">To Whom It May Concern</div>
   </div>
+  <div style="width:58px;height:72px;flex-shrink:0;border:2.5px solid var(--c-s1);background:#f8f8f8;display:flex;align-items:center;justify-content:center;overflow:hidden;">${photoH(c.pp,'pp-photo-ph')}</div>
+ </div>
 
-  <!-- right body -->
-  <div class="sl-bc">
-   <div class="sl-col">
-    <div class="sl-ch">Student Information</div>
-    ${fl('Name', c.student.full_name||'—')}
-    ${fl('Admission No.', c.student.admission_no||c.student.roll_no||'—')}
-    ${fl('Date of Birth', fmtDate(c.student.dob||c.student.date_of_birth))}
-    ${fl('Father / Guardian', c.student.father_name||c.student.guardian_name||'—')}
-    <div style="display:flex;align-items:flex-end;flex-wrap:wrap;gap:5px;margin-bottom:5px;font-size:11px;">
-     <span class="fl-txt">Pupil from</span>
-     <span class="fl-val">${c.admDate}</span>
-     <span class="fl-txt">to</span>
-     <span class="fl-val">${c.today}</span>
-    </div>
-    <div style="font-family:'EB Garamond',serif;font-size:11px;font-style:italic;color:#333;border-bottom:1.5px solid #444;padding-bottom:2px;margin-bottom:5px;">
-     Completed <strong>${c.cls!=='—'?c.cls:''}</strong> education (${c.sessLabel})
-    </div>
-    ${c.avg!==null?fl('Academic Avg',`${c.avg}% — Grade ${c.og.grade}`):''}
-    <div class="sl-sp"></div>
-    <div style="font-size:8px;color:#bbb;font-family:sans-serif;margin-top:3px;">Ref: ${c.certNo} · ${c.today}</div>
+ <!-- Two-column body -->
+ <div style="display:grid;grid-template-columns:1fr 1fr;flex:1;overflow:hidden;">
+
+  <!-- LEFT -->
+  <div style="padding:9px 13px;display:flex;flex-direction:column;border-right:2px solid #ddd;overflow:hidden;">
+   <div style="font-family:'EB Garamond',serif;font-size:15px;font-weight:600;font-style:italic;color:#111;border-bottom:2px solid #333;padding-bottom:3px;margin-bottom:4px;">${c.student.full_name||'____________________________'}</div>
+   <div style="font-family:'Poppins',sans-serif;font-size:10.5px;font-weight:600;font-style:italic;color:#333;margin-bottom:4px;">Has been a pupil of this school</div>
+
+   <div style="display:flex;align-items:flex-end;gap:4px;flex-wrap:nowrap;border-bottom:1.8px solid #333;padding-bottom:2px;margin-bottom:3px;">
+    <span style="font-family:'Poppins',sans-serif;font-size:11.5px;font-weight:700;color:#111;white-space:nowrap;">From</span>
+    <span style="flex:1;font-family:'EB Garamond',serif;font-size:11.5px;font-style:italic;color:#111;">${c.admDate}</span>
+    <span style="font-family:'Poppins',sans-serif;font-size:11.5px;font-weight:700;color:#111;white-space:nowrap;">to</span>
+    <span style="flex:1;font-family:'EB Garamond',serif;font-size:11.5px;font-style:italic;color:#111;">${c.today}</span>
+    <span style="font-family:'Poppins',sans-serif;font-size:11.5px;font-weight:700;color:#111;white-space:nowrap;">where</span>
+   </div>
+   <div style="font-family:'Poppins',sans-serif;font-size:11px;font-weight:600;color:#111;padding:3px 0 4px;border-bottom:1.8px solid #333;margin-bottom:4px;">
+    he/she completed his/her <strong>${classDisplay}</strong> (${c.sessLabel})
    </div>
 
-   <div class="sl-col">
-    <div class="sl-rh">Remark by the Headmaster</div>
-    ${fl('CONDUCT', c.conduct)}
-    ${c.post&&c.post!=='—'?fl('Post Held',c.post):''}
-    <div style="border-bottom:1.5px solid #ddd;min-height:16px;margin-bottom:6px;">&nbsp;</div>
-    <div class="sl-sp"></div>
-    <div class="sl-rec">
-     I strongly recommend him/her to wherever may need his/her service or for further academic pursuit.
-     ${c.school?.name||'This institution'} wishes him/her great success in all future endeavours.
+   ${slField('Admission No', c.student.admission_no||c.student.roll_no||'&nbsp;')}
+   ${slField('Date of Birth', fmtDate(c.student.dob||c.student.date_of_birth))}
+   ${slField('Father / Guardian', c.student.father_name||c.student.guardian_name||'&nbsp;')}
+   <div style="flex:1;"></div>
+   <div style="font-size:7px;color:#bbb;font-family:sans-serif;text-align:right;">Ref: ${c.certNo} · ${c.today}</div>
+  </div>
+
+  <!-- RIGHT -->
+  <div style="padding:9px 13px;display:flex;flex-direction:column;overflow:hidden;">
+   ${slField('Conduct', c.conduct&&c.conduct!=='—'?c.conduct:'&nbsp;')}
+   ${c.post&&c.post!=='—'?slField('Post Held',c.post):''}
+   ${c.avg!==null?slField('Academic Avg',`${c.avg}% — Grade ${c.og.grade}`):''}
+   <div style="flex:1;"></div>
+   <div style="font-family:'Poppins',sans-serif;font-size:11px;font-weight:600;color:#111;line-height:1.6;padding:5px 0;">
+    I strongly recommend him/her to wherever may need his/her service or for further academic pursuit.
+   </div>
+   <!-- Sigs -->
+   <div style="display:flex;justify-content:space-between;align-items:flex-end;padding-top:6px;border-top:2px solid var(--c-s1);">
+    <div style="text-align:center;">
+     <div style="min-height:22px;">${c.hmSig?`<img src="${c.hmSig}" style="max-height:20px;">`:'&nbsp;'}</div>
+     <div style="border-top:2px solid #333;width:100px;margin:0 auto 3px;"></div>
+     <div style="font-family:'Poppins',sans-serif;font-size:9.5px;font-weight:700;color:#111;">Headmaster's Signature</div>
+     <div style="font-family:'Poppins',sans-serif;font-size:9.5px;font-weight:600;color:#111;">Date: ${c.today}</div>
+    </div>
+    <div class="stamp stamp-sm">OFFICIAL<br>SCHOOL<br>STAMP<br>&amp; SEAL</div>
+    <div style="text-align:center;">
+     <div style="min-height:22px;">&nbsp;</div>
+     <div style="border-top:2px solid #333;width:100px;margin:0 auto 3px;"></div>
+     <div style="font-family:'Poppins',sans-serif;font-size:9.5px;font-weight:700;color:#111;">Pupil's Signature</div>
+     <div style="font-family:'Poppins',sans-serif;font-size:9.5px;font-weight:600;color:#111;">Date: ___________</div>
     </div>
    </div>
   </div>
- </div>
 
- <div class="sl-sig">
-  <div style="font-size:11px;font-weight:700;color:#1a1a1a;font-family:'Poppins',sans-serif;">
-   DATE: <span style="border-bottom:1.5px solid #444;display:inline-block;min-width:100px;padding:0 4px;">${c.today}</span>
-  </div>
-  <div class="stamp stamp-sm">OFFICIAL<br>SCHOOL<br>STAMP<br>&amp; SEAL</div>
-  <div class="sl-sb">
-   <div class="sl-simg">${c.hmSig?`<img src="${c.hmSig}">`:'&nbsp;'}</div>
-   <div class="sl-sline"></div>
-   <div class="sl-stit">Headmaster's Signature &amp; Stamp</div>
-   <div class="sl-sdot">Date: ${c.today}</div>
-  </div>
- </div>
-
- <div class="sl-bott"></div>
- <div class="sl-botb"></div>
+ </div><!-- grid -->
 </div>
 </div>`;
 }
