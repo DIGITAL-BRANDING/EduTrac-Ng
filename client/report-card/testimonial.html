@@ -10,305 +10,276 @@
 <script src="../js/config.js"></script>
 <script src="../js/supabase.js"></script>
 <style>
-/* ══════════════════════════════════════
-   CSS VARIABLES
-══════════════════════════════════════ */
+/* ════════════════════════════════════════════
+   CSS CUSTOM PROPERTIES — COLOUR THEME ENGINE
+════════════════════════════════════════════ */
 :root{
-  --c-pri:#0d2060;--c-pri2:#1a3a8a;--c-pri3:#1a4fd6;
-  --c-acc:#ffd600;--c-acc2:#e6b800;
-  --c-g1:#1b5e20;--c-g2:#2e7d32;
-  --c-s1:#0a0a0a;--c-s2:#1a4fd6;
-  --c-r1:#e53935;--c-r2:#b71c1c;
-  --c-dp1:#ffd600;--c-dp2:#b8d0f8;
+  --c-pri:#0d2060; --c-pri2:#1a3a8a; --c-pri3:#1a4fd6;
+  --c-acc:#ffd600; --c-acc2:#e6b800;
+  --c-g1:#1b5e20;  --c-g2:#2e7d32;
+  --c-s1:#0a0a0a;  --c-s2:#1a4fd6;
+  --c-r1:#e53935;  --c-r2:#b71c1c;
+  --c-dp1:#ffd600; --c-dp2:#b8d0f8;
+  --c-border:var(--c-pri);
+  --c-teal:#00838f;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:#0d1424;font-family:'Poppins',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;}
 
-/* ══════════════════════════════════════
+/* ════════════════════════════════════════════
    MODAL
-══════════════════════════════════════ */
+════════════════════════════════════════════ */
 .mbg{position:fixed;inset:0;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(10px);}
-.mbox{background:linear-gradient(160deg,#0d1e3d,#142249);border:1px solid rgba(124,180,255,.18);border-radius:20px;padding:26px 28px 22px;max-width:540px;width:95%;text-align:center;box-shadow:0 40px 100px rgba(0,0,0,.7);max-height:93vh;overflow-y:auto;}
-.mbox::-webkit-scrollbar{width:4px;}.mbox::-webkit-scrollbar-thumb{background:#334;border-radius:4px;}
-.mico{font-size:30px;margin-bottom:7px;}
-.mbox h2{font-family:'Cinzel',serif;font-size:16px;color:#b8d4ff;margin-bottom:3px;}
-.mbox>p{font-size:11.5px;color:#6b8ab0;margin-bottom:16px;line-height:1.7;}
-.msep{font-family:'Cinzel',serif;font-size:9.5px;color:rgba(124,180,255,.65);letter-spacing:2px;font-weight:700;text-transform:uppercase;margin:12px 0 9px;display:flex;align-items:center;gap:7px;}
+.mbox{background:linear-gradient(160deg,#0d1e3d,#142249);border:1px solid rgba(124,180,255,.18);border-radius:20px;padding:28px 32px 24px;max-width:560px;width:95%;text-align:center;box-shadow:0 40px 100px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.06);max-height:93vh;overflow-y:auto;}
+.mbox::-webkit-scrollbar{width:4px;} .mbox::-webkit-scrollbar-thumb{background:#334;border-radius:4px;}
+.mico{font-size:32px;margin-bottom:8px;}
+.mbox h2{font-family:'Cinzel',serif;font-size:17px;color:#b8d4ff;margin-bottom:4px;letter-spacing:.5px;}
+.mbox>p{font-size:11.5px;color:#6b8ab0;margin-bottom:18px;line-height:1.7;}
+.msep{font-family:'Cinzel',serif;font-size:9.5px;color:rgba(124,180,255,.65);letter-spacing:2px;font-weight:700;text-transform:uppercase;margin:14px 0 10px;display:flex;align-items:center;gap:7px;}
 .msep::before,.msep::after{content:'';flex:1;height:1px;background:rgba(124,180,255,.12);}
-.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:4px;}
-.sbtn{border:1.5px solid rgba(124,180,255,.15);border-radius:11px;padding:13px 9px;cursor:pointer;background:rgba(255,255,255,.03);transition:all .18s;text-align:center;}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px;}
+.sbtn{border:1.5px solid rgba(124,180,255,.15);border-radius:12px;padding:14px 10px;cursor:pointer;background:rgba(255,255,255,.03);transition:all .18s;text-align:center;}
 .sbtn:hover{border-color:rgba(124,180,255,.4);background:rgba(124,180,255,.06);}
 .sbtn.sel{border-color:#7cb4ff;background:rgba(124,180,255,.1);box-shadow:0 0 0 3px rgba(124,180,255,.1);}
-.sbtn .si{font-size:22px;margin-bottom:4px;}
+.sbtn .si{font-size:22px;margin-bottom:5px;}
 .sbtn .sl2{font-family:'Cinzel',serif;font-size:10px;color:#b8d4ff;font-weight:700;letter-spacing:.3px;line-height:1.3;}
 .sbtn .ss{font-size:9.5px;color:#4d6f8f;margin-top:2px;}
-.tgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:4px;}
-.tsw{width:100%;aspect-ratio:1;border-radius:9px;cursor:pointer;border:3px solid transparent;transition:all .18s;position:relative;overflow:hidden;}
+.tgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:4px;}
+.tsw{width:100%;aspect-ratio:1;border-radius:10px;cursor:pointer;border:3px solid transparent;transition:all .18s;position:relative;overflow:hidden;}
 .tsw.sel{border-color:#e2e8f0;transform:scale(1.08);box-shadow:0 4px 16px rgba(0,0,0,.4);}
 .tsw.sel::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.6);}
-.ogrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:16px;}
-.obtn{border:1.5px solid rgba(124,180,255,.15);border-radius:10px;padding:12px 8px;cursor:pointer;background:rgba(255,255,255,.03);transition:all .18s;}
+.ogrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
+.obtn{border:1.5px solid rgba(124,180,255,.15);border-radius:11px;padding:13px 8px;cursor:pointer;background:rgba(255,255,255,.03);transition:all .18s;}
 .obtn:hover{border-color:rgba(124,180,255,.4);background:rgba(124,180,255,.06);}
-.obtn.sel{border-color:#7cb4ff;background:rgba(124,180,255,.1);}
-.opv{margin:0 auto 6px;border:2px solid rgba(124,180,255,.2);background:rgba(124,180,255,.06);position:relative;}
-.opv.land{width:74px;height:52px;}.opv.port{width:52px;height:74px;}
+.obtn.sel{border-color:#7cb4ff;background:rgba(124,180,255,.1);box-shadow:0 0 0 3px rgba(124,180,255,.1);}
+.opv{margin:0 auto 7px;border:2px solid rgba(124,180,255,.2);background:rgba(124,180,255,.06);position:relative;}
+.opv.land{width:74px;height:52px;} .opv.port{width:52px;height:74px;}
 .opv::after{content:'T';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:rgba(124,180,255,.3);}
 .olb{font-family:'Cinzel',serif;font-size:10.5px;color:#b8d4ff;font-weight:700;letter-spacing:.8px;}
 .osub{font-size:9.5px;color:#4d6f8f;margin-top:2px;}
-.mgbtn{width:100%;padding:13px;background:linear-gradient(135deg,#0d47a1,#1a4fd6);border:none;border-radius:9px;font-family:'Cinzel',serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer;letter-spacing:.5px;transition:all .2s;box-shadow:0 4px 18px rgba(13,71,161,.4);}
-.mgbtn:hover{filter:brightness(1.1);}
-.mback{display:block;margin-top:9px;font-size:11.5px;color:#4d6f8f;cursor:pointer;text-decoration:underline;}
+.mgbtn{width:100%;padding:14px;background:linear-gradient(135deg,#0d47a1,#1a4fd6);border:none;border-radius:10px;font-family:'Cinzel',serif;font-size:13.5px;font-weight:700;color:#fff;cursor:pointer;letter-spacing:.8px;transition:all .2s;box-shadow:0 4px 20px rgba(13,71,161,.4);}
+.mgbtn:hover{filter:brightness(1.12);transform:translateY(-1px);box-shadow:0 6px 28px rgba(13,71,161,.55);}
+.mback{display:block;margin-top:10px;font-size:11.5px;color:#4d6f8f;cursor:pointer;text-decoration:underline;}
 
-/* ══════════════════════════════════════
+/* ════════════════════════════════════════════
    CONTROL BAR
-══════════════════════════════════════ */
-.ctrl{background:#07101f;color:#fff;width:100%;padding:9px 18px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-bottom:1px solid rgba(255,255,255,.05);position:sticky;top:0;z-index:900;}
-.ctitle{font-family:'Cinzel',serif;font-size:12px;letter-spacing:1px;color:#7cb4ff;flex:1;}
-.cbtn{padding:6px 13px;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Cinzel',serif;letter-spacing:.4px;display:flex;align-items:center;gap:5px;white-space:nowrap;}
-.cbtn-p{background:linear-gradient(135deg,#0d47a1,#1a4fd6);color:#fff;}
+════════════════════════════════════════════ */
+.ctrl{background:#07101f;color:#fff;width:100%;padding:10px 20px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;border-bottom:1px solid rgba(255,255,255,.05);}
+.ctitle{font-family:'Cinzel',serif;font-size:12.5px;letter-spacing:1px;color:#7cb4ff;flex:1;}
+.cbtn{padding:7px 14px;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Cinzel',serif;letter-spacing:.4px;display:flex;align-items:center;gap:5px;}
+.cbtn-p{background:linear-gradient(135deg,#0d47a1,#1a4fd6);color:#fff;box-shadow:0 2px 10px rgba(13,71,161,.35);}
 .cbtn-b{background:rgba(255,255,255,.07);color:#fff;border:1px solid rgba(255,255,255,.15);}
 .cbtn-o{background:rgba(255,255,255,.04);color:#7cb4ff;border:1px solid rgba(124,180,255,.18);}
-.cbadge{font-size:9.5px;background:rgba(26,79,214,.15);border:1px solid rgba(124,180,255,.25);color:#7cb4ff;padding:2px 9px;border-radius:20px;letter-spacing:.4px;}
+.cbadge{font-size:9.5px;background:rgba(26,79,214,.15);border:1px solid rgba(124,180,255,.25);color:#7cb4ff;padding:2px 10px;border-radius:20px;letter-spacing:.4px;}
 
-/* ══════════════════════════════════════
-   FLOATING THEME PANEL (on cert view)
-══════════════════════════════════════ */
-#floatTheme{
-  position:fixed;right:12px;top:55px;z-index:800;
-  background:linear-gradient(160deg,#0d1e3d,#0a1628);
-  border:1px solid rgba(124,180,255,.25);border-radius:14px;
-  padding:12px 10px;box-shadow:0 8px 32px rgba(0,0,0,.6);
-  display:none;flex-direction:column;align-items:center;gap:8px;
-  transition:opacity .2s;
-}
-#floatTheme.vis{display:flex;}
-.ft-title{font-family:'Cinzel',serif;font-size:8.5px;color:rgba(124,180,255,.7);letter-spacing:1.5px;font-weight:700;text-transform:uppercase;}
-.ft-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px;}
-.ft-sw{width:26px;height:26px;border-radius:6px;cursor:pointer;border:2.5px solid transparent;transition:all .15s;position:relative;overflow:hidden;}
-.ft-sw.sel{border-color:#e2e8f0;transform:scale(1.1);}
-.ft-sw.sel::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.7);}
-.ft-divider{height:1px;width:100%;background:rgba(124,180,255,.12);margin:2px 0;}
-.ft-or-btn{font-family:'Cinzel',serif;font-size:8px;color:#4d6f8f;cursor:pointer;letter-spacing:.5px;text-align:center;padding:3px 0;}
-.ft-or-btn:hover{color:#7cb4ff;}
-
-/* ══════════════════════════════════════
+/* ════════════════════════════════════════════
    PICKER UI
-══════════════════════════════════════ */
-.tpw{padding:28px 16px;width:100%;display:flex;justify-content:center;}
-.pcard{max-width:640px;width:100%;background:rgba(255,255,255,.03);border:1px solid rgba(124,180,255,.12);border-radius:16px;padding:28px 24px;}
-.pcard h2{font-family:'Cinzel',serif;color:#7cb4ff;font-size:16px;margin-bottom:4px;}
-.pcard p{font-size:12px;color:#7d98b8;margin-bottom:20px;line-height:1.7;}
-.ptag{display:inline-flex;align-items:center;gap:6px;background:rgba(26,79,214,.18);border:1px solid rgba(124,180,255,.28);color:#7cb4ff;padding:4px 12px;border-radius:20px;font-size:10.5px;font-family:'Cinzel',serif;letter-spacing:.5px;margin-bottom:20px;}
-.prow2{display:grid;grid-template-columns:1fr 1fr;gap:13px;}
+════════════════════════════════════════════ */
+.tpw{padding:32px 16px;width:100%;display:flex;justify-content:center;}
+.pcard{max-width:660px;width:100%;background:rgba(255,255,255,.03);border:1px solid rgba(124,180,255,.12);border-radius:18px;padding:32px 28px;}
+.pcard h2{font-family:'Cinzel',serif;color:#7cb4ff;font-size:17px;margin-bottom:5px;}
+.pcard p{font-size:12px;color:#7d98b8;margin-bottom:22px;line-height:1.7;}
+.ptag{display:inline-flex;align-items:center;gap:6px;background:rgba(26,79,214,.18);border:1px solid rgba(124,180,255,.28);color:#7cb4ff;padding:5px 14px;border-radius:20px;font-size:10.5px;font-family:'Cinzel',serif;letter-spacing:.5px;margin-bottom:22px;}
+.prow2{display:grid;grid-template-columns:1fr 1fr;gap:15px;}
 .plbl{display:block;font-size:10.5px;color:#7cb4ff;font-family:'Cinzel',serif;letter-spacing:1px;font-weight:700;margin-bottom:5px;text-transform:uppercase;}
-.psel,.pinp{width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(124,180,255,.2);background:#0c1a35;color:#e5e7eb;font-size:13px;margin-bottom:14px;outline:none;transition:border-color .18s;}
-.psel:focus,.pinp:focus{border-color:#7cb4ff;}
+.psel,.pinp{width:100%;padding:11px 13px;border-radius:9px;border:1px solid rgba(124,180,255,.2);background:#0c1a35;color:#e5e7eb;font-size:13px;margin-bottom:15px;outline:none;transition:border-color .18s;}
+.psel:focus,.pinp:focus{border-color:#7cb4ff;box-shadow:0 0 0 3px rgba(124,180,255,.08);}
 .pinp::placeholder{color:#3d5a78;}
-.pmsep{font-family:'Cinzel',serif;font-size:9.5px;color:rgba(124,180,255,.7);letter-spacing:1.8px;font-weight:700;text-transform:uppercase;margin:13px 0 10px;display:flex;align-items:center;gap:7px;}
+.pmsep{font-family:'Cinzel',serif;font-size:9.5px;color:rgba(124,180,255,.7);letter-spacing:1.8px;font-weight:700;text-transform:uppercase;margin:15px 0 11px;display:flex;align-items:center;gap:7px;}
 .pmsep::before,.pmsep::after{content:'';flex:1;height:1px;background:rgba(124,180,255,.12);}
-.mcards{display:flex;flex-direction:column;gap:7px;margin-bottom:18px;}
-.mcard{display:flex;align-items:flex-start;gap:11px;padding:12px 14px;border:1.5px solid rgba(124,180,255,.12);border-radius:10px;cursor:pointer;transition:all .18s;}
+.mcards{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+.mcard{display:flex;align-items:flex-start;gap:12px;padding:13px 15px;border:1.5px solid rgba(124,180,255,.12);border-radius:11px;cursor:pointer;transition:all .18s;}
 .mcard:hover{border-color:rgba(124,180,255,.3);background:rgba(124,180,255,.04);}
 .mcard.act{border-color:#7cb4ff;background:rgba(124,180,255,.07);}
-.mradio{width:16px;height:16px;border-radius:50%;border:2px solid rgba(124,180,255,.5);margin-top:2px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.mradio{width:17px;height:17px;border-radius:50%;border:2px solid rgba(124,180,255,.5);margin-top:2px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
 .mradio.on{border-color:#7cb4ff;background:rgba(124,180,255,.1);}
 .mradio.on::after{content:'';width:7px;height:7px;border-radius:50%;background:#7cb4ff;display:block;}
 .mcard-text strong{display:block;font-size:12.5px;color:#e2e8f0;font-weight:600;margin-bottom:1px;}
 .mcard-text span{font-size:11px;color:#4d6f8f;}
-.slist{max-height:220px;overflow-y:auto;border:1px solid rgba(124,180,255,.12);border-radius:8px;background:#07101f;margin-bottom:12px;}
-.slist::-webkit-scrollbar{width:4px;}.slist::-webkit-scrollbar-thumb{background:rgba(124,180,255,.2);border-radius:4px;}
-.sitem{display:flex;align-items:center;gap:9px;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;}
-.sitem:last-child{border-bottom:none;}.sitem:hover{background:rgba(124,180,255,.05);}
+.slist{max-height:240px;overflow-y:auto;border:1px solid rgba(124,180,255,.12);border-radius:9px;background:#07101f;margin-bottom:13px;}
+.slist::-webkit-scrollbar{width:4px;} .slist::-webkit-scrollbar-thumb{background:rgba(124,180,255,.2);border-radius:4px;}
+.sitem{display:flex;align-items:center;gap:10px;padding:9px 13px;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;}
+.sitem:last-child{border-bottom:none;} .sitem:hover{background:rgba(124,180,255,.05);}
 .sitem input[type=checkbox]{accent-color:#7cb4ff;width:14px;height:14px;cursor:pointer;flex-shrink:0;}
-.sname{font-size:12.5px;color:#e2e8f0;flex:1;}.sadm{font-size:11px;color:#4d6f8f;}
-.sacts{display:flex;gap:7px;margin-bottom:8px;}
-.sact{font-size:11px;color:#7cb4ff;background:none;border:1px solid rgba(124,180,255,.22);border-radius:5px;padding:4px 10px;cursor:pointer;}
+.sname{font-size:12.5px;color:#e2e8f0;flex:1;} .sadm{font-size:11px;color:#4d6f8f;}
+.sacts{display:flex;gap:7px;margin-bottom:9px;}
+.sact{font-size:11px;color:#7cb4ff;background:none;border:1px solid rgba(124,180,255,.22);border-radius:6px;padding:5px 11px;cursor:pointer;}
 .sact:hover{background:rgba(124,180,255,.1);}
-.pinfo{background:rgba(234,179,8,.07);border:1px solid rgba(234,179,8,.22);border-radius:7px;padding:8px 12px;font-size:11.5px;color:#fbbf24;margin-bottom:14px;line-height:1.5;}
-.pprog{text-align:center;padding:22px 0 16px;}
-.pprog-title{font-family:'Cinzel',serif;font-size:13px;color:#7cb4ff;letter-spacing:1px;margin-bottom:12px;}
-.pprog-bar{height:4px;background:rgba(124,180,255,.12);border-radius:2px;overflow:hidden;}
-.pprog-fill{height:100%;background:linear-gradient(90deg,#0d47a1,#7cb4ff);border-radius:2px;transition:width .35s ease;}
-.pprog-sub{font-size:11.5px;color:#3d5a78;margin-top:8px;}
-.pload{padding:8px 16px;background:rgba(124,180,255,.1);color:#7cb4ff;border:1px solid rgba(124,180,255,.28);border-radius:7px;cursor:pointer;font-size:12px;font-family:'Cinzel',serif;margin-bottom:10px;}
+.pinfo{background:rgba(234,179,8,.07);border:1px solid rgba(234,179,8,.22);border-radius:8px;padding:9px 13px;font-size:11.5px;color:#fbbf24;margin-bottom:15px;line-height:1.5;}
+.pprog{text-align:center;padding:28px 0 18px;}
+.pprog-title{font-family:'Cinzel',serif;font-size:13.5px;color:#7cb4ff;letter-spacing:1px;margin-bottom:14px;}
+.pprog-bar{height:5px;background:rgba(124,180,255,.1);border-radius:3px;overflow:hidden;}
+.pprog-fill{height:100%;background:linear-gradient(90deg,#0d47a1,#7cb4ff);border-radius:3px;transition:width .35s ease;}
+.pprog-sub{font-size:11.5px;color:#3d5a78;margin-top:9px;}
+.pload{padding:9px 17px;background:rgba(124,180,255,.1);color:#7cb4ff;border:1px solid rgba(124,180,255,.28);border-radius:8px;cursor:pointer;font-size:12px;font-family:'Cinzel',serif;margin-bottom:11px;}
 .pload:hover{background:rgba(124,180,255,.18);}
-.pgen{width:100%;padding:13px;background:linear-gradient(135deg,#0d47a1,#1a4fd6);color:#fff;border:none;border-radius:9px;cursor:pointer;font-weight:700;font-size:13.5px;font-family:'Cinzel',serif;letter-spacing:.5px;transition:filter .2s;margin-top:6px;}
-.pgen:hover{filter:brightness(1.1);}.pgen:disabled{opacity:.4;cursor:not-allowed;}
-.loading{color:#7cb4ff;font-family:'Cinzel',serif;font-size:14px;letter-spacing:2px;padding:60px;text-align:center;animation:pulse 1.5s ease-in-out infinite;}
+.pgen{width:100%;padding:14px;background:linear-gradient(135deg,#0d47a1,#1a4fd6);color:#fff;border:none;border-radius:10px;cursor:pointer;font-weight:700;font-size:14px;font-family:'Cinzel',serif;letter-spacing:.6px;transition:all .2s;margin-top:7px;box-shadow:0 4px 20px rgba(13,71,161,.35);}
+.pgen:hover{filter:brightness(1.12);transform:translateY(-1px);} .pgen:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.loading{color:#7cb4ff;font-family:'Cinzel',serif;font-size:14px;letter-spacing:2px;padding:70px;text-align:center;animation:pulse 1.5s ease-in-out infinite;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
 
-/* ══════════════════════════════════════
-   CERT WRAPPER
-══════════════════════════════════════ */
+/* ════════════════════════════════════════════
+   CERTIFICATE PAGE WRAPPER
+════════════════════════════════════════════ */
 .cert-wrap{
-  padding:22px 16px;width:100%;
-  display:flex;flex-direction:column;align-items:center;gap:28px;
+  padding:28px 16px;width:100%;
+  display:flex;flex-direction:column;align-items:center;gap:32px;
   background:#0d1424;
 }
 .page-break{page-break-after:always;break-after:page;}
 
-/* ══════════════════════════════════════
-   CERT SIZE SHELLS — screen view
-   Scale down on narrow screens
-══════════════════════════════════════ */
-.cert-scaler{
-  width:210mm;
-  transform-origin:top center;
-  /* JS will set scale() via style */
+/* ════════════════════════════════════════════
+   SHARED CERT ELEMENTS
+════════════════════════════════════════════ */
+.fl{display:flex;align-items:flex-end;gap:5px;margin-bottom:5px;font-size:11.5px;color:#1a1a1a;flex-wrap:wrap;}
+.fl-lbl{font-weight:700;color:#1a1a1a;white-space:nowrap;font-size:11.5px;}
+.fl-val{flex:1;border-bottom:1.5px solid #444;min-height:15px;min-width:50px;font-family:'EB Garamond',serif;font-size:12.5px;font-style:italic;padding:0 3px 1px;color:#111;}
+.fl-txt{font-size:11.5px;color:#1a1a1a;}
+
+/* ════════════════════════════════════════════
+   PREMIUM STAMP  — improved wax seal style
+════════════════════════════════════════════ */
+.stamp-wax{
+  position:relative;
+  width:80px;height:80px;
   flex-shrink:0;
 }
-.cert-scaler.land{width:297mm;}
+.stamp-wax svg{width:100%;height:100%;filter:drop-shadow(0 4px 12px rgba(180,20,20,.45));}
 
-/* Inner cert element always 210×297 or 297×210 */
-.pp,.sp{width:210mm;height:297mm;position:relative;overflow:hidden;flex-shrink:0;}
-.pl,.sl{width:297mm;height:210mm;position:relative;overflow:hidden;flex-shrink:0;}
+/* ════════════════════════════════════════════
+   CERT SIZE SHELLS
+════════════════════════════════════════════ */
+.pp{width:210mm;height:297mm;padding:0;display:flex;flex-direction:column;box-shadow:0 14px 60px rgba(0,0,0,.75);flex-shrink:0;position:relative;overflow:hidden;}
+.pl{width:297mm;height:210mm;padding:0;display:flex;flex-direction:column;box-shadow:0 14px 60px rgba(0,0,0,.75);flex-shrink:0;position:relative;overflow:hidden;}
+.sp{width:210mm;height:297mm;padding:0;display:flex;flex-direction:column;box-shadow:0 14px 60px rgba(0,0,0,.75);flex-shrink:0;position:relative;overflow:hidden;}
+.sl{width:297mm;height:210mm;padding:0;display:flex;flex-direction:column;box-shadow:0 14px 60px rgba(0,0,0,.75);flex-shrink:0;position:relative;overflow:hidden;}
 
-/* ══════════════════════════════════════
-   PRINT — comprehensive fix
-══════════════════════════════════════ */
+/* ════════════════════════════════════════════
+   PRINT
+════════════════════════════════════════════ */
 @media print{
-  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}
-  html,body{margin:0!important;padding:0!important;background:white!important;width:100%!important;}
-  .ctrl,.mbg,.tpw,#floatTheme,.cert-wrap-label{display:none!important;}
-  .cert-wrap{padding:0!important;background:white!important;gap:0!important;display:block!important;width:100%!important;}
-  .cert-scaler{width:100%!important;transform:none!important;display:block!important;}
-  .pp,.sp{
-    width:210mm!important;height:297mm!important;
-    box-shadow:none!important;margin:0!important;
-    page-break-inside:avoid!important;
-    page-break-after:always!important;
-    display:flex!important;flex-direction:column!important;
-  }
-  .pl,.sl{
-    width:297mm!important;height:210mm!important;
-    box-shadow:none!important;margin:0!important;
-    page-break-inside:avoid!important;
-    page-break-after:always!important;
-    display:flex!important;flex-direction:column!important;
-  }
-  .page-break{display:none!important;}
-  @page{margin:0!important;}
-  @page portrait{size:210mm 297mm;}
-  @page landscape{size:297mm 210mm;}
+  html,body{background:white!important;padding:0!important;margin:0!important;}
+  .ctrl{display:none!important;}
+  .cert-wrap{padding:0!important;background:white!important;gap:0!important;}
+  .pp,.pl,.sp,.sl{box-shadow:none!important;margin:0!important;}
+  @page{margin:0;size:A4;}
+}
+@media screen and (max-width:700px){
+  .pp,.sp{width:100%;height:auto;}
+  .pl,.sl{width:100%;height:auto;overflow-x:auto;}
 }
 </style>
 </head>
 <body>
 
-<!-- ═══════ SETUP MODAL ═══════ -->
+<!-- ════════ SETUP MODAL ════════ -->
 <div class="mbg" id="modalBg">
  <div class="mbox">
   <div class="mico">📜</div>
   <h2>School Testimonial Generator</h2>
   <p>Select the school section, colour theme &amp; paper orientation.</p>
+
   <div class="msep">School Section</div>
   <div class="sgrid">
-   <div class="sbtn" id="bNurs" onclick="selSect('nursery')"><div class="si">🌱</div><div class="sl2">NURSERY SECTION</div><div class="ss">Nursery, Crèche &amp; KG</div></div>
-   <div class="sbtn sel" id="bPrim" onclick="selSect('primary')"><div class="si">📚</div><div class="sl2">PRIMARY SECTION</div><div class="ss">Primary 1 – 6 / Basic</div></div>
-   <div class="sbtn" id="bJun" onclick="selSect('junior')"><div class="si">📖</div><div class="sl2">JUNIOR SECTION</div><div class="ss">JSS 1 – 3</div></div>
-   <div class="sbtn" id="bSen" onclick="selSect('senior')"><div class="si">🎓</div><div class="sl2">SENIOR SECTION</div><div class="ss">SSS 1 – 3</div></div>
+   <div class="sbtn" id="bNurs" onclick="selSect('nursery')">
+    <div class="si">🌱</div>
+    <div class="sl2">NURSERY SECTION</div>
+    <div class="ss">Nursery, Crèche &amp; KG</div>
+   </div>
+   <div class="sbtn sel" id="bPrim" onclick="selSect('primary')">
+    <div class="si">📚</div>
+    <div class="sl2">PRIMARY SECTION</div>
+    <div class="ss">Primary 1 – 6 / Basic</div>
+   </div>
+   <div class="sbtn" id="bJun" onclick="selSect('junior')">
+    <div class="si">📖</div>
+    <div class="sl2">JUNIOR SECTION</div>
+    <div class="ss">JSS 1 – 3</div>
+   </div>
+   <div class="sbtn" id="bSen" onclick="selSect('senior')">
+    <div class="si">🎓</div>
+    <div class="sl2">SENIOR SECTION</div>
+    <div class="ss">SSS 1 – 3</div>
+   </div>
   </div>
+
   <div class="msep">Colour Theme</div>
   <div class="tgrid" id="tGrid"></div>
+
   <div class="msep">Page Orientation</div>
   <div class="ogrid">
-   <div class="obtn sel" id="bPort" onclick="selOrient('portrait')"><div class="opv port"></div><div class="olb">PORTRAIT</div><div class="osub">210 × 297 mm</div></div>
-   <div class="obtn" id="bLand" onclick="selOrient('landscape')"><div class="opv land"></div><div class="olb">LANDSCAPE</div><div class="osub">297 × 210 mm</div></div>
+   <div class="obtn sel" id="bPort" onclick="selOrient('portrait')">
+    <div class="opv port"></div>
+    <div class="olb">PORTRAIT</div>
+    <div class="osub">210 × 297 mm</div>
+   </div>
+   <div class="obtn" id="bLand" onclick="selOrient('landscape')">
+    <div class="opv land"></div>
+    <div class="olb">LANDSCAPE</div>
+    <div class="osub">297 × 210 mm</div>
+   </div>
   </div>
+
   <button class="mgbtn" onclick="proceedFromModal()">✦ Proceed to Class Selection</button>
   <span class="mback" onclick="history.back()">← Go back</span>
  </div>
 </div>
 
-<!-- ═══════ CONTROL BAR ═══════ -->
+<!-- ════════ CONTROL BAR ════════ -->
 <div class="ctrl" id="ctrlBar" style="display:none">
  <span class="ctitle">📜 School Testimonial</span>
  <span class="cbadge" id="bSect">PRIMARY</span>
  <span class="cbadge" id="bOrient">PORTRAIT</span>
  <button class="cbtn cbtn-o" onclick="changeOpts()">⚙ Options</button>
- <button class="cbtn cbtn-o" onclick="toggleFloatTheme()" id="colorToggleBtn" style="display:none">🎨 Theme</button>
  <button class="cbtn cbtn-p" onclick="window.print()">
-  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-  Print / PDF
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+  Print / Save PDF
  </button>
  <button class="cbtn cbtn-b" onclick="history.back()">← Back</button>
-</div>
-
-<!-- ═══════ FLOATING THEME PANEL ═══════ -->
-<div id="floatTheme">
- <div class="ft-title">Colour Theme</div>
- <div class="ft-grid" id="ftGrid"></div>
- <div class="ft-divider"></div>
- <div class="ft-or-btn" onclick="toggleFloatTheme()">✕ close</div>
 </div>
 
 <div id="MC"><div class="loading">Loading…</div></div>
 
 <script>
-/* ══════════════════════════════════════
-   THEMES
-══════════════════════════════════════ */
+/* ════════════════════════════════════════════
+   COLOUR THEMES
+════════════════════════════════════════════ */
 const THEMES={
-  'blu-gld':{n:'Royal Blue & Gold',   p:'#0d2060',p2:'#1a3a8a',p3:'#1a4fd6',a:'#ffd600',s1:'#0a0a0a',s2:'#1a4fd6',r1:'#e53935',r2:'#b71c1c',sw:'linear-gradient(135deg,#0d2060 50%,#ffd600 50%)'},
-  'grn-gld':{n:'Forest Green & Gold', p:'#1b5e20',p2:'#2e7d32',p3:'#388e3c',a:'#ffd600',s1:'#1b5e20',s2:'#43a047',r1:'#ffd600',r2:'#f9a825',sw:'linear-gradient(135deg,#1b5e20 50%,#ffd600 50%)'},
-  'mar-gld':{n:'Maroon & Gold',       p:'#6d1515',p2:'#8b2020',p3:'#a33030',a:'#ffd600',s1:'#4a0a0a',s2:'#e53935',r1:'#c0392b',r2:'#8e0000',sw:'linear-gradient(135deg,#6d1515 50%,#ffd600 50%)'},
-  'pur-gld':{n:'Purple & Gold',       p:'#4a148c',p2:'#6a1b9a',p3:'#7b1fa2',a:'#ffd600',s1:'#1a0033',s2:'#9c27b0',r1:'#e53935',r2:'#b71c1c',sw:'linear-gradient(135deg,#4a148c 50%,#ffd600 50%)'},
-  'nvy-cri':{n:'Navy & Crimson',      p:'#0d1b4b',p2:'#162b6e',p3:'#1e3a8a',a:'#e53935',s1:'#0d1b4b',s2:'#e53935',r1:'#ffd600',r2:'#f9a825',sw:'linear-gradient(135deg,#0d1b4b 50%,#e53935 50%)'},
-  'blk-gld':{n:'Black & Gold',        p:'#111',   p2:'#222',   p3:'#444',   a:'#ffd600',s1:'#0a0a0a',s2:'#ffd600',r1:'#c8a200',r2:'#a38200',sw:'linear-gradient(135deg,#111 50%,#ffd600 50%)'},
-  'tel-gld':{n:'Teal & Gold',         p:'#004d40',p2:'#00695c',p3:'#00796b',a:'#ffd600',s1:'#003d33',s2:'#26a69a',r1:'#ff7043',r2:'#e64a19',sw:'linear-gradient(135deg,#004d40 50%,#ffd600 50%)'},
-  'brg-gld':{n:'Burgundy & Gold',     p:'#4a0010',p2:'#6d0025',p3:'#880e4f',a:'#ffd600',s1:'#3a000e',s2:'#ad1457',r1:'#c0392b',r2:'#8e0000',sw:'linear-gradient(135deg,#4a0010 50%,#ffd600 50%)'},
+  'blu-gld':{n:'Royal Blue & Gold',   p:'#0d2060',p2:'#1a3a8a',p3:'#1a4fd6',a:'#ffd600',a2:'#e6b800',g1:'#1b5e20',g2:'#2e7d32',s1:'#0a0a0a',s2:'#1a4fd6',r1:'#e53935',r2:'#b71c1c',d1:'#ffd600',d2:'#b8d0f8',sw:'linear-gradient(135deg,#0d2060 50%,#ffd600 50%)'},
+  'grn-gld':{n:'Forest Green & Gold', p:'#1b5e20',p2:'#2e7d32',p3:'#388e3c',a:'#ffd600',a2:'#e6b800',g1:'#0d2060',g2:'#1a3a8a',s1:'#1b5e20',s2:'#43a047',r1:'#ffd600',r2:'#f9a825',d1:'#ffd600',d2:'#c8e6c9',sw:'linear-gradient(135deg,#1b5e20 50%,#ffd600 50%)'},
+  'mar-gld':{n:'Maroon & Gold',       p:'#6d1515',p2:'#8b2020',p3:'#a33030',a:'#ffd600',a2:'#e6b800',g1:'#3e1f00',g2:'#5d3200',s1:'#4a0a0a',s2:'#e53935',r1:'#c0392b',r2:'#8e0000',d1:'#ffd600',d2:'#ffcdd2',sw:'linear-gradient(135deg,#6d1515 50%,#ffd600 50%)'},
+  'pur-gld':{n:'Purple & Gold',       p:'#4a148c',p2:'#6a1b9a',p3:'#7b1fa2',a:'#ffd600',a2:'#e6b800',g1:'#1b5e20',g2:'#2e7d32',s1:'#1a0033',s2:'#9c27b0',r1:'#e53935',r2:'#b71c1c',d1:'#ffd600',d2:'#e1bee7',sw:'linear-gradient(135deg,#4a148c 50%,#ffd600 50%)'},
+  'nvy-cri':{n:'Navy & Crimson',      p:'#0d1b4b',p2:'#162b6e',p3:'#1e3a8a',a:'#e53935',a2:'#c62828',g1:'#b71c1c',g2:'#c62828',s1:'#0d1b4b',s2:'#e53935',r1:'#ffd600',r2:'#f9a825',d1:'#e53935',d2:'#ffcdd2',sw:'linear-gradient(135deg,#0d1b4b 50%,#e53935 50%)'},
+  'blk-gld':{n:'Black & Gold',        p:'#111',   p2:'#222',   p3:'#333',   a:'#ffd600',a2:'#e6b800',g1:'#2a2a2a',g2:'#3a3a3a',s1:'#0a0a0a',s2:'#ffd600',r1:'#c8a200',r2:'#a38200',d1:'#ffd600',d2:'#f5f0dc',sw:'linear-gradient(135deg,#111 50%,#ffd600 50%)'},
+  'tel-wht':{n:'Teal & White',        p:'#004d40',p2:'#00695c',p3:'#00796b',a:'#e0f2f1',a2:'#b2dfdb',g1:'#00796b',g2:'#00897b',s1:'#003d33',s2:'#26a69a',r1:'#ff7043',r2:'#e64a19',d1:'#b2dfdb',d2:'#e0f2f1',sw:'linear-gradient(135deg,#004d40 50%,#b2dfdb 50%)'},
+  'brg-crm':{n:'Burgundy & Cream',    p:'#4a0010',p2:'#6d0025',p3:'#880e4f',a:'#f5e6c8',a2:'#e8d0a8',g1:'#3e1f00',g2:'#5d3200',s1:'#3a000e',s2:'#ad1457',r1:'#f5e6c8',r2:'#e8d0a8',d1:'#f5e6c8',d2:'#f8ead4',sw:'linear-gradient(135deg,#4a0010 50%,#f5e6c8 50%)'},
 };
-let _theme='blu-gld',_orient='portrait',_section='primary',_schoolId=null;
+let _theme='blu-gld', _orient='portrait', _section='primary', _schoolId=null;
 
-/* Build modal swatches */
 (function(){
   const g=document.getElementById('tGrid');
   g.innerHTML=Object.entries(THEMES).map(([k,t])=>
     `<div class="tsw${k===_theme?' sel':''}" style="background:${t.sw}" title="${t.n}" onclick="selTheme('${k}')"></div>`
   ).join('');
-  buildFloatGrid();
 })();
-
-function buildFloatGrid(){
-  const fg=document.getElementById('ftGrid');
-  if(!fg) return;
-  fg.innerHTML=Object.entries(THEMES).map(([k,t])=>
-    `<div class="ft-sw${k===_theme?' sel':''}" style="background:${t.sw}" title="${t.n}" onclick="selThemeAndRegen('${k}')"></div>`
-  ).join('');
-}
-
-function toggleFloatTheme(){
-  const fp=document.getElementById('floatTheme');
-  fp.classList.toggle('vis');
-}
 
 function selTheme(k){
   _theme=k;
-  document.querySelectorAll('.tsw').forEach((el,i)=>el.classList.toggle('sel',Object.keys(THEMES)[i]===k));
+  document.querySelectorAll('.tsw').forEach((el,i)=>{
+    el.classList.toggle('sel',Object.keys(THEMES)[i]===k);
+  });
+  applyTheme(k);
 }
-
-/* Change theme from floating panel and re-render current certs */
-function selThemeAndRegen(k){
-  _theme=k;
-  // update float swatches
-  document.querySelectorAll('.ft-sw').forEach((el,i)=>el.classList.toggle('sel',Object.keys(THEMES)[i]===k));
-  // Re-inject stylesheet for cert variables
-  applyThemeVars(k);
-  // Re-render if certs are showing
-  if(_lastGenStudentIds && _lastGenSessId) genBatch(_lastGenStudentIds,_lastGenSessId);
-}
-
-function applyThemeVars(k){
+function applyTheme(k){
   const t=THEMES[k],r=document.documentElement.style;
-  r.setProperty('--c-pri',t.p);r.setProperty('--c-pri2',t.p2);r.setProperty('--c-pri3',t.p3);
-  r.setProperty('--c-acc',t.a);
-  r.setProperty('--c-s1',t.s1);r.setProperty('--c-s2',t.s2);
-  r.setProperty('--c-r1',t.r1);r.setProperty('--c-r2',t.r2);
+  r.setProperty('--c-pri',t.p); r.setProperty('--c-pri2',t.p2); r.setProperty('--c-pri3',t.p3);
+  r.setProperty('--c-acc',t.a); r.setProperty('--c-acc2',t.a2);
+  r.setProperty('--c-g1',t.g1); r.setProperty('--c-g2',t.g2);
+  r.setProperty('--c-s1',t.s1); r.setProperty('--c-s2',t.s2);
+  r.setProperty('--c-r1',t.r1); r.setProperty('--c-r2',t.r2);
+  r.setProperty('--c-dp1',t.d1); r.setProperty('--c-dp2',t.d2);
 }
-applyThemeVars(_theme);
-
-/* Track last gen for re-render on theme change */
-let _lastGenStudentIds=null,_lastGenSessId=null;
+applyTheme(_theme);
 
 function selSect(s){
   _section=s;
@@ -323,15 +294,13 @@ function selOrient(o){
 }
 function changeOpts(){
   document.getElementById('ctrlBar').style.display='none';
-  document.getElementById('colorToggleBtn').style.display='none';
-  document.getElementById('floatTheme').classList.remove('vis');
   document.getElementById('modalBg').style.display='flex';
   document.getElementById('MC').innerHTML='<div class="loading">Ready to regenerate…</div>';
 }
 function proceedFromModal(){
   document.getElementById('modalBg').style.display='none';
   document.getElementById('ctrlBar').style.display='flex';
-  updBadges();setPageCSS();showPicker();
+  updBadges(); setPageCSS(); showPicker();
 }
 function updBadges(){
   const sn={nursery:'NURSERY',primary:'PRIMARY',junior:'JUNIOR',senior:'SENIOR'};
@@ -341,171 +310,213 @@ function updBadges(){
 function setPageCSS(){
   let s=document.getElementById('ps');
   if(!s){s=document.createElement('style');s.id='ps';document.head.appendChild(s);}
-  if(_orient==='landscape'){
-    s.textContent=`@media print{@page{size:297mm 210mm;margin:0;}}`;
-  }else{
-    s.textContent=`@media print{@page{size:210mm 297mm;margin:0;}}`;
-  }
+  s.textContent=`@page{size:A4 ${_orient==='landscape'?'landscape':'portrait'};margin:0;}`;
 }
 
-/* ══════════════════════════════════════
-   RESPONSIVE SCALER
-   On narrow screens, scale the cert to fit
-══════════════════════════════════════ */
-function scaleCerts(){
-  const isLand=_orient==='landscape';
-  const certW=isLand?297*3.7795:210*3.7795; // mm to px (96dpi approx)
-  const vw=Math.min(window.innerWidth,760)-32; // subtract padding
-  const scale=vw<certW? vw/certW : 1;
-  document.querySelectorAll('.cert-scaler').forEach(el=>{
-    el.style.transform=scale<1?`scale(${scale})`:'none';
-    el.style.marginBottom=scale<1?`${(isLand?210*3.7795:297*3.7795)*(scale-1)}px`:'0';
-  });
-}
-window.addEventListener('resize',scaleCerts);
-
-/* ══════════════════════════════════════
-   CLASS SECTION MATCHING
-══════════════════════════════════════ */
+/* ════════════════════════════════════════════
+   CLASS FILTERING BY SECTION
+════════════════════════════════════════════ */
 function matchSection(cls,sec){
   const t=[cls.section||'',cls.level||'',cls.name||''].join(' ').toLowerCase();
   switch(sec){
-    case 'nursery':return/\bnur(sery)?\b|\bkg\b|\bkinder|\bcr[eè]che|\bplay|\bpre[.\s-]?nur|\bpre[.\s-]?pri|\bpre\s*sch/.test(t);
-    case 'primary':return/\bpri(mary)?\b|\bpry\b|\bbasic\b|\bp[1-6][a-z]?\b|\bgrade\s*[1-6]\b/.test(t)&&!/nur|kg|kinder/i.test(t);
-    case 'junior': return/\bjss?\d*|\bjunior\s*(sec(ondary)?)?|\bjnr|\bjs[1-3]\b|\bj\d[a-z]?\b/.test(t);
-    case 'senior': return/\bsss?\d*|\bsenior\s*(sec(ondary)?)?|\bsnr|\bss[1-3]\b|\bs\d[a-z]?\b/.test(t);
+    case 'nursery': return /\bnur(sery)?\b|\bkg\b|\bkinder|\bcr[eè]che|\bplay|\bpre[.\s-]?nur|\bpre[.\s-]?pri|\bpre\s*sch/.test(t);
+    case 'primary': return /\bpri(mary)?\b|\bpry\b|\bbasic\b|\bp[1-6][a-z]?\b|\bgrade\s*[1-6]\b/.test(t)&&!/nur|kg|kinder/i.test(t);
+    case 'junior':  return /\bjss?\d*|\bjunior\s*(sec(ondary)?)?|\bjnr|\bjs[1-3]\b|\bj\d[a-z]?\b/.test(t);
+    case 'senior':  return /\bsss?\d*|\bsenior\s*(sec(ondary)?)?|\bsnr|\bss[1-3]\b|\bs\d[a-z]?\b/.test(t);
   }
   return false;
 }
-function filterClasses(classes,sec){const m=classes.filter(c=>matchSection(c,sec));return m.length>0?m:classes;}
+function filterClasses(classes,sec){
+  const m=classes.filter(c=>matchSection(c,sec));
+  return m.length>0?m:classes;
+}
 
-/* ══════════════════════════════════════
+/* ════════════════════════════════════════════
    SESSION FETCHER
-══════════════════════════════════════ */
+════════════════════════════════════════════ */
 async function fetchSessions(schoolId){
-  const tryQ=async(fn)=>{try{const{data,error}=await fn();if(!error&&data?.length)return data;}catch(e){}return null;};
-  let d;
-  d=await tryQ(()=>db.from('academic_years').select('id,label,name,is_current,start_date').eq('school_id',schoolId));
-  if(d)return normSess(d);
-  d=await tryQ(()=>db.from('academic_years').select('id,label,name,is_current,start_date'));
-  if(d)return normSess(d);
+  const log=(n,r)=>console.log(`[TEST] S${n}:`, r?.length??'err', r);
   try{
-    const{data:trows,error:te}=await db.from('terms').select('id,name,academic_year_id,is_current').eq('school_id',schoolId);
-    if(!te&&trows?.length){
+    const {data,error}=await db.from('academic_years').select('id,label,name,is_current,start_date').eq('school_id',schoolId);
+    log(1,data); if(!error&&data?.length) return normSess(data);
+  }catch(e){}
+  try{
+    const {data,error}=await db.from('academic_years').select('id,label,name,is_current,start_date');
+    log(2,data); if(!error&&data?.length) return normSess(data);
+  }catch(e){}
+  try{
+    const {data:trows,error:te}=await db.from('terms').select('id,name,academic_year_id,is_current').eq('school_id',schoolId);
+    if(!te && trows?.length){
       const yids=[...new Set(trows.filter(t=>t.academic_year_id).map(t=>t.academic_year_id))];
-      if(yids.length){const{data:yr,error:ye}=await db.from('academic_years').select('id,label,name,is_current').in('id',yids);if(!ye&&yr?.length)return normSess(yr);}
-      const seen=new Set();const synth=[];
-      for(const t of trows){if(t.academic_year_id&&!seen.has(t.academic_year_id)){seen.add(t.academic_year_id);const yh=t.name?.match(/\d{4}[\/-]\d{2,4}/)?.[0]||t.name?.match(/\d{4}/)?.[0]||'';synth.push({id:t.academic_year_id,label:yh?`${yh} Session`:`Session (${t.academic_year_id.slice(0,8)})`,is_current:t.is_current||false});}}
-      if(synth.length)return synth;
-      return trows.map(t=>({id:t.id,label:t.name||`Term ${t.id.slice(0,6)}`,is_current:t.is_current||false,_isTerm:true}));
+      if(yids.length){
+        const {data:yrows,error:ye}=await db.from('academic_years').select('id,label,name,is_current').in('id',yids);
+        if(!ye && yrows?.length) return normSess(yrows);
+      }
+      const seen=new Set(); const synth=[];
+      for(const t of trows){
+        if(t.academic_year_id && !seen.has(t.academic_year_id)){
+          seen.add(t.academic_year_id);
+          const yearHint=t.name?.match(/\d{4}[\/-]\d{2,4}/)?.[0]||t.name?.match(/\d{4}/)?.[0]||'';
+          synth.push({id:t.academic_year_id,label:yearHint?`${yearHint} Session`:`Session (${t.academic_year_id.slice(0,8)})`,is_current:t.is_current||false});
+        }
+      }
+      if(synth.length) return synth;
+      const termSess=trows.map(t=>({id:t.id,label:t.name||`Term ${t.id.slice(0,6)}`,is_current:t.is_current||false,_isTerm:true}));
+      if(termSess.length) return termSess;
     }
   }catch(e){}
-  d=await tryQ(()=>db.from('academic_sessions').select('id,label,name,is_current').eq('school_id',schoolId));
-  if(d)return normSess(d);
+  try{
+    const {data,error}=await db.from('academic_sessions').select('id,label,name,is_current').eq('school_id',schoolId);
+    if(!error&&data?.length) return normSess(data);
+  }catch(e){}
   return [{id:'__ALL__',label:'All Sessions (Fallback)',is_current:true,_fallback:true}];
 }
-function normSess(rows){return rows.map(s=>({...s,label:s.label||s.name||`Session ${(s.id||'').slice(0,8)}`})).sort((a,b)=>(b.is_current?1:0)-(a.is_current?1:0));}
+function normSess(rows){
+  return rows.map(s=>({...s,label:s.label||s.name||`Session ${(s.id||'').slice(0,8)}`})).sort((a,b)=>(b.is_current?1:0)-(a.is_current?1:0));
+}
 
-/* ══════════════════════════════════════
+/* ════════════════════════════════════════════
    PICKER
-══════════════════════════════════════ */
+════════════════════════════════════════════ */
 let _allClasses=[],_sessions=[],_pickerStudents=[],_genMode='all';
 
 async function showPicker(){
   const MC=document.getElementById('MC');
   MC.innerHTML='<div class="loading">Loading…</div>';
-  document.getElementById('colorToggleBtn').style.display='none';
-  document.getElementById('floatTheme').classList.remove('vis');
   try{
     const ud=await getCurrentUser();
     _schoolId=ud?.school_id||ud?.schools?.id;
     if(!_schoolId){window.location.href='/login.html';return;}
-    const[classRes,sessions]=await Promise.all([
+    const [classRes,sessions]=await Promise.all([
       sq(db.from('classes').select('id,name,level,section').eq('school_id',_schoolId).order('name')),
       fetchSessions(_schoolId),
     ]);
     const classes=classRes||[];
     if(!classes.length){MC.innerHTML='<div class="loading" style="color:#f87171">⚠ No classes found.</div>';return;}
-    if(!sessions.length)sessions.push({id:'__ALL__',label:'All Sessions',is_current:true,_fallback:true});
-    _allClasses=classes;_sessions=sessions;
-    const sc=filterClasses(classes,_section);
-    const noMatch=sc.length===0;
-    const si={nursery:'🌱',primary:'📚',junior:'📖',senior:'🎓'};
-    const sn={nursery:'NURSERY',primary:'PRIMARY',junior:'JUNIOR',senior:'SENIOR'};
+    if(!sessions.length) sessions.push({id:'__ALL__',label:'All Sessions',is_current:true,_fallback:true});
+    _allClasses=classes; _sessions=sessions;
+    const sectClasses=filterClasses(classes,_section);
+    const noMatch=filterClasses(classes,_section).length===0;
+    const sectIco={nursery:'🌱',primary:'📚',junior:'📖',senior:'🎓'};
+    const sectNm={nursery:'NURSERY',primary:'PRIMARY',junior:'JUNIOR',senior:'SENIOR'};
+    const clsOpts=sectClasses.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    const sessOpts=sessions.map(s=>`<option value="${s.id}"${s.is_current?' selected':''}>${s.label}</option>`).join('');
     MC.innerHTML=`
 <div class="tpw"><div class="pcard">
  <h2>📜 Generate Testimonial</h2>
  <p>Select the class and academic session, then choose a generation mode.</p>
- <div class="ptag">${si[_section]} ${sn[_section]} SECTION</div>
- ${noMatch?`<div class="pinfo">⚠ No classes matched this section. Showing all classes.</div>`:''}
+ <div class="ptag">${sectIco[_section]} ${sectNm[_section]} SECTION</div>
+ ${noMatch?`<div class="pinfo">⚠ No classes found matching this section. Showing all classes.</div>`:''}
  <div class="prow2">
-  <div><label class="plbl">Class</label><select id="pCls" class="psel" onchange="onClsChange()">${sc.map(c=>`<option value="${c.id}">${c.name}</option>`).join('')}</select></div>
-  <div><label class="plbl">Academic Session</label><select id="pSess" class="psel">${sessions.map(s=>`<option value="${s.id}"${s.is_current?' selected':''}>${s.label}</option>`).join('')}</select></div>
+  <div><label class="plbl">Class</label><select id="pCls" class="psel" onchange="onClsChange()">${clsOpts}</select></div>
+  <div><label class="plbl">Academic Session</label><select id="pSess" class="psel">${sessOpts}</select></div>
  </div>
  <div class="pmsep">Generation Mode</div>
  <div class="mcards">
-  <div class="mcard act" id="mAll" onclick="setMode('all')"><div class="mradio on" id="rAll"></div><div class="mcard-text"><strong>All Students in Class</strong><span>Generate for every enrolled student</span></div></div>
-  <div class="mcard" id="mSel" onclick="setMode('select')"><div class="mradio" id="rSel"></div><div class="mcard-text"><strong>Select Specific Students</strong><span>Load class roll and tick who you need</span></div></div>
-  <div class="mcard" id="mAdm" onclick="setMode('admno')"><div class="mradio" id="rAdm"></div><div class="mcard-text"><strong>Search by Admission No / Name</strong><span>Generate a single student's testimonial</span></div></div>
+  <div class="mcard act" id="mAll" onclick="setMode('all')">
+   <div class="mradio on" id="rAll"></div>
+   <div class="mcard-text"><strong>All Students in Class</strong><span>Generate testimonials for every student enrolled in the selected class &amp; session</span></div>
+  </div>
+  <div class="mcard" id="mSel" onclick="setMode('select')">
+   <div class="mradio" id="rSel"></div>
+   <div class="mcard-text"><strong>Select Specific Students</strong><span>Load the class roll and tick only the students you need</span></div>
+  </div>
+  <div class="mcard" id="mAdm" onclick="setMode('admno')">
+   <div class="mradio" id="rAdm"></div>
+   <div class="mcard-text"><strong>Search by Admission Number / Name</strong><span>Enter a student's admission number or name to generate a single testimonial</span></div>
+  </div>
  </div>
  <div id="mPanel"></div>
  <button class="pgen" id="pGenBtn" onclick="doGenerate()">✦ Generate Testimonial(s)</button>
 </div></div>`;
-  }catch(e){MC.innerHTML=`<div class="loading" style="color:#f87171">⚠ ${e.message}</div>`;}
+  }catch(e){
+    MC.innerHTML=`<div class="loading" style="color:#f87171">⚠ ${e.message}</div>`;
+  }
 }
 
-function onClsChange(){_pickerStudents=[];if(_genMode==='select')renderPanel();}
+function onClsChange(){_pickerStudents=[];if(_genMode==='select') renderPanel();}
 function setMode(m){
-  _genMode=m;_pickerStudents=[];
+  _genMode=m; _pickerStudents=[];
   ['All','Sel','Adm'].forEach(n=>{
     const active=n.toLowerCase().startsWith(m.substring(0,3));
     document.getElementById('m'+n)?.classList.toggle('act',active);
-    const r=document.getElementById('r'+n);if(r)r.classList.toggle('on',active);
+    const r=document.getElementById('r'+n);
+    if(r){r.classList.toggle('on',active);}
   });
   renderPanel();
 }
 function renderPanel(){
-  const p=document.getElementById('mPanel');if(!p)return;
+  const p=document.getElementById('mPanel');
+  if(!p) return;
   if(_genMode==='select'){
-    p.innerHTML=`<div class="sacts"><button class="sact" onclick="loadRoll()">↻ Load Class Roll</button><button class="sact" onclick="chkAll(true)">✓ All</button><button class="sact" onclick="chkAll(false)">✗ None</button></div><div class="slist" id="sChkList"><div style="padding:13px;text-align:center;font-size:12px;color:#4d6f8f;">Click "Load Class Roll" first</div></div>`;
+    p.innerHTML=`<div class="sacts"><button class="sact" onclick="loadRoll()">↻ Load Class Roll</button><button class="sact" onclick="chkAll(true)">✓ All</button><button class="sact" onclick="chkAll(false)">✗ None</button></div><div class="slist" id="sChkList"><div style="padding:13px;text-align:center;font-size:12px;color:#4d6f8f;">Click "Load Class Roll" to see enrolled students</div></div>`;
   }else if(_genMode==='admno'){
-    p.innerHTML=`<div class="prow2"><div><label class="plbl">Admission Number</label><input id="admIn" class="pinp" type="text" placeholder="e.g. NUR/2024/001"></div><div><label class="plbl">Or Student Name</label><input id="nameIn" class="pinp" type="text" placeholder="e.g. Aisha Yusuf"></div></div>`;
-  }else{p.innerHTML='';}
+    p.innerHTML=`<div class="prow2"><div><label class="plbl">Admission Number</label><input id="admIn" class="pinp" type="text" placeholder="e.g. NUR/2024/001"></div><div><label class="plbl">Or Student Name</label><input id="nameIn" class="pinp" type="text" placeholder="e.g. Aisha Yusuf"></div></div><div style="font-size:11.5px;color:#3d5a78;margin-bottom:14px;">Enter an admission number <em>or</em> part of the student's name — one is enough.</div>`;
+  }else{
+    p.innerHTML='';
+  }
 }
 async function loadRoll(){
-  const clsId=document.getElementById('pCls')?.value,sessId=document.getElementById('pSess')?.value,box=document.getElementById('sChkList');
-  if(!clsId||!sessId||!box)return;
+  const clsId=document.getElementById('pCls')?.value;
+  const sessId=document.getElementById('pSess')?.value;
+  const box=document.getElementById('sChkList');
+  if(!clsId||!sessId||!box) return;
   box.innerHTML='<div style="padding:13px;text-align:center;font-size:12px;color:#4d6f8f;">Loading…</div>';
   const ids=await getStudentIdsForClassSession(clsId,sessId);
   if(!ids.length){box.innerHTML='<div style="padding:13px;text-align:center;font-size:12px;color:#f87171;">No students found.</div>';return;}
-  const{data:studs}=await db.from('students').select('id,full_name,admission_no').in('id',ids).order('full_name');
+  const {data:studs}=await db.from('students').select('id,full_name,admission_no').in('id',ids).order('full_name');
   _pickerStudents=studs||[];
   box.innerHTML=_pickerStudents.map(s=>`<label class="sitem"><input type="checkbox" class="sc" value="${s.id}" checked><span class="sname">${s.full_name||'—'}</span><span class="sadm">${s.admission_no||''}</span></label>`).join('');
 }
 function chkAll(v){document.querySelectorAll('.sc').forEach(c=>c.checked=v);}
 
 async function getStudentIdsForClassSession(clsId,sessId){
-  if(sessId==='__ALL__'){const{data:e}=await db.from('enrollments').select('student_id').eq('class_id',clsId);return[...new Set((e||[]).map(x=>x.student_id))];}
-  const sm=_sessions.find(s=>s.id===sessId);
-  if(sm?._isTerm){const{data:e}=await db.from('enrollments').select('student_id').eq('class_id',clsId).eq('term_id',sessId);const ids=[...new Set((e||[]).map(x=>x.student_id))];if(ids.length)return ids;const{data:e2}=await db.from('enrollments').select('student_id').eq('class_id',clsId);return[...new Set((e2||[]).map(x=>x.student_id))];}
-  try{const{data:terms,error}=await db.from('terms').select('id').eq('academic_year_id',sessId).eq('school_id',_schoolId);if(!error&&terms?.length){const ti=terms.map(t=>t.id);const{data:e}=await db.from('enrollments').select('student_id').eq('class_id',clsId).in('term_id',ti);const ids=[...new Set((e||[]).map(x=>x.student_id))];if(ids.length)return ids;}}catch(e){}
-  try{const{data:e,error}=await db.from('enrollments').select('student_id').eq('class_id',clsId).eq('session_id',sessId);if(!error&&e?.length)return[...new Set(e.map(x=>x.student_id))];}catch(e){}
-  try{const{data:e}=await db.from('enrollments').select('student_id').eq('class_id',clsId);return[...new Set((e||[]).map(x=>x.student_id))];}catch(e){}
-  return[];
+  if(sessId==='__ALL__'){
+    const {data:enr}=await db.from('enrollments').select('student_id').eq('class_id',clsId);
+    return [...new Set((enr||[]).map(e=>e.student_id))];
+  }
+  const sessMeta=_sessions.find(s=>s.id===sessId);
+  if(sessMeta?._isTerm){
+    const {data:enr}=await db.from('enrollments').select('student_id').eq('class_id',clsId).eq('term_id',sessId);
+    const ids=[...new Set((enr||[]).map(e=>e.student_id))];
+    if(ids.length) return ids;
+    const {data:enr2}=await db.from('enrollments').select('student_id').eq('class_id',clsId);
+    return [...new Set((enr2||[]).map(e=>e.student_id))];
+  }
+  try{
+    const {data:terms,error}=await db.from('terms').select('id').eq('academic_year_id',sessId).eq('school_id',_schoolId);
+    if(!error && terms?.length){
+      const termIds=terms.map(t=>t.id);
+      const {data:enr}=await db.from('enrollments').select('student_id').eq('class_id',clsId).in('term_id',termIds);
+      const ids=[...new Set((enr||[]).map(e=>e.student_id))];
+      if(ids.length) return ids;
+    }
+  }catch(e){}
+  try{
+    const {data:enr,error}=await db.from('enrollments').select('student_id').eq('class_id',clsId).eq('session_id',sessId);
+    if(!error && enr?.length) return [...new Set(enr.map(e=>e.student_id))];
+  }catch(e){}
+  try{
+    const {data:enr}=await db.from('enrollments').select('student_id').eq('class_id',clsId);
+    return [...new Set((enr||[]).map(e=>e.student_id))];
+  }catch(e){}
+  return [];
 }
 
-/* ══════════════════════════════════════
-   GENERATE FLOW
-══════════════════════════════════════ */
+/* ════════════════════════════════════════════
+   GENERATE
+════════════════════════════════════════════ */
 async function doGenerate(){
-  const clsId=document.getElementById('pCls')?.value,sessId=document.getElementById('pSess')?.value;
+  const clsId=document.getElementById('pCls')?.value;
+  const sessId=document.getElementById('pSess')?.value;
   if(!clsId||!sessId){alert('Please select a class and session.');return;}
-  const btn=document.getElementById('pGenBtn');if(btn)btn.disabled=true;
+  const btn=document.getElementById('pGenBtn');
+  if(btn) btn.disabled=true;
   try{
-    if(_genMode==='admno')await genByAdmNo(sessId);
+    if(_genMode==='admno') await genByAdmNo(sessId);
     else if(_genMode==='select'){
       const chk=[...document.querySelectorAll('.sc:checked')].map(c=>c.value);
-      if(!chk.length){alert('Select at least one student.');if(btn)btn.disabled=false;return;}
+      if(!chk.length){alert('Please select at least one student.');if(btn)btn.disabled=false;return;}
       await genBatch(chk,sessId);
     }else{
       showProg('Loading class roll…',5);
@@ -513,117 +524,127 @@ async function doGenerate(){
       if(!ids.length){showProg('⚠ No students found.',0);if(btn)btn.disabled=false;return;}
       await genBatch(ids,sessId);
     }
-  }catch(e){document.getElementById('MC').innerHTML=`<div class="loading" style="color:#f87171">⚠ ${e.message}</div>`;}
-  if(btn)btn.disabled=false;
-}
-async function genByAdmNo(sessId){
-  const admno=(document.getElementById('admIn')?.value||'').trim(),name=(document.getElementById('nameIn')?.value||'').trim();
-  if(!admno&&!name){alert('Enter an admission number or name.');return;}
-  showProg('Searching…',0);
-  let q=db.from('students').select('id,full_name,admission_no').eq('school_id',_schoolId);
-  if(admno)q=q.ilike('admission_no',`%${admno}%`);else q=q.ilike('full_name',`%${name}%`);
-  const{data:matches}=await q.limit(8);
-  if(!matches?.length){showProg('⚠ No student found.',0);return;}
-  if(matches.length>1){
-    document.getElementById('MC').innerHTML=`<div class="tpw"><div class="pcard"><h2>Multiple Students Found</h2><p>Select the correct student.</p>${matches.map(s=>`<div class="mcard" onclick="genBatch(['${s.id}'],'${sessId}')" style="cursor:pointer;"><div class="mcard-text"><strong>${s.full_name||'—'}</strong><span>${s.admission_no||'N/A'}</span></div><span style="color:#7cb4ff;font-size:12px;margin-left:auto;">→</span></div>`).join('')}<button class="pload" style="margin-top:12px" onclick="showPicker()">← Back</button></div></div>`;
-    return;
+  }catch(e){
+    document.getElementById('MC').innerHTML=`<div class="loading" style="color:#f87171">⚠ ${e.message}</div>`;
   }
+  if(btn) btn.disabled=false;
+}
+
+async function genByAdmNo(sessId){
+  const admno=(document.getElementById('admIn')?.value||'').trim();
+  const name=(document.getElementById('nameIn')?.value||'').trim();
+  if(!admno&&!name){alert('Please enter an admission number or student name.');return;}
+  showProg('Searching for student…',0);
+  let q=db.from('students').select('id,full_name,admission_no').eq('school_id',_schoolId);
+  if(admno) q=q.ilike('admission_no',`%${admno}%`);
+  else      q=q.ilike('full_name',`%${name}%`);
+  const {data:matches}=await q.limit(8);
+  if(!matches?.length){showProg('⚠ No student found.',0);return;}
+  if(matches.length>1){renderMatchSelect(matches,sessId);return;}
   await genBatch([matches[0].id],sessId);
+}
+function renderMatchSelect(students,sessId){
+  document.getElementById('MC').innerHTML=`<div class="tpw"><div class="pcard"><h2>Multiple Students Found</h2><p>Please select the correct student.</p>${students.map(s=>`<div class="mcard" onclick="genBatch(['${s.id}'],'${sessId}')" style="cursor:pointer;"><div class="mcard-text"><strong>${s.full_name||'—'}</strong><span>Adm No: ${s.admission_no||'N/A'}</span></div><span style="color:#7cb4ff;font-size:12px;margin-left:auto;">Generate →</span></div>`).join('')}<button class="pload" style="margin-top:12px;" onclick="showPicker()">← Go Back</button></div></div>`;
 }
 function showProg(msg,pct){
   document.getElementById('MC').innerHTML=`<div class="tpw"><div class="pcard"><div class="pprog"><div class="pprog-title">${msg}</div><div class="pprog-bar"><div class="pprog-fill" style="width:${pct}%"></div></div><div class="pprog-sub">Please wait…</div></div></div></div>`;
 }
 
-/* ══════════════════════════════════════
-   BULK FETCH + RENDER
-══════════════════════════════════════ */
+/* ════════════════════════════════════════════
+   BULK DATA FETCH + RENDER
+════════════════════════════════════════════ */
 async function genBatch(studentIds,sessId){
-  _lastGenStudentIds=studentIds;_lastGenSessId=sessId;
-  const total=studentIds.length;showProg(`Fetching data for ${total} student(s)…`,10);
+  const total=studentIds.length;
+  showProg(`Fetching data for ${total} student(s)…`,10);
   let termIds=[];
-  const sm2=_sessions.find(s=>s.id===sessId);
-  if(sessId==='__ALL__'){const{data:at}=await db.from('terms').select('id').eq('school_id',_schoolId);termIds=(at||[]).map(t=>t.id);}
-  else if(sm2?._isTerm){termIds=[sessId];}
-  else{try{const{data:st,error}=await db.from('terms').select('id').eq('academic_year_id',sessId).eq('school_id',_schoolId);if(!error&&st?.length)termIds=st.map(t=>t.id);else{const{data:at}=await db.from('terms').select('id').eq('school_id',_schoolId);termIds=(at||[]).map(t=>t.id);}}catch(e){const{data:at}=await db.from('terms').select('id').eq('school_id',_schoolId);termIds=(at||[]).map(t=>t.id);}}
-  const[students,school,scale,session,allResults,affList,enrList]=await Promise.all([
+  const sessMeta2=_sessions.find(s=>s.id===sessId);
+  if(sessId==='__ALL__'){
+    const {data:at}=await db.from('terms').select('id').eq('school_id',_schoolId);
+    termIds=(at||[]).map(t=>t.id);
+  } else if(sessMeta2?._isTerm){
+    termIds=[sessId];
+  } else {
+    try{
+      const {data:st,error}=await db.from('terms').select('id').eq('academic_year_id',sessId).eq('school_id',_schoolId);
+      if(!error && st?.length){ termIds=st.map(t=>t.id); }
+      else{
+        const {data:at}=await db.from('terms').select('id').eq('school_id',_schoolId);
+        termIds=(at||[]).map(t=>t.id);
+      }
+    }catch(e){
+      const {data:at}=await db.from('terms').select('id').eq('school_id',_schoolId);
+      termIds=(at||[]).map(t=>t.id);
+    }
+  }
+  const [students,school,scale,session,allResults,affList,enrList]=await Promise.all([
     sq(db.from('students').select('*').in('id',studentIds)),
     sq(db.from('schools').select('name,logo_url,address,state,lga,phone,email,motto,principal_signature_url,class_teacher_signature_url').eq('id',_schoolId).single()),
     sq(db.from('grading_scales').select('*').eq('school_id',_schoolId).order('min_score',{ascending:false})),
-    (async()=>{const c=_sessions.find(s=>s.id===sessId);if(c)return c;try{const{data,error}=await db.from('academic_years').select('*').eq('id',sessId).single();if(!error&&data)return data;}catch(e){}return{label:`Session ${sessId.slice(0,8)}`,id:sessId};})(),
+    (async()=>{
+      const cached=_sessions.find(s=>s.id===sessId);
+      if(cached) return cached;
+      if(sessId==='__ALL__') return {label:'All Sessions',id:'__ALL__'};
+      try{const {data,error}=await db.from('academic_years').select('*').eq('id',sessId).single();if(!error&&data) return data;}catch(e){}
+      return {label:`Session ${sessId.slice(0,8)}`,id:sessId};
+    })(),
     sq(db.from('results').select('score,student_id,subject_id,term_id,subjects(name),exams(max_score,weight)').in('student_id',studentIds).in('term_id',termIds.length?termIds:['_'])),
     sq(db.from('affective_domain').select('*').in('student_id',studentIds).in('term_id',termIds.length?termIds:['_']).order('term_id',{ascending:false})),
-    (async()=>{if(termIds.length){const r=await sq(db.from('enrollments').select('student_id,class_id,classes(id,name,level,section)').in('student_id',studentIds).in('term_id',termIds).order('term_id',{ascending:false}));if(r?.length)return r;}return await sq(db.from('enrollments').select('student_id,class_id,classes(id,name,level,section)').in('student_id',studentIds).order('student_id'));})(),
+    (async()=>{
+      if(termIds.length){
+        const r=await sq(db.from('enrollments').select('student_id,class_id,classes(id,name,level,section)').in('student_id',studentIds).in('term_id',termIds).order('term_id',{ascending:false}));
+        if(r?.length) return r;
+      }
+      return await sq(db.from('enrollments').select('student_id,class_id,classes(id,name,level,section)').in('student_id',studentIds).order('student_id'));
+    })(),
   ]);
   showProg(`Rendering ${total} testimonial(s)…`,70);
-  const isLand=_orient==='landscape';
   const htmlParts=(students||[]).map((student,idx)=>{
     const sRes=(allResults||[]).filter(r=>r.student_id===student.id);
     const aff=(affList||[]).find(a=>a.student_id===student.id)||null;
     const enr=(enrList||[]).find(e=>e.student_id===student.id)||null;
     const subMap=new Map();
-    sRes.forEach(r=>{if(!subMap.has(r.subject_id))subMap.set(r.subject_id,{name:r.subjects?.name||'—',rows:[]});subMap.get(r.subject_id).rows.push({score:r.score,max:r.exams?.max_score||100});});
-    const subRows=[...subMap.values()].map(sub=>{const v=sub.rows.filter(r=>r.score!=null);if(!v.length)return{name:sub.name,total:null,grade:'—'};const pct=v.reduce((s,r)=>s+(r.score/r.max)*100,0)/v.length;const total=Math.round(pct*10)/10;return{name:sub.name,total,grade:gradeFrom(total,scale||[]).grade};});
-    const v2=subRows.filter(s=>s.total!==null);
-    const avg=v2.length?Math.round(v2.reduce((s,r)=>s+r.total,0)/v2.length*10)/10:null;
+    sRes.forEach(r=>{
+      if(!subMap.has(r.subject_id)) subMap.set(r.subject_id,{name:r.subjects?.name||'—',rows:[]});
+      subMap.get(r.subject_id).rows.push({score:r.score,max:r.exams?.max_score||100,w:r.exams?.weight||1});
+    });
+    const subRows=[...subMap.values()].map(sub=>{
+      const valid=sub.rows.filter(r=>r.score!=null);
+      if(!valid.length) return {name:sub.name,total:null,grade:'—'};
+      const pct=valid.reduce((s,r)=>s+(r.score/r.max)*100,0)/valid.length;
+      const total=Math.round(pct*10)/10;
+      return {name:sub.name,total,grade:gradeFrom(total,scale||[]).grade};
+    });
+    const valid2=subRows.filter(s=>s.total!==null);
+    const avg=valid2.length?Math.round(valid2.reduce((s,r)=>s+r.total,0)/valid2.length*10)/10:null;
     const passed=subRows.filter(s=>s.grade&&s.grade!=='F'&&s.grade!=='—').length;
     const og=gradeFrom(avg,scale||[]);
     const sessLabel=session?.label||'Current Session';
     const cls=enr?.classes?.name||'—';
-    const d={student,school,scale,session,subRows,avg,passed,og,sessLabel,aff,cls};
-    const certHtml=renderCert(d);
-    const wrap=`<div class="cert-scaler${isLand?' land':''}">${certHtml}</div>`;
-    return wrap+(idx<total-1?'<div class="page-break"></div>':'');
+    const clsLvl=enr?.classes?.level||''; const clsSec=enr?.classes?.section||'';
+    const d={student,school,scale,session,subRows,avg,passed,og,sessLabel,aff,cls,clsLvl,clsSec};
+    return renderCert(d)+(idx<total-1?'<div class="page-break"></div>':'');
   });
   await new Promise(r=>setTimeout(r,150));
   document.getElementById('MC').innerHTML=`<div class="cert-wrap">${htmlParts.join('')}</div>`;
-  // Show color toggle button
-  document.getElementById('colorToggleBtn').style.display='flex';
-  buildFloatGrid();
-  // Scale certs for screen
-  scaleCerts();
 }
 
-/* ══════════════════════════════════════
+/* ════════════════════════════════════════════
    HELPERS
-══════════════════════════════════════ */
+════════════════════════════════════════════ */
 async function sq(q){try{const{data,error}=await q;if(error){console.warn(error.message);return null;}return data;}catch(e){console.warn(e);return null;}}
-function gradeFrom(score,scale){if(score==null||!scale?.length)return{grade:'—',remark:''};const g=scale.find(s=>score>=s.min_score&&score<=s.max_score);return g?{grade:g.grade,remark:g.remark||''}:{grade:'—',remark:''};}
-function fmtDate(d){if(!d)return'—';try{return new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});}catch{return d;}}
-function sectLabel(){return{nursery:'Nursery Section',primary:'Primary Section',junior:'Junior Secondary School',senior:'Senior Secondary School'}[_section]||'';}
-function logoH(logo){return logo?`<img src="${logo}" alt="Logo" style="width:100%;height:100%;object-fit:cover;">`:`<div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:2px;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span style="font-family:'Cinzel',serif;font-size:6.5px;color:#bbb;letter-spacing:.5px;">CREST</span></div>`;}
-function photoH(pp){return pp?`<img src="${pp}" alt="Photo" style="width:100%;height:100%;object-fit:cover;">`:`<div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:3px;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg><span style="font-family:'Poppins',sans-serif;font-size:6.5px;color:#bbb;text-align:center;line-height:1.4;">Affix<br>Passport<br>Photo</span></div>`;}
-
-/* FIXED: wax seal — pure inline SVG, NO data URIs in style attributes */
-function waxSeal(sz){
-  const cx=sz/2,cy=sz/2,or=sz/2-1,ir=sz*0.38,spk=24;
-  let pts='';
-  for(let i=0;i<spk*2;i++){
-    const a=(i*Math.PI/spk)-Math.PI/2;
-    pts+=`${(cx+(i%2===0?or:ir)*Math.cos(a)).toFixed(2)},${(cy+(i%2===0?or:ir)*Math.sin(a)).toFixed(2)} `;
-  }
-  const id='sg'+sz+Math.random().toString(36).slice(2,6);
-  return `<svg width="${sz}" height="${sz}" viewBox="0 0 ${sz} ${sz}" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 3px 10px rgba(160,10,10,.55));flex-shrink:0;">
-  <defs>
-    <radialGradient id="${id}a" cx="38%" cy="32%" r="60%">
-      <stop offset="0%" stop-color="#ef5350"/>
-      <stop offset="55%" stop-color="#c62828"/>
-      <stop offset="100%" stop-color="#7f0000"/>
-    </radialGradient>
-  </defs>
-  <polygon points="${pts}" fill="url(#${id}a)"/>
-  <circle cx="${cx}" cy="${cy}" r="${sz*0.35}" fill="url(#${id}a)"/>
-  <circle cx="${cx}" cy="${cy}" r="${sz*0.34}" fill="none" stroke="rgba(255,215,0,.6)" stroke-width="1.2"/>
-  <circle cx="${cx}" cy="${cy}" r="${sz*0.27}" fill="none" stroke="rgba(255,215,0,.35)" stroke-width="0.8"/>
-  <text x="${cx}" y="${cy-sz*0.07}" text-anchor="middle" font-family="Cinzel,serif" font-size="${sz*0.1}" font-weight="700" fill="rgba(255,215,0,.95)" letter-spacing="0.5">OFFICIAL</text>
-  <text x="${cx}" y="${cy+sz*0.05}" text-anchor="middle" font-family="Cinzel,serif" font-size="${sz*0.095}" font-weight="700" fill="rgba(255,215,0,.95)" letter-spacing="0.5">SCHOOL</text>
-  <text x="${cx}" y="${cy+sz*0.16}" text-anchor="middle" font-family="Cinzel,serif" font-size="${sz*0.085}" font-weight="700" fill="rgba(255,215,0,.8)" letter-spacing="0.5">SEAL</text>
-</svg>`;
+function gradeFrom(score,scale){
+  if(score==null||!scale?.length) return{grade:'—',remark:''};
+  const g=scale.find(s=>score>=s.min_score&&score<=s.max_score);
+  return g?{grade:g.grade,remark:g.remark||''}:{grade:'—',remark:''};
+}
+function fmtDate(d){
+  if(!d) return '—';
+  try{return new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});}catch{return d;}
 }
 
-/* Common cert data */
 function cmn(d){
   const{student,school,avg,passed,og,sessLabel,aff,cls}=d;
-  const certNo=`TEST/${new Date().getFullYear()}/${(student.id||'').slice(0,6).toUpperCase()}`;
+  const certNo=`TEST/${new Date().getFullYear()}/${(student.id||'').slice(0,6).toUpperCase()||'000000'}`;
   const today=fmtDate(new Date());
   const addrParts=[school?.address,school?.lga,school?.state].filter(Boolean).join(', ');
   const meta=school?.phone?`${addrParts} | Tel: ${school.phone}`:addrParts;
@@ -631,398 +652,598 @@ function cmn(d){
   const logo=school?.logo_url||'';
   const hmSig=school?.class_teacher_signature_url||school?.principal_signature_url||'';
   const admDate=fmtDate(student.admission_date||student.created_at);
-  const conduct=aff?.conduct||aff?.behaviour||'';
-  const post=aff?.post_held||'';
+  const conduct=aff?.conduct||aff?.behaviour||'—';
+  const post=aff?.post_held||'—';
   const hobby=aff?.hobby||'';
-  return{student,school,certNo,today,meta,pp,logo,hmSig,admDate,conduct,post,hobby,sessLabel,cls,avg,passed,og,subs:d.subRows||[]};
+  const sinc=aff?.sincerity||'—';
+  const punct=aff?.punctuality||'—';
+  return{student,school,certNo,today,meta,pp,logo,hmSig,admDate,conduct,post,hobby,sinc,punct,sessLabel,cls,avg,passed,og,d};
 }
 
-/* FIXED: diagonal border — pure CSS gradients, no data URIs */
-function borderGrad(pri,acc,mode){
-  const c1=pri,c2=acc,c3=mode==='sec'?'rgba(229,57,53,.85)':'rgba(0,131,143,.85)';
-  return `repeating-linear-gradient(-52deg,transparent 0,transparent 8px,rgba(255,255,255,.22) 8px,rgba(255,255,255,.22) 12px,transparent 12px,transparent 20px,${c2} 20px,${c2} 25px,transparent 25px,transparent 33px,${c3} 33px,${c3} 38px,transparent 38px,transparent 48px,rgba(255,255,255,.14) 48px,rgba(255,255,255,.14) 52px,transparent 52px,transparent 62px)`;
+function logoH(logo,cls){
+  return logo
+    ? `<img src="${logo}" alt="Logo" style="width:100%;height:100%;object-fit:cover;">`
+    : `<div style="font-family:'Cinzel',serif;font-size:7px;font-weight:700;color:#888;text-align:center;line-height:1.3;padding:4px;display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;"><span style="font-size:18px;opacity:.25;">🏫</span><br>SCHOOL<br>CREST</div>`;
+}
+function photoH(pp,alt){
+  return pp
+    ? `<img src="${pp}" alt="Student Photo" style="width:100%;height:100%;object-fit:cover;">`
+    : `<div style="font-family:'Poppins',sans-serif;font-size:7.5px;font-weight:600;color:#aaa;text-align:center;line-height:1.6;padding:5px;display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;"><span style="font-size:20px;opacity:.2;">👤</span><br>Affix<br>Passport<br>Photo</div>`;
 }
 
-/* FIXED: watermark — injected as a <style> tag, never inline */
-function injectWatermarkStyle(colorHex){
-  let s=document.getElementById('wm-sty');
-  if(!s){s=document.createElement('style');s.id='wm-sty';document.head.appendChild(s);}
-  // Pure CSS, no data URI — simple repeating dot pattern
-  s.textContent=`.cert-body-inner{background-image:radial-gradient(circle,${colorHex} 1px,transparent 1px);background-size:22px 22px;}`;
+function sectLabel(){
+  return{nursery:'Nursery Section',primary:'Primary Section',junior:'Junior Secondary School',senior:'Senior Secondary School'}[_section]||'';
 }
 
-/* Render dispatcher */
+/* ════════════════════════════════
+   WAX SEAL SVG
+════════════════════════════════ */
+function waxSeal(size=84){
+  const r=size/2, cx=r, cy=r;
+  const spikes=24, oi=r-2, ii=r*0.72;
+  let pts='';
+  for(let i=0;i<spikes*2;i++){
+    const angle=(i*Math.PI/spikes)-Math.PI/2;
+    const rad=i%2===0?oi:ii;
+    pts+=`${cx+rad*Math.cos(angle)},${cy+rad*Math.sin(angle)} `;
+  }
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 3px 10px rgba(160,10,10,.55))">
+  <defs>
+    <radialGradient id="wg${size}" cx="40%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#e53935"/>
+      <stop offset="50%" stop-color="#c62828"/>
+      <stop offset="100%" stop-color="#8e0000"/>
+    </radialGradient>
+    <radialGradient id="wg2${size}" cx="35%" cy="30%" r="55%">
+      <stop offset="0%" stop-color="rgba(255,255,255,.25)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </radialGradient>
+  </defs>
+  <polygon points="${pts}" fill="url(#wg${size})"/>
+  <circle cx="${cx}" cy="${cy}" r="${r*0.62}" fill="url(#wg${size})"/>
+  <circle cx="${cx}" cy="${cy}" r="${r*0.62}" fill="url(#wg2${size})" opacity=".6"/>
+  <circle cx="${cx}" cy="${cy}" r="${r*0.56}" fill="none" stroke="rgba(255,215,0,.55)" stroke-width="1.2"/>
+  <circle cx="${cx}" cy="${cy}" r="${r*0.48}" fill="none" stroke="rgba(255,215,0,.3)" stroke-width=".8"/>
+  <text x="${cx}" y="${cy-4}" text-anchor="middle" font-family="Cinzel,serif" font-size="${r*0.18}" font-weight="700" fill="rgba(255,215,0,.9)" letter-spacing="1">OFFICIAL</text>
+  <text x="${cx}" y="${cy+4}" text-anchor="middle" font-family="Cinzel,serif" font-size="${r*0.165}" font-weight="700" fill="rgba(255,215,0,.9)" letter-spacing="1">SCHOOL</text>
+  <text x="${cx}" y="${cy+12}" text-anchor="middle" font-family="Cinzel,serif" font-size="${r*0.15}" font-weight="700" fill="rgba(255,215,0,.75)" letter-spacing="1">SEAL</text>
+</svg>`;
+}
+
+/* ════════════════════════════════
+   MULTI-STRIPE BORDER CSS for cert shell
+   Replicates reference: navy + teal/cyan + gold stripes
+════════════════════════════════ */
+function borderShell(w,h,pad,inner){
+  // Outer shell uses thick diagonal striped border matching reference
+  return `
+    position:relative;overflow:hidden;
+    background:linear-gradient(135deg,var(--c-pri),var(--c-pri2) 40%,var(--c-pri));
+  `;
+}
+
+/* ════════════════════════════════
+   DIAMOND WATERMARK for cert body
+════════════════════════════════ */
+function diamondWM(color='rgba(13,32,96,.05)'){
+  const svg=`<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><polygon points='20,2 38,20 20,38 2,20' fill='none' stroke='${encodeURIComponent(color)}' stroke-width='1.5'/></svg>`;
+  return `url("data:image/svg+xml,${svg}")`;
+}
+
+/* ════════════════════════════════
+   RENDER DISPATCHER
+════════════════════════════════ */
 function renderCert(d){
-  const t=THEMES[_theme];
-  injectWatermarkStyle('rgba(13,32,96,.06)');
   const sec=_section==='junior'||_section==='senior';
-  if(!sec&&_orient==='portrait')  return certPP(d,t);
-  if(!sec&&_orient==='landscape') return certPL(d,t);
-  if(sec &&_orient==='portrait')  return certSP(d,t);
-  return certSL(d,t);
+  if(!sec&&_orient==='portrait')  return certPP(d);
+  if(!sec&&_orient==='landscape') return certPL(d);
+  if(sec &&_orient==='portrait')  return certSP(d);
+  return certSL(d);
 }
 
-/* ══════════════════════════════════════
-   ① PRIMARY/NURSERY — PORTRAIT 210×297mm
-══════════════════════════════════════ */
-function certPP(d,t){
+/* ══════════════════════════════════════════════════════
+   ① PRIMARY / NURSERY — PORTRAIT  210×297mm
+   PREMIUM REDESIGN — diagonal multi-stripe border,
+   diamond watermark, bold typography, full-page layout
+══════════════════════════════════════════════════════ */
+function certPP(d){
   const c=cmn(d);
-  const sectFull={nursery:'Nursery School Education',primary:'Primary School Education'}[_section]||'School Education';
-  const cls=c.cls!=='—'?c.cls:sectFull;
-  const bdr=borderGrad(t.p,t.a,'pri');
+  const subs=d.subRows||[];
+  const sectFull={nursery:'Nursery School Education',primary:'Primary School Education',junior:'Junior Secondary Education',senior:'Senior Secondary Education'}[_section]||'School Education';
+  const classDisplay=c.cls!=='—'?c.cls:sectFull;
+  const t=THEMES[_theme];
 
-  function row(lbl,val){
-    return `<div style="display:flex;align-items:flex-end;border-bottom:2px solid #222;padding:5px 0 3px;gap:0;flex-shrink:0;">
-      <span style="font-family:'Oswald',sans-serif;font-size:13.5px;font-weight:600;color:#111;white-space:nowrap;margin-right:7px;">${lbl}:</span>
-      <span style="flex:1;font-family:'EB Garamond',serif;font-size:14px;font-style:italic;color:#111;padding:0 3px;min-height:16px;">${val||'&nbsp;'}</span>
+  // Multi-stripe diagonal border matching reference image exactly
+  const borderBg=`
+    background:
+      repeating-linear-gradient(
+        -52deg,
+        transparent 0px, transparent 8px,
+        rgba(255,255,255,.22) 8px, rgba(255,255,255,.22) 12px,
+        transparent 12px, transparent 20px,
+        ${t.a} 20px, ${t.a} 25px,
+        transparent 25px, transparent 33px,
+        rgba(0,131,143,.85) 33px, rgba(0,131,143,.85) 38px,
+        transparent 38px, transparent 46px,
+        rgba(255,255,255,.15) 46px, rgba(255,255,255,.15) 50px,
+        transparent 50px, transparent 58px
+      ),
+      linear-gradient(135deg, ${t.p}, ${t.p2} 50%, ${t.p});
+  `;
+
+  function ppRow(lbl,val){
+    return `<div style="display:flex;align-items:flex-end;border-bottom:2px solid #2a2a2a;padding:5px 0 3px;margin-bottom:1px;gap:0;">
+      <span style="font-family:'Oswald',sans-serif;font-size:clamp(11px,2.4vw,14.5px);font-weight:600;color:#111;white-space:nowrap;margin-right:7px;letter-spacing:.3px;">${lbl}:</span>
+      <span style="flex:1;font-family:'EB Garamond',serif;font-size:clamp(11px,2.2vw,14px);font-style:italic;color:#111;padding:0 3px;">${val||'&nbsp;'}</span>
     </div>`;
   }
 
-  return `<div class="pp" style="background:${bdr},linear-gradient(135deg,${t.p},${t.p2} 50%,${t.p});">
-  <div style="margin:11px;flex:1;display:flex;flex-direction:column;background:#fff;border:3.5px solid ${t.p};overflow:hidden;height:calc(297mm - 22px);">
-    <div class="cert-body-inner" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+  return `
+<div class="pp" style="${borderBg}">
+  <!-- Diagonal stripe overlay -->
+  <div style="position:absolute;inset:0;pointer-events:none;z-index:0;"></div>
 
-      <!-- HEADER -->
-      <div style="background:#fff;padding:13px 18px 9px;text-align:center;flex-shrink:0;border-bottom:4px solid ${t.p};">
-        <div style="font-family:'Oswald',sans-serif;font-size:clamp(17px,5vw,28px);font-weight:700;color:${t.p3};letter-spacing:.8px;line-height:1.1;text-transform:uppercase;">${c.school?.name||'SCHOOL NAME'}</div>
-        <div style="font-family:'Oswald',sans-serif;font-size:clamp(10px,2.6vw,16px);font-weight:700;color:#1a1a1a;letter-spacing:.4px;text-transform:uppercase;margin-top:2px;">${sectLabel()}</div>
-        <div style="font-family:'Poppins',sans-serif;font-size:clamp(8px,1.7vw,10.5px);font-weight:600;color:#333;text-transform:uppercase;letter-spacing:.3px;margin-top:2px;">${c.meta||'&nbsp;'}</div>
+  <!-- Inner white card -->
+  <div style="margin:11px;flex:1;background:#fff;display:flex;flex-direction:column;border:3.5px solid ${t.p};position:relative;z-index:1;overflow:hidden;
+    background-image:${diamondWM('rgba(13,32,96,.04)')};background-size:40px 40px;">
+
+    <!-- ── TOP HEADER ── -->
+    <div style="background:#fff;padding:13px 18px 9px;text-align:center;flex-shrink:0;border-bottom:4px solid ${t.p};position:relative;">
+      <div style="font-family:'Oswald',sans-serif;font-size:clamp(18px,5vw,29px);font-weight:700;color:${t.p3};letter-spacing:1px;line-height:1.1;text-transform:uppercase;">${c.school?.name||'SCHOOL NAME'}</div>
+      <div style="font-family:'Oswald',sans-serif;font-size:clamp(11px,2.8vw,17px);font-weight:700;color:#111;letter-spacing:.5px;text-transform:uppercase;margin-top:2px;">${sectLabel()}</div>
+      <div style="font-family:'Poppins',sans-serif;font-size:clamp(8px,1.8vw,11px);font-weight:600;color:#333;text-transform:uppercase;letter-spacing:.4px;margin-top:2px;">${c.meta||'&nbsp;'}</div>
+    </div>
+
+    <!-- ── MOTTO BANNER ── -->
+    <div style="background:${t.r1};padding:5px 16px;text-align:center;flex-shrink:0;">
+      <span style="font-family:'Oswald',sans-serif;font-size:clamp(9px,2.2vw,13px);font-weight:700;color:#fff;letter-spacing:2px;text-transform:uppercase;">✦ ${c.school?.motto?'MOTTO: '+c.school.motto:'EDUCATION &amp; EXCELLENCE'} ✦</span>
+    </div>
+
+    <!-- ── LOGO | TITLE | PHOTO ROW ── -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px 8px;flex-shrink:0;border-bottom:3px solid ${t.p};background:rgba(${hexToRgb(t.p)},.03);">
+      <!-- Logo -->
+      <div style="width:72px;height:72px;border-radius:50%;overflow:hidden;border:3px solid ${t.p};background:#f4f6fb;flex-shrink:0;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 12px rgba(0,0,0,.12);">
+        ${logoH(c.logo,'logo-ph')}
       </div>
 
-      <!-- MOTTO -->
-      <div style="background:${t.r1};padding:5px 18px;text-align:center;flex-shrink:0;">
-        <span style="font-family:'Oswald',sans-serif;font-size:clamp(9px,2.1vw,13px);font-weight:700;color:#fff;letter-spacing:2px;text-transform:uppercase;">✦ ${c.school?.motto?'MOTTO: '+c.school.motto:'EDUCATION &amp; EXCELLENCE'} ✦</span>
+      <!-- Title centre -->
+      <div style="flex:1;text-align:center;padding:0 10px;">
+        <div style="font-family:'Oswald',sans-serif;font-size:clamp(30px,8vw,50px);font-weight:700;color:${t.p3};line-height:1;letter-spacing:1px;text-transform:uppercase;text-shadow:2px 2px 0 rgba(${hexToRgb(t.p)},.12),0 3px 8px rgba(${hexToRgb(t.p)},.1);">TESTIMONIAL</div>
+        <div style="font-family:'EB Garamond',serif;font-size:clamp(10px,2.2vw,14px);font-style:italic;color:${t.r1};font-weight:600;margin-top:3px;letter-spacing:.3px;">This is to certify that</div>
       </div>
 
-      <!-- LOGO | TITLE | PHOTO -->
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px 8px;flex-shrink:0;border-bottom:3px solid ${t.p};background:rgba(0,0,0,.015);">
-        <div style="width:72px;height:72px;border-radius:50%;overflow:hidden;border:3px solid ${t.p};background:#f4f6fb;flex-shrink:0;">${logoH(c.logo)}</div>
-        <div style="flex:1;text-align:center;padding:0 10px;">
-          <div style="font-family:'Oswald',sans-serif;font-size:clamp(30px,8.5vw,52px);font-weight:700;color:${t.p3};line-height:1;letter-spacing:2px;text-transform:uppercase;text-shadow:3px 3px 0 rgba(0,0,0,.07);">TESTIMONIAL</div>
-          <div style="font-family:'EB Garamond',serif;font-size:clamp(10px,2.2vw,14px);font-style:italic;color:${t.r1};font-weight:600;margin-top:3px;letter-spacing:.3px;">This is to certify that</div>
+      <!-- Passport photo -->
+      <div style="width:72px;height:90px;flex-shrink:0;border:2.5px solid ${t.p};background:#f0f4ff;overflow:hidden;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,0,0,.1);">
+        ${photoH(c.pp,'photo-ph')}
+      </div>
+    </div>
+
+    <!-- ── BODY: fills remaining space ── -->
+    <div style="padding:0 20px;flex:1;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;">
+
+      <div style="padding-top:10px;">
+        <!-- Student Name -->
+        <div style="font-family:'EB Garamond',serif;font-size:clamp(16px,3.8vw,24px);font-weight:700;font-style:italic;color:#111;text-align:center;border-bottom:2.5px solid #222;padding-bottom:4px;margin-bottom:4px;">${c.student.full_name||'___________________________________'}</div>
+        <div style="font-family:'Poppins',sans-serif;font-size:clamp(10px,2.2vw,13.5px);font-weight:600;font-style:italic;color:#333;text-align:center;margin-bottom:8px;">Has been a pupil of this school</div>
+
+        <!-- From … To … Where -->
+        <div style="display:flex;align-items:flex-end;gap:5px;border-bottom:2.5px solid #222;padding-bottom:4px;margin-bottom:3px;flex-wrap:nowrap;">
+          <span style="font-family:'Oswald',sans-serif;font-size:clamp(12px,2.7vw,16px);font-weight:600;color:#111;white-space:nowrap;flex-shrink:0;">From</span>
+          <span style="flex:1;font-family:'EB Garamond',serif;font-size:13px;font-style:italic;color:#111;border-bottom:1.5px dotted #999;margin-bottom:2px;padding:0 3px;">${c.admDate}</span>
+          <span style="font-family:'Oswald',sans-serif;font-size:clamp(12px,2.7vw,16px);font-weight:600;color:#111;white-space:nowrap;flex-shrink:0;margin-left:4px;">to</span>
+          <span style="flex:1;font-family:'EB Garamond',serif;font-size:13px;font-style:italic;color:#111;border-bottom:1.5px dotted #999;margin-bottom:2px;padding:0 3px;">${c.today}</span>
+          <span style="font-family:'Oswald',sans-serif;font-size:clamp(12px,2.7vw,16px);font-weight:600;color:#111;white-space:nowrap;flex-shrink:0;margin-left:4px;">where</span>
         </div>
-        <div style="width:72px;height:90px;flex-shrink:0;border:2.5px solid ${t.p};background:#f0f4ff;overflow:hidden;">${photoH(c.pp)}</div>
+
+        <!-- Completion -->
+        <div style="font-family:'Poppins',sans-serif;font-size:clamp(11px,2.4vw,14.5px);font-weight:600;color:#111;padding:6px 0 5px;border-bottom:2.5px solid #222;margin-bottom:5px;">
+          he/she completed his/her <strong>${classDisplay}</strong>&nbsp;&nbsp;(${c.sessLabel})
+        </div>
+
+        ${ppRow('Admission No', c.student.admission_no||c.student.roll_no||'&nbsp;')}
+        ${ppRow('Date of Birth', fmtDate(c.student.dob||c.student.date_of_birth))}
+        ${ppRow('Father / Guardian', c.student.father_name||c.student.guardian_name||'&nbsp;')}
+        ${ppRow('Conduct', c.conduct&&c.conduct!=='—'?c.conduct:'&nbsp;')}
+        ${ppRow('Hobby', c.hobby||'&nbsp;')}
+        ${ppRow('Post Held', c.post&&c.post!=='—'?c.post:'&nbsp;')}
+        ${c.avg!==null?ppRow('Academic Performance',`Average: ${c.avg}% &nbsp;·&nbsp; Grade: ${c.og.grade} &nbsp;·&nbsp; ${c.passed}/${subs.length} subjects passed`):''}
       </div>
 
-      <!-- BODY -->
-      <div style="padding:0 20px;flex:1;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;">
-        <div style="padding-top:10px;">
-          <!-- Student Name -->
-          <div style="font-family:'EB Garamond',serif;font-size:clamp(16px,4vw,24px);font-weight:700;font-style:italic;color:#111;text-align:center;border-bottom:2.5px solid #222;padding-bottom:4px;margin-bottom:4px;">${c.student.full_name||'___________________________________'}</div>
-          <div style="font-family:'Poppins',sans-serif;font-size:clamp(10px,2.2vw,13px);font-weight:600;font-style:italic;color:#444;text-align:center;margin-bottom:9px;">Has been a pupil of this school</div>
-          <!-- From–To -->
-          <div style="display:flex;align-items:center;gap:5px;border-bottom:2.5px solid #222;padding-bottom:4px;margin-bottom:3px;flex-wrap:nowrap;">
-            <span style="font-family:'Oswald',sans-serif;font-size:clamp(12px,2.8vw,16px);font-weight:600;color:#111;white-space:nowrap;flex-shrink:0;">From</span>
-            <span style="flex:1;font-family:'EB Garamond',serif;font-size:13.5px;font-style:italic;color:#111;padding:0 4px;">${c.admDate}</span>
-            <span style="font-family:'Oswald',sans-serif;font-size:clamp(12px,2.8vw,16px);font-weight:600;color:#111;white-space:nowrap;flex-shrink:0;">to</span>
-            <span style="flex:1;font-family:'EB Garamond',serif;font-size:13.5px;font-style:italic;color:#111;padding:0 4px;">${c.today}</span>
-            <span style="font-family:'Oswald',sans-serif;font-size:clamp(12px,2.8vw,16px);font-weight:600;color:#111;white-space:nowrap;flex-shrink:0;">where</span>
-          </div>
-          <!-- Completion -->
-          <div style="font-family:'Poppins',sans-serif;font-size:clamp(11px,2.4vw,14.5px);font-weight:600;color:#111;padding:6px 0 5px;border-bottom:2.5px solid #222;margin-bottom:5px;flex-shrink:0;">
-            he/she completed his/her <strong>${cls}</strong>&nbsp;&nbsp;(${c.sessLabel})
-          </div>
-          ${row('Admission No', c.student.admission_no||c.student.roll_no||'')}
-          ${row('Date of Birth', fmtDate(c.student.dob||c.student.date_of_birth))}
-          ${row('Father / Guardian', c.student.father_name||c.student.guardian_name||'')}
-          ${row('Conduct', c.conduct||'')}
-          ${row('Hobby', c.hobby||'')}
-          ${c.post?row('Post Held',c.post):''}
-          ${c.avg!==null?row('Academic Performance',`Average: ${c.avg}% &nbsp;·&nbsp; Grade: ${c.og.grade} &nbsp;·&nbsp; ${c.passed}/${c.subs.length} subjects`):''}
+      <!-- Recommendation -->
+      <div>
+        <div style="font-family:'Poppins',sans-serif;font-size:clamp(11px,2.4vw,14px);font-weight:600;color:#111;line-height:1.65;padding:8px 0 5px;border-top:2px dashed rgba(13,32,96,.15);border-bottom:2px dashed rgba(13,32,96,.15);margin-bottom:5px;">
+          I strongly recommend him/her to wherever may need his/her service or for further academic pursuit. He/She leaves this school with our best wishes.
+        </div>
+        <div style="font-size:8px;color:#c0c8d8;font-family:sans-serif;text-align:right;padding:2px 0;">Ref: ${c.certNo} &nbsp;·&nbsp; ${c.today}</div>
+      </div>
+
+      <!-- Signatures row -->
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;padding:7px 0 12px;">
+        <!-- Headmaster sig -->
+        <div style="text-align:center;min-width:130px;">
+          <div style="min-height:36px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:3px;">${c.hmSig?`<img src="${c.hmSig}" style="max-height:32px;max-width:110px;object-fit:contain;">`:'<div style="height:32px;"></div>'}</div>
+          <div style="border-top:2.5px solid #111;width:130px;margin:0 auto 4px;"></div>
+          <div style="font-family:'Oswald',sans-serif;font-size:clamp(9px,2vw,12.5px);font-weight:600;color:#111;letter-spacing:.3px;">Headmaster's Signature</div>
+          <div style="font-family:'Poppins',sans-serif;font-size:clamp(9px,1.9vw,12px);font-weight:600;color:#333;margin-top:2px;">Date: ${c.today}</div>
         </div>
 
-        <!-- Recommendation -->
-        <div style="flex-shrink:0;">
-          <div style="border-top:2px dashed rgba(0,0,0,.1);border-bottom:2px dashed rgba(0,0,0,.1);padding:7px 0;margin-bottom:4px;">
-            <div style="font-family:'Poppins',sans-serif;font-size:clamp(11px,2.4vw,14px);font-weight:600;color:#111;line-height:1.65;">
-              I strongly recommend him/her to wherever may need his/her service or for further academic pursuit. He/She leaves this school with our best wishes.
-            </div>
-          </div>
-          <div style="font-size:7.5px;color:#c0c8d8;font-family:sans-serif;text-align:right;margin-bottom:4px;">Ref: ${c.certNo} &nbsp;·&nbsp; ${c.today}</div>
-
-          <!-- Signatures -->
-          <div style="display:flex;justify-content:space-between;align-items:flex-end;padding:6px 0 11px;border-top:2.5px solid ${t.p};">
-            <div style="text-align:center;min-width:130px;">
-              <div style="min-height:34px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:3px;">${c.hmSig?`<img src="${c.hmSig}" style="max-height:30px;max-width:110px;object-fit:contain;">`:'<div style="height:30px;"></div>'}</div>
-              <div style="border-top:2.5px solid #111;width:130px;margin:0 auto 4px;"></div>
-              <div style="font-family:'Oswald',sans-serif;font-size:clamp(9px,2vw,12.5px);font-weight:600;color:#111;">Headmaster's Signature</div>
-              <div style="font-family:'Poppins',sans-serif;font-size:clamp(9px,1.9vw,12px);color:#333;margin-top:1px;">Date: ${c.today}</div>
-            </div>
-            <div style="display:flex;align-items:center;justify-content:center;">${waxSeal(80)}</div>
-            <div style="text-align:center;min-width:130px;">
-              <div style="min-height:34px;"></div>
-              <div style="border-top:2.5px solid #111;width:130px;margin:0 auto 4px;"></div>
-              <div style="font-family:'Oswald',sans-serif;font-size:clamp(9px,2vw,12.5px);font-weight:600;color:#111;">Pupil's Signature</div>
-              <div style="font-family:'Poppins',sans-serif;font-size:clamp(9px,1.9vw,12px);color:#333;margin-top:1px;">Date: _______________</div>
-            </div>
-          </div>
+        <!-- Wax seal -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+          ${waxSeal(82)}
         </div>
-      </div><!-- body -->
 
-    </div><!-- cert-body-inner -->
-  </div><!-- inner card -->
+        <!-- Pupil sig -->
+        <div style="text-align:center;min-width:130px;">
+          <div style="min-height:36px;"></div>
+          <div style="border-top:2.5px solid #111;width:130px;margin:0 auto 4px;"></div>
+          <div style="font-family:'Oswald',sans-serif;font-size:clamp(9px,2vw,12.5px);font-weight:600;color:#111;letter-spacing:.3px;">Pupil's Signature</div>
+          <div style="font-family:'Poppins',sans-serif;font-size:clamp(9px,1.9vw,12px);font-weight:600;color:#333;margin-top:2px;">Date: _______________</div>
+        </div>
+      </div>
+
+    </div><!-- body -->
+
+  </div><!-- inner white card -->
 </div>`;
 }
 
-/* ══════════════════════════════════════
-   ② PRIMARY/NURSERY — LANDSCAPE 297×210mm
-══════════════════════════════════════ */
-function certPL(d,t){
+/* ══════════════════════════════════════════════════════
+   ② PRIMARY / NURSERY — LANDSCAPE  297×210mm
+   PREMIUM REDESIGN
+══════════════════════════════════════════════════════ */
+function certPL(d){
   const c=cmn(d);
-  const sectFull={nursery:'Nursery School Education',primary:'Primary School Education'}[_section]||'School Education';
-  const cls=c.cls!=='—'?c.cls:sectFull;
-  const bdr=borderGrad(t.p,t.a,'pri');
-  function row(lbl,val){return `<div style="display:flex;align-items:flex-end;border-bottom:1.8px solid #222;padding:4px 0 2px;margin-bottom:1px;gap:0;flex-shrink:0;"><span style="font-family:'Oswald',sans-serif;font-size:12.5px;font-weight:600;color:#111;white-space:nowrap;margin-right:6px;">${lbl}:</span><span style="flex:1;font-family:'EB Garamond',serif;font-size:13px;font-style:italic;color:#111;padding:0 3px;">${val||'&nbsp;'}</span></div>`;}
-  return `<div class="pl" style="background:${bdr},linear-gradient(135deg,${t.p},${t.p2} 50%,${t.p});">
-  <div style="margin:9px;flex:1;display:flex;flex-direction:column;background:#fff;border:3px solid ${t.p};overflow:hidden;height:calc(210mm - 18px);">
-    <div class="cert-body-inner" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
-      <!-- Header -->
-      <div style="background:#fff;padding:9px 18px 7px;text-align:center;flex-shrink:0;border-bottom:3.5px solid ${t.p};">
-        <div style="font-family:'Oswald',sans-serif;font-size:clamp(13px,3.3vw,21px);font-weight:700;color:${t.p3};text-transform:uppercase;line-height:1.1;letter-spacing:.6px;">${c.school?.name||'SCHOOL NAME'}</div>
-        <div style="font-family:'Oswald',sans-serif;font-size:clamp(9px,1.9vw,13px);font-weight:700;color:#1a1a1a;text-transform:uppercase;margin:1px 0;">${sectLabel()}</div>
-        <div style="font-family:'Poppins',sans-serif;font-size:clamp(7px,1.4vw,10px);font-weight:600;color:#333;text-transform:uppercase;">${c.meta||'&nbsp;'}</div>
+  const subs=d.subRows||[];
+  const sectFull={nursery:'Nursery School Education',primary:'Primary School Education'}[_section]||'Primary School Education';
+  const classDisplay=c.cls!=='—'?c.cls:sectFull;
+  const t=THEMES[_theme];
+
+  const borderBg=`background:repeating-linear-gradient(-52deg,transparent 0px,transparent 8px,rgba(255,255,255,.22) 8px,rgba(255,255,255,.22) 12px,transparent 12px,transparent 20px,${t.a} 20px,${t.a} 25px,transparent 25px,transparent 33px,rgba(0,131,143,.85) 33px,rgba(0,131,143,.85) 38px,transparent 38px,transparent 46px,rgba(255,255,255,.15) 46px,rgba(255,255,255,.15) 50px,transparent 50px,transparent 58px),linear-gradient(135deg,${t.p},${t.p2} 50%,${t.p});`;
+
+  function plRow(lbl,val){
+    return `<div style="display:flex;align-items:flex-end;border-bottom:1.8px solid #2a2a2a;padding:4px 0 2px;margin-bottom:1px;gap:0;">
+      <span style="font-family:'Oswald',sans-serif;font-size:12.5px;font-weight:600;color:#111;white-space:nowrap;margin-right:6px;letter-spacing:.3px;">${lbl}:</span>
+      <span style="flex:1;font-family:'EB Garamond',serif;font-size:13px;font-style:italic;color:#111;padding:0 3px;">${val||'&nbsp;'}</span>
+    </div>`;
+  }
+
+  return `
+<div class="pl" style="${borderBg}">
+  <div style="margin:9px;background:#fff;display:flex;flex-direction:column;border:3px solid ${t.p};position:relative;z-index:1;overflow:hidden;height:calc(210mm - 18px);background-image:${diamondWM('rgba(13,32,96,.035)')};background-size:40px 40px;">
+
+    <!-- Header -->
+    <div style="background:#fff;padding:9px 18px 7px;text-align:center;flex-shrink:0;border-bottom:3.5px solid ${t.p};">
+      <div style="font-family:'Oswald',sans-serif;font-size:clamp(14px,3.5vw,23px);font-weight:700;color:${t.p3};text-transform:uppercase;line-height:1.15;letter-spacing:.8px;">${c.school?.name||'SCHOOL NAME'}</div>
+      <div style="font-family:'Oswald',sans-serif;font-size:clamp(9px,2vw,14px);font-weight:700;color:#111;text-transform:uppercase;margin:1px 0;letter-spacing:.3px;">${sectLabel()}</div>
+      <div style="font-family:'Poppins',sans-serif;font-size:clamp(7px,1.5vw,10px);font-weight:600;color:#333;text-transform:uppercase;">${c.meta||'&nbsp;'}</div>
+    </div>
+
+    <!-- Motto -->
+    <div style="background:${t.r1};padding:4px 16px;text-align:center;flex-shrink:0;">
+      <span style="font-family:'Oswald',sans-serif;font-size:clamp(8px,1.8vw,12px);font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:1.5px;">✦ ${c.school?.motto?'MOTTO: '+c.school.motto:'EDUCATION &amp; EXCELLENCE'} ✦</span>
+    </div>
+
+    <!-- Logo | Title | Photo -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 14px 6px;flex-shrink:0;border-bottom:2.5px solid ${t.p};">
+      <div style="width:60px;height:60px;border-radius:50%;overflow:hidden;border:2.5px solid ${t.p};background:#f4f6fb;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+        ${logoH(c.logo,'logo-ph')}
       </div>
-      <!-- Motto -->
-      <div style="background:${t.r1};padding:4px 16px;text-align:center;flex-shrink:0;">
-        <span style="font-family:'Oswald',sans-serif;font-size:clamp(8px,1.7vw,12px);font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:1.5px;">✦ ${c.school?.motto?'MOTTO: '+c.school.motto:'EDUCATION &amp; EXCELLENCE'} ✦</span>
+      <div style="flex:1;text-align:center;padding:0 10px;">
+        <div style="font-family:'Oswald',sans-serif;font-size:clamp(22px,5.5vw,38px);font-weight:700;color:${t.p3};line-height:1;letter-spacing:1px;text-transform:uppercase;text-shadow:2px 2px 0 rgba(${hexToRgb(t.p)},.1);">TESTIMONIAL</div>
+        <div style="font-family:'EB Garamond',serif;font-size:clamp(9px,1.9vw,12.5px);font-style:italic;color:${t.r1};font-weight:600;margin-top:2px;">This is to certify that</div>
       </div>
-      <!-- Logo | Title | Photo -->
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 14px 6px;flex-shrink:0;border-bottom:2.5px solid ${t.p};">
-        <div style="width:58px;height:58px;border-radius:50%;overflow:hidden;border:2.5px solid ${t.p};background:#f4f6fb;flex-shrink:0;">${logoH(c.logo)}</div>
-        <div style="flex:1;text-align:center;padding:0 10px;">
-          <div style="font-family:'Oswald',sans-serif;font-size:clamp(21px,5vw,36px);font-weight:700;color:${t.p3};line-height:1;letter-spacing:1.5px;text-transform:uppercase;text-shadow:2px 2px 0 rgba(0,0,0,.06);">TESTIMONIAL</div>
-          <div style="font-family:'EB Garamond',serif;font-size:clamp(9px,1.8vw,12.5px);font-style:italic;color:${t.r1};font-weight:600;margin-top:2px;">This is to certify that</div>
-        </div>
-        <div style="width:58px;height:72px;flex-shrink:0;border:2.5px solid ${t.p};background:#f0f4ff;overflow:hidden;">${photoH(c.pp)}</div>
-      </div>
-      <!-- Two-col body -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;flex:1;overflow:hidden;">
-        <div style="padding:9px 15px;display:flex;flex-direction:column;border-right:2px solid #ddd;overflow:hidden;">
-          <div style="font-family:'EB Garamond',serif;font-size:15px;font-weight:700;font-style:italic;color:#111;border-bottom:2px solid #222;padding-bottom:3px;margin-bottom:3px;">${c.student.full_name||'___________________________'}</div>
-          <div style="font-family:'Poppins',sans-serif;font-size:10.5px;font-weight:600;font-style:italic;color:#444;margin-bottom:5px;">Has been a pupil of this school</div>
-          <div style="display:flex;align-items:center;gap:4px;border-bottom:1.8px solid #222;padding-bottom:2px;margin-bottom:3px;flex-wrap:nowrap;">
-            <span style="font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;color:#111;white-space:nowrap;">From</span>
-            <span style="flex:1;font-family:'EB Garamond',serif;font-size:12px;font-style:italic;color:#111;padding:0 2px;">${c.admDate}</span>
-            <span style="font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;color:#111;white-space:nowrap;">to</span>
-            <span style="flex:1;font-family:'EB Garamond',serif;font-size:12px;font-style:italic;color:#111;padding:0 2px;">${c.today}</span>
-            <span style="font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;color:#111;white-space:nowrap;">where</span>
-          </div>
-          <div style="font-family:'Poppins',sans-serif;font-size:11px;font-weight:600;color:#111;padding:3px 0 4px;border-bottom:1.8px solid #222;margin-bottom:5px;">he/she completed his/her <strong>${cls}</strong> (${c.sessLabel})</div>
-          ${row('Admission No',c.student.admission_no||c.student.roll_no||'')}
-          ${row('Date of Birth',fmtDate(c.student.dob||c.student.date_of_birth))}
-          ${row('Father / Guardian',c.student.father_name||c.student.guardian_name||'')}
-          <div style="flex:1;"></div>
-          <div style="font-size:7px;color:#c0c8d8;font-family:sans-serif;text-align:right;">Ref: ${c.certNo} · ${c.today}</div>
-        </div>
-        <div style="padding:9px 15px;display:flex;flex-direction:column;overflow:hidden;">
-          ${row('Conduct',c.conduct||'')}
-          ${row('Hobby',c.hobby||'')}
-          ${c.post?row('Post Held',c.post):''}
-          ${c.avg!==null?row('Academic Avg',`${c.avg}% — Grade ${c.og.grade}`):''}
-          <div style="flex:1;"></div>
-          <div style="border-top:1.5px dashed rgba(0,0,0,.1);border-bottom:1.5px dashed rgba(0,0,0,.1);padding:5px 0;margin-bottom:6px;">
-            <div style="font-family:'Poppins',sans-serif;font-size:11px;font-weight:600;color:#111;line-height:1.65;">I strongly recommend him/her to wherever may need his/her service or for further academic pursuit.</div>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:flex-end;padding-top:4px;border-top:2px solid ${t.p};">
-            <div style="text-align:center;">
-              <div style="min-height:20px;margin-bottom:2px;">${c.hmSig?`<img src="${c.hmSig}" style="max-height:18px;max-width:90px;object-fit:contain;">`:'&nbsp;'}</div>
-              <div style="border-top:2px solid #111;width:108px;margin:0 auto 3px;"></div>
-              <div style="font-family:'Oswald',sans-serif;font-size:10px;font-weight:600;color:#111;">Headmaster's Signature</div>
-              <div style="font-family:'Poppins',sans-serif;font-size:9.5px;color:#333;">Date: ${c.today}</div>
-            </div>
-            ${waxSeal(58)}
-            <div style="text-align:center;">
-              <div style="min-height:20px;">&nbsp;</div>
-              <div style="border-top:2px solid #111;width:108px;margin:0 auto 3px;"></div>
-              <div style="font-family:'Oswald',sans-serif;font-size:10px;font-weight:600;color:#111;">Pupil's Signature</div>
-              <div style="font-family:'Poppins',sans-serif;font-size:9.5px;color:#333;">Date: ___________</div>
-            </div>
-          </div>
-        </div>
+      <div style="width:60px;height:74px;flex-shrink:0;border:2.5px solid ${t.p};background:#f0f4ff;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+        ${photoH(c.pp,'photo-ph')}
       </div>
     </div>
+
+    <!-- Two-column body -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;flex:1;overflow:hidden;">
+
+      <!-- LEFT -->
+      <div style="padding:9px 15px;display:flex;flex-direction:column;border-right:2px solid #ddd;overflow:hidden;">
+        <div style="font-family:'EB Garamond',serif;font-size:16px;font-weight:700;font-style:italic;color:#111;border-bottom:2.5px solid #222;padding-bottom:3px;margin-bottom:3px;">${c.student.full_name||'___________________________'}</div>
+        <div style="font-family:'Poppins',sans-serif;font-size:11px;font-weight:600;font-style:italic;color:#444;margin-bottom:5px;">Has been a pupil of this school</div>
+
+        <div style="display:flex;align-items:flex-end;gap:4px;border-bottom:1.8px solid #222;padding-bottom:3px;margin-bottom:3px;flex-wrap:nowrap;">
+          <span style="font-family:'Oswald',sans-serif;font-size:12.5px;font-weight:600;color:#111;white-space:nowrap;">From</span>
+          <span style="flex:1;font-family:'EB Garamond',serif;font-size:12px;font-style:italic;color:#111;padding:0 2px;">${c.admDate}</span>
+          <span style="font-family:'Oswald',sans-serif;font-size:12.5px;font-weight:600;color:#111;white-space:nowrap;">to</span>
+          <span style="flex:1;font-family:'EB Garamond',serif;font-size:12px;font-style:italic;color:#111;padding:0 2px;">${c.today}</span>
+          <span style="font-family:'Oswald',sans-serif;font-size:12.5px;font-weight:600;color:#111;white-space:nowrap;">where</span>
+        </div>
+        <div style="font-family:'Poppins',sans-serif;font-size:11px;font-weight:600;color:#111;padding:3px 0 4px;border-bottom:1.8px solid #222;margin-bottom:5px;">
+          he/she completed his/her <strong>${classDisplay}</strong> (${c.sessLabel})
+        </div>
+
+        ${plRow('Admission No', c.student.admission_no||c.student.roll_no||'&nbsp;')}
+        ${plRow('Date of Birth', fmtDate(c.student.dob||c.student.date_of_birth))}
+        ${plRow('Father / Guardian', c.student.father_name||c.student.guardian_name||'&nbsp;')}
+        <div style="flex:1;"></div>
+        <div style="font-size:7.5px;color:#c0c8d8;font-family:sans-serif;text-align:right;">Ref: ${c.certNo} · ${c.today}</div>
+      </div>
+
+      <!-- RIGHT -->
+      <div style="padding:9px 15px;display:flex;flex-direction:column;overflow:hidden;">
+        ${plRow('Conduct', c.conduct&&c.conduct!=='—'?c.conduct:'&nbsp;')}
+        ${plRow('Hobby', c.hobby||'&nbsp;')}
+        ${plRow('Post Held', c.post&&c.post!=='—'?c.post:'&nbsp;')}
+        ${c.avg!==null?plRow('Academic Avg',`${c.avg}% — Grade ${c.og.grade}`):''}
+        <div style="flex:1;"></div>
+        <div style="font-family:'Poppins',sans-serif;font-size:11px;font-weight:600;color:#111;line-height:1.65;padding:6px 0 4px;border-top:1.5px dashed rgba(13,32,96,.15);border-bottom:1.5px dashed rgba(13,32,96,.15);margin-bottom:6px;">
+          I strongly recommend him/her to wherever may need his/her service or for further academic pursuit.
+        </div>
+        <!-- Sigs -->
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;padding-top:4px;border-top:2px solid ${t.p};">
+          <div style="text-align:center;">
+            <div style="min-height:22px;margin-bottom:2px;">${c.hmSig?`<img src="${c.hmSig}" style="max-height:20px;max-width:95px;object-fit:contain;">`:'&nbsp;'}</div>
+            <div style="border-top:2px solid #111;width:108px;margin:0 auto 3px;"></div>
+            <div style="font-family:'Oswald',sans-serif;font-size:10px;font-weight:600;color:#111;">Headmaster's Signature</div>
+            <div style="font-family:'Poppins',sans-serif;font-size:10px;font-weight:600;color:#333;">Date: ${c.today}</div>
+          </div>
+          ${waxSeal(62)}
+          <div style="text-align:center;">
+            <div style="min-height:22px;">&nbsp;</div>
+            <div style="border-top:2px solid #111;width:108px;margin:0 auto 3px;"></div>
+            <div style="font-family:'Oswald',sans-serif;font-size:10px;font-weight:600;color:#111;">Pupil's Signature</div>
+            <div style="font-family:'Poppins',sans-serif;font-size:10px;font-weight:600;color:#333;">Date: ___________</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- grid -->
   </div>
 </div>`;
 }
 
-/* ══════════════════════════════════════
-   ③ JUNIOR/SENIOR — PORTRAIT 210×297mm
-══════════════════════════════════════ */
-function certSP(d,t){
+/* ══════════════════════════════════════════════════════
+   ③ JUNIOR / SENIOR — PORTRAIT  210×297mm
+   PREMIUM REDESIGN — dark header, red accent stripes
+══════════════════════════════════════════════════════ */
+function certSP(d){
   const c=cmn(d);
+  const subs=d.subRows||[];
   const sectFull={junior:'Junior Secondary Education',senior:'Senior Secondary Education'}[_section]||'Secondary Education';
-  const cls=c.cls!=='—'?c.cls:sectFull;
-  const bdr=borderGrad(t.s1,t.r1,'sec');
-  function row(lbl,val){return `<div style="display:flex;align-items:flex-end;border-bottom:2px solid #222;padding:5px 0 3px;gap:0;flex-shrink:0;"><span style="font-family:'Oswald',sans-serif;font-size:13.5px;font-weight:600;color:#111;white-space:nowrap;margin-right:7px;">${lbl}:</span><span style="flex:1;font-family:'EB Garamond',serif;font-size:14px;font-style:italic;color:#111;padding:0 3px;min-height:16px;">${val||'&nbsp;'}</span></div>`;}
-  return `<div class="sp" style="background:${bdr},linear-gradient(135deg,${t.s1},#1a1a2e 50%,${t.s1});">
-  <div style="margin:11px;flex:1;display:flex;flex-direction:column;background:#fff;border:3.5px solid ${t.s1};overflow:hidden;height:calc(297mm - 22px);">
-    <div class="cert-body-inner" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
-      <!-- Header dark -->
-      <div style="background:${t.s1};padding:12px 16px 10px;text-align:center;flex-shrink:0;">
-        <div style="font-family:'Oswald',sans-serif;font-size:clamp(15px,4.5vw,27px);font-weight:700;color:${t.s2};letter-spacing:.8px;line-height:1.1;text-transform:uppercase;">${c.school?.name||'SCHOOL NAME'}</div>
-        <div style="font-family:'Oswald',sans-serif;font-size:clamp(9px,2.2vw,14px);font-weight:700;color:rgba(255,255,255,.9);letter-spacing:2px;text-transform:uppercase;margin-top:2px;">${sectLabel()}</div>
-        <div style="font-size:8.5px;color:rgba(255,255,255,.6);margin-top:2px;font-style:italic;font-family:'Poppins',sans-serif;">${c.meta||'&nbsp;'}</div>
+  const classDisplay=c.cls!=='—'?c.cls:sectFull;
+  const t=THEMES[_theme];
+
+  const borderBg=`background:repeating-linear-gradient(-52deg,transparent 0px,transparent 8px,rgba(255,255,255,.12) 8px,rgba(255,255,255,.12) 12px,transparent 12px,transparent 20px,${t.r1} 20px,${t.r1} 25px,transparent 25px,transparent 33px,rgba(255,215,0,.7) 33px,rgba(255,215,0,.7) 38px,transparent 38px,transparent 46px,rgba(255,255,255,.1) 46px,rgba(255,255,255,.1) 50px,transparent 50px,transparent 58px),linear-gradient(135deg,${t.s1},#1a1a2e 50%,${t.s1});`;
+
+  function spRow(lbl,val){
+    return `<div style="display:flex;align-items:flex-end;border-bottom:2px solid #2a2a2a;padding:5px 0 3px;margin-bottom:1px;gap:0;">
+      <span style="font-family:'Oswald',sans-serif;font-size:clamp(11px,2.4vw,14.5px);font-weight:600;color:#111;white-space:nowrap;margin-right:7px;letter-spacing:.3px;">${lbl}:</span>
+      <span style="flex:1;font-family:'EB Garamond',serif;font-size:clamp(11px,2.2vw,14px);font-style:italic;color:#111;padding:0 3px;">${val||'&nbsp;'}</span>
+    </div>`;
+  }
+
+  return `
+<div class="sp" style="${borderBg}">
+  <div style="margin:11px;flex:1;background:#fff;display:flex;flex-direction:column;border:3.5px solid ${t.s1};position:relative;z-index:1;overflow:hidden;height:calc(297mm - 22px);background-image:${diamondWM('rgba(0,0,0,.04)')};background-size:40px 40px;">
+
+    <!-- Header - dark -->
+    <div style="background:${t.s1};padding:12px 16px 10px;text-align:center;flex-shrink:0;">
+      <div style="font-family:'Oswald',sans-serif;font-size:clamp(15px,4.5vw,27px);font-weight:700;color:${t.s2};letter-spacing:.8px;line-height:1.1;text-transform:uppercase;text-shadow:0 0 20px rgba(26,79,214,.4);">${c.school?.name||'SCHOOL NAME'}</div>
+      <div style="font-family:'Oswald',sans-serif;font-size:clamp(9px,2.3vw,14px);font-weight:700;color:rgba(255,255,255,.9);letter-spacing:2px;text-transform:uppercase;margin-top:2px;">${sectLabel()}</div>
+      <div style="font-size:8.5px;color:rgba(255,255,255,.6);margin-top:2px;font-style:italic;font-family:'Poppins',sans-serif;">${c.meta||'&nbsp;'}</div>
+    </div>
+
+    <!-- Motto -->
+    <div style="background:linear-gradient(90deg,${t.r2},${t.r1},${t.r2});padding:5px 14px;text-align:center;flex-shrink:0;">
+      <span style="font-family:'Oswald',sans-serif;font-size:clamp(9px,2.2vw,13px);font-weight:700;color:#fff;letter-spacing:2px;text-transform:uppercase;">✦ ${c.school?.motto?'MOTTO: '+c.school.motto:'TO WHOM IT MAY CONCERN'} ✦</span>
+    </div>
+
+    <!-- Logo | Title | Photo -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px 8px;flex-shrink:0;border-bottom:3px solid ${t.s1};background:rgba(0,0,0,.02);">
+      <div style="width:72px;height:72px;border-radius:50%;overflow:hidden;border:3px solid ${t.s1};background:#f5f5f5;flex-shrink:0;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,0,0,.15);">
+        ${logoH(c.logo,'logo-ph')}
       </div>
-      <!-- Motto -->
-      <div style="background:linear-gradient(90deg,${t.r2},${t.r1},${t.r2});padding:5px 14px;text-align:center;flex-shrink:0;">
-        <span style="font-family:'Oswald',sans-serif;font-size:clamp(9px,2.1vw,13px);font-weight:700;color:#fff;letter-spacing:2px;text-transform:uppercase;">✦ ${c.school?.motto?'MOTTO: '+c.school.motto:'TO WHOM IT MAY CONCERN'} ✦</span>
+      <div style="flex:1;text-align:center;padding:0 10px;">
+        <div style="font-family:'Oswald',sans-serif;font-size:clamp(30px,8vw,50px);font-weight:700;color:${t.s2};line-height:1;letter-spacing:1.5px;text-transform:uppercase;text-shadow:2px 2px 0 rgba(0,0,0,.08);">TESTIMONIAL</div>
+        <div style="font-family:'EB Garamond',serif;font-size:clamp(10px,2.2vw,13.5px);font-style:italic;color:${t.r1};font-weight:600;margin-top:3px;">To Whom It May Concern</div>
       </div>
-      <!-- Logo | Title | Photo -->
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px 8px;flex-shrink:0;border-bottom:3px solid ${t.s1};">
-        <div style="width:72px;height:72px;border-radius:50%;overflow:hidden;border:3px solid ${t.s1};background:#f5f5f5;flex-shrink:0;">${logoH(c.logo)}</div>
-        <div style="flex:1;text-align:center;padding:0 10px;">
-          <div style="font-family:'Oswald',sans-serif;font-size:clamp(30px,8.5vw,52px);font-weight:700;color:${t.s2};line-height:1;letter-spacing:2px;text-transform:uppercase;text-shadow:3px 3px 0 rgba(0,0,0,.07);">TESTIMONIAL</div>
-          <div style="font-family:'EB Garamond',serif;font-size:clamp(10px,2.2vw,14px);font-style:italic;color:${t.r1};font-weight:600;margin-top:3px;">To Whom It May Concern</div>
-        </div>
-        <div style="width:72px;height:90px;flex-shrink:0;border:2.5px solid ${t.s1};background:#f8f8f8;overflow:hidden;">${photoH(c.pp)}</div>
-      </div>
-      <!-- Body -->
-      <div style="padding:0 20px;flex:1;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;">
-        <div style="padding-top:10px;">
-          <div style="font-family:'EB Garamond',serif;font-size:clamp(16px,4vw,24px);font-weight:700;font-style:italic;color:#111;text-align:center;border-bottom:2.5px solid #222;padding-bottom:4px;margin-bottom:4px;">${c.student.full_name||'___________________________________'}</div>
-          <div style="font-family:'Poppins',sans-serif;font-size:clamp(10px,2.2vw,13px);font-weight:600;font-style:italic;color:#444;text-align:center;margin-bottom:9px;">Has been a student of this school</div>
-          <div style="display:flex;align-items:center;gap:5px;border-bottom:2.5px solid #222;padding-bottom:4px;margin-bottom:3px;flex-wrap:nowrap;">
-            <span style="font-family:'Oswald',sans-serif;font-size:clamp(12px,2.8vw,16px);font-weight:600;color:#111;white-space:nowrap;flex-shrink:0;">From</span>
-            <span style="flex:1;font-family:'EB Garamond',serif;font-size:13.5px;font-style:italic;color:#111;padding:0 4px;">${c.admDate}</span>
-            <span style="font-family:'Oswald',sans-serif;font-size:clamp(12px,2.8vw,16px);font-weight:600;color:#111;white-space:nowrap;flex-shrink:0;">to</span>
-            <span style="flex:1;font-family:'EB Garamond',serif;font-size:13.5px;font-style:italic;color:#111;padding:0 4px;">${c.today}</span>
-            <span style="font-family:'Oswald',sans-serif;font-size:clamp(12px,2.8vw,16px);font-weight:600;color:#111;white-space:nowrap;flex-shrink:0;">where</span>
-          </div>
-          <div style="font-family:'Poppins',sans-serif;font-size:clamp(11px,2.4vw,14.5px);font-weight:600;color:#111;padding:6px 0 5px;border-bottom:2.5px solid #222;margin-bottom:5px;">he/she completed his/her <strong>${cls}</strong>&nbsp;&nbsp;(${c.sessLabel})</div>
-          ${row('Admission No',c.student.admission_no||c.student.roll_no||'')}
-          ${row('Date of Birth',fmtDate(c.student.dob||c.student.date_of_birth))}
-          ${row('Father / Guardian',c.student.father_name||c.student.guardian_name||'')}
-          ${row('Conduct',c.conduct||'')}
-          ${c.post?row('Post Held',c.post):''}
-          ${c.avg!==null?row('Academic Performance',`Average: ${c.avg}% · Grade: ${c.og.grade} · ${c.passed}/${c.subs.length} subjects`):''}
-        </div>
-        <div style="flex-shrink:0;">
-          <div style="border-top:2px dashed rgba(0,0,0,.1);border-bottom:2px dashed rgba(0,0,0,.1);padding:7px 0;margin-bottom:4px;">
-            <div style="font-family:'Poppins',sans-serif;font-size:clamp(11px,2.4vw,14px);font-weight:600;color:#111;line-height:1.65;">I strongly recommend him/her to wherever may need his/her service or for further academic pursuit. He/She leaves this school with our best wishes.</div>
-          </div>
-          <div style="font-size:7.5px;color:#c0c8d8;font-family:sans-serif;text-align:right;margin-bottom:4px;">Ref: ${c.certNo} · ${c.today}</div>
-          <div style="display:flex;justify-content:space-between;align-items:flex-end;padding:6px 0 11px;border-top:2.5px solid ${t.s1};">
-            <div style="text-align:center;min-width:130px;">
-              <div style="min-height:34px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:3px;">${c.hmSig?`<img src="${c.hmSig}" style="max-height:30px;max-width:110px;object-fit:contain;">`:'<div style="height:30px;"></div>'}</div>
-              <div style="border-top:2.5px solid #111;width:130px;margin:0 auto 4px;"></div>
-              <div style="font-family:'Oswald',sans-serif;font-size:clamp(9px,2vw,12.5px);font-weight:600;color:#111;">Headmaster's Signature</div>
-              <div style="font-family:'Poppins',sans-serif;font-size:clamp(9px,1.9vw,12px);color:#333;margin-top:1px;">Date: ${c.today}</div>
-            </div>
-            <div style="display:flex;align-items:center;justify-content:center;">${waxSeal(80)}</div>
-            <div style="text-align:center;min-width:130px;">
-              <div style="min-height:34px;"></div>
-              <div style="border-top:2.5px solid #111;width:130px;margin:0 auto 4px;"></div>
-              <div style="font-family:'Oswald',sans-serif;font-size:clamp(9px,2vw,12.5px);font-weight:600;color:#111;">Student's Signature</div>
-              <div style="font-family:'Poppins',sans-serif;font-size:clamp(9px,1.9vw,12px);color:#333;margin-top:1px;">Date: _______________</div>
-            </div>
-          </div>
-        </div>
+      <div style="width:72px;height:90px;flex-shrink:0;border:2.5px solid ${t.s1};background:#f8f8f8;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+        ${photoH(c.pp,'photo-ph')}
       </div>
     </div>
+
+    <!-- Body -->
+    <div style="padding:0 20px;flex:1;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;">
+
+      <div style="padding-top:10px;">
+        <div style="font-family:'EB Garamond',serif;font-size:clamp(15px,3.5vw,22px);font-weight:700;font-style:italic;color:#111;text-align:center;border-bottom:2.5px solid #222;padding-bottom:4px;margin-bottom:4px;">${c.student.full_name||'___________________________________'}</div>
+        <div style="font-family:'Poppins',sans-serif;font-size:clamp(10px,2.2vw,13.5px);font-weight:600;font-style:italic;color:#444;text-align:center;margin-bottom:8px;">Has been a student of this school</div>
+
+        <div style="display:flex;align-items:flex-end;gap:5px;border-bottom:2.5px solid #222;padding-bottom:4px;margin-bottom:3px;flex-wrap:nowrap;">
+          <span style="font-family:'Oswald',sans-serif;font-size:clamp(12px,2.7vw,16px);font-weight:600;color:#111;white-space:nowrap;flex-shrink:0;">From</span>
+          <span style="flex:1;font-family:'EB Garamond',serif;font-size:13px;font-style:italic;color:#111;padding:0 3px;">${c.admDate}</span>
+          <span style="font-family:'Oswald',sans-serif;font-size:clamp(12px,2.7vw,16px);font-weight:600;color:#111;white-space:nowrap;flex-shrink:0;margin-left:4px;">to</span>
+          <span style="flex:1;font-family:'EB Garamond',serif;font-size:13px;font-style:italic;color:#111;padding:0 3px;">${c.today}</span>
+          <span style="font-family:'Oswald',sans-serif;font-size:clamp(12px,2.7vw,16px);font-weight:600;color:#111;white-space:nowrap;flex-shrink:0;margin-left:4px;">where</span>
+        </div>
+        <div style="font-family:'Poppins',sans-serif;font-size:clamp(11px,2.4vw,14.5px);font-weight:600;color:#111;padding:5px 0 5px;border-bottom:2.5px solid #222;margin-bottom:5px;">
+          he/she completed his/her <strong>${classDisplay}</strong>&nbsp;&nbsp;(${c.sessLabel})
+        </div>
+
+        ${spRow('Admission No', c.student.admission_no||c.student.roll_no||'&nbsp;')}
+        ${spRow('Date of Birth', fmtDate(c.student.dob||c.student.date_of_birth))}
+        ${spRow('Father / Guardian', c.student.father_name||c.student.guardian_name||'&nbsp;')}
+        ${spRow('Conduct', c.conduct&&c.conduct!=='—'?c.conduct:'&nbsp;')}
+        ${c.post&&c.post!=='—'?spRow('Post Held',c.post):''}
+        ${c.avg!==null?spRow('Academic Performance',`Average: ${c.avg}% · Grade: ${c.og.grade} · ${c.passed}/${subs.length} subjects`):''}
+      </div>
+
+      <div>
+        <div style="font-family:'Poppins',sans-serif;font-size:clamp(11px,2.4vw,14px);font-weight:600;color:#111;line-height:1.65;padding:8px 0 5px;border-top:2px dashed rgba(0,0,0,.12);border-bottom:2px dashed rgba(0,0,0,.12);margin-bottom:5px;">
+          I strongly recommend him/her to wherever may need his/her service or for further academic pursuit. He/She leaves this school with our best wishes.
+        </div>
+        <div style="font-size:8px;color:#c0c8d8;font-family:sans-serif;text-align:right;padding:2px 0;">Ref: ${c.certNo} · ${c.today}</div>
+      </div>
+
+      <!-- Sigs -->
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;padding:7px 0 12px;border-top:2.5px solid ${t.s1};">
+        <div style="text-align:center;min-width:130px;">
+          <div style="min-height:36px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:3px;">${c.hmSig?`<img src="${c.hmSig}" style="max-height:30px;max-width:110px;object-fit:contain;">`:'<div style="height:32px;"></div>'}</div>
+          <div style="border-top:2.5px solid #111;width:130px;margin:0 auto 4px;"></div>
+          <div style="font-family:'Oswald',sans-serif;font-size:clamp(9px,2vw,12.5px);font-weight:600;color:#111;">Headmaster's Signature</div>
+          <div style="font-family:'Poppins',sans-serif;font-size:clamp(9px,1.9vw,12px);font-weight:600;color:#333;margin-top:2px;">Date: ${c.today}</div>
+        </div>
+        ${waxSeal(82)}
+        <div style="text-align:center;min-width:130px;">
+          <div style="min-height:36px;"></div>
+          <div style="border-top:2.5px solid #111;width:130px;margin:0 auto 4px;"></div>
+          <div style="font-family:'Oswald',sans-serif;font-size:clamp(9px,2vw,12.5px);font-weight:600;color:#111;">Student's Signature</div>
+          <div style="font-family:'Poppins',sans-serif;font-size:clamp(9px,1.9vw,12px);font-weight:600;color:#333;margin-top:2px;">Date: _______________</div>
+        </div>
+      </div>
+
+    </div><!-- body -->
+
   </div>
 </div>`;
 }
 
-/* ══════════════════════════════════════
-   ④ JUNIOR/SENIOR — LANDSCAPE 297×210mm
-══════════════════════════════════════ */
-function certSL(d,t){
+/* ══════════════════════════════════════════════════════
+   ④ JUNIOR / SENIOR — LANDSCAPE  297×210mm
+   PREMIUM REDESIGN
+══════════════════════════════════════════════════════ */
+function certSL(d){
   const c=cmn(d);
+  const subs=d.subRows||[];
   const sectFull={junior:'Junior Secondary Education',senior:'Senior Secondary Education'}[_section]||'Secondary Education';
-  const cls=c.cls!=='—'?c.cls:sectFull;
-  const bdr=borderGrad(t.s1,t.r1,'sec');
-  function row(lbl,val){return `<div style="display:flex;align-items:flex-end;border-bottom:1.8px solid #222;padding:4px 0 2px;margin-bottom:1px;gap:0;flex-shrink:0;"><span style="font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;color:#111;white-space:nowrap;margin-right:5px;">${lbl}:</span><span style="flex:1;font-family:'EB Garamond',serif;font-size:12.5px;font-style:italic;color:#111;padding:0 3px;">${val||'&nbsp;'}</span></div>`;}
-  return `<div class="sl" style="background:${bdr},linear-gradient(135deg,${t.s1},#1a1a2e 50%,${t.s1});">
-  <div style="margin:9px;flex:1;display:flex;flex-direction:column;background:#fff;border:3px solid ${t.s1};overflow:hidden;height:calc(210mm - 18px);">
-    <div class="cert-body-inner" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
-      <div style="background:${t.s1};padding:8px 16px;text-align:center;flex-shrink:0;">
-        <div style="font-family:'Oswald',sans-serif;font-size:clamp(12px,3vw,20px);font-weight:700;color:${t.s2};text-transform:uppercase;line-height:1.1;letter-spacing:.7px;">${c.school?.name||'SCHOOL NAME'}</div>
-        <div style="font-family:'Oswald',sans-serif;font-size:clamp(8px,1.8vw,12px);font-weight:700;color:rgba(255,255,255,.9);letter-spacing:2px;text-transform:uppercase;margin-top:1px;">${sectLabel()}</div>
-        <div style="font-size:8px;color:rgba(255,255,255,.6);margin-top:1px;font-style:italic;font-family:'Poppins',sans-serif;">${c.meta||'&nbsp;'}</div>
+  const classDisplay=c.cls!=='—'?c.cls:sectFull;
+  const t=THEMES[_theme];
+
+  const borderBg=`background:repeating-linear-gradient(-52deg,transparent 0px,transparent 8px,rgba(255,255,255,.12) 8px,rgba(255,255,255,.12) 12px,transparent 12px,transparent 20px,${t.r1} 20px,${t.r1} 25px,transparent 25px,transparent 33px,rgba(255,215,0,.7) 33px,rgba(255,215,0,.7) 38px,transparent 38px,transparent 46px),linear-gradient(135deg,${t.s1},#1a1a2e 50%,${t.s1});`;
+
+  function slRow(lbl,val){
+    return `<div style="display:flex;align-items:flex-end;border-bottom:1.8px solid #2a2a2a;padding:4px 0 2px;margin-bottom:1px;gap:0;">
+      <span style="font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;color:#111;white-space:nowrap;margin-right:5px;letter-spacing:.3px;">${lbl}:</span>
+      <span style="flex:1;font-family:'EB Garamond',serif;font-size:12.5px;font-style:italic;color:#111;padding:0 3px;">${val||'&nbsp;'}</span>
+    </div>`;
+  }
+
+  return `
+<div class="sl" style="${borderBg}">
+  <div style="margin:9px;background:#fff;display:flex;flex-direction:column;border:3px solid ${t.s1};position:relative;z-index:1;overflow:hidden;height:calc(210mm - 18px);background-image:${diamondWM('rgba(0,0,0,.04)')};background-size:40px 40px;">
+
+    <!-- Header -->
+    <div style="background:${t.s1};padding:8px 16px 8px;text-align:center;flex-shrink:0;">
+      <div style="font-family:'Oswald',sans-serif;font-size:clamp(12px,3vw,20px);font-weight:700;color:${t.s2};text-transform:uppercase;line-height:1.1;letter-spacing:.7px;text-shadow:0 0 18px rgba(26,79,214,.4);">${c.school?.name||'SCHOOL NAME'}</div>
+      <div style="font-family:'Oswald',sans-serif;font-size:clamp(8px,1.8vw,12px);font-weight:700;color:rgba(255,255,255,.9);letter-spacing:2px;text-transform:uppercase;margin-top:1px;">${sectLabel()}</div>
+      <div style="font-size:8px;color:rgba(255,255,255,.6);margin-top:1px;font-style:italic;font-family:'Poppins',sans-serif;">${c.meta||'&nbsp;'}</div>
+    </div>
+
+    <!-- Motto -->
+    <div style="background:linear-gradient(90deg,${t.r2},${t.r1},${t.r2});padding:4px 14px;text-align:center;flex-shrink:0;">
+      <span style="font-family:'Oswald',sans-serif;font-size:clamp(8px,1.8vw,11.5px);font-weight:700;color:#fff;letter-spacing:1.8px;text-transform:uppercase;">✦ ${c.school?.motto?'MOTTO: '+c.school.motto:'TO WHOM IT MAY CONCERN'} ✦</span>
+    </div>
+
+    <!-- Logo | Title | Photo -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 14px 6px;flex-shrink:0;border-bottom:2.5px solid ${t.s1};">
+      <div style="width:60px;height:60px;border-radius:50%;overflow:hidden;border:2.5px solid ${t.s1};background:#f5f5f5;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+        ${logoH(c.logo,'logo-ph')}
       </div>
-      <div style="background:linear-gradient(90deg,${t.r2},${t.r1},${t.r2});padding:4px 14px;text-align:center;flex-shrink:0;">
-        <span style="font-family:'Oswald',sans-serif;font-size:clamp(8px,1.7vw,11.5px);font-weight:700;color:#fff;letter-spacing:1.8px;text-transform:uppercase;">✦ ${c.school?.motto?'MOTTO: '+c.school.motto:'TO WHOM IT MAY CONCERN'} ✦</span>
+      <div style="flex:1;text-align:center;padding:0 9px;">
+        <div style="font-family:'Oswald',sans-serif;font-size:clamp(22px,5vw,35px);font-weight:700;color:${t.s2};line-height:1;letter-spacing:1.5px;text-transform:uppercase;text-shadow:2px 2px 0 rgba(0,0,0,.07);">TESTIMONIAL</div>
+        <div style="font-family:'EB Garamond',serif;font-size:clamp(9px,1.9vw,12px);font-style:italic;color:${t.r1};font-weight:600;margin-top:2px;">To Whom It May Concern</div>
       </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 14px 6px;flex-shrink:0;border-bottom:2.5px solid ${t.s1};">
-        <div style="width:58px;height:58px;border-radius:50%;overflow:hidden;border:2.5px solid ${t.s1};background:#f5f5f5;flex-shrink:0;">${logoH(c.logo)}</div>
-        <div style="flex:1;text-align:center;padding:0 9px;">
-          <div style="font-family:'Oswald',sans-serif;font-size:clamp(21px,5vw,35px);font-weight:700;color:${t.s2};line-height:1;letter-spacing:1.5px;text-transform:uppercase;text-shadow:2px 2px 0 rgba(0,0,0,.07);">TESTIMONIAL</div>
-          <div style="font-family:'EB Garamond',serif;font-size:clamp(9px,1.8vw,12px);font-style:italic;color:${t.r1};font-weight:600;margin-top:2px;">To Whom It May Concern</div>
-        </div>
-        <div style="width:58px;height:72px;flex-shrink:0;border:2.5px solid ${t.s1};background:#f8f8f8;overflow:hidden;">${photoH(c.pp)}</div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;flex:1;overflow:hidden;">
-        <div style="padding:9px 13px;display:flex;flex-direction:column;border-right:2px solid #ddd;overflow:hidden;">
-          <div style="font-family:'EB Garamond',serif;font-size:15px;font-weight:700;font-style:italic;color:#111;border-bottom:2px solid #222;padding-bottom:3px;margin-bottom:3px;">${c.student.full_name||'____________________________'}</div>
-          <div style="font-family:'Poppins',sans-serif;font-size:10.5px;font-weight:600;font-style:italic;color:#444;margin-bottom:4px;">Has been a student of this school</div>
-          <div style="display:flex;align-items:center;gap:4px;border-bottom:1.8px solid #222;padding-bottom:2px;margin-bottom:3px;flex-wrap:nowrap;">
-            <span style="font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;color:#111;white-space:nowrap;">From</span>
-            <span style="flex:1;font-family:'EB Garamond',serif;font-size:11.5px;font-style:italic;color:#111;padding:0 2px;">${c.admDate}</span>
-            <span style="font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;color:#111;white-space:nowrap;">to</span>
-            <span style="flex:1;font-family:'EB Garamond',serif;font-size:11.5px;font-style:italic;color:#111;padding:0 2px;">${c.today}</span>
-            <span style="font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;color:#111;white-space:nowrap;">where</span>
-          </div>
-          <div style="font-family:'Poppins',sans-serif;font-size:11px;font-weight:600;color:#111;padding:3px 0 4px;border-bottom:1.8px solid #222;margin-bottom:4px;">he/she completed his/her <strong>${cls}</strong> (${c.sessLabel})</div>
-          ${row('Admission No',c.student.admission_no||c.student.roll_no||'')}
-          ${row('Date of Birth',fmtDate(c.student.dob||c.student.date_of_birth))}
-          ${row('Father / Guardian',c.student.father_name||c.student.guardian_name||'')}
-          <div style="flex:1;"></div>
-          <div style="font-size:7px;color:#c0c8d8;font-family:sans-serif;text-align:right;">Ref: ${c.certNo} · ${c.today}</div>
-        </div>
-        <div style="padding:9px 13px;display:flex;flex-direction:column;overflow:hidden;">
-          ${row('Conduct',c.conduct||'')}
-          ${c.post?row('Post Held',c.post):''}
-          ${c.avg!==null?row('Academic Avg',`${c.avg}% — Grade ${c.og.grade}`):''}
-          <div style="flex:1;"></div>
-          <div style="border-top:1.5px dashed rgba(0,0,0,.1);border-bottom:1.5px dashed rgba(0,0,0,.1);padding:5px 0;margin-bottom:6px;">
-            <div style="font-family:'Poppins',sans-serif;font-size:11px;font-weight:600;color:#111;line-height:1.65;">I strongly recommend him/her to wherever may need his/her service or for further academic pursuit.</div>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:flex-end;padding-top:5px;border-top:2px solid ${t.s1};">
-            <div style="text-align:center;">
-              <div style="min-height:20px;margin-bottom:2px;">${c.hmSig?`<img src="${c.hmSig}" style="max-height:18px;max-width:90px;object-fit:contain;">`:'&nbsp;'}</div>
-              <div style="border-top:2px solid #111;width:100px;margin:0 auto 3px;"></div>
-              <div style="font-family:'Oswald',sans-serif;font-size:9.5px;font-weight:600;color:#111;">Headmaster's Signature</div>
-              <div style="font-family:'Poppins',sans-serif;font-size:9.5px;color:#333;">Date: ${c.today}</div>
-            </div>
-            ${waxSeal(58)}
-            <div style="text-align:center;">
-              <div style="min-height:20px;">&nbsp;</div>
-              <div style="border-top:2px solid #111;width:100px;margin:0 auto 3px;"></div>
-              <div style="font-family:'Oswald',sans-serif;font-size:9.5px;font-weight:600;color:#111;">Student's Signature</div>
-              <div style="font-family:'Poppins',sans-serif;font-size:9.5px;color:#333;">Date: ___________</div>
-            </div>
-          </div>
-        </div>
+      <div style="width:60px;height:74px;flex-shrink:0;border:2.5px solid ${t.s1};background:#f8f8f8;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+        ${photoH(c.pp,'photo-ph')}
       </div>
     </div>
+
+    <!-- Two-column body -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;flex:1;overflow:hidden;">
+
+      <!-- LEFT -->
+      <div style="padding:9px 13px;display:flex;flex-direction:column;border-right:2px solid #ddd;overflow:hidden;">
+        <div style="font-family:'EB Garamond',serif;font-size:15px;font-weight:700;font-style:italic;color:#111;border-bottom:2px solid #222;padding-bottom:3px;margin-bottom:3px;">${c.student.full_name||'____________________________'}</div>
+        <div style="font-family:'Poppins',sans-serif;font-size:10.5px;font-weight:600;font-style:italic;color:#444;margin-bottom:4px;">Has been a student of this school</div>
+
+        <div style="display:flex;align-items:flex-end;gap:4px;border-bottom:1.8px solid #222;padding-bottom:2px;margin-bottom:3px;flex-wrap:nowrap;">
+          <span style="font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;color:#111;white-space:nowrap;">From</span>
+          <span style="flex:1;font-family:'EB Garamond',serif;font-size:11.5px;font-style:italic;color:#111;padding:0 2px;">${c.admDate}</span>
+          <span style="font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;color:#111;white-space:nowrap;">to</span>
+          <span style="flex:1;font-family:'EB Garamond',serif;font-size:11.5px;font-style:italic;color:#111;padding:0 2px;">${c.today}</span>
+          <span style="font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;color:#111;white-space:nowrap;">where</span>
+        </div>
+        <div style="font-family:'Poppins',sans-serif;font-size:11px;font-weight:600;color:#111;padding:3px 0 4px;border-bottom:1.8px solid #222;margin-bottom:4px;">
+          he/she completed his/her <strong>${classDisplay}</strong> (${c.sessLabel})
+        </div>
+
+        ${slRow('Admission No', c.student.admission_no||c.student.roll_no||'&nbsp;')}
+        ${slRow('Date of Birth', fmtDate(c.student.dob||c.student.date_of_birth))}
+        ${slRow('Father / Guardian', c.student.father_name||c.student.guardian_name||'&nbsp;')}
+        <div style="flex:1;"></div>
+        <div style="font-size:7px;color:#c0c8d8;font-family:sans-serif;text-align:right;">Ref: ${c.certNo} · ${c.today}</div>
+      </div>
+
+      <!-- RIGHT -->
+      <div style="padding:9px 13px;display:flex;flex-direction:column;overflow:hidden;">
+        ${slRow('Conduct', c.conduct&&c.conduct!=='—'?c.conduct:'&nbsp;')}
+        ${c.post&&c.post!=='—'?slRow('Post Held',c.post):''}
+        ${c.avg!==null?slRow('Academic Avg',`${c.avg}% — Grade ${c.og.grade}`):''}
+        <div style="flex:1;"></div>
+        <div style="font-family:'Poppins',sans-serif;font-size:11px;font-weight:600;color:#111;line-height:1.65;padding:5px 0 4px;border-top:1.5px dashed rgba(0,0,0,.12);border-bottom:1.5px dashed rgba(0,0,0,.12);margin-bottom:6px;">
+          I strongly recommend him/her to wherever may need his/her service or for further academic pursuit.
+        </div>
+        <!-- Sigs -->
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;padding-top:5px;border-top:2px solid ${t.s1};">
+          <div style="text-align:center;">
+            <div style="min-height:20px;margin-bottom:2px;">${c.hmSig?`<img src="${c.hmSig}" style="max-height:18px;max-width:90px;object-fit:contain;">`:'&nbsp;'}</div>
+            <div style="border-top:2px solid #111;width:100px;margin:0 auto 3px;"></div>
+            <div style="font-family:'Oswald',sans-serif;font-size:9.5px;font-weight:600;color:#111;">Headmaster's Signature</div>
+            <div style="font-family:'Poppins',sans-serif;font-size:9.5px;font-weight:600;color:#333;">Date: ${c.today}</div>
+          </div>
+          ${waxSeal(60)}
+          <div style="text-align:center;">
+            <div style="min-height:20px;">&nbsp;</div>
+            <div style="border-top:2px solid #111;width:100px;margin:0 auto 3px;"></div>
+            <div style="font-family:'Oswald',sans-serif;font-size:9.5px;font-weight:600;color:#111;">Student's Signature</div>
+            <div style="font-family:'Poppins',sans-serif;font-size:9.5px;font-weight:600;color:#333;">Date: ___________</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- grid -->
   </div>
 </div>`;
 }
 
-/* ══════════════════════════════════════
-   INIT — direct URL support
-══════════════════════════════════════ */
+/* ════════════════════════════════════════════
+   UTILITY: hex colour to r,g,b for rgba()
+════════════════════════════════════════════ */
+function hexToRgb(hex){
+  const r=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return r?`${parseInt(r[1],16)},${parseInt(r[2],16)},${parseInt(r[3],16)}`:'13,32,96';
+}
+
+/* ════════════════════════════════════════════
+   INIT — handle direct URL with student_id + session_id
+════════════════════════════════════════════ */
 window.addEventListener('DOMContentLoaded',async()=>{
   const p=new URLSearchParams(location.search);
-  const SID=p.get('student_id'),SESSID=p.get('session_id');
+  const SID=p.get('student_id'), SESSID=p.get('session_id');
   if(SID&&SESSID){
     document.getElementById('modalBg').style.display='none';
     document.getElementById('ctrlBar').style.display='flex';
-    updBadges();setPageCSS();
+    updBadges(); setPageCSS();
     document.getElementById('MC').innerHTML='<div class="loading">Fetching data…</div>';
     try{
       const student=await sq(db.from('students').select('*').eq('id',SID).single());
-      if(!student)throw new Error('Student not found');
+      if(!student) throw new Error('Student not found');
       _schoolId=student.school_id;
-      const{data:enrCheck}=await db.from('enrollments').select('classes(name,level,section)').eq('student_id',SID).limit(1).single();
+      const {data:enrCheck}=await db.from('enrollments').select('classes(name,level,section)').eq('student_id',SID).limit(1).single();
       const tc=[enrCheck?.classes?.section||'',enrCheck?.classes?.level||'',enrCheck?.classes?.name||''].join(' ').toLowerCase();
-      if(/nur|kg|kinder/.test(tc))_section='nursery';
-      else if(/jss|junior/.test(tc))_section='junior';
-      else if(/sss|senior/.test(tc))_section='senior';
+      if(/nur|kg|kinder/.test(tc)) _section='nursery';
+      else if(/jss|junior/.test(tc)) _section='junior';
+      else if(/sss|senior/.test(tc)) _section='senior';
       else _section='primary';
       updBadges();
       await genBatch([SID],SESSID);
-    }catch(e){document.getElementById('MC').innerHTML=`<div class="loading" style="color:#f87171">⚠ ${e.message}</div>`;}
+    }catch(e){
+      document.getElementById('MC').innerHTML=`<div class="loading" style="color:#f87171">⚠ ${e.message}</div>`;
+    }
   }
 });
 </script>
