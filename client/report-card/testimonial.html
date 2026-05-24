@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>School Testimonial — EduTrack NG</title>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=EB+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=EB+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Poppins:wght@300;400;500;600;700&family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
 <script src="../js/config.js"></script>
 <script src="../js/supabase.js"></script>
@@ -21,506 +21,138 @@
   --c-r1:#e53935;  --c-r2:#b71c1c;
   --c-dp1:#ffd600; --c-dp2:#b8d0f8;
   --c-border:var(--c-pri);
+  --c-teal:#00838f;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:#0f172a;font-family:'Poppins',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;}
+body{background:#0d1424;font-family:'Poppins',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;}
 
 /* ════════════════════════════════════════════
    MODAL
 ════════════════════════════════════════════ */
-.mbg{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(8px);}
-.mbox{background:#fff;border-radius:18px;padding:26px 30px 22px;max-width:540px;width:95%;text-align:center;box-shadow:0 36px 90px rgba(0,0,0,.65);max-height:93vh;overflow-y:auto;}
-.mbox::-webkit-scrollbar{width:4px;} .mbox::-webkit-scrollbar-thumb{background:#ddd;border-radius:4px;}
-.mico{font-size:30px;margin-bottom:7px;}
-.mbox h2{font-family:'Cinzel',serif;font-size:16px;color:#0d2060;margin-bottom:3px;}
-.mbox>p{font-size:11.5px;color:#6b7280;margin-bottom:16px;line-height:1.7;}
-.msep{font-family:'Cinzel',serif;font-size:9.5px;color:var(--c-pri);letter-spacing:2px;font-weight:700;text-transform:uppercase;margin:12px 0 9px;display:flex;align-items:center;gap:7px;}
-.msep::before,.msep::after{content:'';flex:1;height:1px;background:#e5e7eb;}
-/* 4-sect grid */
-.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:4px;}
-.sbtn{border:2px solid #e5e7eb;border-radius:11px;padding:13px 9px;cursor:pointer;background:#fff;transition:all .18s;text-align:center;}
-.sbtn:hover{border-color:var(--c-pri);background:#f0f4ff;}
-.sbtn.sel{border-color:var(--c-pri);background:linear-gradient(135deg,#eef2ff,#e0e7ff);box-shadow:0 0 0 3px rgba(13,32,96,.08);}
-.sbtn .si{font-size:22px;margin-bottom:4px;}
-.sbtn .sl{font-family:'Cinzel',serif;font-size:10px;color:var(--c-pri);font-weight:700;letter-spacing:.3px;line-height:1.3;}
-.sbtn .ss{font-size:9.5px;color:#9ca3af;margin-top:2px;}
-/* theme swatches */
-.tgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:4px;}
-.tsw{width:100%;aspect-ratio:1;border-radius:9px;cursor:pointer;border:3px solid transparent;transition:all .18s;position:relative;overflow:hidden;}
-.tsw.sel{border-color:#1e293b;transform:scale(1.08);box-shadow:0 4px 14px rgba(0,0,0,.3);}
-.tsw.sel::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.5);}
-/* orient */
-.ogrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:16px;}
-.obtn{border:2px solid #e5e7eb;border-radius:10px;padding:12px 8px;cursor:pointer;background:#fff;transition:all .18s;}
-.obtn:hover{border-color:var(--c-pri);background:#f0f4ff;}
-.obtn.sel{border-color:var(--c-pri);background:linear-gradient(135deg,#eef2ff,#e0e7ff);box-shadow:0 0 0 3px rgba(13,32,96,.08);}
-.opv{margin:0 auto 6px;border:2px solid #d1d5db;background:#f3f4f6;position:relative;}
+.mbg{position:fixed;inset:0;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(10px);}
+.mbox{background:linear-gradient(160deg,#0d1e3d,#142249);border:1px solid rgba(124,180,255,.18);border-radius:20px;padding:28px 32px 24px;max-width:560px;width:95%;text-align:center;box-shadow:0 40px 100px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.06);max-height:93vh;overflow-y:auto;}
+.mbox::-webkit-scrollbar{width:4px;} .mbox::-webkit-scrollbar-thumb{background:#334;border-radius:4px;}
+.mico{font-size:32px;margin-bottom:8px;}
+.mbox h2{font-family:'Cinzel',serif;font-size:17px;color:#b8d4ff;margin-bottom:4px;letter-spacing:.5px;}
+.mbox>p{font-size:11.5px;color:#6b8ab0;margin-bottom:18px;line-height:1.7;}
+.msep{font-family:'Cinzel',serif;font-size:9.5px;color:rgba(124,180,255,.65);letter-spacing:2px;font-weight:700;text-transform:uppercase;margin:14px 0 10px;display:flex;align-items:center;gap:7px;}
+.msep::before,.msep::after{content:'';flex:1;height:1px;background:rgba(124,180,255,.12);}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px;}
+.sbtn{border:1.5px solid rgba(124,180,255,.15);border-radius:12px;padding:14px 10px;cursor:pointer;background:rgba(255,255,255,.03);transition:all .18s;text-align:center;}
+.sbtn:hover{border-color:rgba(124,180,255,.4);background:rgba(124,180,255,.06);}
+.sbtn.sel{border-color:#7cb4ff;background:rgba(124,180,255,.1);box-shadow:0 0 0 3px rgba(124,180,255,.1);}
+.sbtn .si{font-size:22px;margin-bottom:5px;}
+.sbtn .sl2{font-family:'Cinzel',serif;font-size:10px;color:#b8d4ff;font-weight:700;letter-spacing:.3px;line-height:1.3;}
+.sbtn .ss{font-size:9.5px;color:#4d6f8f;margin-top:2px;}
+.tgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:4px;}
+.tsw{width:100%;aspect-ratio:1;border-radius:10px;cursor:pointer;border:3px solid transparent;transition:all .18s;position:relative;overflow:hidden;}
+.tsw.sel{border-color:#e2e8f0;transform:scale(1.08);box-shadow:0 4px 16px rgba(0,0,0,.4);}
+.tsw.sel::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.6);}
+.ogrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
+.obtn{border:1.5px solid rgba(124,180,255,.15);border-radius:11px;padding:13px 8px;cursor:pointer;background:rgba(255,255,255,.03);transition:all .18s;}
+.obtn:hover{border-color:rgba(124,180,255,.4);background:rgba(124,180,255,.06);}
+.obtn.sel{border-color:#7cb4ff;background:rgba(124,180,255,.1);box-shadow:0 0 0 3px rgba(124,180,255,.1);}
+.opv{margin:0 auto 7px;border:2px solid rgba(124,180,255,.2);background:rgba(124,180,255,.06);position:relative;}
 .opv.land{width:74px;height:52px;} .opv.port{width:52px;height:74px;}
-.opv::after{content:'T';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:#d1d5db;}
-.olb{font-family:'Cinzel',serif;font-size:10.5px;color:#374151;font-weight:700;letter-spacing:.8px;}
-.osub{font-size:9.5px;color:#9ca3af;margin-top:2px;}
-.mdiv{height:1px;background:#f3f4f6;margin:11px 0;}
-.mgbtn{width:100%;padding:13px;background:linear-gradient(135deg,var(--c-pri),var(--c-pri3));border:none;border-radius:9px;font-family:'Cinzel',serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer;letter-spacing:.5px;transition:filter .2s;}
-.mgbtn:hover{filter:brightness(1.1);}
-.mback{display:block;margin-top:8px;font-size:11.5px;color:#9ca3af;cursor:pointer;text-decoration:underline;}
+.opv::after{content:'T';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:rgba(124,180,255,.3);}
+.olb{font-family:'Cinzel',serif;font-size:10.5px;color:#b8d4ff;font-weight:700;letter-spacing:.8px;}
+.osub{font-size:9.5px;color:#4d6f8f;margin-top:2px;}
+.mgbtn{width:100%;padding:14px;background:linear-gradient(135deg,#0d47a1,#1a4fd6);border:none;border-radius:10px;font-family:'Cinzel',serif;font-size:13.5px;font-weight:700;color:#fff;cursor:pointer;letter-spacing:.8px;transition:all .2s;box-shadow:0 4px 20px rgba(13,71,161,.4);}
+.mgbtn:hover{filter:brightness(1.12);transform:translateY(-1px);box-shadow:0 6px 28px rgba(13,71,161,.55);}
+.mback{display:block;margin-top:10px;font-size:11.5px;color:#4d6f8f;cursor:pointer;text-decoration:underline;}
 
 /* ════════════════════════════════════════════
    CONTROL BAR
 ════════════════════════════════════════════ */
-.ctrl{background:#060d1f;color:#fff;width:100%;padding:9px 18px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-bottom:1px solid rgba(255,255,255,.05);}
-.ctitle{font-family:'Cinzel',serif;font-size:12px;letter-spacing:1px;color:#7cb4ff;flex:1;}
-.cbtn{padding:6px 13px;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Cinzel',serif;letter-spacing:.4px;display:flex;align-items:center;gap:5px;}
-.cbtn-p{background:linear-gradient(135deg,#0d47a1,#1a4fd6);color:#fff;}
+.ctrl{background:#07101f;color:#fff;width:100%;padding:10px 20px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;border-bottom:1px solid rgba(255,255,255,.05);}
+.ctitle{font-family:'Cinzel',serif;font-size:12.5px;letter-spacing:1px;color:#7cb4ff;flex:1;}
+.cbtn{padding:7px 14px;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Cinzel',serif;letter-spacing:.4px;display:flex;align-items:center;gap:5px;}
+.cbtn-p{background:linear-gradient(135deg,#0d47a1,#1a4fd6);color:#fff;box-shadow:0 2px 10px rgba(13,71,161,.35);}
 .cbtn-b{background:rgba(255,255,255,.07);color:#fff;border:1px solid rgba(255,255,255,.15);}
 .cbtn-o{background:rgba(255,255,255,.04);color:#7cb4ff;border:1px solid rgba(124,180,255,.18);}
-.cbadge{font-size:9.5px;background:rgba(26,79,214,.15);border:1px solid rgba(124,180,255,.25);color:#7cb4ff;padding:2px 9px;border-radius:20px;letter-spacing:.4px;}
+.cbadge{font-size:9.5px;background:rgba(26,79,214,.15);border:1px solid rgba(124,180,255,.25);color:#7cb4ff;padding:2px 10px;border-radius:20px;letter-spacing:.4px;}
 
 /* ════════════════════════════════════════════
    PICKER UI
 ════════════════════════════════════════════ */
-.tpw{padding:28px 16px;width:100%;display:flex;justify-content:center;}
-.pcard{max-width:640px;width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(124,180,255,.14);border-radius:16px;padding:30px 26px;}
-.pcard h2{font-family:'Cinzel',serif;color:#7cb4ff;font-size:16.5px;margin-bottom:4px;}
-.pcard p{font-size:12px;color:#7d98b8;margin-bottom:20px;line-height:1.7;}
-.ptag{display:inline-flex;align-items:center;gap:6px;background:rgba(26,79,214,.18);border:1px solid rgba(124,180,255,.28);color:#7cb4ff;padding:4px 12px;border-radius:20px;font-size:10.5px;font-family:'Cinzel',serif;letter-spacing:.5px;margin-bottom:20px;}
-.prow2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.tpw{padding:32px 16px;width:100%;display:flex;justify-content:center;}
+.pcard{max-width:660px;width:100%;background:rgba(255,255,255,.03);border:1px solid rgba(124,180,255,.12);border-radius:18px;padding:32px 28px;}
+.pcard h2{font-family:'Cinzel',serif;color:#7cb4ff;font-size:17px;margin-bottom:5px;}
+.pcard p{font-size:12px;color:#7d98b8;margin-bottom:22px;line-height:1.7;}
+.ptag{display:inline-flex;align-items:center;gap:6px;background:rgba(26,79,214,.18);border:1px solid rgba(124,180,255,.28);color:#7cb4ff;padding:5px 14px;border-radius:20px;font-size:10.5px;font-family:'Cinzel',serif;letter-spacing:.5px;margin-bottom:22px;}
+.prow2{display:grid;grid-template-columns:1fr 1fr;gap:15px;}
 .plbl{display:block;font-size:10.5px;color:#7cb4ff;font-family:'Cinzel',serif;letter-spacing:1px;font-weight:700;margin-bottom:5px;text-transform:uppercase;}
-.psel,.pinp{width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(124,180,255,.2);background:#0c1a35;color:#e5e7eb;font-size:13px;margin-bottom:14px;outline:none;transition:border-color .18s;}
-.psel:focus,.pinp:focus{border-color:#7cb4ff;}
+.psel,.pinp{width:100%;padding:11px 13px;border-radius:9px;border:1px solid rgba(124,180,255,.2);background:#0c1a35;color:#e5e7eb;font-size:13px;margin-bottom:15px;outline:none;transition:border-color .18s;}
+.psel:focus,.pinp:focus{border-color:#7cb4ff;box-shadow:0 0 0 3px rgba(124,180,255,.08);}
 .pinp::placeholder{color:#3d5a78;}
-.pmsep{font-family:'Cinzel',serif;font-size:9.5px;color:rgba(124,180,255,.7);letter-spacing:1.8px;font-weight:700;text-transform:uppercase;margin:14px 0 10px;display:flex;align-items:center;gap:7px;}
+.pmsep{font-family:'Cinzel',serif;font-size:9.5px;color:rgba(124,180,255,.7);letter-spacing:1.8px;font-weight:700;text-transform:uppercase;margin:15px 0 11px;display:flex;align-items:center;gap:7px;}
 .pmsep::before,.pmsep::after{content:'';flex:1;height:1px;background:rgba(124,180,255,.12);}
-/* mode cards */
-.mcards{display:flex;flex-direction:column;gap:7px;margin-bottom:18px;}
-.mcard{display:flex;align-items:flex-start;gap:11px;padding:12px 14px;border:1.5px solid rgba(124,180,255,.15);border-radius:10px;cursor:pointer;transition:all .18s;}
-.mcard:hover{border-color:rgba(124,180,255,.35);background:rgba(124,180,255,.04);}
+.mcards{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+.mcard{display:flex;align-items:flex-start;gap:12px;padding:13px 15px;border:1.5px solid rgba(124,180,255,.12);border-radius:11px;cursor:pointer;transition:all .18s;}
+.mcard:hover{border-color:rgba(124,180,255,.3);background:rgba(124,180,255,.04);}
 .mcard.act{border-color:#7cb4ff;background:rgba(124,180,255,.07);}
-.mradio{width:16px;height:16px;border-radius:50%;border:2px solid rgba(124,180,255,.5);margin-top:2px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.mradio{width:17px;height:17px;border-radius:50%;border:2px solid rgba(124,180,255,.5);margin-top:2px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
 .mradio.on{border-color:#7cb4ff;background:rgba(124,180,255,.1);}
 .mradio.on::after{content:'';width:7px;height:7px;border-radius:50%;background:#7cb4ff;display:block;}
 .mcard-text strong{display:block;font-size:12.5px;color:#e2e8f0;font-weight:600;margin-bottom:1px;}
 .mcard-text span{font-size:11px;color:#4d6f8f;}
-/* student list */
-.slist{max-height:230px;overflow-y:auto;border:1px solid rgba(124,180,255,.15);border-radius:8px;background:#07101f;margin-bottom:12px;}
+.slist{max-height:240px;overflow-y:auto;border:1px solid rgba(124,180,255,.12);border-radius:9px;background:#07101f;margin-bottom:13px;}
 .slist::-webkit-scrollbar{width:4px;} .slist::-webkit-scrollbar-thumb{background:rgba(124,180,255,.2);border-radius:4px;}
-.sitem{display:flex;align-items:center;gap:9px;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;}
+.sitem{display:flex;align-items:center;gap:10px;padding:9px 13px;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;}
 .sitem:last-child{border-bottom:none;} .sitem:hover{background:rgba(124,180,255,.05);}
 .sitem input[type=checkbox]{accent-color:#7cb4ff;width:14px;height:14px;cursor:pointer;flex-shrink:0;}
 .sname{font-size:12.5px;color:#e2e8f0;flex:1;} .sadm{font-size:11px;color:#4d6f8f;}
-.sacts{display:flex;gap:7px;margin-bottom:8px;}
-.sact{font-size:11px;color:#7cb4ff;background:none;border:1px solid rgba(124,180,255,.22);border-radius:5px;padding:4px 10px;cursor:pointer;}
+.sacts{display:flex;gap:7px;margin-bottom:9px;}
+.sact{font-size:11px;color:#7cb4ff;background:none;border:1px solid rgba(124,180,255,.22);border-radius:6px;padding:5px 11px;cursor:pointer;}
 .sact:hover{background:rgba(124,180,255,.1);}
-/* info / warn boxes */
-.pinfo{background:rgba(234,179,8,.07);border:1px solid rgba(234,179,8,.22);border-radius:7px;padding:8px 12px;font-size:11.5px;color:#fbbf24;margin-bottom:14px;line-height:1.5;}
-/* progress */
-.pprog{text-align:center;padding:22px 0 16px;}
-.pprog-title{font-family:'Cinzel',serif;font-size:13px;color:#7cb4ff;letter-spacing:1px;margin-bottom:12px;}
-.pprog-bar{height:4px;background:rgba(124,180,255,.12);border-radius:2px;overflow:hidden;}
-.pprog-fill{height:100%;background:linear-gradient(90deg,#0d47a1,#7cb4ff);border-radius:2px;transition:width .35s ease;}
-.pprog-sub{font-size:11.5px;color:#3d5a78;margin-top:8px;}
-/* action btns */
-.pload{padding:8px 16px;background:rgba(124,180,255,.1);color:#7cb4ff;border:1px solid rgba(124,180,255,.28);border-radius:7px;cursor:pointer;font-size:12px;font-family:'Cinzel',serif;margin-bottom:10px;}
+.pinfo{background:rgba(234,179,8,.07);border:1px solid rgba(234,179,8,.22);border-radius:8px;padding:9px 13px;font-size:11.5px;color:#fbbf24;margin-bottom:15px;line-height:1.5;}
+.pprog{text-align:center;padding:28px 0 18px;}
+.pprog-title{font-family:'Cinzel',serif;font-size:13.5px;color:#7cb4ff;letter-spacing:1px;margin-bottom:14px;}
+.pprog-bar{height:5px;background:rgba(124,180,255,.1);border-radius:3px;overflow:hidden;}
+.pprog-fill{height:100%;background:linear-gradient(90deg,#0d47a1,#7cb4ff);border-radius:3px;transition:width .35s ease;}
+.pprog-sub{font-size:11.5px;color:#3d5a78;margin-top:9px;}
+.pload{padding:9px 17px;background:rgba(124,180,255,.1);color:#7cb4ff;border:1px solid rgba(124,180,255,.28);border-radius:8px;cursor:pointer;font-size:12px;font-family:'Cinzel',serif;margin-bottom:11px;}
 .pload:hover{background:rgba(124,180,255,.18);}
-.pgen{width:100%;padding:13px;background:linear-gradient(135deg,#0d47a1,#1a4fd6);color:#fff;border:none;border-radius:9px;cursor:pointer;font-weight:700;font-size:13.5px;font-family:'Cinzel',serif;letter-spacing:.5px;transition:filter .2s;margin-top:6px;}
-.pgen:hover{filter:brightness(1.1);} .pgen:disabled{opacity:.4;cursor:not-allowed;}
-.loading{color:#7cb4ff;font-family:'Cinzel',serif;font-size:14px;letter-spacing:2px;padding:60px;text-align:center;animation:pulse 1.5s ease-in-out infinite;}
+.pgen{width:100%;padding:14px;background:linear-gradient(135deg,#0d47a1,#1a4fd6);color:#fff;border:none;border-radius:10px;cursor:pointer;font-weight:700;font-size:14px;font-family:'Cinzel',serif;letter-spacing:.6px;transition:all .2s;margin-top:7px;box-shadow:0 4px 20px rgba(13,71,161,.35);}
+.pgen:hover{filter:brightness(1.12);transform:translateY(-1px);} .pgen:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.loading{color:#7cb4ff;font-family:'Cinzel',serif;font-size:14px;letter-spacing:2px;padding:70px;text-align:center;animation:pulse 1.5s ease-in-out infinite;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
 
 /* ════════════════════════════════════════════
    CERTIFICATE PAGE WRAPPER
 ════════════════════════════════════════════ */
 .cert-wrap{
-  padding:22px 16px;width:100%;
-  display:flex;flex-direction:column;align-items:center;gap:26px;
-  background:#0f172a;
+  padding:28px 16px;width:100%;
+  display:flex;flex-direction:column;align-items:center;gap:32px;
+  background:#0d1424;
 }
 .page-break{page-break-after:always;break-after:page;}
 
 /* ════════════════════════════════════════════
    SHARED CERT ELEMENTS
 ════════════════════════════════════════════ */
-/* Field lines */
 .fl{display:flex;align-items:flex-end;gap:5px;margin-bottom:5px;font-size:11.5px;color:#1a1a1a;flex-wrap:wrap;}
 .fl-lbl{font-weight:700;color:#1a1a1a;white-space:nowrap;font-size:11.5px;}
 .fl-val{flex:1;border-bottom:1.5px solid #444;min-height:15px;min-width:50px;font-family:'EB Garamond',serif;font-size:12.5px;font-style:italic;padding:0 3px 1px;color:#111;}
 .fl-txt{font-size:11.5px;color:#1a1a1a;}
-/* Stamp circle */
-.stamp{border-radius:50%;border:3px double var(--c-r2);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-family:'Cinzel',serif;font-weight:700;color:var(--c-r2);letter-spacing:.4px;line-height:1.5;background:radial-gradient(circle,rgba(255,200,200,.12),white);flex-shrink:0;}
-.stamp-md{width:72px;height:72px;font-size:6.5px;padding:8px;}
-.stamp-sm{width:60px;height:60px;font-size:5.5px;padding:7px;}
-.stamp-lg{width:84px;height:84px;font-size:7px;padding:10px;}
-/* Diamond border patterns */
-.dp-a{background-color:var(--c-dp1);background-image:var(--dp-img-a);background-size:20px 20px;}
-.dp-b{background-color:var(--c-dp2);background-image:var(--dp-img-b);background-size:20px 20px;}
 
 /* ════════════════════════════════════════════
-   ① PRIMARY / NURSERY — PORTRAIT  210×297mm
-   Matches reference image: diagonal border, large
-   bold heading, full-page content distribution
+   PREMIUM STAMP  — improved wax seal style
 ════════════════════════════════════════════ */
-/* Outer shell = the diagonal-stripe coloured border */
-.pp{
-  width:210mm;height:297mm;
-  padding:0;
-  display:flex;flex-direction:column;
-  box-shadow:0 10px 50px rgba(0,0,0,.6);
-  flex-shrink:0;
+.stamp-wax{
   position:relative;
-  background:var(--c-pri);
-  overflow:hidden;
-}
-/* Diagonal stripe overlay on outer shell */
-.pp::before{
-  content:'';position:absolute;inset:0;
-  background:repeating-linear-gradient(
-    -45deg,
-    transparent 0px, transparent 10px,
-    rgba(255,255,255,.18) 10px, rgba(255,255,255,.18) 14px,
-    transparent 14px, transparent 24px,
-    var(--c-acc) 24px, var(--c-acc) 28px,
-    transparent 28px, transparent 38px
-  );
-  pointer-events:none;z-index:0;
-}
-/* White inner card */
-.pp-in{
-  margin:10px;
-  flex:1;background:#fff;display:flex;flex-direction:column;
-  border:3px solid var(--c-pri);
-  position:relative;z-index:1;
-  overflow:hidden;
-}
-/* ── Top header: white bg, large centred school name ── */
-.pp-hd{
-  background:#fff;
-  padding:14px 16px 10px;
-  text-align:center;
-  flex-shrink:0;
-  border-bottom:3px solid var(--c-pri);
-}
-.pp-sname{
-  font-family:'Arial Black','Poppins',sans-serif;
-  font-size:clamp(16px,4.5vw,26px);
-  font-weight:900;
-  color:var(--c-pri3);
-  letter-spacing:.5px;
-  line-height:1.15;
-  text-transform:uppercase;
-  margin-bottom:2px;
-}
-.pp-stype{
-  font-family:'Arial Black','Poppins',sans-serif;
-  font-size:clamp(11px,2.8vw,17px);
-  font-weight:900;
-  color:#1a1a1a;
-  letter-spacing:.3px;
-  text-transform:uppercase;
-  margin-bottom:2px;
-}
-.pp-saddr{
-  font-family:'Poppins',sans-serif;
-  font-size:clamp(8px,1.8vw,11px);
-  font-weight:700;
-  color:#222;
-  text-transform:uppercase;
-  letter-spacing:.3px;
-}
-/* ── Motto banner (red) ── */
-.pp-motto{
-  background:var(--c-r1);
-  padding:5px 16px;
-  text-align:center;
-  flex-shrink:0;
-  font-family:'Arial Black','Poppins',sans-serif;
-  font-size:clamp(9px,2.2vw,13px);
-  font-weight:900;
-  color:#fff;
-  letter-spacing:1px;
-  text-transform:uppercase;
-}
-/* ── Logo row: logo left | Testimonial title centre | passport photo right ── */
-.pp-logo-row{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:10px 16px 8px;
-  flex-shrink:0;
-  border-bottom:2.5px solid var(--c-pri);
-}
-.pp-logo{
-  width:72px;height:72px;
-  border-radius:50%;
-  overflow:hidden;
-  background:#f5f5f5;
-  border:2.5px solid var(--c-pri);
-  display:flex;align-items:center;justify-content:center;
+  width:80px;height:80px;
   flex-shrink:0;
 }
-.pp-logo img{width:100%;height:100%;object-fit:cover;}
-.pp-logo-ph{font-family:'Cinzel',serif;font-size:7px;font-weight:700;color:#888;text-align:center;line-height:1.3;padding:4px;}
-.pp-title-centre{flex:1;text-align:center;padding:0 10px;}
-.pp-title{
-  font-family:'Arial Black','Poppins',sans-serif;
-  font-size:clamp(28px,7vw,46px);
-  font-weight:900;
-  color:var(--c-pri3);
-  line-height:1;
-  letter-spacing:.5px;
-  margin-bottom:3px;
-}
-.pp-tsub{
-  font-family:'Poppins',sans-serif;
-  font-size:clamp(9px,2vw,13px);
-  font-weight:700;
-  color:var(--c-r1);
-  letter-spacing:.3px;
-}
-.pp-photo{
-  width:72px;height:88px;
-  flex-shrink:0;
-  border:2.5px solid var(--c-pri);
-  background:#f0f4ff;
-  display:flex;align-items:center;justify-content:center;
-  overflow:hidden;
-}
-.pp-photo img{width:100%;height:100%;object-fit:cover;}
-.pp-photo-ph{font-size:8px;color:#888;text-align:center;font-family:sans-serif;line-height:1.5;padding:4px;}
-/* ── Body: fills remaining space, content evenly spaced ── */
-.pp-body{
-  padding:0 18px;
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  justify-content:space-between; /* KEY: distributes content top→bottom */
-  overflow:hidden;
-}
-.pp-body-top{padding-top:10px;}
-/* Student name block */
-.pp-stname{
-  font-family:'EB Garamond',serif;
-  font-size:clamp(15px,3.5vw,22px);
-  font-weight:600;
-  font-style:italic;
-  color:#111;
-  text-align:center;
-  margin-bottom:2px;
-  border-bottom:2px solid #333;
-  padding-bottom:4px;
-}
-.pp-pupil-sub{
-  font-family:'Poppins',sans-serif;
-  font-size:clamp(10px,2.2vw,14px);
-  font-weight:600;
-  color:#222;
-  text-align:center;
-  margin:6px 0 8px;
-  font-style:italic;
-}
-/* From–to row */
-.pp-from-row{
-  display:flex;align-items:flex-end;gap:6px;
-  flex-wrap:nowrap;
-  margin-bottom:0;
-}
-.pp-fr-lbl{
-  font-family:'Poppins',sans-serif;
-  font-size:clamp(11px,2.5vw,15px);
-  font-weight:700;
-  color:#111;
-  white-space:nowrap;
-  flex-shrink:0;
-}
-.pp-fr-val{
-  flex:1;
-  border-bottom:2px solid #333;
-  min-height:18px;
-  font-family:'EB Garamond',serif;
-  font-size:clamp(11px,2.2vw,14px);
-  font-style:italic;
-  color:#111;
-  padding:0 4px 2px;
-}
-/* completion line */
-.pp-completion{
-  font-family:'Poppins',sans-serif;
-  font-size:clamp(10px,2.3vw,14px);
-  font-weight:600;
-  color:#111;
-  padding:7px 0 5px;
-  border-bottom:2px solid #333;
-}
-/* field rows (Admission No, Conduct, Hobby etc.) */
-.pp-field{
-  display:flex;align-items:flex-end;gap:0;
-  border-bottom:2px solid #333;
-  padding:5px 0 2px;
-}
-.pp-field-lbl{
-  font-family:'Poppins',sans-serif;
-  font-size:clamp(10px,2.3vw,14px);
-  font-weight:700;
-  color:#111;
-  white-space:nowrap;
-  margin-right:6px;
-  flex-shrink:0;
-}
-.pp-field-val{
-  flex:1;
-  font-family:'EB Garamond',serif;
-  font-size:clamp(11px,2.2vw,14px);
-  font-style:italic;
-  color:#111;
-  min-height:16px;
-  padding:0 3px;
-}
-/* Recommendation text */
-.pp-rec{
-  font-family:'Poppins',sans-serif;
-  font-size:clamp(10px,2.3vw,14px);
-  font-weight:600;
-  color:#111;
-  line-height:1.6;
-  padding:6px 0;
-}
-/* sig area */
-.pp-sig{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-end;
-  padding:8px 0 12px;
-  flex-shrink:0;
-}
-.pp-sb{text-align:center;}
-.pp-simg{min-height:34px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:2px;}
-.pp-simg img{max-height:30px;max-width:90%;object-fit:contain;}
-.pp-sline{border-top:2px solid #333;width:130px;margin:0 auto 4px;}
-.pp-stit{
-  font-family:'Poppins',sans-serif;
-  font-size:clamp(9px,2vw,12px);
-  font-weight:700;
-  color:#111;
-  letter-spacing:.2px;
-}
-.pp-sdate{font-size:clamp(9px,2vw,12px);font-weight:600;color:#111;margin-top:2px;font-family:'Poppins',sans-serif;}
-.pp-ref{font-size:8px;color:#bbb;font-family:sans-serif;text-align:right;padding:2px 0 0;}
-.pp-bot{height:0;}/* no extra bottom bar — outer shell IS the border */
+.stamp-wax svg{width:100%;height:100%;filter:drop-shadow(0 4px 12px rgba(180,20,20,.45));}
 
 /* ════════════════════════════════════════════
-   ② PRIMARY / NURSERY — LANDSCAPE  297×210mm
+   CERT SIZE SHELLS
 ════════════════════════════════════════════ */
-.pl{width:297mm;height:210mm;padding:11px;display:flex;flex-direction:column;box-shadow:0 10px 50px rgba(0,0,0,.6);flex-shrink:0;}
-.pl-in{flex:1;background:#fff;display:flex;flex-direction:column;border:2px solid var(--c-pri);overflow:hidden;}
-/* header — compact */
-.pl-hd{background:linear-gradient(135deg,var(--c-pri),var(--c-pri2) 55%,var(--c-pri));padding:8px 13px;display:flex;align-items:center;gap:9px;flex-shrink:0;}
-.pl-logo{width:52px;height:52px;border-radius:50%;border:2.5px solid rgba(255,215,0,.5);overflow:hidden;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.pl-logo img{width:100%;height:100%;object-fit:cover;}
-.pl-logo-ph{font-family:'Cinzel',serif;font-size:6.5px;font-weight:700;color:rgba(255,255,255,.5);text-align:center;line-height:1.3;padding:3px;}
-.pl-hc{flex:1;text-align:center;}
-.pl-sname{font-family:'Cinzel',serif;font-size:clamp(11px,1.9vw,15px);font-weight:900;color:var(--c-acc);letter-spacing:.4px;line-height:1.2;text-shadow:0 1px 3px rgba(0,0,0,.4);}
-.pl-stype{font-family:'Cinzel',serif;font-size:8.5px;font-weight:700;color:rgba(255,255,255,.9);letter-spacing:1.2px;text-transform:uppercase;margin-top:1px;}
-.pl-saddr{font-size:8px;color:rgba(255,255,255,.7);margin-top:1px;font-style:italic;}
-.pl-photo{width:52px;height:64px;flex-shrink:0;border:2px solid rgba(255,215,0,.6);background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;overflow:hidden;}
-.pl-photo img{width:100%;height:100%;object-fit:cover;}
-.pl-photo-ph{font-size:7px;color:rgba(255,255,255,.45);text-align:center;font-family:sans-serif;line-height:1.4;padding:3px;}
-.pl-motto{background:linear-gradient(90deg,var(--c-g1),var(--c-g2),var(--c-g1));padding:4px 12px;text-align:center;flex-shrink:0;font-family:'Cinzel',serif;font-size:9px;font-weight:700;color:#fff;letter-spacing:1.6px;text-transform:uppercase;border-top:1.5px solid var(--c-acc);border-bottom:1.5px solid var(--c-acc);}
-/* title-info strip */
-.pl-tstrip{display:flex;align-items:stretch;border-bottom:1.5px solid var(--c-pri);flex-shrink:0;}
-.pl-tblk{text-align:center;padding:7px 12px;border-right:1.5px solid var(--c-pri);min-width:160px;display:flex;flex-direction:column;justify-content:center;flex-shrink:0;}
-.pl-ttxt{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;font-style:italic;color:var(--c-pri);line-height:1;}
-.pl-tsub{font-family:'EB Garamond',serif;font-size:10.5px;font-style:italic;color:#555;margin-top:3px;}
-.pl-tinfo{flex:1;padding:6px 14px;display:flex;flex-direction:column;justify-content:center;}
-.pl-tinfo .fl{margin-bottom:4px;}
-.pl-completion{font-family:'EB Garamond',serif;font-size:11px;font-style:italic;color:#333;border-bottom:1.5px solid #444;padding-bottom:1px;margin-top:3px;}
-/* body columns */
-.pl-cols{display:grid;grid-template-columns:1fr 1fr;flex:1;overflow:hidden;}
-.pl-col{padding:9px 13px;display:flex;flex-direction:column;overflow:hidden;}
-.pl-col:first-child{border-right:1.5px solid #d4d8e8;}
-.pl-ch{font-family:'Cinzel',serif;font-size:8.5px;letter-spacing:1.5px;color:var(--c-pri);font-weight:700;text-transform:uppercase;margin-bottom:6px;border-bottom:1px solid #d4d8e8;padding-bottom:4px;}
-.pl-sp{flex:1;}
-.pl-rec{background:#f0f4ff;border-left:3px solid var(--c-pri);padding:6px 9px;margin:6px 0;font-family:'EB Garamond',serif;font-size:11px;font-style:italic;color:#1a1a1a;line-height:1.65;}
-/* sig */
-.pl-sig{display:flex;justify-content:space-around;align-items:flex-end;padding:6px 18px 8px;border-top:1.5px solid var(--c-pri);flex-shrink:0;}
-.pl-sb{text-align:center;}
-.pl-simg{min-height:24px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:2px;}
-.pl-simg img{max-height:22px;max-width:90%;object-fit:contain;}
-.pl-sline{border-top:1.5px solid var(--c-pri);width:88px;margin:0 auto 3px;}
-.pl-stit{font-family:'Cinzel',serif;font-size:7.5px;color:var(--c-pri);font-weight:700;letter-spacing:.4px;}
-.pl-sdate{font-size:8px;color:#555;margin-top:2px;font-family:sans-serif;}
-.pl-bot{height:7px;background:linear-gradient(90deg,var(--c-pri),var(--c-acc) 50%,var(--c-pri));flex-shrink:0;}
-
-/* ════════════════════════════════════════════
-   ③ JUNIOR / SENIOR — PORTRAIT  210×297mm
-════════════════════════════════════════════ */
-.sp{width:210mm;height:297mm;padding:11px;display:flex;flex-direction:column;box-shadow:0 10px 50px rgba(0,0,0,.6);flex-shrink:0;}
-.sp-in{flex:1;background:#fff;display:flex;flex-direction:column;border:2px solid #111;overflow:hidden;}
-.sp-hd{background:var(--c-s1);padding:9px 13px 11px;text-align:center;flex-shrink:0;}
-.sp-sname{font-family:'Cinzel',serif;font-size:clamp(14px,2.3vw,22px);font-weight:900;color:var(--c-s2);letter-spacing:.4px;line-height:1.1;text-shadow:0 0 20px rgba(26,79,214,.35);}
-.sp-stype{font-family:'Cinzel',serif;font-size:9.5px;font-weight:700;color:#fff;letter-spacing:2px;text-transform:uppercase;margin-top:3px;}
-.sp-saddr{font-size:8.5px;color:rgba(255,255,255,.6);margin-top:2px;font-style:italic;}
-.sp-motto{background:linear-gradient(90deg,var(--c-r2),var(--c-r1),var(--c-r2));padding:5px 12px;text-align:center;font-family:'Cinzel',serif;font-size:9.5px;font-weight:700;color:#fff;letter-spacing:1.5px;text-transform:uppercase;flex-shrink:0;}
-/* logo + title */
-.sp-lt{display:flex;flex-direction:column;align-items:center;padding:11px 0 5px;flex-shrink:0;}
-.sp-lc{width:76px;height:76px;border-radius:50%;border:2.5px solid #111;overflow:hidden;background:#f5f5f5;display:flex;align-items:center;justify-content:center;}
-.sp-lc img{width:100%;height:100%;object-fit:cover;}
-.sp-lc-ph{font-family:'Cinzel',serif;font-size:7.5px;font-weight:700;color:#aaa;text-align:center;padding:4px;}
-.sp-ttxt{font-family:'Playfair Display',serif;font-size:40px;font-weight:700;font-style:italic;color:#0a0a0a;line-height:1;margin:6px 0 2px;}
-.sp-tsub{font-family:'EB Garamond',serif;font-size:12.5px;color:#444;font-style:italic;letter-spacing:.4px;}
-.sp-rule{height:0;border:none;border-top:2px solid #111;margin:5px 20px;flex-shrink:0;}
-/* body */
-.sp-body{padding:10px 22px 4px;flex:1;display:flex;flex-direction:column;overflow:hidden;}
-.sp-sp{flex:1;}
-.sp-rh{font-family:'Poppins',sans-serif;font-size:11px;font-weight:700;color:#1a1a1a;margin:9px 0 5px;letter-spacing:.3px;}
-.sp-rec{font-family:'EB Garamond',serif;font-size:13px;font-style:italic;color:#333;line-height:1.75;margin:8px 0;}
-.sp-date{padding:7px 22px 7px;font-size:11px;font-weight:700;color:#1a1a1a;display:flex;align-items:flex-end;gap:7px;flex-shrink:0;}
-.sp-dl{border-bottom:1.5px solid #444;min-width:85px;height:15px;display:inline-block;}
-.sp-ft{padding:5px 22px 9px;display:flex;justify-content:flex-end;align-items:flex-end;gap:14px;flex-shrink:0;}
-.sp-sb{text-align:center;}
-.sp-simg{min-height:32px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:2px;}
-.sp-simg img{max-height:28px;max-width:90%;object-fit:contain;}
-.sp-sline{border-top:1.5px solid #333;width:108px;margin:0 auto 4px;}
-.sp-stit{font-family:'Cinzel',serif;font-size:8px;color:#1a1a1a;font-weight:700;letter-spacing:.4px;}
-.sp-sdot{font-size:7.5px;color:#555;margin-top:2px;}
-.sp-ref{font-size:8px;color:#ccc;font-family:sans-serif;text-align:right;padding:1px 14px 2px;flex-shrink:0;}
-.sp-bott{height:5px;background:linear-gradient(90deg,var(--c-r2),var(--c-r1),var(--c-r2));flex-shrink:0;}
-.sp-botb{height:8px;background:var(--c-s1);flex-shrink:0;}
-
-/* ════════════════════════════════════════════
-   ④ JUNIOR / SENIOR — LANDSCAPE  297×210mm
-════════════════════════════════════════════ */
-.sl{width:297mm;height:210mm;padding:11px;display:flex;flex-direction:column;box-shadow:0 10px 50px rgba(0,0,0,.6);flex-shrink:0;}
-.sl-in{flex:1;background:#fff;display:flex;flex-direction:column;border:2px solid #111;overflow:hidden;}
-.sl-hd{background:var(--c-s1);padding:7px 13px 9px;text-align:center;flex-shrink:0;}
-.sl-sname{font-family:'Cinzel',serif;font-size:clamp(12px,1.7vw,18px);font-weight:900;color:var(--c-s2);letter-spacing:.4px;line-height:1.1;text-shadow:0 0 20px rgba(26,79,214,.35);}
-.sl-stype{font-family:'Cinzel',serif;font-size:8.5px;font-weight:700;color:#fff;letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
-.sl-saddr{font-size:8px;color:rgba(255,255,255,.6);margin-top:1px;font-style:italic;}
-.sl-motto{background:linear-gradient(90deg,var(--c-r2),var(--c-r1),var(--c-r2));padding:4px 12px;text-align:center;font-family:'Cinzel',serif;font-size:9px;font-weight:700;color:#fff;letter-spacing:1.5px;text-transform:uppercase;flex-shrink:0;}
-/* content row */
-.sl-cont{display:flex;flex:1;overflow:hidden;border-bottom:1.5px solid #111;}
-/* left panel: logo + title */
-.sl-lp{width:94px;flex-shrink:0;border-right:1.5px solid #ddd;background:#fafafa;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 6px;gap:6px;}
-.sl-lc{width:66px;height:66px;border-radius:50%;border:2.5px solid #111;overflow:hidden;background:#f5f5f5;display:flex;align-items:center;justify-content:center;}
-.sl-lc img{width:100%;height:100%;object-fit:cover;}
-.sl-lc-ph{font-family:'Cinzel',serif;font-size:7px;font-weight:700;color:#aaa;text-align:center;padding:4px;}
-.sl-lttxt{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;font-style:italic;color:#0a0a0a;line-height:1.1;text-align:center;}
-.sl-ltsub{font-family:'EB Garamond',serif;font-size:8.5px;color:#555;font-style:italic;text-align:center;margin-top:2px;}
-/* right: two column body */
-.sl-bc{display:grid;grid-template-columns:1fr 1fr;flex:1;overflow:hidden;}
-.sl-col{padding:9px 13px;display:flex;flex-direction:column;overflow:hidden;}
-.sl-col:first-child{border-right:1.5px solid #e0e0e0;}
-.sl-ch{font-family:'Cinzel',serif;font-size:7.5px;letter-spacing:1.5px;color:#0a0a0a;font-weight:700;text-transform:uppercase;margin-bottom:5px;border-bottom:1px solid #ddd;padding-bottom:3px;}
-.sl-sp{flex:1;}
-.sl-rh{font-family:'Poppins',sans-serif;font-size:10px;font-weight:700;color:#1a1a1a;margin:6px 0 4px;}
-.sl-rec{background:#fff8f8;border-left:3px solid var(--c-r1);padding:5px 8px;font-family:'EB Garamond',serif;font-size:11px;font-style:italic;color:#1a1a1a;line-height:1.6;margin:5px 0;}
-/* sig row */
-.sl-sig{display:flex;justify-content:space-between;align-items:flex-end;padding:6px 14px 7px;border-top:1.5px solid #111;flex-shrink:0;}
-.sl-sb{text-align:center;}
-.sl-simg{min-height:22px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:2px;}
-.sl-simg img{max-height:20px;max-width:90%;object-fit:contain;}
-.sl-sline{border-top:1.5px solid #333;width:84px;margin:0 auto 3px;}
-.sl-stit{font-family:'Cinzel',serif;font-size:7.5px;color:#1a1a1a;font-weight:700;letter-spacing:.3px;}
-.sl-sdot{font-size:7px;color:#555;margin-top:1px;}
-.sl-bott{height:4px;background:linear-gradient(90deg,var(--c-r2),var(--c-r1),var(--c-r2));flex-shrink:0;}
-.sl-botb{height:5px;background:var(--c-s1);flex-shrink:0;}
+.pp{width:210mm;height:297mm;padding:0;display:flex;flex-direction:column;box-shadow:0 14px 60px rgba(0,0,0,.75);flex-shrink:0;position:relative;overflow:hidden;}
+.pl{width:297mm;height:210mm;padding:0;display:flex;flex-direction:column;box-shadow:0 14px 60px rgba(0,0,0,.75);flex-shrink:0;position:relative;overflow:hidden;}
+.sp{width:210mm;height:297mm;padding:0;display:flex;flex-direction:column;box-shadow:0 14px 60px rgba(0,0,0,.75);flex-shrink:0;position:relative;overflow:hidden;}
+.sl{width:297mm;height:210mm;padding:0;display:flex;flex-direction:column;box-shadow:0 14px 60px rgba(0,0,0,.75);flex-shrink:0;position:relative;overflow:hidden;}
 
 /* ════════════════════════════════════════════
    PRINT
@@ -624,7 +256,6 @@ const THEMES={
 };
 let _theme='blu-gld', _orient='portrait', _section='primary', _schoolId=null;
 
-/* Build swatches */
 (function(){
   const g=document.getElementById('tGrid');
   g.innerHTML=Object.entries(THEMES).map(([k,t])=>
@@ -647,12 +278,6 @@ function applyTheme(k){
   r.setProperty('--c-s1',t.s1); r.setProperty('--c-s2',t.s2);
   r.setProperty('--c-r1',t.r1); r.setProperty('--c-r2',t.r2);
   r.setProperty('--c-dp1',t.d1); r.setProperty('--c-dp2',t.d2);
-  const e1=encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><polygon points='10,1 19,10 10,19 1,10' fill='${t.p}'/></svg>`);
-  const e2=encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><polygon points='10,1 19,10 10,19 1,10' fill='${t.s1}'/></svg>`);
-  let s=document.getElementById('dp-style');
-  if(!s){s=document.createElement('style');s.id='dp-style';document.head.appendChild(s);}
-  s.textContent=`.dp-a{--dp-img-a:url("data:image/svg+xml,${e1}");background-color:${t.d1};background-image:var(--dp-img-a);background-size:20px 20px;}`
-    +`.dp-b{--dp-img-b:url("data:image/svg+xml,${e2}");background-color:${t.d2};background-image:var(--dp-img-b);background-size:20px 20px;}`;
 }
 applyTheme(_theme);
 
@@ -707,94 +332,53 @@ function filterClasses(classes,sec){
 }
 
 /* ════════════════════════════════════════════
-   PICKER
+   SESSION FETCHER
 ════════════════════════════════════════════ */
-let _allClasses=[],_sessions=[],_pickerStudents=[],_genMode='all';
-
-/* ════════════════════════════════════
-   SESSION FETCHER — 7 STRATEGIES
-   Works even if academic_years is RLS-blocked,
-   has no school_id, or the table name differs.
-════════════════════════════════════ */
 async function fetchSessions(schoolId){
-  console.log('[TEST] fetchSessions start, school:', schoolId);
   const log=(n,r)=>console.log(`[TEST] S${n}:`, r?.length??'err', r);
-
-  /* ── S1: academic_years filtered by school_id ── */
   try{
-    const {data,error}=await db.from('academic_years')
-      .select('id,label,name,is_current,start_date').eq('school_id',schoolId);
+    const {data,error}=await db.from('academic_years').select('id,label,name,is_current,start_date').eq('school_id',schoolId);
     log(1,data); if(!error&&data?.length) return normSess(data);
-    if(error) console.warn('[TEST] S1 error:',error.message);
-  }catch(e){console.warn('[TEST] S1 throw:',e.message);}
-
-  /* ── S2: academic_years global (no school_id column) ── */
+  }catch(e){}
   try{
-    const {data,error}=await db.from('academic_years')
-      .select('id,label,name,is_current,start_date');
+    const {data,error}=await db.from('academic_years').select('id,label,name,is_current,start_date');
     log(2,data); if(!error&&data?.length) return normSess(data);
-    if(error) console.warn('[TEST] S2 error:',error.message);
-  }catch(e){console.warn('[TEST] S2 throw:',e.message);}
-
-  /* ── S3: get term academic_year_ids → fetch years by id ── */
+  }catch(e){}
   try{
-    const {data:trows,error:te}=await db.from('terms')
-      .select('id,name,academic_year_id,is_current').eq('school_id',schoolId);
-    console.log('[TEST] S3 terms:', trows?.length, te?.message);
+    const {data:trows,error:te}=await db.from('terms').select('id,name,academic_year_id,is_current').eq('school_id',schoolId);
     if(!te && trows?.length){
       const yids=[...new Set(trows.filter(t=>t.academic_year_id).map(t=>t.academic_year_id))];
       if(yids.length){
-        const {data:yrows,error:ye}=await db.from('academic_years')
-          .select('id,label,name,is_current').in('id',yids);
-        console.log('[TEST] S3 years:', yrows?.length, ye?.message);
+        const {data:yrows,error:ye}=await db.from('academic_years').select('id,label,name,is_current').in('id',yids);
         if(!ye && yrows?.length) return normSess(yrows);
       }
-
-      /* ── S4: synthesise sessions from academic_year_id groups ── */
       const seen=new Set(); const synth=[];
       for(const t of trows){
         if(t.academic_year_id && !seen.has(t.academic_year_id)){
           seen.add(t.academic_year_id);
-          // Use the term's name as a label hint e.g. "1st Term 2024/2025" → "2024/2025"
-          const yearHint=t.name?.match(/\d{4}[\/-]\d{2,4}/)?.[0]||
-                         t.name?.match(/\d{4}/)?.[0]||'';
-          synth.push({id:t.academic_year_id,
-            label:yearHint?`${yearHint} Session`:`Session (${t.academic_year_id.slice(0,8)})`,
-            is_current:t.is_current||false});
+          const yearHint=t.name?.match(/\d{4}[\/-]\d{2,4}/)?.[0]||t.name?.match(/\d{4}/)?.[0]||'';
+          synth.push({id:t.academic_year_id,label:yearHint?`${yearHint} Session`:`Session (${t.academic_year_id.slice(0,8)})`,is_current:t.is_current||false});
         }
       }
-      if(synth.length){ console.log('[TEST] S4 synthetic:',synth.length); return synth; }
-
-      /* ── S5: no academic_year_id at all — use terms as sessions ── */
-      const termSess=trows.map(t=>({
-        id:t.id,
-        label:t.name||`Term ${t.id.slice(0,6)}`,
-        is_current:t.is_current||false,
-        _isTerm:true,
-      }));
-      if(termSess.length){ console.log('[TEST] S5 terms-as-sessions:',termSess.length); return termSess; }
+      if(synth.length) return synth;
+      const termSess=trows.map(t=>({id:t.id,label:t.name||`Term ${t.id.slice(0,6)}`,is_current:t.is_current||false,_isTerm:true}));
+      if(termSess.length) return termSess;
     }
-  }catch(e){console.warn('[TEST] S3-S5 throw:',e.message);}
-
-  /* ── S6: try table name "academic_sessions" ── */
+  }catch(e){}
   try{
-    const {data,error}=await db.from('academic_sessions')
-      .select('id,label,name,is_current').eq('school_id',schoolId);
-    log(6,data); if(!error&&data?.length) return normSess(data);
-    if(error) console.warn('[TEST] S6 error:',error.message);
-  }catch(e){console.warn('[TEST] S6 throw:',e.message);}
-
-  /* ── S7: nuclear fallback — one synthetic "All Sessions" ── */
-  console.warn('[TEST] All strategies failed. Using nuclear fallback.');
+    const {data,error}=await db.from('academic_sessions').select('id,label,name,is_current').eq('school_id',schoolId);
+    if(!error&&data?.length) return normSess(data);
+  }catch(e){}
   return [{id:'__ALL__',label:'All Sessions (Fallback)',is_current:true,_fallback:true}];
 }
-
-/* Normalise rows — ensure .label and .id always exist */
 function normSess(rows){
-  return rows
-    .map(s=>({...s, label:s.label||s.name||`Session ${(s.id||'').slice(0,8)}`}))
-    .sort((a,b)=>(b.is_current?1:0)-(a.is_current?1:0)); // current first
+  return rows.map(s=>({...s,label:s.label||s.name||`Session ${(s.id||'').slice(0,8)}`})).sort((a,b)=>(b.is_current?1:0)-(a.is_current?1:0));
 }
+
+/* ════════════════════════════════════════════
+   PICKER
+════════════════════════════════════════════ */
+let _allClasses=[],_sessions=[],_pickerStudents=[],_genMode='all';
 
 async function showPicker(){
   const MC=document.getElementById('MC');
@@ -803,75 +387,45 @@ async function showPicker(){
     const ud=await getCurrentUser();
     _schoolId=ud?.school_id||ud?.schools?.id;
     if(!_schoolId){window.location.href='/login.html';return;}
-
     const [classRes,sessions]=await Promise.all([
       sq(db.from('classes').select('id,name,level,section').eq('school_id',_schoolId).order('name')),
       fetchSessions(_schoolId),
     ]);
     const classes=classRes||[];
-
-    if(!classes.length){
-      MC.innerHTML='<div class="loading" style="color:#f87171">⚠ No classes found. Please set up classes first.</div>'; return;
-    }
-    if(!sessions.length){
-      // This should not happen given S7 nuclear fallback, but just in case:
-      sessions.push({id:'__ALL__',label:'All Sessions',is_current:true,_fallback:true});
-    }
-
-    _allClasses=classes;
-    _sessions=sessions;
+    if(!classes.length){MC.innerHTML='<div class="loading" style="color:#f87171">⚠ No classes found.</div>';return;}
+    if(!sessions.length) sessions.push({id:'__ALL__',label:'All Sessions',is_current:true,_fallback:true});
+    _allClasses=classes; _sessions=sessions;
     const sectClasses=filterClasses(classes,_section);
     const noMatch=filterClasses(classes,_section).length===0;
-
     const sectIco={nursery:'🌱',primary:'📚',junior:'📖',senior:'🎓'};
     const sectNm={nursery:'NURSERY',primary:'PRIMARY',junior:'JUNIOR',senior:'SENIOR'};
-
     const clsOpts=sectClasses.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
     const sessOpts=sessions.map(s=>`<option value="${s.id}"${s.is_current?' selected':''}>${s.label}</option>`).join('');
-
     MC.innerHTML=`
 <div class="tpw"><div class="pcard">
  <h2>📜 Generate Testimonial</h2>
  <p>Select the class and academic session, then choose a generation mode.</p>
  <div class="ptag">${sectIco[_section]} ${sectNm[_section]} SECTION</div>
- ${noMatch?`<div class="pinfo">⚠ No classes found matching this section. Showing all classes. Consider setting the "section" or "level" field on each class.</div>`:''}
-
+ ${noMatch?`<div class="pinfo">⚠ No classes found matching this section. Showing all classes.</div>`:''}
  <div class="prow2">
-  <div>
-   <label class="plbl">Class</label>
-   <select id="pCls" class="psel" onchange="onClsChange()">${clsOpts}</select>
-  </div>
-  <div>
-   <label class="plbl">Academic Session</label>
-   <select id="pSess" class="psel">${sessOpts}</select>
-  </div>
+  <div><label class="plbl">Class</label><select id="pCls" class="psel" onchange="onClsChange()">${clsOpts}</select></div>
+  <div><label class="plbl">Academic Session</label><select id="pSess" class="psel">${sessOpts}</select></div>
  </div>
-
  <div class="pmsep">Generation Mode</div>
  <div class="mcards">
   <div class="mcard act" id="mAll" onclick="setMode('all')">
    <div class="mradio on" id="rAll"></div>
-   <div class="mcard-text">
-    <strong>All Students in Class</strong>
-    <span>Generate testimonials for every student enrolled in the selected class &amp; session</span>
-   </div>
+   <div class="mcard-text"><strong>All Students in Class</strong><span>Generate testimonials for every student enrolled in the selected class &amp; session</span></div>
   </div>
   <div class="mcard" id="mSel" onclick="setMode('select')">
    <div class="mradio" id="rSel"></div>
-   <div class="mcard-text">
-    <strong>Select Specific Students</strong>
-    <span>Load the class roll and tick only the students you need</span>
-   </div>
+   <div class="mcard-text"><strong>Select Specific Students</strong><span>Load the class roll and tick only the students you need</span></div>
   </div>
   <div class="mcard" id="mAdm" onclick="setMode('admno')">
    <div class="mradio" id="rAdm"></div>
-   <div class="mcard-text">
-    <strong>Search by Admission Number / Name</strong>
-    <span>Enter a student's admission number or name to generate a single testimonial</span>
-   </div>
+   <div class="mcard-text"><strong>Search by Admission Number / Name</strong><span>Enter a student's admission number or name to generate a single testimonial</span></div>
   </div>
  </div>
-
  <div id="mPanel"></div>
  <button class="pgen" id="pGenBtn" onclick="doGenerate()">✦ Generate Testimonial(s)</button>
 </div></div>`;
@@ -880,14 +434,9 @@ async function showPicker(){
   }
 }
 
-function onClsChange(){
-  _pickerStudents=[];
-  if(_genMode==='select') renderPanel();
-}
-
+function onClsChange(){_pickerStudents=[];if(_genMode==='select') renderPanel();}
 function setMode(m){
-  _genMode=m;
-  _pickerStudents=[];
+  _genMode=m; _pickerStudents=[];
   ['All','Sel','Adm'].forEach(n=>{
     const active=n.toLowerCase().startsWith(m.substring(0,3));
     document.getElementById('m'+n)?.classList.toggle('act',active);
@@ -896,40 +445,17 @@ function setMode(m){
   });
   renderPanel();
 }
-
 function renderPanel(){
   const p=document.getElementById('mPanel');
   if(!p) return;
   if(_genMode==='select'){
-    p.innerHTML=`
-<div class="sacts">
- <button class="sact" onclick="loadRoll()">↻ Load Class Roll</button>
- <button class="sact" onclick="chkAll(true)">✓ All</button>
- <button class="sact" onclick="chkAll(false)">✗ None</button>
-</div>
-<div class="slist" id="sChkList">
- <div style="padding:13px;text-align:center;font-size:12px;color:#4d6f8f;">Click "Load Class Roll" to see enrolled students</div>
-</div>`;
+    p.innerHTML=`<div class="sacts"><button class="sact" onclick="loadRoll()">↻ Load Class Roll</button><button class="sact" onclick="chkAll(true)">✓ All</button><button class="sact" onclick="chkAll(false)">✗ None</button></div><div class="slist" id="sChkList"><div style="padding:13px;text-align:center;font-size:12px;color:#4d6f8f;">Click "Load Class Roll" to see enrolled students</div></div>`;
   }else if(_genMode==='admno'){
-    p.innerHTML=`
-<div class="prow2">
- <div>
-  <label class="plbl">Admission Number</label>
-  <input id="admIn" class="pinp" type="text" placeholder="e.g. NUR/2024/001">
- </div>
- <div>
-  <label class="plbl">Or Student Name</label>
-  <input id="nameIn" class="pinp" type="text" placeholder="e.g. Aisha Yusuf">
- </div>
-</div>
-<div style="font-size:11.5px;color:#3d5a78;margin-bottom:14px;">
- Enter an admission number <em>or</em> part of the student's name — one is enough.
-</div>`;
+    p.innerHTML=`<div class="prow2"><div><label class="plbl">Admission Number</label><input id="admIn" class="pinp" type="text" placeholder="e.g. NUR/2024/001"></div><div><label class="plbl">Or Student Name</label><input id="nameIn" class="pinp" type="text" placeholder="e.g. Aisha Yusuf"></div></div><div style="font-size:11.5px;color:#3d5a78;margin-bottom:14px;">Enter an admission number <em>or</em> part of the student's name — one is enough.</div>`;
   }else{
     p.innerHTML='';
   }
 }
-
 async function loadRoll(){
   const clsId=document.getElementById('pCls')?.value;
   const sessId=document.getElementById('pSess')?.value;
@@ -937,68 +463,43 @@ async function loadRoll(){
   if(!clsId||!sessId||!box) return;
   box.innerHTML='<div style="padding:13px;text-align:center;font-size:12px;color:#4d6f8f;">Loading…</div>';
   const ids=await getStudentIdsForClassSession(clsId,sessId);
-  if(!ids.length){box.innerHTML='<div style="padding:13px;text-align:center;font-size:12px;color:#f87171;">No students found for this class / session.</div>';return;}
+  if(!ids.length){box.innerHTML='<div style="padding:13px;text-align:center;font-size:12px;color:#f87171;">No students found.</div>';return;}
   const {data:studs}=await db.from('students').select('id,full_name,admission_no').in('id',ids).order('full_name');
   _pickerStudents=studs||[];
-  box.innerHTML=_pickerStudents.map(s=>`
-<label class="sitem">
- <input type="checkbox" class="sc" value="${s.id}" checked>
- <span class="sname">${s.full_name||'—'}</span>
- <span class="sadm">${s.admission_no||''}</span>
-</label>`).join('');
+  box.innerHTML=_pickerStudents.map(s=>`<label class="sitem"><input type="checkbox" class="sc" value="${s.id}" checked><span class="sname">${s.full_name||'—'}</span><span class="sadm">${s.admission_no||''}</span></label>`).join('');
 }
 function chkAll(v){document.querySelectorAll('.sc').forEach(c=>c.checked=v);}
 
-/* get unique student IDs enrolled in class for a given session */
 async function getStudentIdsForClassSession(clsId,sessId){
-  console.log('[TEST] getStudentIds cls:',clsId,'sess:',sessId);
-
-  /* Nuclear fallback session — just return all students in class */
   if(sessId==='__ALL__'){
     const {data:enr}=await db.from('enrollments').select('student_id').eq('class_id',clsId);
     return [...new Set((enr||[]).map(e=>e.student_id))];
   }
-
-  /* Check if sessId is actually a term id (_isTerm flag set by S5) */
   const sessMeta=_sessions.find(s=>s.id===sessId);
   if(sessMeta?._isTerm){
-    /* sessId is a term id directly */
     const {data:enr}=await db.from('enrollments').select('student_id').eq('class_id',clsId).eq('term_id',sessId);
     const ids=[...new Set((enr||[]).map(e=>e.student_id))];
     if(ids.length) return ids;
-    /* fallback: all class enrolments */
     const {data:enr2}=await db.from('enrollments').select('student_id').eq('class_id',clsId);
     return [...new Set((enr2||[]).map(e=>e.student_id))];
   }
-
-  /* Strategy A: terms have academic_year_id → get their IDs → filter enrollments */
   try{
-    const {data:terms,error}=await db.from('terms')
-      .select('id').eq('academic_year_id',sessId).eq('school_id',_schoolId);
-    console.log('[TEST] getStudentIds A terms:',terms?.length,error?.message);
+    const {data:terms,error}=await db.from('terms').select('id').eq('academic_year_id',sessId).eq('school_id',_schoolId);
     if(!error && terms?.length){
       const termIds=terms.map(t=>t.id);
       const {data:enr}=await db.from('enrollments').select('student_id').eq('class_id',clsId).in('term_id',termIds);
       const ids=[...new Set((enr||[]).map(e=>e.student_id))];
       if(ids.length) return ids;
     }
-  }catch(e){console.warn('[TEST] getStudentIds A:',e.message);}
-
-  /* Strategy B: enrollments have session_id directly */
+  }catch(e){}
   try{
-    const {data:enr,error}=await db.from('enrollments')
-      .select('student_id').eq('class_id',clsId).eq('session_id',sessId);
+    const {data:enr,error}=await db.from('enrollments').select('student_id').eq('class_id',clsId).eq('session_id',sessId);
     if(!error && enr?.length) return [...new Set(enr.map(e=>e.student_id))];
   }catch(e){}
-
-  /* Strategy C: all enrollments for this class (ignore session) */
   try{
     const {data:enr}=await db.from('enrollments').select('student_id').eq('class_id',clsId);
-    const ids=[...new Set((enr||[]).map(e=>e.student_id))];
-    console.log('[TEST] getStudentIds C fallback:',ids.length);
-    return ids;
-  }catch(e){console.warn('[TEST] getStudentIds C:',e.message);}
-
+    return [...new Set((enr||[]).map(e=>e.student_id))];
+  }catch(e){}
   return [];
 }
 
@@ -1012,16 +513,15 @@ async function doGenerate(){
   const btn=document.getElementById('pGenBtn');
   if(btn) btn.disabled=true;
   try{
-    if(_genMode==='admno'){
-      await genByAdmNo(sessId);
-    }else if(_genMode==='select'){
+    if(_genMode==='admno') await genByAdmNo(sessId);
+    else if(_genMode==='select'){
       const chk=[...document.querySelectorAll('.sc:checked')].map(c=>c.value);
       if(!chk.length){alert('Please select at least one student.');if(btn)btn.disabled=false;return;}
       await genBatch(chk,sessId);
     }else{
       showProg('Loading class roll…',5);
       const ids=await getStudentIdsForClassSession(clsId,sessId);
-      if(!ids.length){showProg('⚠ No students found for this class in the selected session.',0);if(btn)btn.disabled=false;return;}
+      if(!ids.length){showProg('⚠ No students found.',0);if(btn)btn.disabled=false;return;}
       await genBatch(ids,sessId);
     }
   }catch(e){
@@ -1039,37 +539,15 @@ async function genByAdmNo(sessId){
   if(admno) q=q.ilike('admission_no',`%${admno}%`);
   else      q=q.ilike('full_name',`%${name}%`);
   const {data:matches}=await q.limit(8);
-  if(!matches?.length){showProg('⚠ No student found with that admission number / name.',0);return;}
+  if(!matches?.length){showProg('⚠ No student found.',0);return;}
   if(matches.length>1){renderMatchSelect(matches,sessId);return;}
   await genBatch([matches[0].id],sessId);
 }
-
 function renderMatchSelect(students,sessId){
-  document.getElementById('MC').innerHTML=`
-<div class="tpw"><div class="pcard">
- <h2>Multiple Students Found</h2>
- <p>Please select the correct student from the list below.</p>
- ${students.map(s=>`
-  <div class="mcard" onclick="genBatch(['${s.id}'],'${sessId}')" style="cursor:pointer;">
-   <div class="mcard-text">
-    <strong>${s.full_name||'—'}</strong>
-    <span>Adm No: ${s.admission_no||'N/A'}</span>
-   </div>
-   <span style="color:#7cb4ff;font-size:12px;margin-left:auto;">Generate →</span>
-  </div>`).join('')}
- <button class="pload" style="margin-top:12px;" onclick="showPicker()">← Go Back</button>
-</div></div>`;
+  document.getElementById('MC').innerHTML=`<div class="tpw"><div class="pcard"><h2>Multiple Students Found</h2><p>Please select the correct student.</p>${students.map(s=>`<div class="mcard" onclick="genBatch(['${s.id}'],'${sessId}')" style="cursor:pointer;"><div class="mcard-text"><strong>${s.full_name||'—'}</strong><span>Adm No: ${s.admission_no||'N/A'}</span></div><span style="color:#7cb4ff;font-size:12px;margin-left:auto;">Generate →</span></div>`).join('')}<button class="pload" style="margin-top:12px;" onclick="showPicker()">← Go Back</button></div></div>`;
 }
-
 function showProg(msg,pct){
-  document.getElementById('MC').innerHTML=`
-<div class="tpw"><div class="pcard">
- <div class="pprog">
-  <div class="pprog-title">${msg}</div>
-  <div class="pprog-bar"><div class="pprog-fill" style="width:${pct}%"></div></div>
-  <div class="pprog-sub">Please wait…</div>
- </div>
-</div></div>`;
+  document.getElementById('MC').innerHTML=`<div class="tpw"><div class="pcard"><div class="pprog"><div class="pprog-title">${msg}</div><div class="pprog-bar"><div class="pprog-fill" style="width:${pct}%"></div></div><div class="pprog-sub">Please wait…</div></div></div></div>`;
 }
 
 /* ════════════════════════════════════════════
@@ -1078,21 +556,16 @@ function showProg(msg,pct){
 async function genBatch(studentIds,sessId){
   const total=studentIds.length;
   showProg(`Fetching data for ${total} student(s)…`,10);
-
-  /* 1. Get all terms for this session — resilient */
   let termIds=[];
   const sessMeta2=_sessions.find(s=>s.id===sessId);
   if(sessId==='__ALL__'){
     const {data:at}=await db.from('terms').select('id').eq('school_id',_schoolId);
     termIds=(at||[]).map(t=>t.id);
-    console.log('[TEST] genBatch __ALL__ termIds:',termIds.length);
   } else if(sessMeta2?._isTerm){
     termIds=[sessId];
   } else {
     try{
-      const {data:st,error}=await db.from('terms')
-        .select('id').eq('academic_year_id',sessId).eq('school_id',_schoolId);
-      console.log('[TEST] genBatch terms:',st?.length,error?.message);
+      const {data:st,error}=await db.from('terms').select('id').eq('academic_year_id',sessId).eq('school_id',_schoolId);
       if(!error && st?.length){ termIds=st.map(t=>t.id); }
       else{
         const {data:at}=await db.from('terms').select('id').eq('school_id',_schoolId);
@@ -1103,7 +576,6 @@ async function genBatch(studentIds,sessId){
       termIds=(at||[]).map(t=>t.id);
     }
   }
-
   const [students,school,scale,session,allResults,affList,enrList]=await Promise.all([
     sq(db.from('students').select('*').in('id',studentIds)),
     sq(db.from('schools').select('name,logo_url,address,state,lga,phone,email,motto,principal_signature_url,class_teacher_signature_url').eq('id',_schoolId).single()),
@@ -1112,10 +584,7 @@ async function genBatch(studentIds,sessId){
       const cached=_sessions.find(s=>s.id===sessId);
       if(cached) return cached;
       if(sessId==='__ALL__') return {label:'All Sessions',id:'__ALL__'};
-      try{
-        const {data,error}=await db.from('academic_years').select('*').eq('id',sessId).single();
-        if(!error&&data) return data;
-      }catch(e){}
+      try{const {data,error}=await db.from('academic_years').select('*').eq('id',sessId).single();if(!error&&data) return data;}catch(e){}
       return {label:`Session ${sessId.slice(0,8)}`,id:sessId};
     })(),
     sq(db.from('results').select('score,student_id,subject_id,term_id,subjects(name),exams(max_score,weight)').in('student_id',studentIds).in('term_id',termIds.length?termIds:['_'])),
@@ -1128,15 +597,11 @@ async function genBatch(studentIds,sessId){
       return await sq(db.from('enrollments').select('student_id,class_id,classes(id,name,level,section)').in('student_id',studentIds).order('student_id'));
     })(),
   ]);
-
   showProg(`Rendering ${total} testimonial(s)…`,70);
-
   const htmlParts=(students||[]).map((student,idx)=>{
     const sRes=(allResults||[]).filter(r=>r.student_id===student.id);
     const aff=(affList||[]).find(a=>a.student_id===student.id)||null;
     const enr=(enrList||[]).find(e=>e.student_id===student.id)||null;
-
-    /* aggregate results by subject across all session terms */
     const subMap=new Map();
     sRes.forEach(r=>{
       if(!subMap.has(r.subject_id)) subMap.set(r.subject_id,{name:r.subjects?.name||'—',rows:[]});
@@ -1156,11 +621,9 @@ async function genBatch(studentIds,sessId){
     const sessLabel=session?.label||'Current Session';
     const cls=enr?.classes?.name||'—';
     const clsLvl=enr?.classes?.level||''; const clsSec=enr?.classes?.section||'';
-
     const d={student,school,scale,session,subRows,avg,passed,og,sessLabel,aff,cls,clsLvl,clsSec};
     return renderCert(d)+(idx<total-1?'<div class="page-break"></div>':'');
   });
-
   await new Promise(r=>setTimeout(r,150));
   document.getElementById('MC').innerHTML=`<div class="cert-wrap">${htmlParts.join('')}</div>`;
 }
@@ -1169,7 +632,6 @@ async function genBatch(studentIds,sessId){
    HELPERS
 ════════════════════════════════════════════ */
 async function sq(q){try{const{data,error}=await q;if(error){console.warn(error.message);return null;}return data;}catch(e){console.warn(e);return null;}}
-
 function gradeFrom(score,scale){
   if(score==null||!scale?.length) return{grade:'—',remark:''};
   const g=scale.find(s=>score>=s.min_score&&score<=s.max_score);
@@ -1179,6 +641,7 @@ function fmtDate(d){
   if(!d) return '—';
   try{return new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});}catch{return d;}
 }
+
 function cmn(d){
   const{student,school,avg,passed,og,sessLabel,aff,cls}=d;
   const certNo=`TEST/${new Date().getFullYear()}/${(student.id||'').slice(0,6).toUpperCase()||'000000'}`;
@@ -1196,14 +659,80 @@ function cmn(d){
   const punct=aff?.punctuality||'—';
   return{student,school,certNo,today,meta,pp,logo,hmSig,admDate,conduct,post,hobby,sinc,punct,sessLabel,cls,avg,passed,og,d};
 }
-function logoH(logo,ph){return logo?`<img src="${logo}" alt="Logo">`:`<div class="${ph}">SCHOOL<br>CREST</div>`;}
-function photoH(pp,ph){return pp?`<img src="${pp}" alt="Student">`:`<div class="${ph}">Affix<br>Passport<br>Photo</div>`;}
-function fl(label,val){return `<div class="fl"><span class="fl-lbl">${label}:</span><span class="fl-val">${val||'&nbsp;'}</span></div>`;}
-function sectLabel(){return{nursery:'Nursery Section',primary:'Primary Section',junior:'Junior Secondary',senior:'Senior Secondary'}[_section]||'';}
 
-/* ════════════════════════════════════════════
+function logoH(logo,cls){
+  return logo
+    ? `<img src="${logo}" alt="Logo" style="width:100%;height:100%;object-fit:cover;">`
+    : `<div style="font-family:'Cinzel',serif;font-size:7px;font-weight:700;color:#888;text-align:center;line-height:1.3;padding:4px;display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;"><span style="font-size:18px;opacity:.25;">🏫</span><br>SCHOOL<br>CREST</div>`;
+}
+function photoH(pp,alt){
+  return pp
+    ? `<img src="${pp}" alt="Student Photo" style="width:100%;height:100%;object-fit:cover;">`
+    : `<div style="font-family:'Poppins',sans-serif;font-size:7.5px;font-weight:600;color:#aaa;text-align:center;line-height:1.6;padding:5px;display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;"><span style="font-size:20px;opacity:.2;">👤</span><br>Affix<br>Passport<br>Photo</div>`;
+}
+
+function sectLabel(){
+  return{nursery:'Nursery Section',primary:'Primary Section',junior:'Junior Secondary School',senior:'Senior Secondary School'}[_section]||'';
+}
+
+/* ════════════════════════════════
+   WAX SEAL SVG
+════════════════════════════════ */
+function waxSeal(size=84){
+  const r=size/2, cx=r, cy=r;
+  const spikes=24, oi=r-2, ii=r*0.72;
+  let pts='';
+  for(let i=0;i<spikes*2;i++){
+    const angle=(i*Math.PI/spikes)-Math.PI/2;
+    const rad=i%2===0?oi:ii;
+    pts+=`${cx+rad*Math.cos(angle)},${cy+rad*Math.sin(angle)} `;
+  }
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 3px 10px rgba(160,10,10,.55))">
+  <defs>
+    <radialGradient id="wg${size}" cx="40%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#e53935"/>
+      <stop offset="50%" stop-color="#c62828"/>
+      <stop offset="100%" stop-color="#8e0000"/>
+    </radialGradient>
+    <radialGradient id="wg2${size}" cx="35%" cy="30%" r="55%">
+      <stop offset="0%" stop-color="rgba(255,255,255,.25)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </radialGradient>
+  </defs>
+  <polygon points="${pts}" fill="url(#wg${size})"/>
+  <circle cx="${cx}" cy="${cy}" r="${r*0.62}" fill="url(#wg${size})"/>
+  <circle cx="${cx}" cy="${cy}" r="${r*0.62}" fill="url(#wg2${size})" opacity=".6"/>
+  <circle cx="${cx}" cy="${cy}" r="${r*0.56}" fill="none" stroke="rgba(255,215,0,.55)" stroke-width="1.2"/>
+  <circle cx="${cx}" cy="${cy}" r="${r*0.48}" fill="none" stroke="rgba(255,215,0,.3)" stroke-width=".8"/>
+  <text x="${cx}" y="${cy-4}" text-anchor="middle" font-family="Cinzel,serif" font-size="${r*0.18}" font-weight="700" fill="rgba(255,215,0,.9)" letter-spacing="1">OFFICIAL</text>
+  <text x="${cx}" y="${cy+4}" text-anchor="middle" font-family="Cinzel,serif" font-size="${r*0.165}" font-weight="700" fill="rgba(255,215,0,.9)" letter-spacing="1">SCHOOL</text>
+  <text x="${cx}" y="${cy+12}" text-anchor="middle" font-family="Cinzel,serif" font-size="${r*0.15}" font-weight="700" fill="rgba(255,215,0,.75)" letter-spacing="1">SEAL</text>
+</svg>`;
+}
+
+/* ════════════════════════════════
+   MULTI-STRIPE BORDER CSS for cert shell
+   Replicates reference: navy + teal/cyan + gold stripes
+════════════════════════════════ */
+function borderShell(w,h,pad,inner){
+  // Outer shell uses thick diagonal striped border matching reference
+  return `
+    position:relative;overflow:hidden;
+    background:linear-gradient(135deg,var(--c-pri),var(--c-pri2) 40%,var(--c-pri));
+  `;
+}
+
+/* ════════════════════════════════
+   DIAMOND WATERMARK for cert body
+════════════════════════════════ */
+function diamondWM(color='rgba(13,32,96,.05)'){
+  const svg=`<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><polygon points='20,2 38,20 20,38 2,20' fill='none' stroke='${encodeURIComponent(color)}' stroke-width='1.5'/></svg>`;
+  return `url("data:image/svg+xml,${svg}")`;
+}
+
+/* ════════════════════════════════
    RENDER DISPATCHER
-════════════════════════════════════════════ */
+════════════════════════════════ */
 function renderCert(d){
   const sec=_section==='junior'||_section==='senior';
   if(!sec&&_orient==='portrait')  return certPP(d);
@@ -1212,408 +741,481 @@ function renderCert(d){
   return certSL(d);
 }
 
-/* ═══════════════════════════════════════
-   ① PRIMARY / NURSERY — PORTRAIT
-   Matches reference: diagonal border, bold headings,
-   content fills full A4 page, fields with wide underlines
-═══════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════
+   ① PRIMARY / NURSERY — PORTRAIT  210×297mm
+   PREMIUM REDESIGN — diagonal multi-stripe border,
+   diamond watermark, bold typography, full-page layout
+══════════════════════════════════════════════════════ */
 function certPP(d){
   const c=cmn(d);
   const subs=d.subRows||[];
   const sectFull={nursery:'Nursery School Education',primary:'Primary School Education',junior:'Junior Secondary Education',senior:'Senior Secondary Education'}[_section]||'School Education';
   const classDisplay=c.cls!=='—'?c.cls:sectFull;
+  const t=THEMES[_theme];
 
-  function ppField(lbl,val){
-    return `<div class="pp-field">
-  <span class="pp-field-lbl">${lbl}:</span>
-  <span class="pp-field-val">${val||'&nbsp;'}</span>
- </div>`;
+  // Multi-stripe diagonal border matching reference image exactly
+  const borderBg=`
+    background:
+      repeating-linear-gradient(
+        -52deg,
+        transparent 0px, transparent 8px,
+        rgba(255,255,255,.22) 8px, rgba(255,255,255,.22) 12px,
+        transparent 12px, transparent 20px,
+        ${t.a} 20px, ${t.a} 25px,
+        transparent 25px, transparent 33px,
+        rgba(0,131,143,.85) 33px, rgba(0,131,143,.85) 38px,
+        transparent 38px, transparent 46px,
+        rgba(255,255,255,.15) 46px, rgba(255,255,255,.15) 50px,
+        transparent 50px, transparent 58px
+      ),
+      linear-gradient(135deg, ${t.p}, ${t.p2} 50%, ${t.p});
+  `;
+
+  function ppRow(lbl,val){
+    return `<div style="display:flex;align-items:flex-end;border-bottom:2px solid #2a2a2a;padding:5px 0 3px;margin-bottom:1px;gap:0;">
+      <span style="font-family:'Oswald',sans-serif;font-size:clamp(11px,2.4vw,14.5px);font-weight:600;color:#111;white-space:nowrap;margin-right:7px;letter-spacing:.3px;">${lbl}:</span>
+      <span style="flex:1;font-family:'EB Garamond',serif;font-size:clamp(11px,2.2vw,14px);font-style:italic;color:#111;padding:0 3px;">${val||'&nbsp;'}</span>
+    </div>`;
   }
 
   return `
-<div class="pp">
-<div class="pp-in">
+<div class="pp" style="${borderBg}">
+  <!-- Diagonal stripe overlay -->
+  <div style="position:absolute;inset:0;pointer-events:none;z-index:0;"></div>
 
- <!-- HEADER: school name centred, no logo in header -->
- <div class="pp-hd">
-  <div class="pp-sname">${c.school?.name||'SCHOOL NAME'}</div>
-  <div class="pp-stype">${sectLabel()}</div>
-  <div class="pp-saddr">${c.meta||'&nbsp;'}</div>
- </div>
+  <!-- Inner white card -->
+  <div style="margin:11px;flex:1;background:#fff;display:flex;flex-direction:column;border:3.5px solid ${t.p};position:relative;z-index:1;overflow:hidden;
+    background-image:${diamondWM('rgba(13,32,96,.04)')};background-size:40px 40px;">
 
- <!-- MOTTO banner -->
- ${c.school?.motto?`<div class="pp-motto">MOTTO: ${c.school.motto}</div>`:`<div class="pp-motto">MOTTO: EDUCATION &amp; EXCELLENCE</div>`}
+    <!-- ── TOP HEADER ── -->
+    <div style="background:#fff;padding:13px 18px 9px;text-align:center;flex-shrink:0;border-bottom:4px solid ${t.p};position:relative;">
+      <div style="font-family:'Oswald',sans-serif;font-size:clamp(18px,5vw,29px);font-weight:700;color:${t.p3};letter-spacing:1px;line-height:1.1;text-transform:uppercase;">${c.school?.name||'SCHOOL NAME'}</div>
+      <div style="font-family:'Oswald',sans-serif;font-size:clamp(11px,2.8vw,17px);font-weight:700;color:#111;letter-spacing:.5px;text-transform:uppercase;margin-top:2px;">${sectLabel()}</div>
+      <div style="font-family:'Poppins',sans-serif;font-size:clamp(8px,1.8vw,11px);font-weight:600;color:#333;text-transform:uppercase;letter-spacing:.4px;margin-top:2px;">${c.meta||'&nbsp;'}</div>
+    </div>
 
- <!-- LOGO | TESTIMONIAL TITLE | PASSPORT PHOTO -->
- <div class="pp-logo-row">
-  <div class="pp-logo">${logoH(c.logo,'pp-logo-ph')}</div>
-  <div class="pp-title-centre">
-   <div class="pp-title">Testimonial</div>
-   <div class="pp-tsub">This is to certify that</div>
-  </div>
-  <div class="pp-photo">${photoH(c.pp,'pp-photo-ph')}</div>
- </div>
+    <!-- ── MOTTO BANNER ── -->
+    <div style="background:${t.r1};padding:5px 16px;text-align:center;flex-shrink:0;">
+      <span style="font-family:'Oswald',sans-serif;font-size:clamp(9px,2.2vw,13px);font-weight:700;color:#fff;letter-spacing:2px;text-transform:uppercase;">✦ ${c.school?.motto?'MOTTO: '+c.school.motto:'EDUCATION &amp; EXCELLENCE'} ✦</span>
+    </div>
 
- <!-- BODY: flex column, justify space-between fills the page -->
- <div class="pp-body">
-  <div class="pp-body-top">
+    <!-- ── LOGO | TITLE | PHOTO ROW ── -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px 8px;flex-shrink:0;border-bottom:3px solid ${t.p};background:rgba(${hexToRgb(t.p)},.03);">
+      <!-- Logo -->
+      <div style="width:72px;height:72px;border-radius:50%;overflow:hidden;border:3px solid ${t.p};background:#f4f6fb;flex-shrink:0;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 12px rgba(0,0,0,.12);">
+        ${logoH(c.logo,'logo-ph')}
+      </div>
 
-   <!-- Student name -->
-   <div class="pp-stname">${c.student.full_name||'___________________________________'}</div>
-   <div class="pp-pupil-sub">Has been a pupil of this school</div>
+      <!-- Title centre -->
+      <div style="flex:1;text-align:center;padding:0 10px;">
+        <div style="font-family:'Oswald',sans-serif;font-size:clamp(30px,8vw,50px);font-weight:700;color:${t.p3};line-height:1;letter-spacing:1px;text-transform:uppercase;text-shadow:2px 2px 0 rgba(${hexToRgb(t.p)},.12),0 3px 8px rgba(${hexToRgb(t.p)},.1);">TESTIMONIAL</div>
+        <div style="font-family:'EB Garamond',serif;font-size:clamp(10px,2.2vw,14px);font-style:italic;color:${t.r1};font-weight:600;margin-top:3px;letter-spacing:.3px;">This is to certify that</div>
+      </div>
 
-   <!-- From … to … where -->
-   <div class="pp-from-row">
-    <span class="pp-fr-lbl">From</span>
-    <span class="pp-fr-val">${c.admDate}</span>
-    <span class="pp-fr-lbl" style="margin-left:8px;">to</span>
-    <span class="pp-fr-val">${c.today}</span>
-    <span class="pp-fr-lbl" style="margin-left:8px;">where</span>
-   </div>
+      <!-- Passport photo -->
+      <div style="width:72px;height:90px;flex-shrink:0;border:2.5px solid ${t.p};background:#f0f4ff;overflow:hidden;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,0,0,.1);">
+        ${photoH(c.pp,'photo-ph')}
+      </div>
+    </div>
 
-   <!-- Completion line -->
-   <div class="pp-completion">
-    he/she completed his/her <strong>${classDisplay}</strong>&nbsp;&nbsp;(${c.sessLabel})
-   </div>
+    <!-- ── BODY: fills remaining space ── -->
+    <div style="padding:0 20px;flex:1;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;">
 
-   <!-- Fields -->
-   ${ppField('Admission No', c.student.admission_no||c.student.roll_no||'&nbsp;')}
-   ${ppField('Date of Birth', fmtDate(c.student.dob||c.student.date_of_birth))}
-   ${ppField('Father / Guardian', c.student.father_name||c.student.guardian_name||'&nbsp;')}
-   ${ppField('Conduct', c.conduct&&c.conduct!=='—'?c.conduct:'&nbsp;')}
-   ${ppField('Hobby', c.hobby||'&nbsp;')}
-   ${ppField('Post Held', c.post&&c.post!=='—'?c.post:'&nbsp;')}
-   ${c.avg!==null?ppField('Academic Performance',`Average: ${c.avg}% &nbsp;·&nbsp; Grade: ${c.og.grade} &nbsp;·&nbsp; ${c.passed}/${subs.length} subjects passed`):''}
-  </div>
+      <div style="padding-top:10px;">
+        <!-- Student Name -->
+        <div style="font-family:'EB Garamond',serif;font-size:clamp(16px,3.8vw,24px);font-weight:700;font-style:italic;color:#111;text-align:center;border-bottom:2.5px solid #222;padding-bottom:4px;margin-bottom:4px;">${c.student.full_name||'___________________________________'}</div>
+        <div style="font-family:'Poppins',sans-serif;font-size:clamp(10px,2.2vw,13.5px);font-weight:600;font-style:italic;color:#333;text-align:center;margin-bottom:8px;">Has been a pupil of this school</div>
 
-  <!-- Recommendation — pushed toward bottom by flex space-between -->
-  <div>
-   <div class="pp-rec">
-    I strongly recommend him/her to wherever may need his/her service or for further academic pursuit.
-   </div>
-   <div class="pp-ref">Ref: ${c.certNo} &nbsp;·&nbsp; ${c.today}</div>
-  </div>
+        <!-- From … To … Where -->
+        <div style="display:flex;align-items:flex-end;gap:5px;border-bottom:2.5px solid #222;padding-bottom:4px;margin-bottom:3px;flex-wrap:nowrap;">
+          <span style="font-family:'Oswald',sans-serif;font-size:clamp(12px,2.7vw,16px);font-weight:600;color:#111;white-space:nowrap;flex-shrink:0;">From</span>
+          <span style="flex:1;font-family:'EB Garamond',serif;font-size:13px;font-style:italic;color:#111;border-bottom:1.5px dotted #999;margin-bottom:2px;padding:0 3px;">${c.admDate}</span>
+          <span style="font-family:'Oswald',sans-serif;font-size:clamp(12px,2.7vw,16px);font-weight:600;color:#111;white-space:nowrap;flex-shrink:0;margin-left:4px;">to</span>
+          <span style="flex:1;font-family:'EB Garamond',serif;font-size:13px;font-style:italic;color:#111;border-bottom:1.5px dotted #999;margin-bottom:2px;padding:0 3px;">${c.today}</span>
+          <span style="font-family:'Oswald',sans-serif;font-size:clamp(12px,2.7vw,16px);font-weight:600;color:#111;white-space:nowrap;flex-shrink:0;margin-left:4px;">where</span>
+        </div>
 
-  <!-- Signatures -->
-  <div class="pp-sig">
-   <div class="pp-sb">
-    <div class="pp-simg">${c.hmSig?`<img src="${c.hmSig}">`:'&nbsp;'}</div>
-    <div class="pp-sline"></div>
-    <div class="pp-stit">Headmaster's Signature</div>
-    <div class="pp-sdate">Date: ${c.today}</div>
-   </div>
-   <div class="stamp stamp-lg">OFFICIAL<br>SCHOOL<br>STAMP<br>&amp; SEAL</div>
-   <div class="pp-sb">
-    <div class="pp-simg">&nbsp;</div>
-    <div class="pp-sline"></div>
-    <div class="pp-stit">Pupil's Signature</div>
-    <div class="pp-sdate">Date: _______________</div>
-   </div>
-  </div>
- </div><!-- body -->
+        <!-- Completion -->
+        <div style="font-family:'Poppins',sans-serif;font-size:clamp(11px,2.4vw,14.5px);font-weight:600;color:#111;padding:6px 0 5px;border-bottom:2.5px solid #222;margin-bottom:5px;">
+          he/she completed his/her <strong>${classDisplay}</strong>&nbsp;&nbsp;(${c.sessLabel})
+        </div>
 
-</div>
+        ${ppRow('Admission No', c.student.admission_no||c.student.roll_no||'&nbsp;')}
+        ${ppRow('Date of Birth', fmtDate(c.student.dob||c.student.date_of_birth))}
+        ${ppRow('Father / Guardian', c.student.father_name||c.student.guardian_name||'&nbsp;')}
+        ${ppRow('Conduct', c.conduct&&c.conduct!=='—'?c.conduct:'&nbsp;')}
+        ${ppRow('Hobby', c.hobby||'&nbsp;')}
+        ${ppRow('Post Held', c.post&&c.post!=='—'?c.post:'&nbsp;')}
+        ${c.avg!==null?ppRow('Academic Performance',`Average: ${c.avg}% &nbsp;·&nbsp; Grade: ${c.og.grade} &nbsp;·&nbsp; ${c.passed}/${subs.length} subjects passed`):''}
+      </div>
+
+      <!-- Recommendation -->
+      <div>
+        <div style="font-family:'Poppins',sans-serif;font-size:clamp(11px,2.4vw,14px);font-weight:600;color:#111;line-height:1.65;padding:8px 0 5px;border-top:2px dashed rgba(13,32,96,.15);border-bottom:2px dashed rgba(13,32,96,.15);margin-bottom:5px;">
+          I strongly recommend him/her to wherever may need his/her service or for further academic pursuit. He/She leaves this school with our best wishes.
+        </div>
+        <div style="font-size:8px;color:#c0c8d8;font-family:sans-serif;text-align:right;padding:2px 0;">Ref: ${c.certNo} &nbsp;·&nbsp; ${c.today}</div>
+      </div>
+
+      <!-- Signatures row -->
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;padding:7px 0 12px;">
+        <!-- Headmaster sig -->
+        <div style="text-align:center;min-width:130px;">
+          <div style="min-height:36px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:3px;">${c.hmSig?`<img src="${c.hmSig}" style="max-height:32px;max-width:110px;object-fit:contain;">`:'<div style="height:32px;"></div>'}</div>
+          <div style="border-top:2.5px solid #111;width:130px;margin:0 auto 4px;"></div>
+          <div style="font-family:'Oswald',sans-serif;font-size:clamp(9px,2vw,12.5px);font-weight:600;color:#111;letter-spacing:.3px;">Headmaster's Signature</div>
+          <div style="font-family:'Poppins',sans-serif;font-size:clamp(9px,1.9vw,12px);font-weight:600;color:#333;margin-top:2px;">Date: ${c.today}</div>
+        </div>
+
+        <!-- Wax seal -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+          ${waxSeal(82)}
+        </div>
+
+        <!-- Pupil sig -->
+        <div style="text-align:center;min-width:130px;">
+          <div style="min-height:36px;"></div>
+          <div style="border-top:2.5px solid #111;width:130px;margin:0 auto 4px;"></div>
+          <div style="font-family:'Oswald',sans-serif;font-size:clamp(9px,2vw,12.5px);font-weight:600;color:#111;letter-spacing:.3px;">Pupil's Signature</div>
+          <div style="font-family:'Poppins',sans-serif;font-size:clamp(9px,1.9vw,12px);font-weight:600;color:#333;margin-top:2px;">Date: _______________</div>
+        </div>
+      </div>
+
+    </div><!-- body -->
+
+  </div><!-- inner white card -->
 </div>`;
 }
 
-/* ═══════════════════════════════════════
-   ② PRIMARY / NURSERY — LANDSCAPE
-   Reference style: diagonal border, bold headings,
-   two-column body fills full 297×210mm page
-═══════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════
+   ② PRIMARY / NURSERY — LANDSCAPE  297×210mm
+   PREMIUM REDESIGN
+══════════════════════════════════════════════════════ */
 function certPL(d){
   const c=cmn(d);
   const subs=d.subRows||[];
-  const sectFull={nursery:'Nursery School Education',primary:'Primary School Education',junior:'Junior Secondary Education',senior:'Senior Secondary Education'}[_section]||'School Education';
+  const sectFull={nursery:'Nursery School Education',primary:'Primary School Education'}[_section]||'Primary School Education';
   const classDisplay=c.cls!=='—'?c.cls:sectFull;
+  const t=THEMES[_theme];
 
-  function plField(lbl,val){
-    return `<div style="display:flex;align-items:flex-end;gap:0;border-bottom:1.8px solid #333;padding:4px 0 2px;margin-bottom:2px;">
-  <span style="font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;color:#111;white-space:nowrap;margin-right:5px;">${lbl}:</span>
-  <span style="flex:1;font-family:'EB Garamond',serif;font-size:12.5px;font-style:italic;color:#111;">${val||'&nbsp;'}</span>
- </div>`;
+  const borderBg=`background:repeating-linear-gradient(-52deg,transparent 0px,transparent 8px,rgba(255,255,255,.22) 8px,rgba(255,255,255,.22) 12px,transparent 12px,transparent 20px,${t.a} 20px,${t.a} 25px,transparent 25px,transparent 33px,rgba(0,131,143,.85) 33px,rgba(0,131,143,.85) 38px,transparent 38px,transparent 46px,rgba(255,255,255,.15) 46px,rgba(255,255,255,.15) 50px,transparent 50px,transparent 58px),linear-gradient(135deg,${t.p},${t.p2} 50%,${t.p});`;
+
+  function plRow(lbl,val){
+    return `<div style="display:flex;align-items:flex-end;border-bottom:1.8px solid #2a2a2a;padding:4px 0 2px;margin-bottom:1px;gap:0;">
+      <span style="font-family:'Oswald',sans-serif;font-size:12.5px;font-weight:600;color:#111;white-space:nowrap;margin-right:6px;letter-spacing:.3px;">${lbl}:</span>
+      <span style="flex:1;font-family:'EB Garamond',serif;font-size:13px;font-style:italic;color:#111;padding:0 3px;">${val||'&nbsp;'}</span>
+    </div>`;
   }
 
   return `
-<div class="pl" style="padding:0;background:var(--c-pri);position:relative;overflow:hidden;">
-<div style="content:'';position:absolute;inset:0;background:repeating-linear-gradient(-45deg,transparent 0px,transparent 10px,rgba(255,255,255,.18) 10px,rgba(255,255,255,.18) 14px,transparent 14px,transparent 24px,var(--c-acc) 24px,var(--c-acc) 28px,transparent 28px,transparent 38px);pointer-events:none;z-index:0;"></div>
-<div style="margin:9px;flex:1;background:#fff;display:flex;flex-direction:column;border:3px solid var(--c-pri);position:relative;z-index:1;overflow:hidden;height:calc(210mm - 18px);">
+<div class="pl" style="${borderBg}">
+  <div style="margin:9px;background:#fff;display:flex;flex-direction:column;border:3px solid ${t.p};position:relative;z-index:1;overflow:hidden;height:calc(210mm - 18px);background-image:${diamondWM('rgba(13,32,96,.035)')};background-size:40px 40px;">
 
- <!-- Header -->
- <div style="background:#fff;padding:10px 16px 7px;text-align:center;flex-shrink:0;border-bottom:3px solid var(--c-pri);">
-  <div style="font-family:'Arial Black','Poppins',sans-serif;font-size:clamp(13px,3.2vw,21px);font-weight:900;color:var(--c-pri3);text-transform:uppercase;line-height:1.15;letter-spacing:.4px;">${c.school?.name||'SCHOOL NAME'}</div>
-  <div style="font-family:'Arial Black','Poppins',sans-serif;font-size:clamp(9px,2vw,13px);font-weight:900;color:#1a1a1a;text-transform:uppercase;margin:1px 0;">${sectLabel()}</div>
-  <div style="font-family:'Poppins',sans-serif;font-size:clamp(7px,1.5vw,10px);font-weight:700;color:#222;text-transform:uppercase;">${c.meta||'&nbsp;'}</div>
- </div>
-
- <!-- Motto -->
- ${c.school?.motto?`<div style="background:var(--c-r1);padding:4px 16px;text-align:center;flex-shrink:0;font-family:'Arial Black','Poppins',sans-serif;font-size:clamp(8px,1.8vw,12px);font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:.5px;">MOTTO: ${c.school.motto}</div>`:`<div style="background:var(--c-r1);padding:4px 16px;text-align:center;font-family:'Arial Black','Poppins',sans-serif;font-size:11px;font-weight:900;color:#fff;text-transform:uppercase;">MOTTO: EDUCATION &amp; EXCELLENCE</div>`}
-
- <!-- Logo | Testimonial title | Photo -->
- <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 14px 6px;flex-shrink:0;border-bottom:2.5px solid var(--c-pri);">
-  <div style="width:58px;height:58px;border-radius:50%;overflow:hidden;background:#f5f5f5;border:2.5px solid var(--c-pri);display:flex;align-items:center;justify-content:center;flex-shrink:0;">${logoH(c.logo,'pp-logo-ph')}</div>
-  <div style="flex:1;text-align:center;padding:0 10px;">
-   <div style="font-family:'Arial Black','Poppins',sans-serif;font-size:clamp(22px,5.5vw,36px);font-weight:900;color:var(--c-pri3);line-height:1;letter-spacing:.5px;">Testimonial</div>
-   <div style="font-family:'Poppins',sans-serif;font-size:clamp(8px,1.8vw,12px);font-weight:700;color:var(--c-r1);">This is to certify that</div>
-  </div>
-  <div style="width:58px;height:72px;flex-shrink:0;border:2.5px solid var(--c-pri);background:#f0f4ff;display:flex;align-items:center;justify-content:center;overflow:hidden;">${photoH(c.pp,'pp-photo-ph')}</div>
- </div>
-
- <!-- Body: two-column content fills the rest -->
- <div style="display:grid;grid-template-columns:1fr 1fr;flex:1;overflow:hidden;">
-
-  <!-- LEFT column -->
-  <div style="padding:9px 14px;display:flex;flex-direction:column;border-right:2px solid #ddd;overflow:hidden;">
-   <div style="font-family:'EB Garamond',serif;font-size:16px;font-weight:600;font-style:italic;color:#111;border-bottom:2px solid #333;padding-bottom:3px;margin-bottom:4px;">${c.student.full_name||'___________________________'}</div>
-   <div style="font-family:'Poppins',sans-serif;font-size:11px;font-weight:600;font-style:italic;color:#333;margin-bottom:5px;">Has been a pupil of this school</div>
-
-   <div style="display:flex;align-items:flex-end;gap:5px;flex-wrap:nowrap;border-bottom:1.8px solid #333;padding-bottom:2px;margin-bottom:3px;">
-    <span style="font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;color:#111;white-space:nowrap;">From</span>
-    <span style="flex:1;font-family:'EB Garamond',serif;font-size:12px;font-style:italic;color:#111;">${c.admDate}</span>
-    <span style="font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;color:#111;white-space:nowrap;">to</span>
-    <span style="flex:1;font-family:'EB Garamond',serif;font-size:12px;font-style:italic;color:#111;">${c.today}</span>
-    <span style="font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;color:#111;white-space:nowrap;">where</span>
-   </div>
-   <div style="font-family:'Poppins',sans-serif;font-size:11.5px;font-weight:600;color:#111;border-bottom:1.8px solid #333;padding:3px 0 4px;margin-bottom:5px;">
-    he/she completed his/her <strong>${classDisplay}</strong> (${c.sessLabel})
-   </div>
-
-   ${plField('Admission No', c.student.admission_no||c.student.roll_no||'&nbsp;')}
-   ${plField('Date of Birth', fmtDate(c.student.dob||c.student.date_of_birth))}
-   ${plField('Father / Guardian', c.student.father_name||c.student.guardian_name||'&nbsp;')}
-   <div style="flex:1;"></div>
-   <div style="font-size:7.5px;color:#bbb;font-family:sans-serif;text-align:right;">Ref: ${c.certNo} · ${c.today}</div>
-  </div>
-
-  <!-- RIGHT column -->
-  <div style="padding:9px 14px;display:flex;flex-direction:column;overflow:hidden;">
-   ${plField('Conduct', c.conduct&&c.conduct!=='—'?c.conduct:'&nbsp;')}
-   ${plField('Hobby', c.hobby||'&nbsp;')}
-   ${plField('Post Held', c.post&&c.post!=='—'?c.post:'&nbsp;')}
-   ${c.avg!==null?plField('Academic Avg',`${c.avg}% — Grade ${c.og.grade}`):''}
-   <div style="flex:1;"></div>
-   <div style="font-family:'Poppins',sans-serif;font-size:11.5px;font-weight:600;color:#111;line-height:1.6;padding:5px 0;">
-    I strongly recommend him/her to wherever may need his/her service or for further academic pursuit.
-   </div>
-   <!-- Sigs -->
-   <div style="display:flex;justify-content:space-between;align-items:flex-end;padding-top:6px;border-top:2px solid var(--c-pri);">
-    <div style="text-align:center;">
-     <div style="min-height:24px;">${c.hmSig?`<img src="${c.hmSig}" style="max-height:22px;">`:'&nbsp;'}</div>
-     <div style="border-top:2px solid #333;width:110px;margin:0 auto 3px;"></div>
-     <div style="font-family:'Poppins',sans-serif;font-size:10px;font-weight:700;color:#111;">Headmaster's Signature</div>
-     <div style="font-family:'Poppins',sans-serif;font-size:10px;font-weight:600;color:#111;">Date: ${c.today}</div>
+    <!-- Header -->
+    <div style="background:#fff;padding:9px 18px 7px;text-align:center;flex-shrink:0;border-bottom:3.5px solid ${t.p};">
+      <div style="font-family:'Oswald',sans-serif;font-size:clamp(14px,3.5vw,23px);font-weight:700;color:${t.p3};text-transform:uppercase;line-height:1.15;letter-spacing:.8px;">${c.school?.name||'SCHOOL NAME'}</div>
+      <div style="font-family:'Oswald',sans-serif;font-size:clamp(9px,2vw,14px);font-weight:700;color:#111;text-transform:uppercase;margin:1px 0;letter-spacing:.3px;">${sectLabel()}</div>
+      <div style="font-family:'Poppins',sans-serif;font-size:clamp(7px,1.5vw,10px);font-weight:600;color:#333;text-transform:uppercase;">${c.meta||'&nbsp;'}</div>
     </div>
-    <div class="stamp stamp-sm">OFFICIAL<br>SCHOOL<br>STAMP</div>
-    <div style="text-align:center;">
-     <div style="min-height:24px;">&nbsp;</div>
-     <div style="border-top:2px solid #333;width:110px;margin:0 auto 3px;"></div>
-     <div style="font-family:'Poppins',sans-serif;font-size:10px;font-weight:700;color:#111;">Pupil's Signature</div>
-     <div style="font-family:'Poppins',sans-serif;font-size:10px;font-weight:600;color:#111;">Date: ___________</div>
-    </div>
-   </div>
-  </div>
 
- </div><!-- grid -->
-</div>
+    <!-- Motto -->
+    <div style="background:${t.r1};padding:4px 16px;text-align:center;flex-shrink:0;">
+      <span style="font-family:'Oswald',sans-serif;font-size:clamp(8px,1.8vw,12px);font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:1.5px;">✦ ${c.school?.motto?'MOTTO: '+c.school.motto:'EDUCATION &amp; EXCELLENCE'} ✦</span>
+    </div>
+
+    <!-- Logo | Title | Photo -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 14px 6px;flex-shrink:0;border-bottom:2.5px solid ${t.p};">
+      <div style="width:60px;height:60px;border-radius:50%;overflow:hidden;border:2.5px solid ${t.p};background:#f4f6fb;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+        ${logoH(c.logo,'logo-ph')}
+      </div>
+      <div style="flex:1;text-align:center;padding:0 10px;">
+        <div style="font-family:'Oswald',sans-serif;font-size:clamp(22px,5.5vw,38px);font-weight:700;color:${t.p3};line-height:1;letter-spacing:1px;text-transform:uppercase;text-shadow:2px 2px 0 rgba(${hexToRgb(t.p)},.1);">TESTIMONIAL</div>
+        <div style="font-family:'EB Garamond',serif;font-size:clamp(9px,1.9vw,12.5px);font-style:italic;color:${t.r1};font-weight:600;margin-top:2px;">This is to certify that</div>
+      </div>
+      <div style="width:60px;height:74px;flex-shrink:0;border:2.5px solid ${t.p};background:#f0f4ff;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+        ${photoH(c.pp,'photo-ph')}
+      </div>
+    </div>
+
+    <!-- Two-column body -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;flex:1;overflow:hidden;">
+
+      <!-- LEFT -->
+      <div style="padding:9px 15px;display:flex;flex-direction:column;border-right:2px solid #ddd;overflow:hidden;">
+        <div style="font-family:'EB Garamond',serif;font-size:16px;font-weight:700;font-style:italic;color:#111;border-bottom:2.5px solid #222;padding-bottom:3px;margin-bottom:3px;">${c.student.full_name||'___________________________'}</div>
+        <div style="font-family:'Poppins',sans-serif;font-size:11px;font-weight:600;font-style:italic;color:#444;margin-bottom:5px;">Has been a pupil of this school</div>
+
+        <div style="display:flex;align-items:flex-end;gap:4px;border-bottom:1.8px solid #222;padding-bottom:3px;margin-bottom:3px;flex-wrap:nowrap;">
+          <span style="font-family:'Oswald',sans-serif;font-size:12.5px;font-weight:600;color:#111;white-space:nowrap;">From</span>
+          <span style="flex:1;font-family:'EB Garamond',serif;font-size:12px;font-style:italic;color:#111;padding:0 2px;">${c.admDate}</span>
+          <span style="font-family:'Oswald',sans-serif;font-size:12.5px;font-weight:600;color:#111;white-space:nowrap;">to</span>
+          <span style="flex:1;font-family:'EB Garamond',serif;font-size:12px;font-style:italic;color:#111;padding:0 2px;">${c.today}</span>
+          <span style="font-family:'Oswald',sans-serif;font-size:12.5px;font-weight:600;color:#111;white-space:nowrap;">where</span>
+        </div>
+        <div style="font-family:'Poppins',sans-serif;font-size:11px;font-weight:600;color:#111;padding:3px 0 4px;border-bottom:1.8px solid #222;margin-bottom:5px;">
+          he/she completed his/her <strong>${classDisplay}</strong> (${c.sessLabel})
+        </div>
+
+        ${plRow('Admission No', c.student.admission_no||c.student.roll_no||'&nbsp;')}
+        ${plRow('Date of Birth', fmtDate(c.student.dob||c.student.date_of_birth))}
+        ${plRow('Father / Guardian', c.student.father_name||c.student.guardian_name||'&nbsp;')}
+        <div style="flex:1;"></div>
+        <div style="font-size:7.5px;color:#c0c8d8;font-family:sans-serif;text-align:right;">Ref: ${c.certNo} · ${c.today}</div>
+      </div>
+
+      <!-- RIGHT -->
+      <div style="padding:9px 15px;display:flex;flex-direction:column;overflow:hidden;">
+        ${plRow('Conduct', c.conduct&&c.conduct!=='—'?c.conduct:'&nbsp;')}
+        ${plRow('Hobby', c.hobby||'&nbsp;')}
+        ${plRow('Post Held', c.post&&c.post!=='—'?c.post:'&nbsp;')}
+        ${c.avg!==null?plRow('Academic Avg',`${c.avg}% — Grade ${c.og.grade}`):''}
+        <div style="flex:1;"></div>
+        <div style="font-family:'Poppins',sans-serif;font-size:11px;font-weight:600;color:#111;line-height:1.65;padding:6px 0 4px;border-top:1.5px dashed rgba(13,32,96,.15);border-bottom:1.5px dashed rgba(13,32,96,.15);margin-bottom:6px;">
+          I strongly recommend him/her to wherever may need his/her service or for further academic pursuit.
+        </div>
+        <!-- Sigs -->
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;padding-top:4px;border-top:2px solid ${t.p};">
+          <div style="text-align:center;">
+            <div style="min-height:22px;margin-bottom:2px;">${c.hmSig?`<img src="${c.hmSig}" style="max-height:20px;max-width:95px;object-fit:contain;">`:'&nbsp;'}</div>
+            <div style="border-top:2px solid #111;width:108px;margin:0 auto 3px;"></div>
+            <div style="font-family:'Oswald',sans-serif;font-size:10px;font-weight:600;color:#111;">Headmaster's Signature</div>
+            <div style="font-family:'Poppins',sans-serif;font-size:10px;font-weight:600;color:#333;">Date: ${c.today}</div>
+          </div>
+          ${waxSeal(62)}
+          <div style="text-align:center;">
+            <div style="min-height:22px;">&nbsp;</div>
+            <div style="border-top:2px solid #111;width:108px;margin:0 auto 3px;"></div>
+            <div style="font-family:'Oswald',sans-serif;font-size:10px;font-weight:600;color:#111;">Pupil's Signature</div>
+            <div style="font-family:'Poppins',sans-serif;font-size:10px;font-weight:600;color:#333;">Date: ___________</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- grid -->
+  </div>
 </div>`;
 }
 
-/* ═══════════════════════════════════════
-   ③ JUNIOR / SENIOR — PORTRAIT
-   Bold heading, diagonal stripe border, full A4 fill
-═══════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════
+   ③ JUNIOR / SENIOR — PORTRAIT  210×297mm
+   PREMIUM REDESIGN — dark header, red accent stripes
+══════════════════════════════════════════════════════ */
 function certSP(d){
   const c=cmn(d);
   const subs=d.subRows||[];
   const sectFull={junior:'Junior Secondary Education',senior:'Senior Secondary Education'}[_section]||'Secondary Education';
   const classDisplay=c.cls!=='—'?c.cls:sectFull;
+  const t=THEMES[_theme];
 
-  function spField(lbl,val){
-    return `<div style="display:flex;align-items:flex-end;gap:0;border-bottom:2px solid #333;padding:5px 0 2px;margin-bottom:2px;">
-  <span style="font-family:'Poppins',sans-serif;font-size:clamp(10px,2.3vw,14px);font-weight:700;color:#111;white-space:nowrap;margin-right:6px;">${lbl}:</span>
-  <span style="flex:1;font-family:'EB Garamond',serif;font-size:clamp(11px,2.2vw,14px);font-style:italic;color:#111;">${val||'&nbsp;'}</span>
- </div>`;
+  const borderBg=`background:repeating-linear-gradient(-52deg,transparent 0px,transparent 8px,rgba(255,255,255,.12) 8px,rgba(255,255,255,.12) 12px,transparent 12px,transparent 20px,${t.r1} 20px,${t.r1} 25px,transparent 25px,transparent 33px,rgba(255,215,0,.7) 33px,rgba(255,215,0,.7) 38px,transparent 38px,transparent 46px,rgba(255,255,255,.1) 46px,rgba(255,255,255,.1) 50px,transparent 50px,transparent 58px),linear-gradient(135deg,${t.s1},#1a1a2e 50%,${t.s1});`;
+
+  function spRow(lbl,val){
+    return `<div style="display:flex;align-items:flex-end;border-bottom:2px solid #2a2a2a;padding:5px 0 3px;margin-bottom:1px;gap:0;">
+      <span style="font-family:'Oswald',sans-serif;font-size:clamp(11px,2.4vw,14.5px);font-weight:600;color:#111;white-space:nowrap;margin-right:7px;letter-spacing:.3px;">${lbl}:</span>
+      <span style="flex:1;font-family:'EB Garamond',serif;font-size:clamp(11px,2.2vw,14px);font-style:italic;color:#111;padding:0 3px;">${val||'&nbsp;'}</span>
+    </div>`;
   }
 
   return `
-<div class="sp" style="padding:0;background:var(--c-s1);position:relative;overflow:hidden;">
-<div style="position:absolute;inset:0;background:repeating-linear-gradient(-45deg,transparent 0px,transparent 10px,rgba(255,255,255,.12) 10px,rgba(255,255,255,.12) 14px,transparent 14px,transparent 24px,var(--c-r1) 24px,var(--c-r1) 28px,transparent 28px,transparent 38px);pointer-events:none;z-index:0;"></div>
-<div style="margin:10px;flex:1;background:#fff;display:flex;flex-direction:column;border:3px solid var(--c-s1);position:relative;z-index:1;overflow:hidden;height:calc(297mm - 20px);">
+<div class="sp" style="${borderBg}">
+  <div style="margin:11px;flex:1;background:#fff;display:flex;flex-direction:column;border:3.5px solid ${t.s1};position:relative;z-index:1;overflow:hidden;height:calc(297mm - 22px);background-image:${diamondWM('rgba(0,0,0,.04)')};background-size:40px 40px;">
 
- <!-- Header -->
- <div style="background:#fff;padding:14px 16px 10px;text-align:center;flex-shrink:0;border-bottom:3px solid var(--c-s1);">
-  <div style="font-family:'Arial Black','Poppins',sans-serif;font-size:clamp(16px,4.5vw,26px);font-weight:900;color:var(--c-s2);text-transform:uppercase;line-height:1.15;letter-spacing:.5px;">${c.school?.name||'SCHOOL NAME'}</div>
-  <div style="font-family:'Arial Black','Poppins',sans-serif;font-size:clamp(10px,2.6vw,16px);font-weight:900;color:#1a1a1a;text-transform:uppercase;margin:2px 0;">${sectLabel()}</div>
-  <div style="font-family:'Poppins',sans-serif;font-size:clamp(8px,1.8vw,11px);font-weight:700;color:#222;text-transform:uppercase;">${c.meta||'&nbsp;'}</div>
- </div>
+    <!-- Header - dark -->
+    <div style="background:${t.s1};padding:12px 16px 10px;text-align:center;flex-shrink:0;">
+      <div style="font-family:'Oswald',sans-serif;font-size:clamp(15px,4.5vw,27px);font-weight:700;color:${t.s2};letter-spacing:.8px;line-height:1.1;text-transform:uppercase;text-shadow:0 0 20px rgba(26,79,214,.4);">${c.school?.name||'SCHOOL NAME'}</div>
+      <div style="font-family:'Oswald',sans-serif;font-size:clamp(9px,2.3vw,14px);font-weight:700;color:rgba(255,255,255,.9);letter-spacing:2px;text-transform:uppercase;margin-top:2px;">${sectLabel()}</div>
+      <div style="font-size:8.5px;color:rgba(255,255,255,.6);margin-top:2px;font-style:italic;font-family:'Poppins',sans-serif;">${c.meta||'&nbsp;'}</div>
+    </div>
 
- <!-- Motto -->
- ${c.school?.motto?`<div style="background:var(--c-r1);padding:5px 16px;text-align:center;flex-shrink:0;font-family:'Arial Black','Poppins',sans-serif;font-size:clamp(9px,2.2vw,13px);font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:.5px;">MOTTO: ${c.school.motto}</div>`:`<div style="background:var(--c-r1);padding:5px 16px;text-align:center;font-family:'Arial Black','Poppins',sans-serif;font-size:12px;font-weight:900;color:#fff;text-transform:uppercase;">TO WHOM IT MAY CONCERN</div>`}
+    <!-- Motto -->
+    <div style="background:linear-gradient(90deg,${t.r2},${t.r1},${t.r2});padding:5px 14px;text-align:center;flex-shrink:0;">
+      <span style="font-family:'Oswald',sans-serif;font-size:clamp(9px,2.2vw,13px);font-weight:700;color:#fff;letter-spacing:2px;text-transform:uppercase;">✦ ${c.school?.motto?'MOTTO: '+c.school.motto:'TO WHOM IT MAY CONCERN'} ✦</span>
+    </div>
 
- <!-- Logo | Title | Photo -->
- <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px 8px;flex-shrink:0;border-bottom:2.5px solid var(--c-s1);">
-  <div style="width:72px;height:72px;border-radius:50%;overflow:hidden;background:#f5f5f5;border:2.5px solid var(--c-s1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">${logoH(c.logo,'sp-lc-ph')}</div>
-  <div style="flex:1;text-align:center;padding:0 10px;">
-   <div style="font-family:'Arial Black','Poppins',sans-serif;font-size:clamp(28px,7vw,46px);font-weight:900;color:var(--c-s2);line-height:1;letter-spacing:.5px;">Testimonial</div>
-   <div style="font-family:'Poppins',sans-serif;font-size:clamp(9px,2vw,13px);font-weight:700;color:var(--c-r1);">To Whom It May Concern</div>
+    <!-- Logo | Title | Photo -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px 8px;flex-shrink:0;border-bottom:3px solid ${t.s1};background:rgba(0,0,0,.02);">
+      <div style="width:72px;height:72px;border-radius:50%;overflow:hidden;border:3px solid ${t.s1};background:#f5f5f5;flex-shrink:0;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,0,0,.15);">
+        ${logoH(c.logo,'logo-ph')}
+      </div>
+      <div style="flex:1;text-align:center;padding:0 10px;">
+        <div style="font-family:'Oswald',sans-serif;font-size:clamp(30px,8vw,50px);font-weight:700;color:${t.s2};line-height:1;letter-spacing:1.5px;text-transform:uppercase;text-shadow:2px 2px 0 rgba(0,0,0,.08);">TESTIMONIAL</div>
+        <div style="font-family:'EB Garamond',serif;font-size:clamp(10px,2.2vw,13.5px);font-style:italic;color:${t.r1};font-weight:600;margin-top:3px;">To Whom It May Concern</div>
+      </div>
+      <div style="width:72px;height:90px;flex-shrink:0;border:2.5px solid ${t.s1};background:#f8f8f8;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+        ${photoH(c.pp,'photo-ph')}
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div style="padding:0 20px;flex:1;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;">
+
+      <div style="padding-top:10px;">
+        <div style="font-family:'EB Garamond',serif;font-size:clamp(15px,3.5vw,22px);font-weight:700;font-style:italic;color:#111;text-align:center;border-bottom:2.5px solid #222;padding-bottom:4px;margin-bottom:4px;">${c.student.full_name||'___________________________________'}</div>
+        <div style="font-family:'Poppins',sans-serif;font-size:clamp(10px,2.2vw,13.5px);font-weight:600;font-style:italic;color:#444;text-align:center;margin-bottom:8px;">Has been a student of this school</div>
+
+        <div style="display:flex;align-items:flex-end;gap:5px;border-bottom:2.5px solid #222;padding-bottom:4px;margin-bottom:3px;flex-wrap:nowrap;">
+          <span style="font-family:'Oswald',sans-serif;font-size:clamp(12px,2.7vw,16px);font-weight:600;color:#111;white-space:nowrap;flex-shrink:0;">From</span>
+          <span style="flex:1;font-family:'EB Garamond',serif;font-size:13px;font-style:italic;color:#111;padding:0 3px;">${c.admDate}</span>
+          <span style="font-family:'Oswald',sans-serif;font-size:clamp(12px,2.7vw,16px);font-weight:600;color:#111;white-space:nowrap;flex-shrink:0;margin-left:4px;">to</span>
+          <span style="flex:1;font-family:'EB Garamond',serif;font-size:13px;font-style:italic;color:#111;padding:0 3px;">${c.today}</span>
+          <span style="font-family:'Oswald',sans-serif;font-size:clamp(12px,2.7vw,16px);font-weight:600;color:#111;white-space:nowrap;flex-shrink:0;margin-left:4px;">where</span>
+        </div>
+        <div style="font-family:'Poppins',sans-serif;font-size:clamp(11px,2.4vw,14.5px);font-weight:600;color:#111;padding:5px 0 5px;border-bottom:2.5px solid #222;margin-bottom:5px;">
+          he/she completed his/her <strong>${classDisplay}</strong>&nbsp;&nbsp;(${c.sessLabel})
+        </div>
+
+        ${spRow('Admission No', c.student.admission_no||c.student.roll_no||'&nbsp;')}
+        ${spRow('Date of Birth', fmtDate(c.student.dob||c.student.date_of_birth))}
+        ${spRow('Father / Guardian', c.student.father_name||c.student.guardian_name||'&nbsp;')}
+        ${spRow('Conduct', c.conduct&&c.conduct!=='—'?c.conduct:'&nbsp;')}
+        ${c.post&&c.post!=='—'?spRow('Post Held',c.post):''}
+        ${c.avg!==null?spRow('Academic Performance',`Average: ${c.avg}% · Grade: ${c.og.grade} · ${c.passed}/${subs.length} subjects`):''}
+      </div>
+
+      <div>
+        <div style="font-family:'Poppins',sans-serif;font-size:clamp(11px,2.4vw,14px);font-weight:600;color:#111;line-height:1.65;padding:8px 0 5px;border-top:2px dashed rgba(0,0,0,.12);border-bottom:2px dashed rgba(0,0,0,.12);margin-bottom:5px;">
+          I strongly recommend him/her to wherever may need his/her service or for further academic pursuit. He/She leaves this school with our best wishes.
+        </div>
+        <div style="font-size:8px;color:#c0c8d8;font-family:sans-serif;text-align:right;padding:2px 0;">Ref: ${c.certNo} · ${c.today}</div>
+      </div>
+
+      <!-- Sigs -->
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;padding:7px 0 12px;border-top:2.5px solid ${t.s1};">
+        <div style="text-align:center;min-width:130px;">
+          <div style="min-height:36px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:3px;">${c.hmSig?`<img src="${c.hmSig}" style="max-height:30px;max-width:110px;object-fit:contain;">`:'<div style="height:32px;"></div>'}</div>
+          <div style="border-top:2.5px solid #111;width:130px;margin:0 auto 4px;"></div>
+          <div style="font-family:'Oswald',sans-serif;font-size:clamp(9px,2vw,12.5px);font-weight:600;color:#111;">Headmaster's Signature</div>
+          <div style="font-family:'Poppins',sans-serif;font-size:clamp(9px,1.9vw,12px);font-weight:600;color:#333;margin-top:2px;">Date: ${c.today}</div>
+        </div>
+        ${waxSeal(82)}
+        <div style="text-align:center;min-width:130px;">
+          <div style="min-height:36px;"></div>
+          <div style="border-top:2.5px solid #111;width:130px;margin:0 auto 4px;"></div>
+          <div style="font-family:'Oswald',sans-serif;font-size:clamp(9px,2vw,12.5px);font-weight:600;color:#111;">Student's Signature</div>
+          <div style="font-family:'Poppins',sans-serif;font-size:clamp(9px,1.9vw,12px);font-weight:600;color:#333;margin-top:2px;">Date: _______________</div>
+        </div>
+      </div>
+
+    </div><!-- body -->
+
   </div>
-  <div style="width:72px;height:88px;flex-shrink:0;border:2.5px solid var(--c-s1);background:#f8f8f8;display:flex;align-items:center;justify-content:center;overflow:hidden;">${photoH(c.pp,'pp-photo-ph')}</div>
- </div>
-
- <!-- Body -->
- <div style="padding:0 18px;flex:1;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;">
-  <div style="padding-top:10px;">
-
-   <!-- Student name -->
-   <div style="font-family:'EB Garamond',serif;font-size:clamp(15px,3.5vw,22px);font-weight:600;font-style:italic;color:#111;text-align:center;border-bottom:2px solid #333;padding-bottom:4px;margin-bottom:6px;">${c.student.full_name||'___________________________________'}</div>
-
-   <!-- Was a pupil -->
-   <div style="display:flex;align-items:flex-end;gap:6px;flex-wrap:nowrap;margin-bottom:0;border-bottom:2px solid #333;padding-bottom:2px;">
-    <span style="font-family:'Poppins',sans-serif;font-size:clamp(11px,2.5vw,15px);font-weight:700;color:#111;white-space:nowrap;flex-shrink:0;">From</span>
-    <span style="flex:1;font-family:'EB Garamond',serif;font-size:13px;font-style:italic;color:#111;">${c.admDate}</span>
-    <span style="font-family:'Poppins',sans-serif;font-size:clamp(11px,2.5vw,15px);font-weight:700;color:#111;white-space:nowrap;flex-shrink:0;">to</span>
-    <span style="flex:1;font-family:'EB Garamond',serif;font-size:13px;font-style:italic;color:#111;">${c.today}</span>
-    <span style="font-family:'Poppins',sans-serif;font-size:clamp(11px,2.5vw,15px);font-weight:700;color:#111;white-space:nowrap;flex-shrink:0;">where</span>
-   </div>
-   <div style="font-family:'Poppins',sans-serif;font-size:clamp(10px,2.3vw,14px);font-weight:600;color:#111;padding:6px 0 5px;border-bottom:2px solid #333;">
-    he/she completed his/her <strong>${classDisplay}</strong>&nbsp;&nbsp;(${c.sessLabel})
-   </div>
-
-   ${spField('Admission No', c.student.admission_no||c.student.roll_no||'&nbsp;')}
-   ${spField('Date of Birth', fmtDate(c.student.dob||c.student.date_of_birth))}
-   ${spField('Father / Guardian', c.student.father_name||c.student.guardian_name||'&nbsp;')}
-   ${spField('Conduct', c.conduct&&c.conduct!=='—'?c.conduct:'&nbsp;')}
-   ${c.post&&c.post!=='—'?spField('Post Held',c.post):''}
-   ${c.avg!==null?spField('Academic Performance',`Average: ${c.avg}% · Grade: ${c.og.grade} · ${c.passed}/${subs.length} subjects`):''}
-  </div>
-
-  <!-- Recommendation -->
-  <div>
-   <div style="font-family:'Poppins',sans-serif;font-size:clamp(10px,2.3vw,14px);font-weight:600;color:#111;line-height:1.65;padding:6px 0;">
-    I strongly recommend him/her to wherever may need his/her service or for further academic pursuit.
-   </div>
-   <div style="font-size:8px;color:#bbb;font-family:sans-serif;text-align:right;">Ref: ${c.certNo} · ${c.today}</div>
-  </div>
-
-  <!-- Signatures -->
-  <div style="display:flex;justify-content:space-between;align-items:flex-end;padding:8px 0 12px;border-top:2px solid var(--c-s1);">
-   <div style="text-align:center;">
-    <div style="min-height:34px;">${c.hmSig?`<img src="${c.hmSig}" style="max-height:28px;">`:'&nbsp;'}</div>
-    <div style="border-top:2px solid #333;width:130px;margin:0 auto 4px;"></div>
-    <div style="font-family:'Poppins',sans-serif;font-size:clamp(9px,2vw,12px);font-weight:700;color:#111;">Headmaster's Signature</div>
-    <div style="font-family:'Poppins',sans-serif;font-size:clamp(9px,2vw,12px);font-weight:600;color:#111;">Date: ${c.today}</div>
-   </div>
-   <div class="stamp stamp-lg">OFFICIAL<br>SCHOOL<br>STAMP<br>&amp; SEAL</div>
-   <div style="text-align:center;">
-    <div style="min-height:34px;">&nbsp;</div>
-    <div style="border-top:2px solid #333;width:130px;margin:0 auto 4px;"></div>
-    <div style="font-family:'Poppins',sans-serif;font-size:clamp(9px,2vw,12px);font-weight:700;color:#111;">Pupil's Signature</div>
-    <div style="font-family:'Poppins',sans-serif;font-size:clamp(9px,2vw,12px);font-weight:600;color:#111;">Date: _______________</div>
-   </div>
-  </div>
- </div>
-
-</div>
 </div>`;
 }
 
-/* ═══════════════════════════════════════
-   ④ JUNIOR / SENIOR — LANDSCAPE
-═══════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════
+   ④ JUNIOR / SENIOR — LANDSCAPE  297×210mm
+   PREMIUM REDESIGN
+══════════════════════════════════════════════════════ */
 function certSL(d){
   const c=cmn(d);
   const subs=d.subRows||[];
   const sectFull={junior:'Junior Secondary Education',senior:'Senior Secondary Education'}[_section]||'Secondary Education';
   const classDisplay=c.cls!=='—'?c.cls:sectFull;
+  const t=THEMES[_theme];
 
-  function slField(lbl,val){
-    return `<div style="display:flex;align-items:flex-end;gap:0;border-bottom:1.8px solid #333;padding:4px 0 2px;margin-bottom:2px;">
-  <span style="font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;color:#111;white-space:nowrap;margin-right:5px;">${lbl}:</span>
-  <span style="flex:1;font-family:'EB Garamond',serif;font-size:12.5px;font-style:italic;color:#111;">${val||'&nbsp;'}</span>
- </div>`;
+  const borderBg=`background:repeating-linear-gradient(-52deg,transparent 0px,transparent 8px,rgba(255,255,255,.12) 8px,rgba(255,255,255,.12) 12px,transparent 12px,transparent 20px,${t.r1} 20px,${t.r1} 25px,transparent 25px,transparent 33px,rgba(255,215,0,.7) 33px,rgba(255,215,0,.7) 38px,transparent 38px,transparent 46px),linear-gradient(135deg,${t.s1},#1a1a2e 50%,${t.s1});`;
+
+  function slRow(lbl,val){
+    return `<div style="display:flex;align-items:flex-end;border-bottom:1.8px solid #2a2a2a;padding:4px 0 2px;margin-bottom:1px;gap:0;">
+      <span style="font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;color:#111;white-space:nowrap;margin-right:5px;letter-spacing:.3px;">${lbl}:</span>
+      <span style="flex:1;font-family:'EB Garamond',serif;font-size:12.5px;font-style:italic;color:#111;padding:0 3px;">${val||'&nbsp;'}</span>
+    </div>`;
   }
 
   return `
-<div class="sl" style="padding:0;background:var(--c-s1);position:relative;overflow:hidden;">
-<div style="position:absolute;inset:0;background:repeating-linear-gradient(-45deg,transparent 0px,transparent 10px,rgba(255,255,255,.12) 10px,rgba(255,255,255,.12) 14px,transparent 14px,transparent 24px,var(--c-r1) 24px,var(--c-r1) 28px,transparent 28px,transparent 38px);pointer-events:none;z-index:0;"></div>
-<div style="margin:9px;flex:1;background:#fff;display:flex;flex-direction:column;border:3px solid var(--c-s1);position:relative;z-index:1;overflow:hidden;height:calc(210mm - 18px);">
+<div class="sl" style="${borderBg}">
+  <div style="margin:9px;background:#fff;display:flex;flex-direction:column;border:3px solid ${t.s1};position:relative;z-index:1;overflow:hidden;height:calc(210mm - 18px);background-image:${diamondWM('rgba(0,0,0,.04)')};background-size:40px 40px;">
 
- <!-- Header -->
- <div style="background:#fff;padding:9px 16px 7px;text-align:center;flex-shrink:0;border-bottom:3px solid var(--c-s1);">
-  <div style="font-family:'Arial Black','Poppins',sans-serif;font-size:clamp(12px,3vw,19px);font-weight:900;color:var(--c-s2);text-transform:uppercase;line-height:1.15;letter-spacing:.4px;">${c.school?.name||'SCHOOL NAME'}</div>
-  <div style="font-family:'Arial Black','Poppins',sans-serif;font-size:clamp(8px,1.8vw,12px);font-weight:900;color:#1a1a1a;text-transform:uppercase;margin:1px 0;">${sectLabel()}</div>
-  <div style="font-family:'Poppins',sans-serif;font-size:clamp(7px,1.4vw,10px);font-weight:700;color:#222;text-transform:uppercase;">${c.meta||'&nbsp;'}</div>
- </div>
-
- <!-- Motto -->
- ${c.school?.motto?`<div style="background:var(--c-r1);padding:4px 16px;text-align:center;flex-shrink:0;font-family:'Arial Black','Poppins',sans-serif;font-size:clamp(8px,1.8vw,11px);font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:.5px;">MOTTO: ${c.school.motto}</div>`:`<div style="background:var(--c-r1);padding:4px 16px;text-align:center;font-family:'Arial Black','Poppins',sans-serif;font-size:10px;font-weight:900;color:#fff;text-transform:uppercase;">TO WHOM IT MAY CONCERN</div>`}
-
- <!-- Logo | Title | Photo -->
- <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 14px 6px;flex-shrink:0;border-bottom:2.5px solid var(--c-s1);">
-  <div style="width:58px;height:58px;border-radius:50%;overflow:hidden;background:#f5f5f5;border:2.5px solid var(--c-s1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">${logoH(c.logo,'sl-lc-ph')}</div>
-  <div style="flex:1;text-align:center;padding:0 8px;">
-   <div style="font-family:'Arial Black','Poppins',sans-serif;font-size:clamp(22px,5vw,34px);font-weight:900;color:var(--c-s2);line-height:1;letter-spacing:.5px;">Testimonial</div>
-   <div style="font-family:'Poppins',sans-serif;font-size:clamp(8px,1.8vw,11px);font-weight:700;color:var(--c-r1);">To Whom It May Concern</div>
-  </div>
-  <div style="width:58px;height:72px;flex-shrink:0;border:2.5px solid var(--c-s1);background:#f8f8f8;display:flex;align-items:center;justify-content:center;overflow:hidden;">${photoH(c.pp,'pp-photo-ph')}</div>
- </div>
-
- <!-- Two-column body -->
- <div style="display:grid;grid-template-columns:1fr 1fr;flex:1;overflow:hidden;">
-
-  <!-- LEFT -->
-  <div style="padding:9px 13px;display:flex;flex-direction:column;border-right:2px solid #ddd;overflow:hidden;">
-   <div style="font-family:'EB Garamond',serif;font-size:15px;font-weight:600;font-style:italic;color:#111;border-bottom:2px solid #333;padding-bottom:3px;margin-bottom:4px;">${c.student.full_name||'____________________________'}</div>
-   <div style="font-family:'Poppins',sans-serif;font-size:10.5px;font-weight:600;font-style:italic;color:#333;margin-bottom:4px;">Has been a pupil of this school</div>
-
-   <div style="display:flex;align-items:flex-end;gap:4px;flex-wrap:nowrap;border-bottom:1.8px solid #333;padding-bottom:2px;margin-bottom:3px;">
-    <span style="font-family:'Poppins',sans-serif;font-size:11.5px;font-weight:700;color:#111;white-space:nowrap;">From</span>
-    <span style="flex:1;font-family:'EB Garamond',serif;font-size:11.5px;font-style:italic;color:#111;">${c.admDate}</span>
-    <span style="font-family:'Poppins',sans-serif;font-size:11.5px;font-weight:700;color:#111;white-space:nowrap;">to</span>
-    <span style="flex:1;font-family:'EB Garamond',serif;font-size:11.5px;font-style:italic;color:#111;">${c.today}</span>
-    <span style="font-family:'Poppins',sans-serif;font-size:11.5px;font-weight:700;color:#111;white-space:nowrap;">where</span>
-   </div>
-   <div style="font-family:'Poppins',sans-serif;font-size:11px;font-weight:600;color:#111;padding:3px 0 4px;border-bottom:1.8px solid #333;margin-bottom:4px;">
-    he/she completed his/her <strong>${classDisplay}</strong> (${c.sessLabel})
-   </div>
-
-   ${slField('Admission No', c.student.admission_no||c.student.roll_no||'&nbsp;')}
-   ${slField('Date of Birth', fmtDate(c.student.dob||c.student.date_of_birth))}
-   ${slField('Father / Guardian', c.student.father_name||c.student.guardian_name||'&nbsp;')}
-   <div style="flex:1;"></div>
-   <div style="font-size:7px;color:#bbb;font-family:sans-serif;text-align:right;">Ref: ${c.certNo} · ${c.today}</div>
-  </div>
-
-  <!-- RIGHT -->
-  <div style="padding:9px 13px;display:flex;flex-direction:column;overflow:hidden;">
-   ${slField('Conduct', c.conduct&&c.conduct!=='—'?c.conduct:'&nbsp;')}
-   ${c.post&&c.post!=='—'?slField('Post Held',c.post):''}
-   ${c.avg!==null?slField('Academic Avg',`${c.avg}% — Grade ${c.og.grade}`):''}
-   <div style="flex:1;"></div>
-   <div style="font-family:'Poppins',sans-serif;font-size:11px;font-weight:600;color:#111;line-height:1.6;padding:5px 0;">
-    I strongly recommend him/her to wherever may need his/her service or for further academic pursuit.
-   </div>
-   <!-- Sigs -->
-   <div style="display:flex;justify-content:space-between;align-items:flex-end;padding-top:6px;border-top:2px solid var(--c-s1);">
-    <div style="text-align:center;">
-     <div style="min-height:22px;">${c.hmSig?`<img src="${c.hmSig}" style="max-height:20px;">`:'&nbsp;'}</div>
-     <div style="border-top:2px solid #333;width:100px;margin:0 auto 3px;"></div>
-     <div style="font-family:'Poppins',sans-serif;font-size:9.5px;font-weight:700;color:#111;">Headmaster's Signature</div>
-     <div style="font-family:'Poppins',sans-serif;font-size:9.5px;font-weight:600;color:#111;">Date: ${c.today}</div>
+    <!-- Header -->
+    <div style="background:${t.s1};padding:8px 16px 8px;text-align:center;flex-shrink:0;">
+      <div style="font-family:'Oswald',sans-serif;font-size:clamp(12px,3vw,20px);font-weight:700;color:${t.s2};text-transform:uppercase;line-height:1.1;letter-spacing:.7px;text-shadow:0 0 18px rgba(26,79,214,.4);">${c.school?.name||'SCHOOL NAME'}</div>
+      <div style="font-family:'Oswald',sans-serif;font-size:clamp(8px,1.8vw,12px);font-weight:700;color:rgba(255,255,255,.9);letter-spacing:2px;text-transform:uppercase;margin-top:1px;">${sectLabel()}</div>
+      <div style="font-size:8px;color:rgba(255,255,255,.6);margin-top:1px;font-style:italic;font-family:'Poppins',sans-serif;">${c.meta||'&nbsp;'}</div>
     </div>
-    <div class="stamp stamp-sm">OFFICIAL<br>SCHOOL<br>STAMP<br>&amp; SEAL</div>
-    <div style="text-align:center;">
-     <div style="min-height:22px;">&nbsp;</div>
-     <div style="border-top:2px solid #333;width:100px;margin:0 auto 3px;"></div>
-     <div style="font-family:'Poppins',sans-serif;font-size:9.5px;font-weight:700;color:#111;">Pupil's Signature</div>
-     <div style="font-family:'Poppins',sans-serif;font-size:9.5px;font-weight:600;color:#111;">Date: ___________</div>
-    </div>
-   </div>
-  </div>
 
- </div><!-- grid -->
-</div>
+    <!-- Motto -->
+    <div style="background:linear-gradient(90deg,${t.r2},${t.r1},${t.r2});padding:4px 14px;text-align:center;flex-shrink:0;">
+      <span style="font-family:'Oswald',sans-serif;font-size:clamp(8px,1.8vw,11.5px);font-weight:700;color:#fff;letter-spacing:1.8px;text-transform:uppercase;">✦ ${c.school?.motto?'MOTTO: '+c.school.motto:'TO WHOM IT MAY CONCERN'} ✦</span>
+    </div>
+
+    <!-- Logo | Title | Photo -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 14px 6px;flex-shrink:0;border-bottom:2.5px solid ${t.s1};">
+      <div style="width:60px;height:60px;border-radius:50%;overflow:hidden;border:2.5px solid ${t.s1};background:#f5f5f5;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+        ${logoH(c.logo,'logo-ph')}
+      </div>
+      <div style="flex:1;text-align:center;padding:0 9px;">
+        <div style="font-family:'Oswald',sans-serif;font-size:clamp(22px,5vw,35px);font-weight:700;color:${t.s2};line-height:1;letter-spacing:1.5px;text-transform:uppercase;text-shadow:2px 2px 0 rgba(0,0,0,.07);">TESTIMONIAL</div>
+        <div style="font-family:'EB Garamond',serif;font-size:clamp(9px,1.9vw,12px);font-style:italic;color:${t.r1};font-weight:600;margin-top:2px;">To Whom It May Concern</div>
+      </div>
+      <div style="width:60px;height:74px;flex-shrink:0;border:2.5px solid ${t.s1};background:#f8f8f8;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+        ${photoH(c.pp,'photo-ph')}
+      </div>
+    </div>
+
+    <!-- Two-column body -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;flex:1;overflow:hidden;">
+
+      <!-- LEFT -->
+      <div style="padding:9px 13px;display:flex;flex-direction:column;border-right:2px solid #ddd;overflow:hidden;">
+        <div style="font-family:'EB Garamond',serif;font-size:15px;font-weight:700;font-style:italic;color:#111;border-bottom:2px solid #222;padding-bottom:3px;margin-bottom:3px;">${c.student.full_name||'____________________________'}</div>
+        <div style="font-family:'Poppins',sans-serif;font-size:10.5px;font-weight:600;font-style:italic;color:#444;margin-bottom:4px;">Has been a student of this school</div>
+
+        <div style="display:flex;align-items:flex-end;gap:4px;border-bottom:1.8px solid #222;padding-bottom:2px;margin-bottom:3px;flex-wrap:nowrap;">
+          <span style="font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;color:#111;white-space:nowrap;">From</span>
+          <span style="flex:1;font-family:'EB Garamond',serif;font-size:11.5px;font-style:italic;color:#111;padding:0 2px;">${c.admDate}</span>
+          <span style="font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;color:#111;white-space:nowrap;">to</span>
+          <span style="flex:1;font-family:'EB Garamond',serif;font-size:11.5px;font-style:italic;color:#111;padding:0 2px;">${c.today}</span>
+          <span style="font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;color:#111;white-space:nowrap;">where</span>
+        </div>
+        <div style="font-family:'Poppins',sans-serif;font-size:11px;font-weight:600;color:#111;padding:3px 0 4px;border-bottom:1.8px solid #222;margin-bottom:4px;">
+          he/she completed his/her <strong>${classDisplay}</strong> (${c.sessLabel})
+        </div>
+
+        ${slRow('Admission No', c.student.admission_no||c.student.roll_no||'&nbsp;')}
+        ${slRow('Date of Birth', fmtDate(c.student.dob||c.student.date_of_birth))}
+        ${slRow('Father / Guardian', c.student.father_name||c.student.guardian_name||'&nbsp;')}
+        <div style="flex:1;"></div>
+        <div style="font-size:7px;color:#c0c8d8;font-family:sans-serif;text-align:right;">Ref: ${c.certNo} · ${c.today}</div>
+      </div>
+
+      <!-- RIGHT -->
+      <div style="padding:9px 13px;display:flex;flex-direction:column;overflow:hidden;">
+        ${slRow('Conduct', c.conduct&&c.conduct!=='—'?c.conduct:'&nbsp;')}
+        ${c.post&&c.post!=='—'?slRow('Post Held',c.post):''}
+        ${c.avg!==null?slRow('Academic Avg',`${c.avg}% — Grade ${c.og.grade}`):''}
+        <div style="flex:1;"></div>
+        <div style="font-family:'Poppins',sans-serif;font-size:11px;font-weight:600;color:#111;line-height:1.65;padding:5px 0 4px;border-top:1.5px dashed rgba(0,0,0,.12);border-bottom:1.5px dashed rgba(0,0,0,.12);margin-bottom:6px;">
+          I strongly recommend him/her to wherever may need his/her service or for further academic pursuit.
+        </div>
+        <!-- Sigs -->
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;padding-top:5px;border-top:2px solid ${t.s1};">
+          <div style="text-align:center;">
+            <div style="min-height:20px;margin-bottom:2px;">${c.hmSig?`<img src="${c.hmSig}" style="max-height:18px;max-width:90px;object-fit:contain;">`:'&nbsp;'}</div>
+            <div style="border-top:2px solid #111;width:100px;margin:0 auto 3px;"></div>
+            <div style="font-family:'Oswald',sans-serif;font-size:9.5px;font-weight:600;color:#111;">Headmaster's Signature</div>
+            <div style="font-family:'Poppins',sans-serif;font-size:9.5px;font-weight:600;color:#333;">Date: ${c.today}</div>
+          </div>
+          ${waxSeal(60)}
+          <div style="text-align:center;">
+            <div style="min-height:20px;">&nbsp;</div>
+            <div style="border-top:2px solid #111;width:100px;margin:0 auto 3px;"></div>
+            <div style="font-family:'Oswald',sans-serif;font-size:9.5px;font-weight:600;color:#111;">Student's Signature</div>
+            <div style="font-family:'Poppins',sans-serif;font-size:9.5px;font-weight:600;color:#333;">Date: ___________</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- grid -->
+  </div>
 </div>`;
+}
+
+/* ════════════════════════════════════════════
+   UTILITY: hex colour to r,g,b for rgba()
+════════════════════════════════════════════ */
+function hexToRgb(hex){
+  const r=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return r?`${parseInt(r[1],16)},${parseInt(r[2],16)},${parseInt(r[3],16)}`:'13,32,96';
 }
 
 /* ════════════════════════════════════════════
@@ -1631,7 +1233,6 @@ window.addEventListener('DOMContentLoaded',async()=>{
       const student=await sq(db.from('students').select('*').eq('id',SID).single());
       if(!student) throw new Error('Student not found');
       _schoolId=student.school_id;
-      /* auto detect section */
       const {data:enrCheck}=await db.from('enrollments').select('classes(name,level,section)').eq('student_id',SID).limit(1).single();
       const tc=[enrCheck?.classes?.section||'',enrCheck?.classes?.level||'',enrCheck?.classes?.name||''].join(' ').toLowerCase();
       if(/nur|kg|kinder/.test(tc)) _section='nursery';
@@ -1644,7 +1245,6 @@ window.addEventListener('DOMContentLoaded',async()=>{
       document.getElementById('MC').innerHTML=`<div class="loading" style="color:#f87171">⚠ ${e.message}</div>`;
     }
   }
-  /* else: modal shows by default */
 });
 </script>
 </body>
