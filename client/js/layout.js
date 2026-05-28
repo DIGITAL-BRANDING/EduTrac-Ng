@@ -430,14 +430,28 @@ if (typeof gradeFromScale === 'undefined') {
     return scale.find(s => score >= s.min_score && score <= s.max_score) || { grade: 'F9', remark: 'Fail' };
   };
 }
+if (typeof escapeHTML === 'undefined') {
+  window.escapeHTML = function(value) {
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;',
+    }[ch]));
+  };
+}
 if (typeof toast === 'undefined') {
   window.toast = function(message, type = 'success') {
     const existing = document.getElementById('et-toast');
     if (existing) existing.remove();
     const t = document.createElement('div');
     t.id = 'et-toast';
-    t.className = `et-toast et-toast--${type}`;
-    t.innerHTML = `<span>${message}</span>`;
+    const safeType = String(type || 'success').replace(/[^a-zA-Z0-9_-]/g, '') || 'success';
+    t.className = `et-toast et-toast--${safeType}`;
+    const span = document.createElement('span');
+    span.textContent = message;
+    t.appendChild(span);
     document.body.appendChild(t);
     setTimeout(() => t.classList.add('et-toast--show'), 10);
     setTimeout(() => { t.classList.remove('et-toast--show'); setTimeout(() => t.remove(), 300); }, 3500);
@@ -446,19 +460,19 @@ if (typeof toast === 'undefined') {
 if (typeof showLoader === 'undefined') {
   window.showLoader = function(container, msg = 'Loading…') {
     const el = typeof container === 'string' ? document.querySelector(container) : container;
-    if (el) el.innerHTML = `<div class="et-loader"><div class="et-spinner"></div><p>${msg}</p></div>`;
+    if (el) el.innerHTML = `<div class="et-loader"><div class="et-spinner"></div><p>${escapeHTML(msg)}</p></div>`;
   };
 }
 if (typeof showError === 'undefined') {
   window.showError = function(container, msg) {
     const el = typeof container === 'string' ? document.querySelector(container) : container;
-    if (el) el.innerHTML = `<div class="et-empty"><div class="et-empty__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>️</div><p>${msg}</p></div>`;
+    if (el) el.innerHTML = `<div class="et-empty"><div class="et-empty__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>️</div><p>${escapeHTML(msg)}</p></div>`;
   };
 }
 if (typeof showEmpty === 'undefined') {
   window.showEmpty = function(container, msg, icon = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg>') {
     const el = typeof container === 'string' ? document.querySelector(container) : container;
-    if (el) el.innerHTML = `<div class="et-empty"><div class="et-empty__icon">${icon}</div><p>${msg}</p></div>`;
+    if (el) el.innerHTML = `<div class="et-empty"><div class="et-empty__icon">${icon}</div><p>${escapeHTML(msg)}</p></div>`;
   };
 }
 if (typeof openModal === 'undefined') {

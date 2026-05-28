@@ -13,6 +13,7 @@ import resetPasswordRoute from "./routes/resetStaffPassword.js";
 dotenv.config();
 
 const app = express();
+app.set("trust proxy", 1);
 
 // ── Security Middleware ───────────────────────────────────────────
 app.use(
@@ -25,23 +26,31 @@ app.use(
 // ── CORS ──────────────────────────────────────────────────────────
 // In production, set CLIENT_ORIGIN to your Netlify URL.
 // Multiple origins can be comma-separated:  https://a.netlify.app,https://yourdomain.com
-const rawOrigins = process.env.CLIENT_ORIGIN || "*";
-const allowedOrigins =
-  rawOrigins === "*"
-    ? "*"
-    : rawOrigins.split(",").map((o) => o.trim());
+const rawOrigins = process.env.CLIENT_ORIGIN || "";
+const allowedOrigins = rawOrigins.split(",").map((o) => o.trim()).filter(Boolean);
 
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin(origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error("CORS origin not allowed"));
+    },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: allowedOrigins !== "*"
+    credentials: true
   })
 );
 
+app.use((err, _req, res, next) => {
+  if (err?.message === "CORS origin not allowed") {
+    return res.status(403).json({ error: "CORS origin not allowed" });
+  }
+  return next(err);
+});
+
 // ── Body Parser ───────────────────────────────────────────────────
-app.use(express.json());
+app.use(express.json({ limit: "32kb" }));
 
 // ── Health Check (Railway uses this) ─────────────────────────────
 app.get("/health", (_req, res) => {

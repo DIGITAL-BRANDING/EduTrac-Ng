@@ -241,13 +241,29 @@ function gradeFromScale(score, scale) {
 }
 
 // ── UI Helpers ─────────────────────────────────────────────────
+function escapeHTML(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  }[ch]));
+}
+
+function safeToastType(type) {
+  return String(type || 'success').replace(/[^a-zA-Z0-9_-]/g, '') || 'success';
+}
+
 function toast(message, type = 'success') {
   const existing = document.getElementById('et-toast');
   if (existing) existing.remove();
   const t = document.createElement('div');
   t.id = 'et-toast';
-  t.className = `et-toast et-toast--${type}`;
-  t.innerHTML = `<span>${message}</span>`;
+  t.className = `et-toast et-toast--${safeToastType(type)}`;
+  const span = document.createElement('span');
+  span.textContent = message;
+  t.appendChild(span);
   document.body.appendChild(t);
   setTimeout(() => t.classList.add('et-toast--show'), 10);
   setTimeout(() => { t.classList.remove('et-toast--show'); setTimeout(() => t.remove(), 300); }, 3500);
@@ -255,15 +271,15 @@ function toast(message, type = 'success') {
 
 function showLoader(container, msg = 'Loading…') {
   const el = typeof container === 'string' ? document.querySelector(container) : container;
-  if (el) el.innerHTML = `<div class="et-loader"><div class="et-spinner"></div><p>${msg}</p></div>`;
+  if (el) el.innerHTML = `<div class="et-loader"><div class="et-spinner"></div><p>${escapeHTML(msg)}</p></div>`;
 }
 function showError(container, msg) {
   const el = typeof container === 'string' ? document.querySelector(container) : container;
-  if (el) el.innerHTML = `<div class="et-empty"><div class="et-empty__icon">⚠️</div><p>${msg}</p></div>`;
+  if (el) el.innerHTML = `<div class="et-empty"><div class="et-empty__icon">⚠️</div><p>${escapeHTML(msg)}</p></div>`;
 }
 function showEmpty(container, msg, icon = '(empty)') {
   const el = typeof container === 'string' ? document.querySelector(container) : container;
-  if (el) el.innerHTML = `<div class="et-empty"><div class="et-empty__icon">${icon}</div><p>${msg}</p></div>`;
+  if (el) el.innerHTML = `<div class="et-empty"><div class="et-empty__icon">${escapeHTML(icon)}</div><p>${escapeHTML(msg)}</p></div>`;
 }
 
 function openModal(id) {

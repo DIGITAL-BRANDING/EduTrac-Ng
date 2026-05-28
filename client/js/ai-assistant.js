@@ -528,7 +528,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          system: SYSTEM[ROLE] || SYSTEM.visitor,
+          role: ROLE,
           messages: history,
         }),
       });

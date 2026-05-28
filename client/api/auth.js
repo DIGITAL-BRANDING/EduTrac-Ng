@@ -18,7 +18,7 @@ const PROFILE_CACHE_KEY = 'et_user_profile';
 
 // Map each role to its portal folder
 const ROLE_PORTALS = {
-  admin:        '/portals/admin/',
+  admin:        '/admin/',
   exam_officer: '/portals/academic-office/',
   vp_academic:  '/portals/academic-office/',
   vp_admin:     '/portals/admin-office/',
@@ -33,7 +33,7 @@ const ROLE_PORTALS = {
 
 // Which roles are allowed in each portal folder
 const PORTAL_ALLOWED_ROLES = {
-  '/portals/admin/':           ['admin', 'saas_owner'],
+  '/admin/':                   ['admin', 'saas_owner'],
   '/portals/academic-office/': ['exam_officer', 'vp_academic', 'admin'],
   '/portals/admin-office/':    ['vp_admin', 'registrar', 'admin'],
   '/portals/bursary/':         ['accountant', 'bursary', 'admin'],
@@ -272,7 +272,7 @@ function _redirectToLogin() {
 function _getRolesForCurrentPath() {
   const path = window.location.pathname;
   for (const [folder, roles] of Object.entries(PORTAL_ALLOWED_ROLES)) {
-    if (path.includes(folder)) return roles;
+    if (path.startsWith(folder)) return roles;
   }
   return [];
 }

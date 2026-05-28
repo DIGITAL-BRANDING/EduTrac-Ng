@@ -38,6 +38,10 @@ export default async function handler(request, context) {
     return json({ error: 'Server not configured. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in Netlify.' }, 500, corsHeaders);
   }
 
+  const authHeader = request.headers.get('Authorization') || '';
+  const callerToken = authHeader.replace(/^Bearer\s+/i, '').trim();
+  if (!callerToken) return json({ error: 'Unauthorized' }, 401, corsHeaders);
+
   // Helper: Supabase REST API
   const sb = async (path, method = 'GET', data = null) => {
     const opts = {
@@ -70,6 +74,10 @@ export default async function handler(request, context) {
   };
 
   try {
+    const caller = await getCallerProfile(SUPABASE_URL, SERVICE_KEY, callerToken);
+    if (!caller) return json({ error: 'Unauthorized' }, 401, corsHeaders);
+    if (caller.role !== 'saas_owner') return json({ error: 'Forbidden: saas_owner only' }, 403, corsHeaders);
+
     // 1. Fetch the application
     const appData = await sb(`/school_applications?id=eq.${application_id}&select=*`);
     const app = Array.isArray(appData) ? appData[0] : null;
@@ -133,8 +141,8 @@ export default async function handler(request, context) {
 
     // 6. Audit log (non-fatal)
     await sb('/saas_audit_log', 'POST', {
-      action: 'school_created', target_id: school.id, target_type: 'school',
-      meta: JSON.stringify({ name: app.school_name, plan: 'free', admin_email: adminEmail }),
+      actor_id: caller.id, action: 'school_created', target_id: school.id, target_type: 'school',
+      meta: JSON.stringify({ name: app.school_name, plan: 'free', admin_email: adminEmail, application_id }),
     }).catch(() => {});
 
     return json({ success: true, login_email: adminEmail, temp_password: tempPassword, school_id: school.id }, 200, corsHeaders);
@@ -143,6 +151,26 @@ export default async function handler(request, context) {
     console.error('[provision-school] Error:', err);
     return json({ error: err.message }, 500, corsHeaders);
   }
+}
+
+async function getCallerProfile(supabaseUrl, serviceKey, callerToken) {
+  const authRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
+    headers: { 'apikey': serviceKey, 'Authorization': `Bearer ${callerToken}` },
+  });
+  if (!authRes.ok) return null;
+  const authUser = await authRes.json();
+  if (!authUser?.id) return null;
+
+  const res = await fetch(`${supabaseUrl}/rest/v1/users?id=eq.${encodeURIComponent(authUser.id)}&select=id,role,is_active`, {
+    headers: {
+      'apikey': serviceKey,
+      'Authorization': `Bearer ${serviceKey}`,
+    },
+  });
+  const data = await res.json().catch(() => []);
+  const user = Array.isArray(data) ? data[0] : null;
+  if (!user || user.is_active === false) return null;
+  return user;
 }
 
 function generateTempPassword() {

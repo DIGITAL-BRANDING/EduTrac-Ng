@@ -1,39 +1,36 @@
 /**
- * EduTrack NG — School Provisioning Route
+ * EduTrack NG - School Provisioning Route
  * POST /api/provision-school
  *
- * Called when SaaS owner approves a school application.
- * Uses the Supabase SERVICE ROLE key (server-side only) to:
- *   1. Fetch and validate the school application
- *   2. Create a Supabase Auth user for the school admin
- *   3. Insert a row into the `schools` table
- *   4. Insert a row into the `users` table linking admin → school
- *   5. Mark school_applications.status = 'approved'
- *
- * Required env vars:
- *   SUPABASE_URL
- *   SUPABASE_SERVICE_ROLE_KEY
+ * Only an active saas_owner may approve an application and provision a school.
  */
 
+import crypto from "crypto";
 import express from "express";
+import supabase from "../supabaseClient.js";
+import { requireRole } from "../utils/auth.js";
+import { cleanString, isUuid } from "../utils/validation.js";
 
 const router = express.Router();
 
 router.post("/provision-school", async (req, res) => {
   const { application_id, admin_note } = req.body;
 
-  if (!application_id) {
-    return res.status(400).json({ error: "application_id is required" });
+  if (!isUuid(application_id)) {
+    return res.status(400).json({ error: "Valid application_id is required" });
   }
 
-  const SUPABASE_URL  = process.env.SUPABASE_URL;
-  const SERVICE_KEY   = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const SUPABASE_URL = process.env.SUPABASE_URL;
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!SUPABASE_URL || !SERVICE_KEY) {
     return res.status(500).json({
-      error: "Server not configured. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env",
+      error: "Server not configured. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.",
     });
   }
+
+  const auth = await requireRole(supabase, req, ["saas_owner"]);
+  if (auth.error) return res.status(auth.status).json({ error: auth.error });
 
   const headers = {
     "Content-Type": "application/json",
@@ -43,150 +40,133 @@ router.post("/provision-school", async (req, res) => {
   };
 
   try {
-    // ── 1. Fetch the application ────────────────────────────────
-    const appRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/school_applications?id=eq.${application_id}&select=*`,
-      { headers }
-    );
-    const apps = await appRes.json();
-    const app  = apps[0];
+    const { data: app, error: appError } = await supabase
+      .from("school_applications")
+      .select("*")
+      .eq("id", application_id)
+      .maybeSingle();
 
-    if (!app)                    return res.status(404).json({ error: "Application not found" });
-    if (app.status === "approved") return res.status(409).json({ error: "Application already approved" });
+    if (appError) throw appError;
+    if (!app) return res.status(404).json({ error: "Application not found" });
+    if (app.status !== "pending") {
+      return res.status(409).json({ error: "Application is not pending" });
+    }
 
-    // ── 2. Generate a temporary password ───────────────────────
-    const tempPassword = "EduTrack@" + Math.random().toString(36).slice(-6).toUpperCase();
+    const adminEmail = cleanString(app.admin_email, 254).toLowerCase();
+    if (!adminEmail) return res.status(400).json({ error: "Application is missing admin email" });
 
-    // ── 3. Create Supabase Auth user ────────────────────────────
-    const authRes  = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
+    const adminName = `${cleanString(app.admin_first_name, 80)} ${cleanString(app.admin_last_name, 80)}`.trim();
+    const tempPassword = generateTempPassword();
+
+    const authRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
       method: "POST",
       headers,
       body: JSON.stringify({
-        email:                app.admin_email,
-        password:             tempPassword,
-        email_confirm:        true,
-        email_confirmed_at:   new Date().toISOString(),
-        user_metadata: {
-          full_name: `${app.admin_first_name} ${app.admin_last_name}`,
-          role:      "admin",
-        },
+        email: adminEmail,
+        password: tempPassword,
+        email_confirm: true,
+        user_metadata: { full_name: adminName, role: "admin" },
       }),
     });
-    let authData = await authRes.json();
 
+    let authData = await authRes.json();
     if (authData.error || !authData.id) {
-      // If user already exists, look up their existing id
       if (authData.msg?.includes("already") || authData.code === "email_exists") {
-        const existRes  = await fetch(
-          `${SUPABASE_URL}/auth/v1/admin/users?email=${encodeURIComponent(app.admin_email)}`,
-          { headers }
+        const existRes = await fetch(
+          `${SUPABASE_URL}/auth/v1/admin/users?email=${encodeURIComponent(adminEmail)}`,
+          { headers },
         );
         const existData = await existRes.json();
         if (!existData.users?.length) {
-          return res.status(500).json({
-            error: "Auth user creation failed: " + JSON.stringify(authData),
-          });
+          return res.status(500).json({ error: "Auth user lookup failed" });
         }
-        authData.id = existData.users[0].id;
-      } else {
-        return res.status(500).json({
-          error: "Auth user creation failed: " + JSON.stringify(authData),
+        authData = existData.users[0];
+        await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${authData.id}`, {
+          method: "PUT",
+          headers,
+          body: JSON.stringify({ password: tempPassword, email_confirm: true }),
         });
+      } else {
+        return res.status(500).json({ error: "Auth user creation failed" });
       }
     }
 
     const authUserId = authData.id;
 
-    // ── 3b. Force-confirm the email via a separate PATCH ────────
-    // Supabase's POST /admin/users ignores email_confirmed_at on creation;
-    // a follow-up PUT to the user endpoint is required to confirm it.
-    await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${authUserId}`, {
-      method: "PUT",
-      headers,
-      body: JSON.stringify({
-        email_confirm: true,
-      }),
-    });
-
-    // ── 4. Create school record ─────────────────────────────────
-    const schoolRes = await fetch(`${SUPABASE_URL}/rest/v1/schools`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        name:           app.school_name,
-        school_type:    app.school_type,
-        ownership:      app.school_ownership,
-        address:        app.school_address,
-        city:           app.school_city,
-        state:          app.school_state,
-        lga:            app.school_lga,
-        postal:         app.school_postal,
-        email:          app.school_email || app.admin_email,
-        phone:          app.admin_phone,
-        website:        app.school_website,
-        is_active:      true,
-        plan:           "free",
+    const { data: school, error: schoolError } = await supabase
+      .from("schools")
+      .insert([{
+        name: cleanString(app.school_name, 180),
+        school_type: cleanString(app.school_type, 80),
+        ownership: cleanString(app.school_ownership, 80),
+        address: cleanString(app.school_address, 300),
+        city: cleanString(app.school_city, 100),
+        state: cleanString(app.school_state, 100),
+        lga: cleanString(app.school_lga, 100),
+        postal: cleanString(app.school_postal, 30),
+        email: cleanString(app.school_email || adminEmail, 254),
+        phone: cleanString(app.admin_phone, 40),
+        website: cleanString(app.school_website, 200),
+        is_active: true,
+        plan: "free",
         application_id,
-      }),
-    });
-    const schoolArr = await schoolRes.json();
-    const school    = Array.isArray(schoolArr) ? schoolArr[0] : schoolArr;
+      }])
+      .select("id,name")
+      .single();
 
-    if (!school?.id) {
-      return res.status(500).json({ error: "School creation failed: " + JSON.stringify(school) });
-    }
+    if (schoolError || !school?.id) throw schoolError || new Error("School creation failed");
 
-    // ── 5. Create user profile row ──────────────────────────────
-    const userRes = await fetch(`${SUPABASE_URL}/rest/v1/users`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        id:                   authUserId,
-        school_id:            school.id,
-        full_name:            `${app.admin_first_name} ${app.admin_last_name}`,
-        email:                app.admin_email,
-        phone:                app.admin_phone,
-        role:                 "admin",
-        is_active:            true,
+    const { error: userError } = await supabase
+      .from("users")
+      .upsert([{
+        id: authUserId,
+        school_id: school.id,
+        full_name: adminName,
+        email: adminEmail,
+        phone: cleanString(app.admin_phone, 40),
+        role: "admin",
+        is_active: true,
         must_change_password: true,
-      }),
-    });
-    const userArr = await userRes.json();
-    const userRow = Array.isArray(userArr) ? userArr[0] : userArr;
+      }], { onConflict: "id" });
 
-    if (!userRow?.id) {
-      console.warn("User row insert result:", JSON.stringify(userArr));
-    }
+    if (userError) throw userError;
 
-    // ── 6. Mark application approved ───────────────────────────
-    await fetch(
-      `${SUPABASE_URL}/rest/v1/school_applications?id=eq.${application_id}`,
-      {
-        method: "PATCH",
-        headers,
-        body: JSON.stringify({
-          status:                "approved",
-          admin_note:            admin_note || null,
-          reviewed_at:           new Date().toISOString(),
-          provisioned_school_id: school.id,
-        }),
-      }
-    );
+    const { error: approveError } = await supabase
+      .from("school_applications")
+      .update({
+        status: "approved",
+        admin_note: cleanString(admin_note, 1000) || null,
+        reviewed_at: new Date().toISOString(),
+        provisioned_school_id: school.id,
+      })
+      .eq("id", application_id);
 
-    // ── 7. Return credentials to SaaS owner ────────────────────
+    if (approveError) throw approveError;
+
+    await supabase.from("saas_audit_log").insert([{
+      actor_id: auth.user.id,
+      action: "school_created",
+      target_id: school.id,
+      target_type: "school",
+      meta: { application_id, school_name: school.name, admin_email: adminEmail },
+    }]).catch(() => {});
+
     res.json({
-      success:       true,
-      school_id:     school.id,
-      auth_user_id:  authUserId,
+      success: true,
+      school_id: school.id,
+      auth_user_id: authUserId,
       temp_password: tempPassword,
-      login_email:   app.admin_email,
-      message: `School "${app.school_name}" provisioned. Admin: ${app.admin_email} / Temp password: ${tempPassword}`,
+      login_email: adminEmail,
+      message: `School "${school.name}" provisioned. Share the temporary password securely.`,
     });
-
   } catch (err) {
     console.error("[/api/provision-school]", err);
-    res.status(500).json({ error: err.message || String(err) });
+    res.status(500).json({ error: "School provisioning failed" });
   }
 });
+
+function generateTempPassword() {
+  return `EduTrack@${crypto.randomBytes(9).toString("base64url")}`;
+}
 
 export default router;

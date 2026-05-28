@@ -151,12 +151,36 @@ const ROLE_ACCENT = {
 };
 
 // ── Main Injector ──────────────────────────────────────────────
+function escapeHTML(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  }[ch]));
+}
+
+function escapeAttr(value) {
+  return escapeHTML(value).replace(/`/g, '&#96;');
+}
+
+function safeImageUrl(value) {
+  try {
+    const url = new URL(value, window.location.origin);
+    return ['https:', 'http:'].includes(url.protocol) ? url.href : '';
+  } catch {
+    return '';
+  }
+}
+
 function injectLayout(user, pageTitle, activePage = '') {
   const role = user.role;
   const menuItems = MENU_DATA[role] || MENU_DATA.admin;
   const accent = ROLE_ACCENT[role] || 'var(--primary)';
   const roleLabel = ROLE_LABELS[role] || role;
   const currentPath = window.location.pathname;
+  const safePageTitle = escapeHTML(pageTitle || '');
 
   const navHtml = menuItems.map(item => {
     if (item.section) return `<div class="sidebar__section">${item.section}</div>`;
@@ -172,9 +196,10 @@ function injectLayout(user, pageTitle, activePage = '') {
     return `<a href="${href}" class="${isActive ? 'active' : ''}"><span class="bnav-icon">${item.icon}</span>${item.title}</a>`;
   }).join('');
 
-  const schoolName = user.schools?.name || 'My School';
-  const initial = user.full_name?.charAt(0).toUpperCase() || '?';
-  const logoUrl = user.schools?.logo_url;
+  const schoolName = escapeHTML(user.schools?.name || 'My School');
+  const fullName = escapeHTML(user.full_name || '');
+  const initial = escapeHTML(user.full_name?.charAt(0).toUpperCase() || '?');
+  const logoUrl = safeImageUrl(user.schools?.logo_url);
 
   const appHtml = `
     <div class="sidebar" id="sidebar">
@@ -182,7 +207,7 @@ function injectLayout(user, pageTitle, activePage = '') {
         <div class="sidebar__logo">
           <div class="sidebar__logo-icon" id="sidebarLogo" style="background:white;padding:2px;overflow:hidden;">
             ${logoUrl
-              ? `<img src="${logoUrl}" style="width:32px;height:32px;object-fit:cover;border-radius:5px;" onerror="this.parentElement.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>';this.parentElement.style.background='${accent}'">`
+              ? `<img src="${escapeAttr(logoUrl)}" style="width:32px;height:32px;object-fit:cover;border-radius:5px;" onerror="this.parentElement.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>';this.parentElement.style.background='${accent}'">`
               : `<span style="background:${accent};width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:5px;font-size:18px;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg></span>`
             }
           </div>
@@ -195,7 +220,7 @@ function injectLayout(user, pageTitle, activePage = '') {
         <div class="sidebar__user">
           <div class="sidebar__avatar" style="background:${accent}">${initial}</div>
           <div>
-            <div class="sidebar__user-name">${user.full_name}</div>
+            <div class="sidebar__user-name">${fullName}</div>
             <div class="sidebar__user-role">${roleLabel}</div>
           </div>
           <button class="sidebar__logout" onclick="logout()" title="Logout">⎋</button>
@@ -206,7 +231,7 @@ function injectLayout(user, pageTitle, activePage = '') {
     <div class="main-content">
       <div class="topbar">
         <button class="topbar__toggle" onclick="toggleSidebar()"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
-        <h1 class="topbar__title">${pageTitle}</h1>
+        <h1 class="topbar__title">${safePageTitle}</h1>
         <div class="topbar__actions" id="topbarActions"></div>
       </div>
       <div class="page-body" id="pageBody"></div>
@@ -220,6 +245,9 @@ function injectLayout(user, pageTitle, activePage = '') {
 
 // ── Student Sidebar (PIN-based, no Supabase auth) ──────────────
 function injectStudentLayout(session, pageTitle, activePage = '') {
+  const safePageTitle = escapeHTML(pageTitle || '');
+  const studentName = escapeHTML(session.full_name || '');
+  const studentInitial = escapeHTML(session.full_name?.charAt(0).toUpperCase() || 'S');
   const navItems = [
     { title: 'Home',       icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>', href: '/portals/student/index.html' },
     { title: 'Results',    icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>', href: '/portals/student/results.html' },
@@ -246,9 +274,9 @@ function injectStudentLayout(session, pageTitle, activePage = '') {
       <nav class="sidebar__nav"><div class="sidebar__section">Student Menu</div>${navHtml}</nav>
       <div class="sidebar__footer">
         <div class="sidebar__user">
-          <div class="sidebar__avatar">${session.full_name?.charAt(0).toUpperCase() || 'S'}</div>
+          <div class="sidebar__avatar">${studentInitial}</div>
           <div>
-            <div class="sidebar__user-name">${session.full_name}</div>
+            <div class="sidebar__user-name">${studentName}</div>
             <div class="sidebar__user-role">Student</div>
           </div>
           <button class="sidebar__logout" onclick="studentLogout()" title="Logout">⎋</button>
@@ -259,7 +287,7 @@ function injectStudentLayout(session, pageTitle, activePage = '') {
     <div class="main-content">
       <div class="topbar">
         <button class="topbar__toggle" onclick="toggleSidebar()"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
-        <h1 class="topbar__title">${pageTitle}</h1>
+        <h1 class="topbar__title">${safePageTitle}</h1>
         <div class="topbar__actions" id="topbarActions"></div>
       </div>
       <div class="page-body" id="pageBody"></div>

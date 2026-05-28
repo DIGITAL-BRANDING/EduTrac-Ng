@@ -64,11 +64,12 @@ const isSupabase    = url => url.hostname.includes('supabase.co');
 const isCdn         = url => CDN_ORIGINS.includes(url.hostname);
 
 /**
- * Returns a cache key Request using PATHNAME only (strips query
- * string) so ?class=X and ?class=Y both hit the same cached entry.
+ * Returns a cache key Request using the full URL, including query string.
+ * Private portal pages often scope data by query params, so stripping them can
+ * serve the wrong class/student view while offline.
  */
 function portalCacheKey(url) {
-  return new Request(url.origin + url.pathname, { mode: 'same-origin' });
+  return new Request(url.href, { mode: 'same-origin' });
 }
 
 /**
