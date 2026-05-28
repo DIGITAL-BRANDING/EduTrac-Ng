@@ -297,21 +297,6 @@
     .db-kpi-grid { grid-template-columns: 1fr; }
     .wb { padding: 18px; }
   }
-
-  /* ── Section Accordion (Finance & Classes) ── */
-  .db-sec-accordion { margin-bottom: 20px; }
-  .db-sec-block { border: 1px solid var(--border,#e5e7eb); border-radius: 12px; margin-bottom: 8px; overflow: hidden; transition: box-shadow .2s; }
-  .db-sec-block:hover { box-shadow: 0 2px 10px rgba(0,0,0,.07); }
-  .db-sec-hdr { display:flex; align-items:center; gap:12px; padding:14px 18px; cursor:pointer; background:var(--surface-2,#f9fafb); user-select:none; transition:background .15s; }
-  .db-sec-hdr:hover { background:var(--surface-3,#f1f5f9); }
-  .db-sec-title { font-size:.88rem; font-weight:800; flex:1; color:var(--ink-1,#111827); }
-  .db-sec-meta { font-size:.72rem; color:var(--ink-3,#6b7280); font-weight:600; }
-  .db-sec-chevron { font-size:.7rem; color:var(--ink-3); transition:transform .25s; flex-shrink:0; }
-  .db-sec-block.open .db-sec-chevron { transform:rotate(90deg); }
-  .db-sec-body { display:none; border-top:1px solid var(--border,#e5e7eb); }
-  .db-sec-block.open .db-sec-body { display:block; }
-  .db-sec-mini-prog { height:4px; background:var(--border,#e5e7eb); border-radius:10px; overflow:hidden; margin-top:5px; min-width:80px; }
-  .db-sec-mini-fill { height:100%; border-radius:10px; }
   </style>
 </head>
 <body>
@@ -502,28 +487,16 @@
 
     <!-- FINANCE -->
     <p class="db-section">Finance</p>
-    <div class="db-card" style="margin-bottom:14px">
-      <div class="db-card-head">
-        <div class="db-card-head-l">
-          <div class="db-card-icon" style="background:#f0fdf4;color:#16a34a"><i class="fa-solid fa-sack-dollar"></i></div>
-          <span class="db-card-title">Fee Collection by Section</span>
-        </div>
-        <a href="fees.html" class="db-card-link">Full report</a>
-      </div>
-      <div class="db-card-body" style="padding-top:4px">
-        <div id="financeSections"><div class="db-loading"><div class="et-spinner"></div></div></div>
-      </div>
-    </div>
     <div class="db-row-2">
       <div class="db-card">
         <div class="db-card-head">
           <div class="db-card-head-l">
-            <div class="db-card-icon" style="background:#fff7ed;color:#ea580c"><i class="fa-solid fa-chart-column"></i></div>
-            <span class="db-card-title">Overall Fee Summary</span>
+            <div class="db-card-icon" style="background:#f0fdf4;color:#16a34a"><i class="fa-solid fa-sack-dollar"></i></div>
+            <span class="db-card-title">Fee Collection by Class</span>
           </div>
           <a href="fees.html" class="db-card-link">Details</a>
         </div>
-        <div class="db-card-body" id="feeSnapshot"><div class="db-loading"><div class="et-spinner"></div></div></div>
+        <div id="feeProgressList"><div class="db-loading"><div class="et-spinner"></div></div></div>
       </div>
       <div class="db-card">
         <div class="db-card-head">
@@ -539,39 +512,51 @@
 
     <!-- CLASSES + STUDENTS -->
     <p class="db-section">Classes &amp; Students</p>
-    <div class="db-card" style="margin-bottom:14px">
-      <div class="db-card-head">
-        <div class="db-card-head-l">
-          <div class="db-card-icon" style="background:#fdf4ff;color:#9333ea"><i class="fa-solid fa-building-columns"></i></div>
-          <span class="db-card-title">Classes by Section</span>
+    <div class="db-row-2">
+      <div class="db-card">
+        <div class="db-card-head">
+          <div class="db-card-head-l">
+            <div class="db-card-icon" style="background:#fdf4ff;color:#9333ea"><i class="fa-solid fa-building-columns"></i></div>
+            <span class="db-card-title">Classes Overview</span>
+          </div>
+          <a href="classes.html" class="db-card-link">Manage</a>
         </div>
-        <a href="classes.html" class="db-card-link">Manage</a>
-      </div>
-      <div class="db-card-body" style="padding-top:4px">
         <div id="classOverviewBody"><div class="db-loading"><div class="et-spinner"></div></div></div>
       </div>
-    </div>
-    <div class="db-card">
-      <div class="db-card-head">
-        <div class="db-card-head-l">
-          <div class="db-card-icon" style="background:#eff6ff;color:#2563eb"><i class="fa-solid fa-user-graduate"></i></div>
-          <span class="db-card-title">Recent Students</span>
+      <div class="db-card">
+        <div class="db-card-head">
+          <div class="db-card-head-l">
+            <div class="db-card-icon" style="background:#eff6ff;color:#2563eb"><i class="fa-solid fa-user-graduate"></i></div>
+            <span class="db-card-title">Recent Students</span>
+          </div>
+          <a href="students.html" class="db-card-link">View all</a>
         </div>
-        <a href="students.html" class="db-card-link">View all</a>
+        <div id="recentStudentsWrap"><div class="db-loading"><div class="et-spinner"></div></div></div>
       </div>
-      <div id="recentStudentsWrap"><div class="db-loading"><div class="et-spinner"></div></div></div>
     </div>
 
-    <!-- FEE TREND -->
-    <p class="db-section">Fee Trend</p>
-    <div class="db-card">
-      <div class="db-card-head">
-        <div class="db-card-head-l">
-          <div class="db-card-icon" style="background:#fef3c7;color:#d97706"><i class="fa-solid fa-chart-bar"></i></div>
-          <span class="db-card-title">Monthly Fee Collection Trend</span>
+    <!-- SUMMARY -->
+    <p class="db-section">Summary</p>
+    <div class="db-row-2">
+      <div class="db-card">
+        <div class="db-card-head">
+          <div class="db-card-head-l">
+            <div class="db-card-icon" style="background:#fff7ed;color:#ea580c"><i class="fa-solid fa-chart-column"></i></div>
+            <span class="db-card-title">Overall Fee Collection</span>
+          </div>
+          <a href="fees.html" class="db-card-link">Details</a>
         </div>
+        <div class="db-card-body" id="feeSnapshot"><div class="db-loading"><div class="et-spinner"></div></div></div>
       </div>
-      <div class="db-card-body"><div class="db-chart-wrap" style="height:190px"><canvas id="feeLineChart"></canvas></div></div>
+      <div class="db-card">
+        <div class="db-card-head">
+          <div class="db-card-head-l">
+            <div class="db-card-icon" style="background:#fef3c7;color:#d97706"><i class="fa-solid fa-chart-bar"></i></div>
+            <span class="db-card-title">Monthly Fee Trend</span>
+          </div>
+        </div>
+        <div class="db-card-body"><div class="db-chart-wrap" style="height:190px"><canvas id="feeLineChart"></canvas></div></div>
+      </div>
     </div>
 
   `; /* END body.innerHTML */
@@ -588,7 +573,7 @@
     db.from('students').select('id,gender,created_at',{count:'exact'}).eq('school_id',sid).eq('is_active',true),
     db.from('users').select('id,role',{count:'exact'}).eq('school_id',sid).eq('is_active',true),
     db.from('terms').select('*').eq('school_id',sid).eq('is_current',true).maybeSingle(),
-    db.from('payments').select('id,amount_paid,paid_at,payment_method,status,student_id').eq('school_id',sid).order('paid_at',{ascending:false}).limit(200),
+    db.from('payments').select('id,amount_paid,paid_at,payment_method,status').eq('school_id',sid).order('paid_at',{ascending:false}).limit(50),
     db.from('students').select('id,full_name,admission_no,gender,created_at').eq('school_id',sid).eq('is_active',true).order('created_at',{ascending:false}).limit(6),
     db.from('classes').select('id,name,level').eq('school_id',sid).order('name'),
     db.from('attendance').select('student_id,class_id,status').eq('school_id',sid).eq('date',today),
@@ -686,24 +671,21 @@
   });
   const classAttendData = Object.values(classAttendMap);
 
-  /* Build student → class map from enrollments for accurate fee calc */
-  const studentClassMap = {};
-  activeEnrollments.forEach(e => { studentClassMap[e.student_id] = e.class_id; });
-
   /* Fee by class */
   const feeByClass = allClasses.map(cls=>{
     const types    = termFeeTypes.filter(f=>f.class_id===cls.id);
     const expected = types.reduce((s,f)=>s+Number(f.amount||0)*cls.enrollments.length,0);
-    const collected= allPayments
-      .filter(p => studentClassMap[p.student_id] === cls.id)
-      .reduce((s,p)=>s+Number(p.amount_paid||0),0);
+    const collected= allPayments.filter(p=>{
+      const en = (p.students?.enrollments||[]).find(e=>e.classes?.name===cls.name);
+      return !!en;
+    }).reduce((s,p)=>s+Number(p.amount_paid||0),0);
     const pct = expected>0 ? Math.min(100,Math.round(collected/expected*100)) : 0;
-    return {...cls, pct, expected, collected};
-  }).filter(c=>c.enrollments.length>0).sort((a,b)=>b.pct-a.pct);
+    return {name:cls.name, enrolled:cls.enrollments.length, pct, expected, collected};
+  }).filter(c=>c.enrolled>0).sort((a,b)=>b.pct-a.pct);
 
   /* ── Banner quick stats ── */
-  document.getElementById('wbAtt').textContent  = (attPresent>0||attAbsent>0) ? attRate+'%' : '—';
-  document.getElementById('wbFees').textContent = totalCollected>0 ? fmt(totalCollected) : '—';
+  document.getElementById('wbAtt').textContent  = attRate+'%';
+  document.getElementById('wbFees').textContent = fmt(totalCollected);
 
   /* ═══════════════════════════════════════════════
      6. KPI CARDS
@@ -727,7 +709,7 @@
       </div>
       <div class="db-kpi-val">${attRate}%</div>
       <div class="db-kpi-lbl">Attendance</div>
-      <div class="db-kpi-sub">${attPresent>0||attAbsent>0?`${attPresent} present · ${attAbsent} absent`:"Not yet recorded today"}</div>
+      <div class="db-kpi-sub">${attPresent} present · ${attAbsent} absent</div>
     </a>
     <a class="db-kpi" href="payments.html" style="--kc:#3b82f6">
       <div class="db-kpi-top">
@@ -954,77 +936,19 @@
   /* ═══════════════════════════════════════════════
      12. FEE PROGRESS BY CLASS
   ═══════════════════════════════════════════════ */
-  /* ── Group feeByClass by section ── */
-  function getSection(cls) {
-    if (cls.level) return cls.level;
-    const m = (cls.name||'').match(/^([A-Za-z]+\s*\d+)/);
-    return m ? m[1].trim() : (cls.name||'Other')[0].toUpperCase()+'...';
-  }
-
-  window.toggleSection = function(id) {
-    const el = document.getElementById(id);
-    if (el) el.classList.toggle('open');
-  };
-
-  const finSections = {};
-  feeByClass.forEach(c => {
-    const sec = getSection(c);
-    if (!finSections[sec]) finSections[sec] = { classes:[], expected:0, collected:0 };
-    finSections[sec].classes.push(c);
-    finSections[sec].expected  += c.expected;
-    finSections[sec].collected += c.collected;
-  });
-  const finSecKeys = Object.keys(finSections).sort();
-
-  function buildFinanceRows(classes) {
-    return classes.map(function(c) {
-      const fill2 = c.pct>=70 ? 'linear-gradient(90deg,#0a6e3f,#16a34a)' :
-                    c.pct>=40 ? 'linear-gradient(90deg,#f59e0b,#ea580c)' :
-                                'linear-gradient(90deg,#ef4444,#be123c)';
-      return '<tr>' +
-        '<td><strong>' + c.name + '</strong></td>' +
-        '<td>' + c.enrollments.length + '</td>' +
-        '<td style="color:var(--ink-3);font-size:.75rem">' + fmt(c.expected) + '</td>' +
-        '<td style="font-weight:800;color:#16a34a">' + fmt(c.collected) + '</td>' +
-        '<td><div style="display:flex;align-items:center;gap:8px;min-width:90px">' +
-          '<div class="db-prog-track" style="flex:1"><div class="db-prog-fill" style="width:' + c.pct + '%;background:' + fill2 + '"></div></div>' +
-          '<span style="font-size:.7rem;font-weight:800;min-width:28px">' + c.pct + '%</span>' +
-        '</div></td>' +
-      '</tr>';
-    }).join('');
-  }
-
-  document.getElementById('financeSections').innerHTML = finSecKeys.length
-    ? finSecKeys.map(function(sec, idx) {
-        const s = finSections[sec];
-        const pct = s.expected > 0 ? Math.min(100, Math.round(s.collected / s.expected * 100)) : 0;
-        const col = pct >= 70 ? '#16a34a' : pct >= 40 ? '#f59e0b' : '#ef4444';
-        const totalEnr = s.classes.reduce((t,c) => t + c.enrollments.length, 0);
-        const innerRows = buildFinanceRows(s.classes);
-        return (
-          '<div class="db-sec-block" id="fin-sec-' + idx + '">' +
-            '<div class="db-sec-hdr" onclick="toggleSection(\'fin-sec-' + idx + '\')">' +
-              '<div class="db-sec-title">' + sec + '</div>' +
-              '<div class="db-sec-meta">' + s.classes.length + ' class' + (s.classes.length !== 1 ? 'es' : '') + ' &middot; ' + totalEnr + ' enrolled</div>' +
-              '<div style="min-width:130px;margin:0 12px">' +
-                '<div style="display:flex;justify-content:space-between;font-size:.65rem;font-weight:700">' +
-                  '<span style="color:' + col + '">' + fmt(s.collected) + '</span>' +
-                  '<span style="color:var(--ink-3)">' + pct + '%</span>' +
-                '</div>' +
-                '<div class="db-sec-mini-prog"><div class="db-sec-mini-fill" style="width:' + pct + '%;background:' + col + '"></div></div>' +
-              '</div>' +
-              '<i class="fa-solid fa-chevron-right db-sec-chevron"></i>' +
-            '</div>' +
-            '<div class="db-sec-body">' +
-              '<table class="db-table">' +
-                '<thead><tr><th>Class</th><th>Enrolled</th><th>Expected</th><th>Collected</th><th>Rate</th></tr></thead>' +
-                '<tbody>' + innerRows + '</tbody>' +
-              '</table>' +
-            '</div>' +
-          '</div>'
-        );
+  document.getElementById('feeProgressList').innerHTML = feeByClass.length
+    ? feeByClass.map(c=>{
+        const good = c.pct>=70;
+        const fill = good ? 'linear-gradient(90deg,#0a6e3f,#16a34a)' : c.pct>=40 ? 'linear-gradient(90deg,#f59e0b,#ea580c)' : 'linear-gradient(90deg,#ef4444,#be123c)';
+        return `<div class="db-fee-row">
+          <div class="db-fee-head">
+            <span class="db-fee-name">${c.name} <span style="font-weight:400;color:var(--ink-3);font-size:.68rem">(${c.enrolled} enrolled)</span></span>
+            <span class="db-fee-pct">${c.pct}%</span>
+          </div>
+          <div class="db-prog-track"><div class="db-prog-fill" style="width:${c.pct}%;background:${fill}"></div></div>
+        </div>`;
       }).join('')
-    : '<div class="db-empty"><i class="fa-solid fa-sack-dollar"></i><span>No fee data available</span></div>';
+    : `<div class="db-empty"><i class="fa-solid fa-sack-dollar"></i><span>No fee data available</span></div>`;
 
   /* ═══════════════════════════════════════════════
      13. RECENT PAYMENTS
@@ -1046,58 +970,24 @@
   /* ═══════════════════════════════════════════════
      14. CLASSES OVERVIEW
   ═══════════════════════════════════════════════ */
-  /* ── Group classes by section ── */
-  const clsSections = {};
-  allClasses.forEach(function(cls) {
-    const sec = getSection(cls);
-    if (!clsSections[sec]) clsSections[sec] = [];
-    clsSections[sec].push(cls);
-  });
-  const clsSecKeys = Object.keys(clsSections).sort();
-
-  function buildClassRows(classes) {
-    return classes.map(function(cls) {
-      const attRow = classAttendMap[cls.id];
-      const attPct = attRow && attRow.total > 0 ? Math.round(attRow.present / attRow.total * 100) : null;
-      const bc = attPct === null ? 'dbb-gray' : attPct >= 80 ? 'dbb-green' : attPct >= 60 ? 'dbb-amber' : 'dbb-red';
-      const ic = attPct === null ? 'fa-minus' : attPct >= 80 ? 'fa-circle-check' : attPct >= 60 ? 'fa-circle-exclamation' : 'fa-circle-xmark';
-      return '<tr>' +
-        '<td><strong>' + cls.name + '</strong></td>' +
-        '<td>' + cls.enrollments.length + '</td>' +
-        '<td><span class="dbb ' + bc + '"><i class="fa-solid ' + ic + '"></i>' + (attPct !== null ? attPct + '%' : '—') + '</span></td>' +
-        '<td><a href="attendance.html" style="font-size:.7rem;color:var(--primary);font-weight:600;">Take att.</a></td>' +
-      '</tr>';
-    }).join('');
-  }
-
-  document.getElementById('classOverviewBody').innerHTML = clsSecKeys.length
-    ? clsSecKeys.map(function(sec, idx) {
-        const classes  = clsSections[sec];
-        const totalEnr = classes.reduce((t,c) => t + c.enrollments.length, 0);
-        const attRows  = classes.map(c => classAttendMap[c.id]).filter(Boolean);
-        const secPres  = attRows.reduce((t,a) => t + a.present, 0);
-        const secTot   = attRows.reduce((t,a) => t + a.total,   0);
-        const secAtt   = secTot > 0 ? Math.round(secPres / secTot * 100) : null;
-        const secBadge = secAtt === null ? 'dbb-gray' : secAtt >= 80 ? 'dbb-green' : secAtt >= 60 ? 'dbb-amber' : 'dbb-red';
-        const innerRows = buildClassRows(classes);
-        return (
-          '<div class="db-sec-block" id="cls-sec-' + idx + '">' +
-            '<div class="db-sec-hdr" onclick="toggleSection(\'cls-sec-' + idx + '\')">' +
-              '<div class="db-sec-title">' + sec + '</div>' +
-              '<div class="db-sec-meta">' + classes.length + ' class' + (classes.length !== 1 ? 'es' : '') + ' &middot; ' + totalEnr + ' students</div>' +
-              '<span class="dbb ' + secBadge + '" style="margin:0 8px">' + (secAtt !== null ? secAtt + '% today' : 'No att. data') + '</span>' +
-              '<i class="fa-solid fa-chevron-right db-sec-chevron"></i>' +
-            '</div>' +
-            '<div class="db-sec-body">' +
-              '<table class="db-table">' +
-                '<thead><tr><th>Class</th><th>Enrolled</th><th>Today\'s Attendance</th><th></th></tr></thead>' +
-                '<tbody>' + innerRows + '</tbody>' +
-              '</table>' +
-            '</div>' +
-          '</div>'
-        );
-      }).join('')
-    : '<div class="db-empty"><i class="fa-solid fa-building-columns"></i><span>No classes found</span></div>';
+  document.getElementById('classOverviewBody').innerHTML = allClasses.length
+    ? `<table class="db-table">
+        <thead><tr><th>Class</th><th>Level</th><th>Enrolled</th><th>Attendance</th></tr></thead>
+        <tbody>${allClasses.map(cls=>{
+          const enrolled = cls.enrollments.length;
+          const attRow   = classAttendMap[cls.id];
+          const attPct   = attRow&&attRow.total>0?Math.round(attRow.present/attRow.total*100):null;
+          const badgeCls = attPct===null?'dbb-gray':attPct>=80?'dbb-green':attPct>=60?'dbb-amber':'dbb-red';
+          const ico      = attPct===null?'fa-minus':attPct>=80?'fa-circle-check':attPct>=60?'fa-circle-exclamation':'fa-circle-xmark';
+          return `<tr>
+            <td><strong>${cls.name}</strong></td>
+            <td>${cls.level?`<span class="dbb dbb-gray" style="font-size:.62rem">${cls.level}</span>`:'—'}</td>
+            <td>${enrolled}</td>
+            <td><span class="dbb ${badgeCls}"><i class="fa-solid ${ico}"></i>${attPct!==null?attPct+'%':'—'}</span></td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>`
+    : `<div class="db-empty"><i class="fa-solid fa-building-columns"></i><span>No classes found</span></div>`;
 
   /* ═══════════════════════════════════════════════
      15. RECENT STUDENTS
