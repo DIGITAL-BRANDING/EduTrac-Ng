@@ -31,6 +31,9 @@
     .toggle input:checked+.slider:before { transform:translateX(20px); }
     .upload-zone { border:2px dashed var(--border);border-radius:var(--radius);padding:24px;text-align:center;cursor:pointer;transition:var(--transition); }
     .upload-zone:hover { border-color:var(--primary);background:var(--primary-light); }
+    .no-term-banner { background:var(--warning-light,#fffbeb);border:1.5px solid var(--warning,#f59e0b);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--warning-dark,#92400e); }
+    .no-term-banner strong { font-weight:700; }
+    .no-term-banner a { color:var(--primary);font-weight:600;cursor:pointer;text-decoration:underline; }
   </style>
 </head>
 <body>
@@ -41,11 +44,13 @@
 <script>
 let currentUser, classes=[], subjects=[], terms=[], gradingScale=[], combinations=[], dashSettings={};
 
+// ── BOOT ──────────────────────────────────────────────────────
 (async()=>{
   currentUser = await initAdminLayout('settings','Settings');
   if(!currentUser) return;
-  renderPage();
+  // Load all data FIRST, then render page and default tab
   await loadAll();
+  renderPage();
 })();
 
 function renderPage(){
@@ -63,20 +68,20 @@ function renderPage(){
       <button class="tab" onclick="showTab('stuaccounts',this)">👤 Student Logins</button>
     </div>
     <div id="settingsContent"></div>`;
-  showTab('school', document.querySelector('.tab'));
+  // Render first tab now that data is loaded
+  renderSchool();
 }
 
-function showTab(tab,btn){
+async function showTab(tab, btn){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   if(btn) btn.classList.add('active');
-  
-  // Show loading state while async render completes
-  document.getElementById('settingsContent').innerHTML = '<div style="padding:24px;text-align:center;"><div style="font-size:24px;margin-bottom:12px;">⏳</div><p>Loading...</p></div>';
-  
-  // Call the render function and let it handle its own async operations
-  ({school:renderSchool,terms:renderTerms,classes:renderClasses,subjects:renderSubjects,
-    combinations:renderCombinations,grading:renderGrading,exams:renderExams,
-    portals:renderPortalControls,stuaccounts:renderStudentAccounts})[tab]?.();
+  document.getElementById('settingsContent').innerHTML =
+    '<div style="padding:24px;text-align:center;"><div style="font-size:24px;margin-bottom:12px;">⏳</div><p>Loading…</p></div>';
+  await ({
+    school:renderSchool, terms:renderTerms, classes:renderClasses,
+    subjects:renderSubjects, combinations:renderCombinations, grading:renderGrading,
+    exams:renderExams, portals:renderPortalControls, stuaccounts:renderStudentAccounts
+  })[tab]?.();
 }
 
 async function loadAll(){
@@ -89,6 +94,22 @@ async function loadAll(){
     db.from('dashboard_settings').select('*').eq('school_id',currentUser.school_id).maybeSingle()
   ]);
   classes=cls||[]; subjects=sub||[]; terms=trm||[]; gradingScale=scale||[]; combinations=combos||[]; dashSettings=dash||{};
+}
+
+// ── CURRENT TERM HELPERS ──────────────────────────────────────
+function getCurrentTerm(){ return terms.find(t=>t.is_current)||null; }
+
+/** Returns the no-term warning banner HTML. switchToTerms=true shows a link to the Terms tab. */
+function noTermBanner(msg=''){
+  const base = msg || 'No current term is set. You must <a onclick="showTab(\'terms\',document.querySelectorAll(\'.tab\')[1])">set a current term</a> before proceeding.';
+  return `<div class="no-term-banner">⚠️ <span>${base}</span></div>`;
+}
+
+/** Guard: shows a toast + returns false if no current term exists. */
+function requireCurrentTerm(actionLabel='this action'){
+  if(getCurrentTerm()) return true;
+  toast(`Set a current term first before ${actionLabel}.`,'warning');
+  return false;
 }
 
 // ── SCHOOL & LOGO ─────────────────────────────────────────────
@@ -150,7 +171,6 @@ async function handleLogoUpload(input){
     document.getElementById('logoBar').style.width='100%';
     document.getElementById('logoStatus').textContent='Uploaded!';
     document.getElementById('logoPreview').innerHTML=`<img src="${logoUrl}" style="width:100%;height:100%;object-fit:cover;">`;
-    // Update sidebar icon
     const icon=document.querySelector('.sidebar__logo-icon');
     if(icon) icon.innerHTML=`<img src="${logoUrl}" style="width:36px;height:36px;border-radius:7px;object-fit:cover;">`;
     toast('Logo uploaded!','success');
@@ -183,61 +203,95 @@ async function saveSchool(){
 
 // ── TERMS ─────────────────────────────────────────────────────
 function renderTerms(){
+  const currentTerm = getCurrentTerm();
   document.getElementById('settingsContent').innerHTML=`
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:800px;">
       <div class="card">
-        <div class="card__header"><span class="card__title">Terms</span></div>
+        <div class="card__header"><span class="card__title">Terms</span>
+          ${currentTerm
+            ? `<span class="badge badge--green" style="font-size:11px;">Active: ${currentTerm.name}</span>`
+            : `<span class="badge badge--yellow" style="font-size:11px;">⚠️ No current term</span>`}
+        </div>
         <div id="termsList">
           ${terms.map(t=>`
             <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
               <div><div style="font-weight:600;">${t.name}</div>
               <div style="font-size:12px;color:var(--ink-3);">${t.start_date?formatDate(t.start_date)+' – '+formatDate(t.end_date):'No dates'}</div></div>
               <div style="display:flex;gap:6px;align-items:center;">
-                ${t.is_current?'<span class="badge badge--green">Current</span>':`<button class="btn btn--secondary btn--sm" onclick="setCurrentTerm('${t.id}')">Set Current</button>`}
+                ${t.is_current
+                  ? '<span class="badge badge--green">✓ Current</span>'
+                  : `<button class="btn btn--secondary btn--sm" onclick="setCurrentTerm('${t.id}')">Set Current</button>`}
                 <button class="btn btn--ghost btn--sm" onclick="deleteTerm('${t.id}')">🗑</button>
               </div>
-            </div>`).join('')||'<p style="color:var(--ink-3);">No terms yet.</p>'}
+            </div>`).join('')||'<p style="color:var(--ink-3);">No terms yet. Add your first term →</p>'}
         </div>
       </div>
       <div class="card">
         <div class="card__header"><span class="card__title">Add Term</span></div>
-        <div class="form-group"><label class="form-label">Name</label><input id="newTermName" class="form-control" placeholder="First Term 2024/25"></div>
+        ${!currentTerm && terms.length>0 ? noTermBanner('You have terms but none is set as current. Click <strong>Set Current</strong> on the term you want to activate.') : ''}
+        <div class="form-group"><label class="form-label">Name <span class="required">*</span></label><input id="newTermName" class="form-control" placeholder="First Term 2024/25"></div>
         <div class="form-group"><label class="form-label">Start Date</label><input type="date" id="newTermStart" class="form-control"></div>
         <div class="form-group"><label class="form-label">End Date</label><input type="date" id="newTermEnd" class="form-control"></div>
-        <button class="btn btn--primary" onclick="addTerm()">+ Add</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn--primary" onclick="addTerm(false)">+ Add Term</button>
+          <button class="btn btn--secondary" onclick="addTerm(true)" title="Add and immediately make it the current term">+ Add & Set Current</button>
+        </div>
+        <p style="font-size:12px;color:var(--ink-3);margin-top:10px;">💡 <strong>Add & Set Current</strong> adds the term and activates it in one step.</p>
       </div>
     </div>`;
 }
-async function addTerm(){
+
+async function addTerm(setAsCurrent=false){
   const name=document.getElementById('newTermName').value.trim();
-  if(!name){toast('Enter name.','error');return;}
-  await db.from('terms').insert({school_id:currentUser.school_id,name,
-    start_date:document.getElementById('newTermStart').value||null,
-    end_date:document.getElementById('newTermEnd').value||null});
-  await loadAll(); renderTerms(); toast('Term added!','success');
+  if(!name){toast('Enter a term name.','error');return;}
+  const start=document.getElementById('newTermStart').value||null;
+  const end=document.getElementById('newTermEnd').value||null;
+
+  // Insert the new term
+  const{data:newTerm,error}=await db.from('terms').insert({
+    school_id:currentUser.school_id, name,
+    start_date:start, end_date:end
+  }).select().single();
+
+  if(error){toast('Error: '+error.message,'error');return;}
+
+  // If requested, or if there are no other terms yet, set as current
+  if(setAsCurrent || terms.length===0){
+    await db.from('terms').update({is_current:false}).eq('school_id',currentUser.school_id);
+    await db.from('terms').update({is_current:true}).eq('id',newTerm.id);
+  }
+
+  await loadAll();
+  renderTerms();
+  toast(setAsCurrent||terms.length===0 ? `Term added and set as current! ✅` : 'Term added!','success');
 }
+
 async function setCurrentTerm(id){
   await db.from('terms').update({is_current:false}).eq('school_id',currentUser.school_id);
   await db.from('terms').update({is_current:true}).eq('id',id);
-  await loadAll(); renderTerms(); toast('Current term set!','success');
+  await loadAll();
+  renderTerms();
+  toast('Current term updated! ✅','success');
 }
+
 async function deleteTerm(id){
-  if(!confirm('Delete term?')) return;
+  const t=terms.find(x=>x.id===id);
+  if(t?.is_current && !confirm('This is the current term. Deleting it means no term will be active. Continue?')) return;
+  if(!t?.is_current && !confirm('Delete this term?')) return;
   await db.from('terms').delete().eq('id',id);
-  await loadAll(); renderTerms();
+  await loadAll();
+  renderTerms();
 }
 
 // ── CLASSES ───────────────────────────────────────────────────
 async function renderClasses(){
-  // Reload classes and combinations from database
   const [{ data: cls }, { data: combos }] = await Promise.all([
     db.from('classes').select('id,name,level,combination_id').eq('school_id',currentUser.school_id).order('name'),
     db.from('subject_combinations').select('id,name,color').eq('school_id',currentUser.school_id).order('name')
   ]);
-  
   classes = cls || [];
   combinations = combos || [];
-  
+
   document.getElementById('settingsContent').innerHTML=`
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:800px;">
       <div class="card">
@@ -252,7 +306,7 @@ async function renderClasses(){
               </div>
               <button class="btn btn--ghost btn--sm" onclick="deleteClass('${c.id}')">🗑</button>
             </div>`;
-          }).join('')||'<p style="color:var(--ink-3);">No classes.</p>'}
+          }).join('')||'<p style="color:var(--ink-3);">No classes yet.</p>'}
         </div>
       </div>
       <div class="card">
@@ -272,6 +326,7 @@ async function renderClasses(){
       </div>
     </div>`;
 }
+
 async function addClass(){
   const name=document.getElementById('newClassName').value.trim();
   if(!name){toast('Enter a class name.','error');return;}
@@ -279,21 +334,23 @@ async function addClass(){
     level:document.getElementById('newClassLevel').value||null,
     combination_id:document.getElementById('newClassCombo').value||null});
   if(error){toast('Error: '+error.message,'error');return;}
-  document.getElementById('newClassName').value = '';
-  document.getElementById('newClassLevel').value = '';
-  document.getElementById('newClassCombo').value = '';
+  document.getElementById('newClassName').value='';
+  document.getElementById('newClassLevel').value='';
+  document.getElementById('newClassCombo').value='';
   await renderClasses();
   toast('Class added!','success');
 }
+
 async function bulkAddClasses(){
   const names=document.getElementById('bulkClasses').value.split(',').map(n=>n.trim()).filter(Boolean);
   if(!names.length) return;
   const{error}=await db.from('classes').insert(names.map(name=>({school_id:currentUser.school_id,name})));
   if(error){toast('Error: '+error.message,'error');return;}
-  document.getElementById('bulkClasses').value = '';
+  document.getElementById('bulkClasses').value='';
   await renderClasses();
   toast(`${names.length} classes added!`,'success');
 }
+
 async function deleteClass(id){
   if(!confirm('Delete class?')) return;
   await db.from('classes').delete().eq('id',id);
@@ -330,6 +387,7 @@ function renderSubjects(){
       </div>
     </div>`;
 }
+
 async function addSubject(){
   const name=document.getElementById('newSubName').value.trim();
   if(!name){toast('Enter name.','error');return;}
@@ -337,12 +395,14 @@ async function addSubject(){
   if(error){toast(error.message,'error');return;}
   await loadAll(); renderSubjects(); toast('Subject added!','success');
 }
+
 async function bulkAddSubjects(){
   const names=document.getElementById('bulkSubs').value.split(',').map(n=>n.trim()).filter(Boolean);
   if(!names.length) return;
   await db.from('subjects').upsert(names.map(name=>({school_id:currentUser.school_id,name})),{onConflict:'school_id,name'});
   await loadAll(); renderSubjects(); toast(`${names.length} subjects added!`,'success');
 }
+
 async function addDefaultSubjects(){
   const defaults=[
     {name:'English Language',code:'ENG'},{name:'Mathematics',code:'MTH'},
@@ -364,6 +424,7 @@ async function addDefaultSubjects(){
   await db.from('subjects').upsert(defaults.map(s=>({school_id:currentUser.school_id,...s})),{onConflict:'school_id,name'});
   await loadAll(); renderSubjects(); toast('30 standard subjects loaded!','success');
 }
+
 async function deleteSubject(id){
   if(!confirm('Delete subject?')) return;
   await db.from('subjects').delete().eq('id',id);
@@ -374,21 +435,17 @@ async function deleteSubject(id){
 let activeComboId=null;
 
 async function renderCombinations(){
-  // First, show loading state
   document.getElementById('settingsContent').innerHTML=`
     <div style="padding:24px;text-align:center;">
       <div style="font-size:24px;margin-bottom:12px;">⏳</div>
-      <p>Loading combinations...</p>
-    </div>
-  `;
-  
-  // Reload combinations from database
+      <p>Loading combinations…</p>
+    </div>`;
+
   const { data: combos } = await db.from('subject_combinations')
     .select('*').eq('school_id', currentUser.school_id).order('name');
   combinations = combos || [];
-  activeComboId = null;  // Reset selection
-  
-  // Now render the page
+  activeComboId = null;
+
   document.getElementById('settingsContent').innerHTML=`
     <div style="max-width:960px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
@@ -455,19 +512,12 @@ async function saveNewCombo(){
     color:document.getElementById('comboColor').value,
     description:document.getElementById('comboDesc').value||null
   });
-  
-  if (error) {
-    toast('Error: ' + error.message, 'error');
-    return;
-  }
-  
-  document.getElementById('comboName').value = '';
-  document.getElementById('comboColor').value = '#2563eb';
-  document.getElementById('comboDesc').value = '';
+  if (error) { toast('Error: ' + error.message, 'error'); return; }
+  document.getElementById('comboName').value='';
+  document.getElementById('comboColor').value='#2563eb';
+  document.getElementById('comboDesc').value='';
   toggleAddCombo();
   toast('Combination added!','success');
-  
-  // Reload combinations and re-render
   await renderCombinations();
 }
 
@@ -509,10 +559,8 @@ async function selectCombo(id){
         <span id="coreCount">${Object.values(aMap).filter(v=>v).length}</span> core · 
         <span id="electiveCount">${Object.values(aMap).filter(v=>!v).length}</span> elective
       </div>
-    </div>
-  `;
+    </div>`;
 
-  // Highlight selected card
   document.querySelectorAll('.combo-card').forEach(c=>{
     const isActive=c.onclick?.toString().includes(`'${id}'`);
     c.classList.toggle('selected',isActive);
@@ -535,7 +583,6 @@ function cycleChip(subjectId, name, code){
     chip.dataset.state='unassigned'; chip.className='subject-chip unassigned';
     chip.innerHTML=`${display} <span style="font-size:10px;"></span>`;
   }
-  // Update counts
   const chips=[...document.querySelectorAll('#chipArea .subject-chip')];
   const coreCount=chips.filter(c=>c.dataset.state==='core').length;
   const elecCount=chips.filter(c=>c.dataset.state==='elective').length;
@@ -563,7 +610,7 @@ async function deleteCombo(id){
   if(!confirm('Delete this combination?')) return;
   if(activeComboId===id) activeComboId=null;
   await db.from('subject_combinations').delete().eq('id',id);
-  await loadAll(); renderCombinations();
+  await loadAll(); await renderCombinations();
 }
 
 async function loadNigerianCombinations(){
@@ -608,7 +655,7 @@ function renderGrading(){
               <td style="color:var(--ink-3);">${g.remark||'—'}</td>
               <td><button class="btn btn--ghost btn--sm" onclick="deleteGrade('${g.id}')">🗑</button></td>
             </tr>`).join('')}</tbody></table>
-          </div>`:'<p style="color:var(--ink-3);">No grading scale.</p>'}
+          </div>`:'<p style="color:var(--ink-3);">No grading scale yet.</p>'}
         <button class="btn btn--secondary btn--sm btn--full" style="margin-top:12px;" onclick="addNigerianGrading()">⚡ Load Nigerian A1–F9</button>
       </div>
       <div class="card">
@@ -623,6 +670,7 @@ function renderGrading(){
       </div>
     </div>`;
 }
+
 async function addNigerianGrading(){
   await db.from('grading_scales').delete().eq('school_id',currentUser.school_id);
   await db.from('grading_scales').insert([
@@ -636,8 +684,9 @@ async function addNigerianGrading(){
     {grade:'E8',min_score:40,max_score:44,remark:'Pass'},
     {grade:'F9',min_score:0,max_score:39,remark:'Fail'},
   ].map(s=>({school_id:currentUser.school_id,...s})));
-  await loadAll(); renderGrading(); toast('Nigerian grading loaded!','success');
+  await loadAll(); renderGrading(); toast('Nigerian A1–F9 grading loaded!','success');
 }
+
 async function addGrade(){
   const grade=document.getElementById('gGrade').value.trim();
   const min=Number(document.getElementById('gMin').value);
@@ -646,6 +695,7 @@ async function addGrade(){
   await db.from('grading_scales').insert({school_id:currentUser.school_id,grade,min_score:min,max_score:max,remark:document.getElementById('gRemark').value||null});
   await loadAll(); renderGrading();
 }
+
 async function deleteGrade(id){
   await db.from('grading_scales').delete().eq('id',id);
   await loadAll(); renderGrading();
@@ -653,8 +703,13 @@ async function deleteGrade(id){
 
 // ── EXAMS ─────────────────────────────────────────────────────
 function renderExams(){
+  const currentTerm = getCurrentTerm();
   document.getElementById('settingsContent').innerHTML=`
     <div style="max-width:640px;">
+      ${!currentTerm ? noTermBanner('You must <a onclick="showTab(\'terms\',document.querySelectorAll(\'.tab\')[1])">set a current term</a> before adding exam components. Exams are linked to a term.') : `
+      <div class="card" style="margin-bottom:12px;background:var(--success-light,#f0fdf4);border-color:var(--success,#16a34a);">
+        <p style="font-size:13px;color:var(--success-dark,#14532d);">📅 Current term: <strong>${currentTerm.name}</strong>. New exam components will be linked to this term.</p>
+      </div>`}
       <div class="card" style="margin-bottom:20px;">
         <div class="card__header"><span class="card__title">Exam Components</span></div>
         <div id="examList"><div class="et-loader"><div class="et-spinner"></div></div></div>
@@ -666,15 +721,18 @@ function renderExams(){
           <div class="form-group"><label class="form-label">Max Score</label><input type="number" id="exMax" class="form-control" placeholder="100"></div>
           <div class="form-group"><label class="form-label">Weight</label><input type="number" id="exWeight" class="form-control" value="1"></div>
         </div>
-        <button class="btn btn--primary" onclick="addExam()">+ Add</button>
-        <button class="btn btn--secondary" style="margin-left:8px;" onclick="addDefaultExams()">⚡ Load CA1+CA2+Exam</button>
+        <button class="btn btn--primary" onclick="addExam()" ${!currentTerm?'disabled title="Set a current term first"':''}>+ Add</button>
+        <button class="btn btn--secondary" style="margin-left:8px;" onclick="addDefaultExams()" ${!currentTerm?'disabled title="Set a current term first"':''}>⚡ Load CA1+CA2+Exam</button>
       </div>
     </div>`;
   loadExams();
 }
+
 async function loadExams(){
   const{data}=await db.from('exams').select('*').eq('school_id',currentUser.school_id).order('name');
-  document.getElementById('examList').innerHTML=data?.length?`
+  const examListEl=document.getElementById('examList');
+  if(!examListEl) return;
+  examListEl.innerHTML=data?.length?`
     <table style="width:100%;font-size:14px;border-collapse:collapse;">
       <thead><tr style="background:var(--surface-3);">
         <th style="padding:8px 12px;text-align:left;">Name</th>
@@ -690,15 +748,20 @@ async function loadExams(){
       </tr>`).join('')}</tbody>
     </table>`:'<p style="color:var(--ink-3);">No exam components yet.</p>';
 }
+
 async function addExam(){
+  if(!requireCurrentTerm('adding an exam component')) return;
   const name=document.getElementById('exName').value.trim();
   const max=Number(document.getElementById('exMax').value);
   if(!name||!max){toast('Fill name and max score.','error');return;}
-  await db.from('exams').insert({school_id:currentUser.school_id,name,max_score:max,weight:Number(document.getElementById('exWeight').value)||1,term_id:terms.find(t=>t.is_current)?.id||null});
+  const termId=getCurrentTerm().id;
+  await db.from('exams').insert({school_id:currentUser.school_id,name,max_score:max,weight:Number(document.getElementById('exWeight').value)||1,term_id:termId});
   renderExams(); toast('Added!','success');
 }
+
 async function addDefaultExams(){
-  const termId=terms.find(t=>t.is_current)?.id||null;
+  if(!requireCurrentTerm('loading default exam components')) return;
+  const termId=getCurrentTerm().id;
   await db.from('exams').upsert([
     {school_id:currentUser.school_id,name:'CA 1',max_score:20,weight:1,term_id:termId},
     {school_id:currentUser.school_id,name:'CA 2',max_score:20,weight:1,term_id:termId},
@@ -706,6 +769,7 @@ async function addDefaultExams(){
   ],{onConflict:'school_id,name'});
   renderExams(); toast('Standard components added!','success');
 }
+
 async function deleteExam(id){
   if(!confirm('Delete?')) return;
   await db.from('exams').delete().eq('id',id);
@@ -840,6 +904,7 @@ async function toggleStu(id,val){
   const s=window._stuList?.find(s=>s.id===id); if(s) s.can_login=val;
   toast(`Login ${val?'enabled':'disabled'}.`,'success');
 }
+
 async function saveStuPin(id){
   const pin=document.getElementById(`pin-${id}`)?.value?.trim();
   if(!pin||pin.length<4){toast('PIN must be 4+ characters.','error');return;}
@@ -847,11 +912,13 @@ async function saveStuPin(id){
   const s=window._stuList?.find(s=>s.id===id); if(s){s.pin=pin;s.can_login=true;}
   toast('PIN saved! Login enabled.','success');
 }
+
 async function enableAll(){
   if(!confirm('Enable login for all students?')) return;
   await db.from('students').update({can_login:true}).eq('school_id',currentUser.school_id).eq('is_active',true);
   toast('All student logins enabled!','success'); renderStudentAccounts();
 }
+
 async function disableAll(){
   if(!confirm('Disable all student logins?')) return;
   await db.from('students').update({can_login:false}).eq('school_id',currentUser.school_id);
