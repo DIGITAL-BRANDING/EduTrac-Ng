@@ -6,9 +6,11 @@
  *     Example: 'https://edutrac-backend-production.up.railway.app'
  *   - Leave as '' only when client and server are on the same origin.
  */
-window.__EDUTRAC_CONFIG__ = {
-  SUPABASE_URL:      'https://nbgdjwuoiglkrmdeezsk.supabase.co',
-  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5iZ2Rqd3VvaWdsa3JtZGVlenNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxODM5ODgsImV4cCI6MjA4OTc1OTk4OH0.x2pGldYnTMZSNMARQ2H4IBIWrUL2OtVQVOoWzkhU_Xg',
+// js/config.js
+// Values are injected by Netlify at build time via _headers or snippet injection.
+// Fallback to empty string — will fail gracefully if not set.
+const SUPABASE_URL = window.__ENV__?.SUPABASE_URL || '';
+const SUPABASE_ANON_KEY = window.__ENV__?.SUPABASE_ANON_KEY || '';
 
   // ⬇ Set this to your Railway backend URL after deploying the server.
   // Example: 'https://edutrac-backend-production.up.railway.app'
