@@ -9,9 +9,8 @@
 // js/config.js
 // Values are injected by Netlify at build time via _headers or snippet injection.
 // Fallback to empty string — will fail gracefully if not set.
-const SUPABASE_URL = window.__ENV__?.SUPABASE_URL || '';
-const SUPABASE_ANON_KEY = window.__ENV__?.SUPABASE_ANON_KEY || '';
-
+const SUPABASE_URL      = (window.__EDUTRAC_CONFIG__ || {}).SUPABASE_URL;
+const SUPABASE_ANON_KEY = (window.__EDUTRAC_CONFIG__ || {}).SUPABASE_ANON_KEY;
   // ⬇ Set this to your Railway backend URL after deploying the server.
   // Example: 'https://edutrac-backend-production.up.railway.app'
   API_BASE_URL: 'https://edutrac-ng-production.up.railway.app',
