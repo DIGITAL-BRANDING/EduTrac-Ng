@@ -121,6 +121,10 @@
     @media(max-width:860px){.l-pane{display:none;}.r-pane{width:100%;padding:36px 24px;background:white;}body{background:white;}}
     @media(max-width:480px){.demo-grid{grid-template-columns:1fr;}}
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
+  <script src="js/config.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="api/auth.js"></script>
 </head>
 <body>
   <!-- Left Pane -->
@@ -344,10 +348,6 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
-  <script src="js/config.js"></script>
-  <script src="js/supabase.js"></script>
-  <script src="api/auth.js"></script>
   <script>
     (async () => {
       const session = await getSession();
