@@ -1,12 +1,23 @@
 // ============================================================
 //  EduTrack NG — Supabase Client & Shared Utilities
-//  Credentials are loaded from js/config.js (never hardcoded here)
+//  Credentials are loaded from Netlify Snippet Injection
 // ============================================================
+
 const SUPABASE_URL      = (window.__EDUTRAC_CONFIG__ || {}).SUPABASE_URL;
 const SUPABASE_ANON_KEY = (window.__EDUTRAC_CONFIG__ || {}).SUPABASE_ANON_KEY;
 
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  console.error(
+    '❌ EduTrack NG: SUPABASE_URL or SUPABASE_ANON_KEY missing.\n' +
+    'Check: Netlify → Site config → Build & deploy → Post processing → Snippet injection'
+  );
+}
+
 const { createClient } = window.supabase;
-const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+var db = (SUPABASE_URL && SUPABASE_ANON_KEY)
+  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
+
 
 // ── Path Helpers ─────────────────────────────────────────────
 // Returns correct relative path to root based on actual folder depth
