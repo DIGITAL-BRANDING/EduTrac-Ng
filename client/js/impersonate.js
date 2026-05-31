@@ -35,9 +35,10 @@
     if (!user) return;
 
     const roleLabels = {
-      teacher: 'Teacher', vp_academic: 'VP Academic',
-      vp_admin: 'VP Admin', bursar: 'Bursar',
-      admin: 'Admin', staff: 'Staff'
+      teacher: 'Teacher', exam_officer: 'Exam Officer',
+      vp_academic: 'VP Academic', vp_admin: 'VP Admin',
+      registrar: 'Registrar', accountant: 'Accountant',
+      bursar_officer: 'Bursary Officer', admin: 'Admin', staff: 'Staff'
     };
     const roleLabel = roleLabels[user.role] || user.role;
 
