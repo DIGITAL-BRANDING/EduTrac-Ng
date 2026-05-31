@@ -90,7 +90,8 @@ async function loadNotifications(){
     .from('notifications')
     .select('id,title,body,type,is_read,created_at')
     .eq('school_id', session.school_id)
-    .or(`recipient_id.eq.${session.id},recipient_type.eq.student,recipient_type.eq.all`)
+    .or(`student_id.eq.${session.id},and(recipient_role.eq.student,student_id.is.null),recipient_role.is.null`)
+    .not('recipient_role', 'eq', 'staff')
     .order('created_at', { ascending: false })
     .limit(60);
 
