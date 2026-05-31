@@ -18,14 +18,23 @@
 <div id="app"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
 <script src="../../js/config.js"></script>
+<script src="../../js/supabase.js"></script>
+<script src="../../js/impersonate.js"></script>
 <script src="../../api/database.js"></script>
 <script src="../../api/auth.js"></script>
 <script src="../../api/calculations.js"></script>
 <script src="../../assets/js/sidebar.js"></script>
 <script>
 (async () => {
-  const user = await initPage(['teacher', 'admin'], 'Dashboard', 'dashboard');
-  if (!user) return;
+  // If impersonating, use the overridden getCurrentUser; otherwise use initPage normally
+  let user;
+  if (window._impersonating) {
+    user = await getCurrentUser();
+    if (!user) return;
+  } else {
+    user = await initPage(['teacher', 'admin'], 'Dashboard', 'dashboard');
+    if (!user) return;
+  }
   const body = document.getElementById('pageBody');
 
   // Get current term
@@ -165,8 +174,6 @@ function getGreeting() {
 <script src="/js/pwa-v2.1.js"></script>
 
 <script src="../../js/ai-assistant.js" defer></script>
-  <!-- In portals/staff/index.html -->
-<script src="../../js/supabase.js"></script>
-<script src="../../js/impersonate.js"></script> 
+
 </body>
 </html>
