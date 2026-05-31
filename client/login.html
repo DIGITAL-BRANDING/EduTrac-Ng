@@ -726,9 +726,14 @@ async function verifyStudentIdentity() {
     if (qErr) throw new Error('Verification failed. Please try again.');
     if (!data) throw new Error('Admission number and date of birth do not match our records.');
 
-    // Compare date of birth — stored as YYYY-MM-DD string
+    // Compare date of birth — stored as YYYY-MM-DD string, input may be MM/DD/YYYY
     const storedDOB = (data.date_of_birth || '').substring(0, 10);
-    if (storedDOB !== dob) {
+    let normalizedDOB = dob;
+    if (dob.includes('/')) {
+      const [mm, dd, yyyy] = dob.split('/');
+      normalizedDOB = `${yyyy}-${mm.padStart(2,'0')}-${dd.padStart(2,'0')}`;
+    }
+    if (storedDOB !== normalizedDOB) {
       throw new Error('Admission number and date of birth do not match our records.');
     }
 
@@ -952,7 +957,7 @@ async function submitRegistration() {
 
   <!-- Floating Demo Login Button -->
   <button class="demo-float-btn" onclick="document.getElementById('demoModalOverlay').classList.add('open')" title="Demo logins">
-    🎯 Demo Login
+     Demo Login
   </button>
 
   <!-- Demo Modal -->
@@ -960,7 +965,7 @@ async function submitRegistration() {
     <div class="demo-modal-box">
       <button class="demo-modal-close" onclick="document.getElementById('demoModalOverlay').classList.remove('open')">&times;</button>
       <div class="demo-modal-title">
-        📋 Demo accounts — click to fill
+        Demo accounts — click to fill
       </div>
       <div class="demo-grid">
         <button class="demo-btn" onclick="fillDemoAndClose('admin@demo.school.ng','demo1234')"><strong>Admin</strong><span>admin@demo.school.ng</span></button>
