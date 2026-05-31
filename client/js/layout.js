@@ -354,6 +354,7 @@ async function initAdminLayout(activePage, pageTitle) {
   document.getElementById('app').innerHTML = renderAdminLayout(activePage, pageTitle);
   const user = await requireAuth(['admin']);
   if (!user) return null;
+  window._layoutUser = user; // make available to impersonation modal
   // Update school info
   document.getElementById('schoolName').textContent = user.schools?.name || 'My School';
   document.getElementById('userName').textContent = user.full_name;
