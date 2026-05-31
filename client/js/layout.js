@@ -101,7 +101,7 @@ const _ADMIN_GROUPS = [
       { id:'sp-vp-admin',    icon:_SVG.staff,     label:'VP Admin Portal',       href:'#', onclick:'openImpersonateModal(\'vp_admin\',\'../portals/admin-office/index.html\')' },
       { id:'sp-registrar',   icon:_SVG.idcard,    label:'Registrar Portal',      href:'#', onclick:'openImpersonateModal(\'registrar\',\'../portals/admin-office/index.html\')' },
       { id:'sp-accountant',  icon:_SVG.payment,   label:'Accountant Portal',     href:'#', onclick:'openImpersonateModal(\'accountant\',\'../portals/bursary/index.html\')' },
-      { id:'sp-bursar',      icon:_SVG.money,     label:'Bursary Officer Portal',href:'#', onclick:'openImpersonateModal(\'bursar_officer\',\'../portals/bursary/index.html\')' },
+      { id:'sp-bursar',      icon:_SVG.money,     label:'Bursary Officer Portal',href:'#', onclick:'openImpersonateModal(\'bursary\',\'../portals/bursary/index.html\')' },
     ]
   },
 
@@ -214,7 +214,7 @@ function openImpersonateModal(role, portalUrl) {
     teacher: 'Teacher', exam_officer: 'Exam Officer',
     vp_academic: 'VP Academic', vp_admin: 'VP Admin',
     registrar: 'Registrar', accountant: 'Accountant',
-    bursar_officer: 'Bursary Officer'
+    bursary: 'Bursary Officer'
   };
 
   const modal = document.createElement('div');
