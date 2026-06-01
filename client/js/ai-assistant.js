@@ -1,136 +1,364 @@
 // ============================================================
-//  EduTrack NG — Built-in AI Assistant
-//  Drop ONE line anywhere before </body>:
-//  <script src="/js/assistant.js"></script>
-//  Works on all pages — admin, staff, student, parent, login, landing
+//  EduTrack NG — Built-in AI Assistant (Role-Aware)
+//  Add before </body>: <script src="/js/assistant.js"></script>
 // ============================================================
 
 (function () {
   'use strict';
 
-  // ── Knowledge Base ──────────────────────────────────────────
+  // ── Role Detection ──────────────────────────────────────────
+  function detectRole() {
+    const path = window.location.pathname;
+    if (path.includes('/admin/') || path.includes('saas-console')) return 'admin';
+    if (path.includes('/portals/staff/') || path.includes('/portals/academic-office/')) return 'teacher';
+    if (path.includes('/portals/bursary/')) return 'bursar';
+    if (path.includes('/portals/admin-office/')) return 'vp_admin';
+    if (path.includes('/portals/student/')) return 'student';
+    if (path.includes('/portals/parent/')) return 'parent';
+    return 'guest'; // login, landing pages
+  }
+
+  function getRoleName(role) {
+    return { admin:'Admin', teacher:'Staff / Teacher', bursar:'Bursary Officer',
+      vp_admin:'VP Admin', student:'Student', parent:'Parent', guest:'Guest' }[role] || 'User';
+  }
+
+  function getRoleEmoji(role) {
+    return { admin:'🏫', teacher:'📚', bursar:'💰', vp_admin:'📋',
+      student:'🎒', parent:'👨‍👩‍👧', guest:'👋' }[role] || '👋';
+  }
+
+  // ── Role-Based Knowledge Base ───────────────────────────────
   const KB = {
-    // FAQ & general answers
-    faq: [
-      { q: ['reset password', 'forgot password', 'change password', 'cant login', "can't login"],
-        a: 'To reset your password, click <b>"Forgot Password"</b> on the login page and enter your email. A reset link will be sent to you. If you are an admin resetting a staff password, go to <b>Admin → People & Students → Staff Directory → Reset PW</b>.' },
-      { q: ['register school', 'add school', 'new school', 'sign up'],
-        a: 'To register a new school, click <b>"Register"</b> on the login page and fill in your school details. After registration you will receive a confirmation email.' },
-      { q: ['add student', 'enrol student', 'new student', 'register student'],
-        a: 'Go to <b>Admin → People & Students → All Students → + Add Student</b>. Fill in the student\'s name, admission number, date of birth, class and guardian details.' },
-      { q: ['add staff', 'new staff', 'create staff', 'add teacher'],
-        a: 'Go to <b>Admin → People & Students → Staff Directory → + Add Staff</b>. Fill in their name, role, email and a temporary password. They will use the email and password to log in.' },
-      { q: ['take attendance', 'mark attendance', 'attendance'],
-        a: 'For <b>Staff</b>: Go to your Dashboard → click <b>Attendance</b> on any class card, or use the sidebar Attendance link.\n\nFor <b>Admin</b>: Go to <b>Academics → Attendance</b> to view all records.' },
-      { q: ['enter score', 'add score', 'result', 'score entry', 'grades'],
-        a: 'Teachers go to <b>Dashboard → Score Entry</b> on any class card. Admins can view all results under <b>Academics → Results</b>.' },
-      { q: ['add class', 'create class', 'new class'],
-        a: 'Go to <b>Admin → Academics → Classes → + Add Class</b>. Set the class name, level and assign a form teacher.' },
-      { q: ['assign subject', 'class subject', 'subject assignment'],
-        a: 'Go to <b>Admin → Academics → Class Subjects</b> to assign subjects to classes and link them to teachers.' },
-      { q: ['timetable', 'schedule', 'period'],
-        a: 'Admins can build the timetable under <b>Academics → Timetable Builder</b>. Staff and students can view their own timetable from their portal sidebar.' },
-      { q: ['fees', 'payment', 'invoice', 'billing', 'pay'],
-        a: 'Fee management is under <b>Admin → Finance → Fee Management</b>. You can create fee structures, record payments and generate invoices from there.' },
-      { q: ['scratch card', 'result checker', 'pin'],
-        a: 'Scratch cards for result checking are managed under <b>Admin → Finance → Scratch Cards</b>. Generate and assign cards to students there.' },
-      { q: ['notification', 'announcement', 'message', 'send message'],
-        a: 'Go to <b>Admin → Communications → Announcements</b> to send notifications to staff, students or parents. You can target by class, role or individual.' },
-      { q: ['student portal', 'student login', 'student access'],
-        a: 'Students log in using their <b>Admission Number</b> and <b>Date of Birth</b> at the login page. Select <b>"Student"</b> tab, pick your school, enter details and click Verify Identity.' },
-      { q: ['parent portal', 'parent login', 'guardian'],
-        a: 'Parents access the portal using the link provided by the school. They log in with their registered phone number or email to view their child\'s performance.' },
-      { q: ['id card', 'identity card'],
-        a: 'Staff ID cards can be printed from <b>Staff Portal → ID Card</b>. Admin can access all staff ID cards under <b>Staff Office → Staff ID Cards</b>.' },
-      { q: ['lesson note', 'lesson plan', 'ai lesson'],
-        a: 'Teachers can generate AI-powered lesson notes under <b>E-Learning → Lesson Note AI</b> in the admin or staff portal.' },
-      { q: ['biometric', 'fingerprint', 'check in'],
-        a: 'Biometric attendance check-in is available under <b>Staff Portal → Biometric Attendance</b>. Admins can monitor it under <b>Staff Office → Biometric Check-In</b>.' },
-      { q: ['term', 'session', 'academic year'],
-        a: 'Manage academic terms and sessions under <b>Admin → Operations → Terms & Sessions</b>. Set the current term to activate it across the portal.' },
-      { q: ['deactivate user', 'disable account', 'suspend'],
-        a: 'Go to <b>Admin → People & Students → All Users</b> and click <b>Deactivate</b> next to the user. Deactivated users cannot log in.' },
-      { q: ['impersonate', 'view as staff', 'staff portal', 'staff activities'],
-        a: 'Admins can access any staff portal under <b>Staff Activities</b> in the sidebar. Click the portal, select a staff member from the list, and you will be redirected to their dashboard.' },
-      { q: ['contact support', 'help', 'support', 'problem', 'issue', 'bug'],
-        a: 'For technical support, contact your platform administrator or reach out via the <b>Communications</b> section. You can also check this assistant for common questions.' },
-    ],
 
-    // Page-specific tips keyed by URL path segment
-    pageTips: {
-      'login':          '💡 <b>Tip:</b> Use the <b>Student</b> tab if you are a student logging in with Admission Number + Date of Birth.',
-      'index':          '💡 <b>Tip:</b> Your dashboard shows live data for the current term. Check the <b>Key Metrics</b> section for a quick school overview.',
-      'students':       '💡 <b>Tip:</b> Use the search bar to quickly find a student. Click their name to view full profile, results and attendance history.',
-      'staff':          '💡 <b>Tip:</b> Click <b>Edit</b> to update staff details, assign subjects or change their role. Use <b>Reset PW</b> to help a staff member log in.',
-      'classes':        '💡 <b>Tip:</b> Assign a <b>Form Teacher</b> to each class so the teacher can take attendance and view class students from their portal.',
-      'attendance':     '💡 <b>Tip:</b> Attendance must be taken per class, per day. Use the filter to view records by date, class or teacher.',
-      'results':        '💡 <b>Tip:</b> Results are calculated automatically from scores entered by teachers. Ensure all subjects have scores before publishing.',
-      'fees':           '💡 <b>Tip:</b> Create a fee structure first, then assign it to students. You can record partial payments and track balances.',
-      'timetable':      '💡 <b>Tip:</b> The Timetable Builder lets you drag-and-drop periods. Publish the timetable for staff and students to view.',
-      'notifications':  '💡 <b>Tip:</b> You can filter notifications by type — Results, Fees, Attendance, Urgent and Announcements.',
-      'score-entry':    '💡 <b>Tip:</b> Enter CA scores and exam scores separately. The system calculates the total automatically based on your school\'s grading scale.',
-      'lesson-notes':   '💡 <b>Tip:</b> Provide the subject, topic and class level to generate a detailed lesson note. You can edit and download it as a Word document.',
-      'profile':        '💡 <b>Tip:</b> Keep your profile up to date. You can change your password and notification preferences here.',
+    admin: {
+      greeting: "Hey there! 👋 I'm your EduTrack assistant. As an Admin, you have full control over everything in the school portal. What would you like help with today?",
+      tips: {
+        'index':            '💡 Your dashboard shows live school metrics. Scroll down for attendance trends and gender distribution charts!',
+        'students':         '💡 You can bulk-import students using the CSV upload option. Also try clicking a student\'s name to see their full profile.',
+        'staff':            '💡 After adding staff, remember to assign their subjects and classes so they can access the right data in their portals.',
+        'classes':          '💡 Assign a Form Teacher to each class — that teacher will be responsible for attendance and can see the class roster.',
+        'attendance':       '💡 You can view attendance records for any class or teacher. Use the date filter to spot patterns over time.',
+        'results':          '💡 Results are auto-calculated from scores entered by teachers. Make sure all subjects have scores before publishing term results.',
+        'fees':             '💡 Create fee structures first, then assign them to students or classes. You can record partial payments too!',
+        'announcements':    '💡 You can target announcements to specific roles (staff only, students only) or broadcast to everyone at once.',
+        'timetable-builder':'💡 Build the timetable term by term. Once published, staff and students can view their personal timetable in their portals.',
+        'staff':            '💡 Use the Reset PW button to help staff who can\'t log in. You can also generate a temporary password instantly.',
+      },
+      faq: [
+        { q: ['add student','enrol student','new student','register student'],
+          a: "Sure! To add a student, go to <b>People & Students → All Students</b> and click <b>+ Add Student</b>. You'll fill in their name, admission number, date of birth, class and guardian details. Easy!" },
+        { q: ['add staff','new staff','create staff','add teacher'],
+          a: "To add a new staff member, go to <b>People & Students → Staff Directory → + Add Staff</b>. Set their role (Teacher, VP, Bursar etc.), email and a temporary password. They'll log in with that email and change their password later." },
+        { q: ['reset password','reset staff password','staff cant login'],
+          a: "No worries! Go to <b>People & Students → Staff Directory</b>, find the staff member, and click <b>Reset PW</b>. You can either send them a reset email or generate a temporary password to share directly." },
+        { q: ['add class','create class','new class'],
+          a: "Head to <b>Academics → Classes → + Add Class</b>. Give the class a name and level, then assign a Form Teacher. That teacher will handle attendance for that class." },
+        { q: ['assign subject','class subject','subject assignment','assign teacher'],
+          a: "Go to <b>Academics → Class Subjects</b> to assign subjects to classes and link them to specific teachers. Teachers will only see subjects assigned to them in their portal." },
+        { q: ['timetable','schedule','period','build timetable'],
+          a: "The <b>Timetable Builder</b> is under <b>Academics → Timetable Builder</b>. You build it per term, assign periods to subjects and teachers, then publish so everyone can see it." },
+        { q: ['fees','payment','invoice','billing','pay','fee structure'],
+          a: "Fee management is under <b>Finance → Fee Management</b>. First create a fee structure (e.g. tuition, uniform), then assign it to students or classes. You can track payments and outstanding balances there." },
+        { q: ['scratch card','result checker','pin','generate card'],
+          a: "Scratch cards are under <b>Finance → Scratch Cards</b>. Generate cards, assign them to students, and they'll use the PIN to check their results online." },
+        { q: ['announcement','send message','notify','broadcast'],
+          a: "Go to <b>Communications → Announcements</b> to send messages. You can target by role (staff, students, parents) or a specific class. Recipients see it in their notification bell! 🔔" },
+        { q: ['impersonate','access staff portal','view as staff','staff activities'],
+          a: "In the sidebar under <b>Staff Activities</b>, click any role portal (e.g. Teacher Portal), pick a staff member from the list, and you'll see exactly what they see in their dashboard. Super handy!" },
+        { q: ['attendance','view attendance','monitor attendance'],
+          a: "Go to <b>Academics → Attendance</b> to see all attendance records. You can filter by class, teacher or date. The dashboard also shows today's attendance summary." },
+        { q: ['results','publish results','view results'],
+          a: "Results are under <b>Academics → Results</b>. Once teachers enter all scores, you can review and publish them. Students will then be able to view them in their portal." },
+        { q: ['deactivate','disable account','suspend user'],
+          a: "Find the user under <b>People & Students → All Users</b> and click <b>Deactivate</b>. Deactivated accounts can't log in until you reactivate them." },
+        { q: ['term','session','academic year','current term'],
+          a: "Manage terms under <b>Operations → Terms & Sessions</b>. Set a term as 'current' to activate it — this affects attendance, results and fee records across the portal." },
+        { q: ['id card','print id','staff id'],
+          a: "Staff ID cards can be printed from <b>Staff Office → Staff ID Cards</b>. You can preview and download them for printing." },
+        { q: ['lesson note','lesson plan','ai lesson'],
+          a: "The AI Lesson Note generator is under <b>E-Learning → Lesson Note AI</b>. Enter the subject, topic and class level to generate a detailed lesson plan instantly! ✨" },
+      ],
+      tours: {
+        'index-admin': [
+          { title: 'Welcome, Admin! 🏫', body: 'This is your school command centre. Everything you need to manage your school is right here.' },
+          { title: 'Key Metrics', body: 'The cards at the top show live data — total students, today\'s attendance, fees collected and staff count. These update in real time!' },
+          { title: 'Analytics Charts', body: 'Scroll down to see enrolment trends, gender distribution and more. Great for reports and school planning.' },
+          { title: 'Sidebar Navigation', body: 'Use the sidebar to jump between sections. Each section is grouped by function — People, Academics, Finance, Communications and more.' },
+          { title: 'Staff Activities', body: 'The <b>Staff Activities</b> group is unique to you as Admin. Click any role to access that staff member\'s portal and work on their behalf. Handy! 👍' },
+        ],
+        'students': [
+          { title: 'Student Management 👨‍🎓', body: 'This is where all enrolled students live. You can search, filter by class, view profiles and manage student accounts.' },
+          { title: 'Adding a Student', body: 'Click <b>+ Add Student</b> to enrol someone new. You\'ll need their name, admission number, date of birth, class and guardian info.' },
+          { title: 'Student Actions', body: 'Click a student\'s name to open their full profile — results, attendance history, fees and contact details are all there.' },
+        ],
+        'staff': [
+          { title: 'Staff Directory 👩‍🏫', body: 'All your school\'s staff members are listed here with their roles and contact details.' },
+          { title: 'Adding Staff', body: 'Click <b>+ Add Staff</b>. Assign them a role (Teacher, VP, Bursar etc.), set a temporary password, and they\'re ready to log in.' },
+          { title: 'Assigning Subjects', body: 'After adding staff, head to <b>Academics → Class Subjects</b> to assign them subjects and classes. This links them to the right data.' },
+        ],
+      },
+      navLinks: [
+        { label: '🏠 Dashboard',          url: '/admin/index.html' },
+        { label: '👨‍🎓 All Students',       url: '/admin/students.html' },
+        { label: '👩‍🏫 Staff Directory',    url: '/admin/staff.html' },
+        { label: '🏫 Classes',            url: '/admin/classes.html' },
+        { label: '📋 Class Subjects',     url: '/admin/class-subjects.html' },
+        { label: '✅ Attendance',          url: '/admin/attendance.html' },
+        { label: '📊 Results',            url: '/admin/results.html' },
+        { label: '💰 Fee Management',     url: '/admin/fees.html' },
+        { label: '📣 Announcements',      url: '/admin/announcements.html' },
+        { label: '🗓️ Timetable Builder',  url: '/admin/timetable-builder.html' },
+        { label: '🪪 Staff ID Cards',     url: '/portals/staff/id-card.html' },
+        { label: '✨ Lesson Note AI',     url: '/admin/lesson-notes.html' },
+      ],
     },
 
-    // Guided tours per page
-    tours: {
-      'index-admin': [
-        { title: 'Welcome to your Dashboard', body: 'This is your school command centre. The <b>Key Metrics</b> section shows live student, attendance, fee and staff data.' },
-        { title: 'Navigation Sidebar', body: 'Use the sidebar on the left to navigate between sections — People, Academics, Finance, Communications and more.' },
-        { title: 'Staff Activities', body: 'The <b>Staff Activities</b> group lets you access any staff member\'s portal directly — useful when staff need assistance.' },
-        { title: 'Announcements', body: 'Send school-wide or targeted announcements from <b>Communications → Announcements</b>.' },
+    teacher: {
+      greeting: "Hi there! 👋 I'm your EduTrack assistant. I'm here to help you navigate your teacher portal and make your day a little easier. What do you need help with?",
+      tips: {
+        'index':        '💡 Your dashboard shows the classes and subjects assigned to you this term. Attendance buttons are right on each class card!',
+        'attendance':   '💡 Select the class and date, then tap each student to mark them Present, Absent or Late. Saves automatically!',
+        'score-entry':  '💡 Enter CA and Exam scores separately — the system calculates totals automatically based on your school\'s grading scale.',
+        'students':     '💡 You can only see students in your assigned classes. Click a student to view their attendance and performance history.',
+        'timetable':    '💡 Your personal timetable shows only your assigned periods. Contact admin if something looks wrong.',
+        'notifications':'💡 Check here regularly for messages from admin, results updates and important school announcements.',
+      },
+      faq: [
+        { q: ['take attendance','mark attendance','attendance'],
+          a: "Head to your <b>Dashboard</b> and click the <b>Attendance</b> button on any class card. Select the date, mark each student, and hit Save. Done! ✅" },
+        { q: ['enter score','add score','score entry','grades','result'],
+          a: "From your Dashboard, click <b>Score Entry</b> on a class card. Enter the CA score and Exam score for each student — totals are calculated automatically. 📊" },
+        { q: ['view students','my students','class list'],
+          a: "Click <b>Students</b> on any class card on your Dashboard, or use the sidebar. You'll see all students in your assigned classes." },
+        { q: ['timetable','my schedule','my periods'],
+          a: "Your personal timetable is in the sidebar under <b>Timetable</b>. It shows only your assigned periods for the current term." },
+        { q: ['lesson note','lesson plan','generate lesson'],
+          a: "Go to <b>E-Learning → Lesson Note AI</b>. Enter your subject, topic and class — the AI will generate a full lesson plan for you! ✨" },
+        { q: ['notification','announcement','message'],
+          a: "Check the <b>Notifications</b> bell in your sidebar. You'll see messages from admin and important school updates there." },
+        { q: ['id card','my id','identity card'],
+          a: "Your staff ID card is under <b>Staff Info → ID Card</b> in the sidebar. You can preview and download it for printing." },
+        { q: ['daily activity','activity log','report'],
+          a: "Log your daily activities under <b>Daily Activity Logs</b> in the sidebar. This helps admin track what's happening in each class." },
+        { q: ['biometric','check in','attendance machine'],
+          a: "Biometric check-in is under <b>Biometric Attendance</b> in the sidebar. Use it to clock in at the start of your work day." },
+        { q: ['cant see class','no class assigned','missing class'],
+          a: "If your classes aren't showing, it means admin hasn't assigned you yet. Ask your admin to go to <b>Classes → Edit</b> and set you as Form Teacher, or assign subjects via <b>Class Subjects</b>." },
       ],
-      'students': [
-        { title: 'Student List', body: 'All enrolled students are listed here. Use the search to find by name, admission number or class.' },
-        { title: 'Add a Student', body: 'Click <b>+ Add Student</b> at the top right to enrol a new student. Fill in all required fields including admission number and date of birth.' },
-        { title: 'Student Actions', body: 'Click a student\'s name to view their full profile. Use the action buttons to edit, deactivate or reset their access.' },
-      ],
-      'attendance': [
-        { title: 'Taking Attendance', body: 'Select the <b>class</b> and <b>date</b>, then mark each student as Present, Absent or Late.' },
-        { title: 'Attendance Records', body: 'Past records are saved automatically. Use the filters to view by class, date range or individual student.' },
+      tours: {
+        'index': [
+          { title: 'Your Teacher Dashboard 📚', body: 'Welcome! This shows all your assigned classes and subjects for the current term. Everything you need is just a click away.' },
+          { title: 'Class Cards', body: 'Each card represents one of your classes. You\'ll see the subjects you teach there, and quick buttons for Attendance, Scores and Students.' },
+          { title: 'Attendance Status', body: 'Cards with a green border means attendance is already taken today. Yellow means it\'s still pending — don\'t forget! ⏳' },
+          { title: 'Quick Actions', body: 'The buttons at the bottom let you jump directly to Attendance, Score Entry, Students and your Timetable.' },
+        ],
+        'attendance': [
+          { title: 'Taking Attendance ✅', body: 'Select the class and date at the top, then mark each student as Present (P), Absent (A) or Late (L).' },
+          { title: 'Saving', body: 'Records save automatically as you mark. You can also edit previous records by selecting a past date.' },
+        ],
+        'score-entry': [
+          { title: 'Score Entry 📊', body: 'Select the class and subject, then enter CA and Exam scores for each student.' },
+          { title: 'Auto Calculation', body: 'Total scores, grades and remarks are calculated automatically based on your school\'s grading scale. No maths needed! 😄' },
+        ],
+      },
+      navLinks: [
+        { label: '🏠 Dashboard',        url: '/portals/staff/index.html' },
+        { label: '✅ Attendance',        url: '/portals/staff/attendance.html' },
+        { label: '📊 Score Entry',      url: '/portals/staff/score-entry.html' },
+        { label: '👨‍🎓 My Students',     url: '/portals/staff/students.html' },
+        { label: '🗓️ My Timetable',     url: '/portals/staff/timetable.html' },
+        { label: '🔔 Notifications',    url: '/portals/staff/notifications.html' },
+        { label: '✨ Lesson Note AI',   url: '/portals/staff/lesson-notes.html' },
+        { label: '🪪 My ID Card',       url: '/portals/staff/id-card.html' },
+        { label: '📝 Activity Logs',    url: '/portals/staff/daily-activities.html' },
       ],
     },
 
-    // Quick navigation links
-    navLinks: [
-      { label: 'Dashboard',          url: '/admin/index.html',              roles: ['admin'] },
-      { label: 'All Students',       url: '/admin/students.html',           roles: ['admin'] },
-      { label: 'Staff Directory',    url: '/admin/staff.html',              roles: ['admin'] },
-      { label: 'Classes',            url: '/admin/classes.html',            roles: ['admin'] },
-      { label: 'Attendance',         url: '/admin/attendance.html',         roles: ['admin'] },
-      { label: 'Results',            url: '/admin/results.html',            roles: ['admin'] },
-      { label: 'Fee Management',     url: '/admin/fees.html',               roles: ['admin'] },
-      { label: 'Announcements',      url: '/admin/announcements.html',      roles: ['admin'] },
-      { label: 'Timetable Builder',  url: '/admin/timetable-builder.html',  roles: ['admin'] },
-      { label: 'Teacher Dashboard',  url: '/portals/staff/index.html',      roles: ['teacher'] },
-      { label: 'Score Entry',        url: '/portals/staff/score-entry.html',roles: ['teacher'] },
-      { label: 'My Timetable',       url: '/portals/staff/timetable.html',  roles: ['teacher','admin'] },
-      { label: 'Student Portal',     url: '/portals/student/index.html',    roles: ['student'] },
-      { label: 'My Results',         url: '/portals/student/results.html',  roles: ['student'] },
-      { label: 'Login Page',         url: '/login.html',                    roles: ['*'] },
-    ],
+    bursar: {
+      greeting: "Hi! 👋 I'm your EduTrack assistant. I'll help you navigate the Bursary portal and manage all fee-related activities. What do you need?",
+      tips: {
+        'index':    '💡 Your dashboard shows fee collection summaries for the current term. Use the sidebar to manage payments and generate receipts.',
+        'fees':     '💡 You can record full or partial payments. Outstanding balances are tracked automatically.',
+      },
+      faq: [
+        { q: ['record payment','add payment','collect fee','fee payment'],
+          a: "Go to <b>Fee Management</b> in the sidebar. Search for the student, select the fee type, enter the amount paid and save. A receipt is generated automatically! 🧾" },
+        { q: ['outstanding','balance','who owes','unpaid'],
+          a: "The <b>Fee Management</b> page shows outstanding balances for each student. You can filter by class or fee type to see who still owes." },
+        { q: ['invoice','receipt','proof of payment'],
+          a: "After recording a payment, you can print or download the receipt directly from the payment record. Look for the printer icon! 🖨️" },
+        { q: ['fee structure','create fee','new fee'],
+          a: "Fee structures are created by the Admin. If you need a new fee type added, ask your admin to go to <b>Finance → Fee Management → Fee Structures</b>." },
+        { q: ['scratch card','result pin','card'],
+          a: "Scratch cards for result checking are managed under <b>Scratch Cards</b> in the sidebar. You can generate and assign them to students." },
+        { q: ['report','fee report','collection summary'],
+          a: "Fee collection reports are available on your dashboard and in the <b>Fee Management</b> section. You can filter by term, class or date range." },
+      ],
+      tours: {
+        'index': [
+          { title: 'Bursary Dashboard 💰', body: 'This shows your fee collection summary for the current term — total collected, outstanding balances and recent transactions.' },
+          { title: 'Quick Navigation', body: 'Use the sidebar to jump to Fee Management, Scratch Cards and reports.' },
+        ],
+      },
+      navLinks: [
+        { label: '🏠 Dashboard',      url: '/portals/bursary/index.html' },
+        { label: '💰 Fee Management', url: '/portals/bursary/fees.html' },
+        { label: '🎫 Scratch Cards',  url: '/portals/bursary/scratch-cards.html' },
+        { label: '🔔 Notifications',  url: '/portals/bursary/notifications.html' },
+      ],
+    },
 
-    // Keyboard shortcuts
-    shortcuts: [
-      { keys: '? or H',   desc: 'Open/close this assistant' },
-      { keys: 'Esc',      desc: 'Close assistant' },
-      { keys: 'Alt + D',  desc: 'Go to Dashboard' },
-      { keys: 'Alt + S',  desc: 'Go to Students (admin)' },
-      { keys: 'Alt + A',  desc: 'Go to Attendance' },
-      { keys: 'Alt + R',  desc: 'Go to Results' },
-      { keys: 'Alt + N',  desc: 'Go to Notifications' },
-    ],
+    vp_admin: {
+      greeting: "Hello! 👋 I'm your EduTrack assistant. As VP Admin, I'll help you manage staff records, operations and day-to-day administrative tasks. What can I help with?",
+      tips: {
+        'index':      '💡 Your dashboard gives you an overview of staff activities and school operations for the current term.',
+        'staff':      '💡 You can view and manage staff records. Coordinate with the Admin if you need to add or deactivate accounts.',
+        'attendance': '💡 Monitor staff attendance from the Staff Attendance section in your sidebar.',
+      },
+      faq: [
+        { q: ['staff attendance','monitor attendance','who is present'],
+          a: "Go to <b>Staff Attendance</b> in the sidebar to see which staff members are present, absent or late today." },
+        { q: ['daily activity','activity log','staff report'],
+          a: "Check <b>Daily Activity Logs</b> in the sidebar to see what staff have logged for the day. Great for monitoring productivity!" },
+        { q: ['notification','announcement','message'],
+          a: "Check the <b>Notifications</b> section in the sidebar for messages from the school admin." },
+      ],
+      tours: {
+        'index': [
+          { title: 'VP Admin Dashboard 📋', body: 'Welcome! You can monitor staff activities, manage operations and coordinate with the school admin from here.' },
+          { title: 'Sidebar Navigation', body: 'Use the sidebar to access Staff Attendance, Activity Logs, Timetables and more.' },
+        ],
+      },
+      navLinks: [
+        { label: '🏠 Dashboard',       url: '/portals/admin-office/index.html' },
+        { label: '👩‍🏫 Staff Directory', url: '/portals/admin-office/staff.html' },
+        { label: '✅ Staff Attendance', url: '/portals/staff/attendance.html' },
+        { label: '📝 Activity Logs',   url: '/portals/staff/daily-activities.html' },
+        { label: '🔔 Notifications',   url: '/portals/admin-office/notifications.html' },
+      ],
+    },
+
+    student: {
+      greeting: "Hey! 👋 Welcome to your EduTrack student portal. I'm here to help you find your results, check your timetable and navigate your portal with ease. What do you need? 🎒",
+      tips: {
+        'index':        '💡 Your dashboard shows your current term\'s attendance and recent results. Check your notifications for important updates!',
+        'results':      '💡 Your results show CA scores, Exam scores and total for each subject. Grades are calculated automatically.',
+        'attendance':   '💡 Your attendance record shows every school day. A high attendance rate is important — aim for 90% and above! 🌟',
+        'notifications':'💡 Check here for result updates, fee reminders and announcements from your school.',
+        'profile':      '💡 Keep your profile up to date. If your details look wrong, ask your class teacher or admin to correct them.',
+        'fees':         '💡 This shows your fee status for the current term. Contact the bursary if you have questions about your balance.',
+      },
+      faq: [
+        { q: ['view result','check result','my result','my grades','score'],
+          a: "Your results are in the <b>Results</b> section of the sidebar. You\'ll see your scores per subject, your total and your grade for the current term. 📊" },
+        { q: ['check attendance','my attendance','absent','present'],
+          a: "Go to <b>Attendance</b> in the sidebar to see your full attendance record. It shows which days you were present, absent or late." },
+        { q: ['timetable','my schedule','class timetable'],
+          a: "Your class timetable is in the sidebar under <b>Timetable</b>. It shows all your subjects and periods for the week." },
+        { q: ['notification','announcement','message','school update'],
+          a: "Check the <b>Notifications</b> bell in the sidebar. Your school admin sends important updates and announcements there. 🔔" },
+        { q: ['fees','my fees','payment','balance','what i owe'],
+          a: "Your fee status is under <b>Fees</b> in the sidebar. It shows what\'s been paid and any outstanding balance. Talk to the bursary if you have questions." },
+        { q: ['forgot pin','login problem','cant login','admission number'],
+          a: "If you\'re having trouble logging in, you need your <b>Admission Number</b> and <b>Date of Birth</b>. Contact your class teacher or admin if you\'ve forgotten your admission number." },
+        { q: ['profile','my details','my info','update info'],
+          a: "Your profile is in the sidebar under <b>Profile</b>. You can view your personal details. If anything is wrong, ask your admin to update it." },
+        { q: ['scratch card','result checker','view result online','pin'],
+          a: "If your school uses a result checker, you\'ll need a scratch card with a PIN. Ask your class teacher or the bursary for your card." },
+      ],
+      tours: {
+        'index': [
+          { title: 'Your Student Dashboard 🎒', body: 'Hey! This is your personal school dashboard. You can see your attendance summary, recent results and notifications right here.' },
+          { title: 'The Sidebar', body: 'Use the menu on the left to jump to Results, Attendance, Fees, Timetable and more.' },
+          { title: 'Notifications', body: 'Keep an eye on your Notifications — your school sends result updates, fee reminders and announcements there. 🔔' },
+        ],
+        'results': [
+          { title: 'Your Results 📊', body: 'Here you\'ll find your scores for every subject. CA scores + Exam scores = Total. Your grade and remark are calculated automatically.' },
+          { title: 'Switching Terms', body: 'Use the term selector at the top to view results from previous terms too.' },
+        ],
+      },
+      navLinks: [
+        { label: '🏠 Dashboard',      url: '/portals/student/index.html' },
+        { label: '📊 My Results',     url: '/portals/student/results.html' },
+        { label: '✅ My Attendance',  url: '/portals/student/attendance.html' },
+        { label: '💰 My Fees',        url: '/portals/student/fees.html' },
+        { label: '🗓️ Timetable',      url: '/portals/student/timetable.html' },
+        { label: '🔔 Notifications',  url: '/portals/student/notifications.html' },
+        { label: '👤 My Profile',     url: '/portals/student/profile.html' },
+      ],
+    },
+
+    parent: {
+      greeting: "Hello! 👋 I'm the EduTrack assistant. I'll help you monitor your child's school performance and stay connected with the school. What would you like to know?",
+      tips: {
+        'index':        '💡 Your dashboard shows a summary of your child\'s attendance and latest results.',
+        'results':      '💡 You can view your child\'s results per subject and compare performance across terms.',
+        'notifications':'💡 Important school updates and fee reminders are sent here. Check regularly! 🔔',
+      },
+      faq: [
+        { q: ['view result','child result','my child result','grades'],
+          a: "Go to <b>Results</b> in the sidebar to see your child\'s scores, grades and remarks for the current term. 📊" },
+        { q: ['attendance','child attendance','absent','present'],
+          a: "Check <b>Attendance</b> in the sidebar to see your child\'s attendance record — which days they were present, absent or late." },
+        { q: ['fees','payment','school fees','balance'],
+          a: "Your child\'s fee status is under <b>Fees</b>. It shows amounts paid and any outstanding balance. Contact the bursary for payment details." },
+        { q: ['notification','announcement','school message'],
+          a: "Important messages from the school are in <b>Notifications</b> in the sidebar. 🔔" },
+        { q: ['contact school','reach admin','talk to teacher'],
+          a: "For direct communication with staff, please visit the school or use the contact details provided during registration." },
+      ],
+      tours: {
+        'index': [
+          { title: 'Parent Dashboard 👨‍👩‍👧', body: 'Welcome! From here you can monitor your child\'s academic performance, attendance and school fees all in one place.' },
+          { title: 'Sidebar Navigation', body: 'Use the sidebar to switch between Results, Attendance, Fees and Notifications.' },
+        ],
+      },
+      navLinks: [
+        { label: '🏠 Dashboard',     url: '/portals/parent/index.html' },
+        { label: '📊 Results',       url: '/portals/parent/results.html' },
+        { label: '✅ Attendance',    url: '/portals/parent/attendance.html' },
+        { label: '💰 Fees',          url: '/portals/parent/fees.html' },
+        { label: '🔔 Notifications', url: '/portals/parent/notifications.html' },
+      ],
+    },
+
+    guest: {
+      greeting: "Hi there! 👋 I'm the EduTrack assistant. I can help you log in, reset your password, or register your school. What do you need?",
+      tips: {
+        'login':    '💡 Students use their Admission Number + Date of Birth. Staff and Admin use their email and password.',
+        'index':    '💡 New school? Click Register to get your school set up on EduTrack NG. It only takes a few minutes!',
+      },
+      faq: [
+        { q: ['login','how to login','cant login','sign in'],
+          a: "On the login page, choose your account type:\n• <b>Staff/Admin</b> → use your email and password\n• <b>Student</b> → use your Admission Number and Date of Birth\n\nForgot your details? Click <b>Forgot Password</b> or contact your school admin." },
+        { q: ['forgot password','reset password','change password'],
+          a: "Click <b>Forgot Password</b> on the login page and enter your email. A reset link will be sent to you. Check your spam folder if you don\'t see it within a few minutes! 📧" },
+        { q: ['register school','new school','sign up','create account'],
+          a: "Click <b>Register</b> on the login page to set up your school on EduTrack NG. Fill in your school details and you\'ll be ready to go! 🏫" },
+        { q: ['student login','student portal','how student login','admission number'],
+          a: "Students log in by clicking the <b>Student</b> tab on the login page. Select your school, enter your <b>Admission Number</b> and <b>Date of Birth</b>, then click Verify Identity." },
+        { q: ['parent login','parent portal','guardian'],
+          a: "Parents use the parent portal link provided by the school. Log in with your registered phone number or email." },
+        { q: ['what is edutrack','about','features'],
+          a: "EduTrack NG is a complete school management platform — covering students, staff, attendance, results, fees, timetables and more. All in one place! 🎓" },
+      ],
+      tours: {},
+      navLinks: [
+        { label: '🔐 Login Page',       url: '/login.html' },
+        { label: '📝 Register School',  url: '/register.html' },
+      ],
+    },
   };
 
   // ── State ───────────────────────────────────────────────────
+  let role = detectRole();
+  let roleData = KB[role] || KB.guest;
   let isOpen = false;
-  let currentView = 'home'; // home | search | tour | shortcuts | faq
   let tourStep = 0;
   let tourItems = [];
   let searchTimeout = null;
 
-  // ── Detect current page context ─────────────────────────────
   function getPageKey() {
     const path = window.location.pathname;
     const file = path.split('/').pop().replace('.html','') || 'index';
@@ -140,230 +368,204 @@
 
   function getPageTip() {
     const file = window.location.pathname.split('/').pop().replace('.html','') || 'index';
-    return KB.pageTips[file] || null;
+    return (roleData.tips || {})[file] || null;
   }
 
-  // ── Fuzzy answer search ─────────────────────────────────────
+  // ── Smart search ────────────────────────────────────────────
   function findAnswer(query) {
     const q = query.toLowerCase().trim();
     if (!q) return null;
-    for (const item of KB.faq) {
-      if (item.q.some(kw => q.includes(kw) || kw.includes(q))) {
-        return item.a;
-      }
+    for (const item of (roleData.faq || [])) {
+      if (item.q.some(kw => q.includes(kw) || kw.includes(q))) return item.a;
     }
-    // Fallback: word-by-word partial match
     const words = q.split(/\s+/).filter(w => w.length > 3);
-    for (const item of KB.faq) {
-      if (words.some(w => item.q.some(kw => kw.includes(w)))) {
-        return item.a;
-      }
+    for (const item of (roleData.faq || [])) {
+      if (words.some(w => item.q.some(kw => kw.includes(w)))) return item.a;
     }
     return null;
   }
 
   function searchNav(query) {
     const q = query.toLowerCase();
-    return KB.navLinks.filter(n =>
+    return (roleData.navLinks || []).filter(n =>
       n.label.toLowerCase().includes(q) || n.url.includes(q)
-    ).slice(0, 5);
+    ).slice(0, 6);
   }
 
-  // ── Build UI ────────────────────────────────────────────────
-  function buildAssistant() {
-    const css = `
-      #et-asst-btn {
-        position:fixed; bottom:24px; right:24px; z-index:10000;
-        width:52px; height:52px; border-radius:50%;
-        background:linear-gradient(135deg,#0a6e3f,#0d8f52);
-        color:#fff; border:none; cursor:pointer;
-        box-shadow:0 4px 20px rgba(10,110,63,0.45);
-        display:flex; align-items:center; justify-content:center;
-        transition:transform .2s, box-shadow .2s;
-        font-size:22px;
-      }
-      #et-asst-btn:hover { transform:scale(1.1); box-shadow:0 6px 28px rgba(10,110,63,0.55); }
-      #et-asst-btn .et-asst-badge {
-        position:absolute; top:-3px; right:-3px;
-        width:18px; height:18px; border-radius:50%;
-        background:#f59e0b; color:#1a1a2e;
-        font-size:10px; font-weight:800;
-        display:flex; align-items:center; justify-content:center;
-        border:2px solid #fff;
-      }
-      #et-asst-panel {
-        position:fixed; bottom:88px; right:24px; z-index:10000;
-        width:360px; max-height:560px;
-        background:#fff; border-radius:20px;
-        box-shadow:0 12px 48px rgba(0,0,0,0.18);
-        display:flex; flex-direction:column;
-        font-family:inherit; overflow:hidden;
-        transform:scale(0.92) translateY(16px);
-        opacity:0; pointer-events:none;
-        transition:transform .25s cubic-bezier(.34,1.56,.64,1), opacity .2s;
-      }
-      #et-asst-panel.open {
-        transform:scale(1) translateY(0);
-        opacity:1; pointer-events:all;
-      }
-      .et-asst-header {
-        background:linear-gradient(135deg,#0a6e3f,#0d8f52);
-        color:#fff; padding:16px 18px 14px;
-        display:flex; align-items:center; gap:10px;
-      }
-      .et-asst-avatar {
-        width:36px; height:36px; border-radius:50%;
-        background:rgba(255,255,255,0.2);
-        display:flex; align-items:center; justify-content:center;
-        font-size:18px; flex-shrink:0;
-      }
-      .et-asst-header-text { flex:1; }
-      .et-asst-header-text strong { display:block; font-size:14px; font-weight:700; }
-      .et-asst-header-text span { font-size:11px; opacity:.75; }
-      .et-asst-close {
-        background:none; border:none; color:#fff; cursor:pointer;
-        font-size:20px; opacity:.7; padding:0; line-height:1;
-      }
-      .et-asst-close:hover { opacity:1; }
-      .et-asst-body { flex:1; overflow-y:auto; padding:14px; }
-      .et-asst-search {
-        padding:10px 14px; border-bottom:1px solid #f0f0f0;
-      }
-      .et-asst-search input {
-        width:100%; padding:9px 12px; border:1.5px solid #e5e7eb;
-        border-radius:10px; font-size:13px; outline:none;
-        box-sizing:border-box; transition:border .2s;
-      }
-      .et-asst-search input:focus { border-color:#0a6e3f; }
-      .et-asst-chip-row {
-        display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;
-      }
-      .et-asst-chip {
-        padding:5px 12px; border-radius:100px;
-        background:#f3f4f6; color:#374151;
-        font-size:12px; font-weight:600; cursor:pointer;
-        border:none; transition:background .15s, color .15s;
-      }
-      .et-asst-chip:hover, .et-asst-chip.active {
-        background:#0a6e3f; color:#fff;
-      }
-      .et-asst-tip {
-        background:#f0fdf4; border:1px solid #bbf7d0;
-        border-radius:10px; padding:10px 12px;
-        font-size:12.5px; color:#166534; margin-bottom:12px;
-        line-height:1.5;
-      }
-      .et-asst-section-title {
-        font-size:11px; font-weight:700; text-transform:uppercase;
-        letter-spacing:.06em; color:#9ca3af; margin:10px 0 6px;
-      }
-      .et-asst-item {
-        display:flex; align-items:center; gap:10px;
-        padding:9px 10px; border-radius:10px; cursor:pointer;
-        font-size:13px; color:#111827; transition:background .15s;
-        text-decoration:none;
-      }
-      .et-asst-item:hover { background:#f3f4f6; }
-      .et-asst-item-icon {
-        width:28px; height:28px; border-radius:8px;
-        background:#f3f4f6; display:flex; align-items:center;
-        justify-content:center; font-size:14px; flex-shrink:0;
-      }
-      .et-asst-answer {
-        background:#f9fafb; border-radius:12px;
-        padding:12px 14px; font-size:13px; color:#111827;
-        line-height:1.6; margin-bottom:10px;
-      }
-      .et-asst-answer a { color:#0a6e3f; }
-      .et-asst-back {
-        display:inline-flex; align-items:center; gap:4px;
-        font-size:12px; color:#6b7280; cursor:pointer;
-        background:none; border:none; padding:0; margin-bottom:10px;
-      }
-      .et-asst-back:hover { color:#0a6e3f; }
-      .et-asst-tour-card {
-        background:linear-gradient(135deg,#f0fdf4,#dcfce7);
-        border:1px solid #bbf7d0; border-radius:14px;
-        padding:16px; margin-bottom:12px;
-      }
-      .et-asst-tour-card h4 { margin:0 0 6px; font-size:14px; color:#166534; }
-      .et-asst-tour-card p { margin:0; font-size:13px; color:#166534; line-height:1.5; }
-      .et-asst-tour-nav {
-        display:flex; align-items:center; justify-content:space-between;
-        margin-top:10px;
-      }
-      .et-asst-tour-nav button {
-        padding:6px 14px; border-radius:8px; border:none;
-        font-size:12px; font-weight:700; cursor:pointer;
-        background:#0a6e3f; color:#fff;
-      }
-      .et-asst-tour-nav button:disabled {
-        background:#e5e7eb; color:#9ca3af; cursor:default;
-      }
-      .et-asst-tour-dots { display:flex; gap:4px; }
-      .et-asst-tour-dot {
-        width:6px; height:6px; border-radius:50%; background:#d1d5db;
-      }
-      .et-asst-tour-dot.active { background:#0a6e3f; }
-      .et-asst-shortcut-row {
-        display:flex; align-items:center; justify-content:space-between;
-        padding:7px 0; border-bottom:1px solid #f3f4f6; font-size:13px;
-      }
-      .et-asst-shortcut-row:last-child { border:none; }
-      .et-asst-kbd {
-        background:#f3f4f6; border:1px solid #e5e7eb;
-        border-radius:6px; padding:2px 8px;
-        font-size:11px; font-weight:700; font-family:monospace; color:#374151;
-      }
-      .et-asst-no-result { text-align:center; padding:28px 12px; color:#9ca3af; font-size:13px; }
-      @media(max-width:420px) {
-        #et-asst-panel { width:calc(100vw - 24px); right:12px; bottom:80px; }
-        #et-asst-btn { right:12px; bottom:12px; }
-      }
-    `;
+  // ── CSS ─────────────────────────────────────────────────────
+  const css = `
+    #et-asst-btn {
+      position:fixed; bottom:24px; right:24px; z-index:10000;
+      width:54px; height:54px; border-radius:50%;
+      background:linear-gradient(135deg,#0a6e3f,#0d8f52);
+      color:#fff; border:none; cursor:pointer;
+      box-shadow:0 4px 24px rgba(10,110,63,0.5);
+      display:flex; align-items:center; justify-content:center;
+      transition:transform .2s, box-shadow .2s; font-size:22px;
+    }
+    #et-asst-btn:hover { transform:scale(1.1); box-shadow:0 6px 32px rgba(10,110,63,0.6); }
+    #et-asst-btn .badge {
+      position:absolute; top:-2px; right:-2px;
+      width:18px; height:18px; border-radius:50%;
+      background:#f59e0b; color:#1a1a2e;
+      font-size:10px; font-weight:800; border:2px solid #fff;
+      display:flex; align-items:center; justify-content:center;
+    }
+    #et-asst-panel {
+      position:fixed; bottom:90px; right:24px; z-index:10000;
+      width:370px; max-height:580px; background:#fff;
+      border-radius:22px; box-shadow:0 16px 56px rgba(0,0,0,0.16);
+      display:flex; flex-direction:column; font-family:inherit; overflow:hidden;
+      transform:scale(0.9) translateY(20px); opacity:0; pointer-events:none;
+      transition:transform .28s cubic-bezier(.34,1.56,.64,1), opacity .22s;
+    }
+    #et-asst-panel.open { transform:scale(1) translateY(0); opacity:1; pointer-events:all; }
+    .ea-header {
+      background:linear-gradient(135deg,#0a6e3f,#0d8f52);
+      color:#fff; padding:16px 18px 13px;
+      display:flex; align-items:center; gap:11px; flex-shrink:0;
+    }
+    .ea-avatar {
+      width:38px; height:38px; border-radius:50%;
+      background:rgba(255,255,255,0.18);
+      display:flex; align-items:center; justify-content:center;
+      font-size:19px; flex-shrink:0;
+    }
+    .ea-header-text { flex:1; }
+    .ea-header-text strong { display:block; font-size:14px; font-weight:700; }
+    .ea-header-text span { font-size:11px; opacity:.72; }
+    .ea-close { background:none; border:none; color:#fff; cursor:pointer; font-size:22px; opacity:.7; padding:0; }
+    .ea-close:hover { opacity:1; }
+    .ea-role-pill {
+      background:rgba(255,255,255,0.18); border-radius:100px;
+      padding:2px 10px; font-size:11px; font-weight:700;
+      letter-spacing:.04em; margin-top:4px; display:inline-block;
+    }
+    .ea-search { padding:10px 14px; border-bottom:1px solid #f0f0f0; flex-shrink:0; }
+    .ea-search input {
+      width:100%; padding:9px 13px; border:1.5px solid #e5e7eb;
+      border-radius:11px; font-size:13px; outline:none; box-sizing:border-box;
+      transition:border .2s; background:#fafafa;
+    }
+    .ea-search input:focus { border-color:#0a6e3f; background:#fff; }
+    .ea-body { flex:1; overflow-y:auto; padding:14px 14px 18px; }
+    .ea-greeting {
+      background:linear-gradient(135deg,#f0fdf4,#dcfce7);
+      border:1px solid #bbf7d0; border-radius:14px;
+      padding:13px 14px; font-size:13px; color:#166534;
+      line-height:1.6; margin-bottom:13px;
+    }
+    .ea-chip-row { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:13px; }
+    .ea-chip {
+      padding:5px 13px; border-radius:100px;
+      background:#f3f4f6; color:#374151;
+      font-size:12px; font-weight:600; cursor:pointer;
+      border:none; transition:background .15s, color .15s;
+    }
+    .ea-chip:hover { background:#0a6e3f; color:#fff; }
+    .ea-tip {
+      background:#fffbeb; border:1px solid #fde68a;
+      border-radius:11px; padding:10px 13px;
+      font-size:12.5px; color:#92400e; margin-bottom:13px; line-height:1.55;
+    }
+    .ea-section { font-size:11px; font-weight:700; text-transform:uppercase;
+      letter-spacing:.07em; color:#9ca3af; margin:10px 0 6px; }
+    .ea-item {
+      display:flex; align-items:center; gap:10px;
+      padding:9px 10px; border-radius:11px; cursor:pointer;
+      font-size:13px; color:#111827; transition:background .15s;
+      text-decoration:none; border:none; background:none; width:100%; text-align:left;
+    }
+    .ea-item:hover { background:#f3f4f6; }
+    .ea-item-icon {
+      width:30px; height:30px; border-radius:9px;
+      background:#f3f4f6; display:flex; align-items:center;
+      justify-content:center; font-size:15px; flex-shrink:0;
+    }
+    .ea-answer {
+      background:#f9fafb; border-radius:13px; border:1px solid #f0f0f0;
+      padding:13px 14px; font-size:13px; color:#111827;
+      line-height:1.65; margin-bottom:10px;
+    }
+    .ea-back {
+      display:inline-flex; align-items:center; gap:4px;
+      font-size:12px; color:#6b7280; cursor:pointer;
+      background:none; border:none; padding:0 0 10px; font-weight:600;
+    }
+    .ea-back:hover { color:#0a6e3f; }
+    .ea-tour-card {
+      background:linear-gradient(135deg,#f0fdf4,#dcfce7);
+      border:1px solid #bbf7d0; border-radius:15px;
+      padding:16px; margin-bottom:12px;
+    }
+    .ea-tour-card h4 { margin:0 0 7px; font-size:14px; color:#166534; font-weight:700; }
+    .ea-tour-card p { margin:0; font-size:13px; color:#166534; line-height:1.6; }
+    .ea-tour-nav { display:flex; align-items:center; justify-content:space-between; margin-top:10px; }
+    .ea-tour-nav button {
+      padding:6px 15px; border-radius:9px; border:none;
+      font-size:12px; font-weight:700; cursor:pointer;
+      background:#0a6e3f; color:#fff;
+    }
+    .ea-tour-nav button:disabled { background:#e5e7eb; color:#9ca3af; cursor:default; }
+    .ea-dots { display:flex; gap:5px; }
+    .ea-dot { width:6px; height:6px; border-radius:50%; background:#d1d5db; transition:background .2s; }
+    .ea-dot.active { background:#0a6e3f; width:18px; border-radius:3px; }
+    .ea-kbd {
+      background:#f3f4f6; border:1px solid #e5e7eb; border-radius:6px;
+      padding:2px 8px; font-size:11px; font-weight:700; font-family:monospace; color:#374151;
+    }
+    .ea-shortcut-row {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:7px 0; border-bottom:1px solid #f5f5f5; font-size:13px; color:#374151;
+    }
+    .ea-shortcut-row:last-child { border:none; }
+    .ea-empty { text-align:center; padding:28px 12px; color:#9ca3af; font-size:13px; }
+    @media(max-width:420px){
+      #et-asst-panel{ width:calc(100vw - 20px); right:10px; bottom:76px; }
+      #et-asst-btn{ right:10px; bottom:10px; }
+    }
+  `;
 
+  // ── Build DOM ───────────────────────────────────────────────
+  function build() {
     const style = document.createElement('style');
     style.textContent = css;
     document.head.appendChild(style);
 
-    // Floating button
     const btn = document.createElement('button');
     btn.id = 'et-asst-btn';
-    btn.title = 'AI Assistant (press ? for help)';
-    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div class="et-asst-badge">?</div>`;
-    btn.onclick = toggleAssistant;
+    btn.title = 'AI Assistant (press ? to open)';
+    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div class="badge">?</div>`;
+    btn.onclick = toggle;
 
-    // Panel
     const panel = document.createElement('div');
     panel.id = 'et-asst-panel';
     panel.innerHTML = `
-      <div class="et-asst-header">
-        <div class="et-asst-avatar">🎓</div>
-        <div class="et-asst-header-text">
+      <div class="ea-header">
+        <div class="ea-avatar">${getRoleEmoji(role)}</div>
+        <div class="ea-header-text">
           <strong>AI Assistant</strong>
-          <span>EduTrack NG · Always here to help</span>
+          <div class="ea-role-pill">${getRoleName(role)}</div>
         </div>
-        <button class="et-asst-close" onclick="window.__etAsst.close()" title="Close">×</button>
+        <button class="ea-close" onclick="window.__etAsst.close()">×</button>
       </div>
-      <div class="et-asst-search">
-        <input type="text" id="et-asst-input" placeholder="Ask me anything or search pages…" autocomplete="off">
+      <div class="ea-search">
+        <input type="text" id="ea-input" placeholder="Ask me anything…" autocomplete="off">
       </div>
-      <div class="et-asst-body" id="et-asst-body"></div>
+      <div class="ea-body" id="ea-body"></div>
     `;
 
     document.body.appendChild(btn);
     document.body.appendChild(panel);
 
-    // Search input handler
-    document.getElementById('et-asst-input').addEventListener('input', function () {
+    document.getElementById('ea-input').addEventListener('input', function () {
       clearTimeout(searchTimeout);
       const val = this.value.trim();
       if (!val) { renderHome(); return; }
-      searchTimeout = setTimeout(() => renderSearchResults(val), 280);
+      searchTimeout = setTimeout(() => renderSearch(val), 300);
     });
-
-    document.getElementById('et-asst-input').addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') closeAssistant();
+    document.getElementById('ea-input').addEventListener('keydown', e => {
+      if (e.key === 'Escape') close();
     });
 
     renderHome();
@@ -371,219 +573,186 @@
 
   // ── Views ───────────────────────────────────────────────────
   function renderHome() {
-    currentView = 'home';
     const tip = getPageTip();
     const pageKey = getPageKey();
-    const hasTour = !!KB.tours[pageKey];
+    const hasTour = !!(roleData.tours || {})[pageKey];
+    const faqPreview = (roleData.faq || []).slice(0, 4);
 
-    const body = document.getElementById('et-asst-body');
-    body.innerHTML = `
-      ${tip ? `<div class="et-asst-tip">${tip}</div>` : ''}
-      <div class="et-asst-chip-row">
-        ${hasTour ? `<button class="et-asst-chip" onclick="window.__etAsst.startTour()">📍 Page Tour</button>` : ''}
-        <button class="et-asst-chip" onclick="window.__etAsst.showFAQ()">❓ FAQ</button>
-        <button class="et-asst-chip" onclick="window.__etAsst.showShortcuts()">⌨️ Shortcuts</button>
-        <button class="et-asst-chip" onclick="window.__etAsst.showNav()">🔗 Navigate</button>
+    document.getElementById('ea-body').innerHTML = `
+      <div class="ea-greeting">${roleData.greeting}</div>
+      ${tip ? `<div class="ea-tip">${tip}</div>` : ''}
+      <div class="ea-chip-row">
+        ${hasTour ? `<button class="ea-chip" onclick="window.__etAsst.startTour()">📍 Page Tour</button>` : ''}
+        <button class="ea-chip" onclick="window.__etAsst.showFAQ()">❓ Help Topics</button>
+        <button class="ea-chip" onclick="window.__etAsst.showNav()">🔗 Quick Links</button>
+        <button class="ea-chip" onclick="window.__etAsst.showShortcuts()">⌨️ Shortcuts</button>
       </div>
-      <div class="et-asst-section-title">Common Questions</div>
-      ${KB.faq.slice(0, 5).map(item => `
-        <div class="et-asst-item" onclick="window.__etAsst.showAnswer('${encodeURIComponent(item.q[0])}')">
-          <div class="et-asst-item-icon">💬</div>
-          <span>${capitalise(item.q[0])}</span>
-        </div>
-      `).join('')}
+      ${faqPreview.length ? `
+        <div class="ea-section">Common Questions</div>
+        ${faqPreview.map(item => `
+          <button class="ea-item" onclick="window.__etAsst.showAnswer('${encodeURIComponent(item.q[0])}')">
+            <div class="ea-item-icon">💬</div>
+            <span>${cap(item.q[0])}</span>
+          </button>`).join('')}
+      ` : ''}
     `;
   }
 
-  function renderSearchResults(query) {
-    currentView = 'search';
+  function renderSearch(query) {
     const answer = findAnswer(query);
-    const navResults = searchNav(query);
-    const body = document.getElementById('et-asst-body');
-
-    let html = `<button class="et-asst-back" onclick="window.__etAsst.home()">← Back</button>`;
+    const navRes = searchNav(query);
+    let html = `<button class="ea-back" onclick="window.__etAsst.home()">← Back</button>`;
 
     if (answer) {
-      html += `<div class="et-asst-section-title">Answer</div>
-               <div class="et-asst-answer">${answer}</div>`;
+      html += `<div class="ea-section">Answer</div><div class="ea-answer">${answer}</div>`;
     }
-
-    if (navResults.length) {
-      html += `<div class="et-asst-section-title">Go to Page</div>`;
-      navResults.forEach(n => {
-        html += `<a class="et-asst-item" href="${n.url}">
-          <div class="et-asst-item-icon">📄</div>
-          <span>${n.label}</span>
-        </a>`;
+    if (navRes.length) {
+      html += `<div class="ea-section">Go to Page</div>`;
+      navRes.forEach(n => {
+        html += `<a class="ea-item" href="${n.url}"><div class="ea-item-icon">📄</div><span>${n.label}</span></a>`;
       });
     }
-
-    if (!answer && !navResults.length) {
-      html += `<div class="et-asst-no-result">
-        <div style="font-size:32px;margin-bottom:8px;">🤔</div>
-        No results for <b>"${query}"</b>.<br>Try different keywords or browse the FAQ.
-        <div style="margin-top:12px;">
-          <button class="et-asst-chip" onclick="window.__etAsst.showFAQ()">Browse FAQ</button>
-        </div>
+    if (!answer && !navRes.length) {
+      html += `<div class="ea-empty">
+        <div style="font-size:34px;margin-bottom:8px;">🤔</div>
+        Hmm, I couldn't find anything for <b>"${query}"</b>.<br>
+        Try different words or browse the Help Topics!
+        <div style="margin-top:14px;"><button class="ea-chip" onclick="window.__etAsst.showFAQ()">Browse Help Topics</button></div>
       </div>`;
     }
 
-    body.innerHTML = html;
+    document.getElementById('ea-body').innerHTML = html;
   }
 
-  function showAnswer(encodedKey) {
-    const key = decodeURIComponent(encodedKey);
-    const item = KB.faq.find(f => f.q[0] === key);
+  function showAnswer(enc) {
+    const key = decodeURIComponent(enc);
+    const item = (roleData.faq || []).find(f => f.q[0] === key);
     if (!item) return;
-    const body = document.getElementById('et-asst-body');
-    body.innerHTML = `
-      <button class="et-asst-back" onclick="window.__etAsst.home()">← Back</button>
-      <div class="et-asst-section-title">${capitalise(key)}</div>
-      <div class="et-asst-answer">${item.a}</div>
+    document.getElementById('ea-body').innerHTML = `
+      <button class="ea-back" onclick="window.__etAsst.home()">← Back</button>
+      <div class="ea-section">${cap(key)}</div>
+      <div class="ea-answer">${item.a}</div>
+      <div style="margin-top:10px;"><button class="ea-chip" onclick="window.__etAsst.showFAQ()">← All Topics</button></div>
     `;
   }
 
   function showFAQ() {
-    currentView = 'faq';
-    const body = document.getElementById('et-asst-body');
-    body.innerHTML = `
-      <button class="et-asst-back" onclick="window.__etAsst.home()">← Back</button>
-      <div class="et-asst-section-title">Frequently Asked Questions</div>
-      ${KB.faq.map(item => `
-        <div class="et-asst-item" onclick="window.__etAsst.showAnswer('${encodeURIComponent(item.q[0])}')">
-          <div class="et-asst-item-icon">💬</div>
-          <span>${capitalise(item.q[0])}</span>
-        </div>
-      `).join('')}
-    `;
-  }
-
-  function showShortcuts() {
-    currentView = 'shortcuts';
-    const body = document.getElementById('et-asst-body');
-    body.innerHTML = `
-      <button class="et-asst-back" onclick="window.__etAsst.home()">← Back</button>
-      <div class="et-asst-section-title">Keyboard Shortcuts</div>
-      ${KB.shortcuts.map(s => `
-        <div class="et-asst-shortcut-row">
-          <span>${s.desc}</span>
-          <span class="et-asst-kbd">${s.keys}</span>
-        </div>
-      `).join('')}
+    document.getElementById('ea-body').innerHTML = `
+      <button class="ea-back" onclick="window.__etAsst.home()">← Back</button>
+      <div class="ea-section">Help Topics for ${getRoleName(role)}</div>
+      ${(roleData.faq || []).map(item => `
+        <button class="ea-item" onclick="window.__etAsst.showAnswer('${encodeURIComponent(item.q[0])}')">
+          <div class="ea-item-icon">💬</div>
+          <span>${cap(item.q[0])}</span>
+        </button>`).join('')}
     `;
   }
 
   function showNav() {
-    currentView = 'nav';
-    const body = document.getElementById('et-asst-body');
-    body.innerHTML = `
-      <button class="et-asst-back" onclick="window.__etAsst.home()">← Back</button>
-      <div class="et-asst-section-title">Quick Navigate</div>
-      ${KB.navLinks.map(n => `
-        <a class="et-asst-item" href="${n.url}">
-          <div class="et-asst-item-icon">📄</div>
-          <span>${n.label}</span>
-        </a>
-      `).join('')}
+    document.getElementById('ea-body').innerHTML = `
+      <button class="ea-back" onclick="window.__etAsst.home()">← Back</button>
+      <div class="ea-section">Quick Links for ${getRoleName(role)}</div>
+      ${(roleData.navLinks || []).map(n => `
+        <a class="ea-item" href="${n.url}"><div class="ea-item-icon">📄</div><span>${n.label}</span></a>`
+      ).join('')}
+    `;
+  }
+
+  function showShortcuts() {
+    const shortcuts = [
+      { keys:'? or H', desc:'Open / close this assistant' },
+      { keys:'Esc',    desc:'Close assistant' },
+      { keys:'Alt+D',  desc:'Go to Dashboard' },
+      { keys:'Alt+A',  desc:'Go to Attendance' },
+      { keys:'Alt+R',  desc:'Go to Results / Score Entry' },
+      { keys:'Alt+N',  desc:'Go to Notifications' },
+      ...(role === 'admin' ? [{ keys:'Alt+S', desc:'Go to Students' }] : []),
+    ];
+    document.getElementById('ea-body').innerHTML = `
+      <button class="ea-back" onclick="window.__etAsst.home()">← Back</button>
+      <div class="ea-section">Keyboard Shortcuts</div>
+      ${shortcuts.map(s => `
+        <div class="ea-shortcut-row"><span>${s.desc}</span><span class="ea-kbd">${s.keys}</span></div>`
+      ).join('')}
     `;
   }
 
   function startTour() {
     const pageKey = getPageKey();
-    tourItems = KB.tours[pageKey] || [];
+    tourItems = ((roleData.tours || {})[pageKey]) || [];
     if (!tourItems.length) return;
     tourStep = 0;
-    renderTourStep();
+    renderTour();
   }
 
-  function renderTourStep() {
-    currentView = 'tour';
+  function renderTour() {
     const step = tourItems[tourStep];
-    const body = document.getElementById('et-asst-body');
     const dots = tourItems.map((_, i) =>
-      `<div class="et-asst-tour-dot${i === tourStep ? ' active' : ''}"></div>`
+      `<div class="ea-dot${i === tourStep ? ' active' : ''}"></div>`
     ).join('');
-
-    body.innerHTML = `
-      <button class="et-asst-back" onclick="window.__etAsst.home()">← Back</button>
-      <div class="et-asst-section-title">Page Tour · Step ${tourStep + 1} of ${tourItems.length}</div>
-      <div class="et-asst-tour-card">
+    document.getElementById('ea-body').innerHTML = `
+      <button class="ea-back" onclick="window.__etAsst.home()">← Exit Tour</button>
+      <div class="ea-section">Step ${tourStep + 1} of ${tourItems.length}</div>
+      <div class="ea-tour-card">
         <h4>${step.title}</h4>
         <p>${step.body}</p>
       </div>
-      <div class="et-asst-tour-nav">
+      <div class="ea-tour-nav">
         <button ${tourStep === 0 ? 'disabled' : ''} onclick="window.__etAsst.tourPrev()">← Prev</button>
-        <div class="et-asst-tour-dots">${dots}</div>
+        <div class="ea-dots">${dots}</div>
         ${tourStep < tourItems.length - 1
           ? `<button onclick="window.__etAsst.tourNext()">Next →</button>`
-          : `<button onclick="window.__etAsst.home()" style="background:#166534;">✓ Done</button>`
-        }
+          : `<button onclick="window.__etAsst.home()" style="background:#15803d;">✓ Done!</button>`}
       </div>
     `;
   }
 
   // ── Toggle ──────────────────────────────────────────────────
-  function toggleAssistant() {
-    isOpen ? closeAssistant() : openAssistant();
-  }
-
-  function openAssistant() {
+  function toggle() { isOpen ? close() : open(); }
+  function open() {
     isOpen = true;
     document.getElementById('et-asst-panel').classList.add('open');
-    setTimeout(() => document.getElementById('et-asst-input')?.focus(), 250);
+    setTimeout(() => document.getElementById('ea-input')?.focus(), 260);
   }
-
-  function closeAssistant() {
+  function close() {
     isOpen = false;
     document.getElementById('et-asst-panel').classList.remove('open');
   }
 
-  // ── Keyboard shortcuts ──────────────────────────────────────
-  document.addEventListener('keydown', function (e) {
-    const tag = document.activeElement.tagName;
-    const typing = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
-
-    if (e.key === 'Escape') { closeAssistant(); return; }
-    if (!typing && (e.key === '?' || e.key === 'h' || e.key === 'H')) { toggleAssistant(); return; }
-
+  // ── Keyboard ────────────────────────────────────────────────
+  document.addEventListener('keydown', e => {
+    const typing = ['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName);
+    if (e.key === 'Escape') { close(); return; }
+    if (!typing && (e.key === '?' || e.key === 'h' || e.key === 'H')) { toggle(); return; }
     if (e.altKey) {
-      const path = window.location.pathname;
-      const base = path.includes('/admin/') ? '/admin/' :
-                   path.includes('/portals/staff/') ? '/portals/staff/' :
-                   path.includes('/portals/student/') ? '/portals/student/' : '/';
-      if (e.key === 'd') { e.preventDefault(); window.location.href = base + 'index.html'; }
-      if (e.key === 's') { e.preventDefault(); window.location.href = '/admin/students.html'; }
-      if (e.key === 'a') { e.preventDefault(); window.location.href = base + 'attendance.html'; }
-      if (e.key === 'r') { e.preventDefault(); window.location.href = base + 'results.html'; }
-      if (e.key === 'n') { e.preventDefault(); window.location.href = base + 'notifications.html'; }
+      const base = role === 'admin' ? '/admin/' :
+                   role === 'student' ? '/portals/student/' :
+                   role === 'parent' ? '/portals/parent/' :
+                   role === 'bursar' ? '/portals/bursary/' : '/portals/staff/';
+      if (e.key === 'd') { e.preventDefault(); location.href = base + 'index.html'; }
+      if (e.key === 'a') { e.preventDefault(); location.href = base + 'attendance.html'; }
+      if (e.key === 'r') { e.preventDefault(); location.href = base + (role === 'admin' ? 'results.html' : role === 'teacher' ? 'score-entry.html' : 'results.html'); }
+      if (e.key === 'n') { e.preventDefault(); location.href = base + 'notifications.html'; }
+      if (e.key === 's' && role === 'admin') { e.preventDefault(); location.href = '/admin/students.html'; }
     }
   });
 
-  // ── Helpers ─────────────────────────────────────────────────
-  function capitalise(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  }
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
   // ── Public API ──────────────────────────────────────────────
   window.__etAsst = {
-    open: openAssistant,
-    close: closeAssistant,
-    toggle: toggleAssistant,
-    home: () => { document.getElementById('et-asst-input').value = ''; renderHome(); },
-    showFAQ,
-    showShortcuts,
-    showNav,
-    startTour,
-    tourNext: () => { if (tourStep < tourItems.length - 1) { tourStep++; renderTourStep(); } },
-    tourPrev: () => { if (tourStep > 0) { tourStep--; renderTourStep(); } },
+    open, close, toggle, home: () => { document.getElementById('ea-input').value = ''; renderHome(); },
+    showFAQ, showNav, showShortcuts, startTour,
+    tourNext: () => { if (tourStep < tourItems.length - 1) { tourStep++; renderTour(); } },
+    tourPrev: () => { if (tourStep > 0) { tourStep--; renderTour(); } },
     showAnswer,
   };
 
   // ── Init ────────────────────────────────────────────────────
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', buildAssistant);
+    document.addEventListener('DOMContentLoaded', build);
   } else {
-    buildAssistant();
+    build();
   }
 
 })();
