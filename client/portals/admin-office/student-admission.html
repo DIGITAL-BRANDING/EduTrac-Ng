@@ -22,42 +22,24 @@
       font-weight: 600; margin: 3px;
     }
 
-    /* ── Class Group Styles ── */
-    .class-group { margin-bottom: 10px; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
-    .class-group-header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 13px 18px; background: var(--surface);
-      cursor: pointer; user-select: none;
-      transition: background .15s;
-    }
-    .class-group-header:hover { background: var(--surface-2); }
+    /* Class Group Styles */
+    .class-group { margin-bottom: 8px; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+    .class-group-header { display: flex; align-items: center; justify-content: space-between; padding: 13px 18px; background: var(--surface); cursor: pointer; user-select: none; transition: background .15s; }
+    .class-group-header:hover { background: var(--surface-2,#f9fafb); }
     .class-group-header.open { background: var(--primary); color: white; }
     .class-group-left { display: flex; align-items: center; gap: 12px; }
     .class-group-name { font-weight: 700; font-size: 15px; }
-    .class-group-count {
-      background: var(--primary); color: white;
-      border-radius: 100px; padding: 2px 10px;
-      font-size: 12px; font-weight: 700;
-    }
-    .class-group-header.open .class-group-count { background: rgba(255,255,255,0.25); }
-    .class-group-right { display: flex; align-items: center; gap: 8px; }
-    .class-group-admit {
-      font-size: 12px; font-weight: 700;
-      background: white; color: var(--primary);
-      border: none; border-radius: 8px;
-      padding: 5px 12px; cursor: pointer;
-      transition: background .15s;
-      white-space: nowrap;
-    }
-    .class-group-admit:hover { background: var(--primary-light); }
-    .class-group-header:not(.open) .class-group-admit { background: var(--primary); color: white; }
-    .class-group-header:not(.open) .class-group-admit:hover { background: var(--primary-dark, #07512e); }
+    .class-group-count { background: var(--primary); color: white; border-radius: 100px; padding: 2px 10px; font-size: 12px; font-weight: 700; }
+    .class-group-header.open .class-group-count { background: rgba(255,255,255,.25); }
+    .class-group-right { display: flex; align-items: center; }
+    .class-group-admit { font-size: 12px; font-weight: 700; background: var(--primary); color: white; border: none; border-radius: 8px; padding: 5px 12px; cursor: pointer; white-space: nowrap; }
+    .class-group-header.open .class-group-admit { background: rgba(255,255,255,.2); }
+    .class-group-admit:hover { opacity: .8; }
     .class-group-chevron { transition: transform .22s; flex-shrink: 0; }
     .class-group-header.open .class-group-chevron { transform: rotate(180deg); }
     .class-group-body { display: none; }
     .class-group-body.open { display: block; }
     .unassigned-group .class-group-header { background: #fef9c3; }
-    .unassigned-group .class-group-header:hover { background: #fef08a; }
     .unassigned-group .class-group-count { background: #ca8a04; }
   </style>
 </head>
@@ -223,194 +205,127 @@ async function loadStudents() {
 }
 
 function renderPage() {
-  document.getElementById('pageBody').innerHTML = `
-    <div class="page-header">
-      <h1>🎓 Student Admissions</h1>
-      <p>Students grouped by class — search, filter, or admit directly into any class</p>
-    </div>
-    <div class="filter-bar" style="margin-bottom:16px;">
-      <div class="search-box" style="flex:1;max-width:320px;">
-        <input class="form-control" id="srch" placeholder="🔍 Search name or admission no…" oninput="filter()">
-      </div>
-      <select class="form-control" id="fStatus" onchange="filter()" style="max-width:140px;">
-        <option value="active">Active Only</option>
-        <option value="inactive">Inactive</option>
-        <option value="">All Students</option>
-      </select>
-    </div>
-    <div id="studentTable"></div>
-  `;
+  document.getElementById('pageBody').innerHTML =
+    '<div class="page-header"><h1>Student Admissions</h1>' +
+    '<p>Students grouped by class &mdash; search, filter, or admit into any class</p></div>' +
+    '<div class="filter-bar" style="margin-bottom:16px;">' +
+    '<div class="search-box" style="flex:1;max-width:320px;">' +
+    '<input class="form-control" id="srch" placeholder="Search name or admission no..." oninput="filter()"></div>' +
+    '<select class="form-control" id="fStatus" onchange="filter()" style="max-width:140px;">' +
+    '<option value="active">Active Only</option>' +
+    '<option value="inactive">Inactive</option>' +
+    '<option value="">All Students</option></select></div>' +
+    '<div id="studentTable"></div>';
   filter();
 }
 
-// Track which groups are open
-const _openGroups = new Set();
+var _openGroups = {};
 
-function toggleGroup(groupId) {
-  const header = document.getElementById('gh-' + groupId);
-  const body   = document.getElementById('gb-' + groupId);
-  if (!header || !body) return;
-  const isOpen = body.classList.contains('open');
-  if (isOpen) {
-    body.classList.remove('open');
-    header.classList.remove('open');
-    _openGroups.delete(groupId);
+function toggleGroup(gid) {
+  var h = document.getElementById('gh-' + gid);
+  var b = document.getElementById('gb-' + gid);
+  if (!h || !b) return;
+  if (b.classList.contains('open')) {
+    b.classList.remove('open'); h.classList.remove('open'); _openGroups[gid] = false;
   } else {
-    body.classList.add('open');
-    header.classList.add('open');
-    _openGroups.add(groupId);
+    b.classList.add('open'); h.classList.add('open'); _openGroups[gid] = true;
   }
 }
 
 function openAddForClass(classId, className, e) {
   e.stopPropagation();
   openAdd();
-  // Pre-select the class after modal opens
-  setTimeout(() => {
+  setTimeout(function() {
     goStep(3);
-    const sel = document.getElementById('sClass');
+    var sel = document.getElementById('sClass');
     if (sel) { sel.value = classId; pickClass(); }
     goStep(1);
-  }, 50);
+  }, 60);
 }
 
 function filter() {
-  const q  = (document.getElementById('srch')?.value || '').toLowerCase().trim();
-  const fs = document.getElementById('fStatus')?.value;
-
-  // Build family counts
-  const familyCounts = {};
-  allStudents.forEach(s => { if (s.family_id) familyCounts[s.family_id] = (familyCounts[s.family_id]||0)+1; });
-
-  // Filter students
-  const list = allStudents.filter(s => {
-    if (q && !s.full_name.toLowerCase().includes(q) && !(s.admission_no||'').toLowerCase().includes(q)) return false;
+  var q  = ((document.getElementById('srch')   || {}).value || '').toLowerCase().trim();
+  var fs = ((document.getElementById('fStatus') || {}).value || '');
+  var familyCounts = {};
+  allStudents.forEach(function(s) { if (s.family_id) familyCounts[s.family_id] = (familyCounts[s.family_id]||0)+1; });
+  var list = allStudents.filter(function(s) {
+    if (q && s.full_name.toLowerCase().indexOf(q) === -1 && (s.admission_no||'').toLowerCase().indexOf(q) === -1) return false;
     if (fs === 'active'   && !s.is_active) return false;
     if (fs === 'inactive' &&  s.is_active) return false;
     return true;
   });
-
-  const el = document.getElementById('studentTable');
+  var el = document.getElementById('studentTable');
   if (!el) return;
-
-  if (!list.length) {
-    showEmpty(el, 'No students found.', '🎓');
-    return;
-  }
-
-  // Group by class — use classes array order for sorting
-  const classOrder = classes.map(c => c.id);
-  const grouped = {};   // classId → { name, students[] }
-  const unassigned = [];
-
-  list.forEach(s => {
-    const enr = s.enrollments?.[0];
-    if (enr?.class_id && enr?.classes?.name) {
+  if (!list.length) { showEmpty(el, 'No students found.', '?'); return; }
+  var classOrder = classes.map(function(c) { return c.id; });
+  var grouped = {}, unassigned = [];
+  list.forEach(function(s) {
+    var enr = s.enrollments && s.enrollments[0];
+    if (enr && enr.class_id && enr.classes && enr.classes.name) {
       if (!grouped[enr.class_id]) grouped[enr.class_id] = { name: enr.classes.name, id: enr.class_id, students: [] };
       grouped[enr.class_id].students.push(s);
-    } else {
-      unassigned.push(s);
-    }
+    } else { unassigned.push(s); }
   });
+  var sortedGroups = classOrder.filter(function(id) { return grouped[id]; }).map(function(id) { return grouped[id]; });
+  Object.keys(grouped).forEach(function(id) { if (classOrder.indexOf(id) === -1) sortedGroups.push(grouped[id]); });
+  var isSearching = q.length > 0;
+  var totalActive   = list.filter(function(s) { return  s.is_active; }).length;
+  var totalInactive = list.filter(function(s) { return !s.is_active; }).length;
 
-  // Sort groups by the classes array order
-  const sortedGroups = classOrder
-    .filter(id => grouped[id])
-    .map(id => grouped[id]);
-
-  // Also include any groups not in classOrder (edge case)
-  Object.keys(grouped).forEach(id => {
-    if (!classOrder.includes(id)) sortedGroups.push(grouped[id]);
-  });
-
-  // Auto-expand all groups when searching
-  const isSearching = q.length > 0;
-
-  function renderStudentRow(s) {
-    const sibCount = s.family_id ? (familyCounts[s.family_id]||1) : 0;
-    return \`
-      <tr>
-        <td>
-          <div class="student-cell">
-            <div class="avatar avatar--sm">\${s.full_name.charAt(0)}</div>
-            <div class="info">
-              <div class="name">\${s.full_name}</div>
-              <div class="sub">\${s.admission_no || 'No Adm No'}</div>
-            </div>
-          </div>
-        </td>
-        <td>
-          \${sibCount > 1
-            ? \`<span class="badge badge--blue">👨‍👩‍👧 \${sibCount} siblings</span>\`
-            : s.family_id
-              ? \`<span class="badge badge--gray">Family linked</span>\`
-              : '<span style="color:var(--ink-4);font-size:12px;">—</span>'}
-        </td>
-        <td><span class="badge \${s.is_active ? 'badge--green' : 'badge--red'}">\${s.is_active ? 'Active' : 'Inactive'}</span></td>
-        <td style="color:var(--ink-3);font-size:12px;">\${formatDate(s.created_at)}</td>
-        <td>
-          <div class="td-action">
-            <button class="btn btn--secondary btn--sm" onclick="editStudent('\${s.id}')">Edit</button>
-            <button class="btn btn--ghost btn--sm" onclick="toggleActive('\${s.id}',\${s.is_active})">\${s.is_active ? 'Deactivate' : 'Activate'}</button>
-          </div>
-        </td>
-      </tr>\`;
+  function rowHtml(s) {
+    var sib = s.family_id ? (familyCounts[s.family_id]||1) : 0;
+    var famHtml = sib > 1 ? '<span class="badge badge--blue">Family: '+sib+' siblings</span>'
+      : s.family_id ? '<span class="badge badge--gray">Family linked</span>'
+      : '<span style="color:var(--ink-4);font-size:12px;">&#8212;</span>';
+    var id2 = s.id.replace(/'/g, "\\'");
+    return '<tr>' +
+      '<td><div class="student-cell"><div class="avatar avatar--sm">'+s.full_name.charAt(0)+'</div>' +
+      '<div class="info"><div class="name">'+s.full_name+'</div><div class="sub">'+( s.admission_no||'No Adm No')+'</div></div></div></td>' +
+      '<td>'+famHtml+'</td>' +
+      '<td><span class="badge '+(s.is_active?'badge--green':'badge--red')+'">'+( s.is_active?'Active':'Inactive')+'</span></td>' +
+      '<td style="color:var(--ink-3);font-size:12px;">'+formatDate(s.created_at)+'</td>' +
+      '<td><div class="td-action">' +
+        '<button class="btn btn--secondary btn--sm" onclick="editStudent(\''+id2+'\')"  >Edit</button>' +
+        '<button class="btn btn--ghost btn--sm" onclick="toggleActive(\''+id2+'\','+s.is_active+')">'+(s.is_active?'Deactivate':'Activate')+'</button>' +
+      '</div></td></tr>';
   }
 
-  function renderGroup(group, isUnassigned) {
-    const gid   = isUnassigned ? '__unassigned__' : group.id;
-    const gname = isUnassigned ? 'Unassigned Students' : group.name;
-    const count = group.students.length;
-    const isOpen = isSearching || _openGroups.has(gid);
-
-    return \`
-      <div class="class-group \${isUnassigned ? 'unassigned-group' : ''}">
-        <div class="class-group-header \${isOpen ? 'open' : ''}" id="gh-\${gid}" onclick="toggleGroup('\${gid}')">
-          <div class="class-group-left">
-            <svg class="class-group-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-            <span class="class-group-name">\${gname}</span>
-            <span class="class-group-count">\${count} student\${count !== 1 ? 's' : ''}</span>
-          </div>
-          \${!isUnassigned ? \`
-          <div class="class-group-right">
-            <button class="class-group-admit" onclick="openAddForClass('\${group.id}','\${gname}',event)">+ Admit to this class</button>
-          </div>\` : ''}
-        </div>
-        <div class="class-group-body \${isOpen ? 'open' : ''}" id="gb-\${gid}">
-          <table>
-            <thead>
-              <tr><th>Student</th><th>Family</th><th>Status</th><th>Admitted</th><th>Actions</th></tr>
-            </thead>
-            <tbody>
-              \${group.students.map(s => renderStudentRow(s)).join('')}
-            </tbody>
-          </table>
-        </div>
-      </div>\`;
+  function groupHtml(group, isUnassigned) {
+    var gid   = isUnassigned ? '__unassigned__' : group.id;
+    var gname = isUnassigned ? 'Unassigned Students' : group.name;
+    var count = group.students.length;
+    var isOpen = isSearching || _openGroups[gid] === true;
+    var gid2  = gid.replace(/'/g, "\\'");
+    var admitBtn = !isUnassigned
+      ? '<div class="class-group-right"><button class="class-group-admit" onclick="openAddForClass(\''+group.id+'\',\''+gname+'\',event)">+ Admit to this class</button></div>'
+      : '';
+    var chevron = '<svg class="class-group-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+    return '<div class="class-group'+(isUnassigned?' unassigned-group':'')+'">' +
+      '<div class="class-group-header '+(isOpen?'open':'')+'" id="gh-'+gid+'" onclick="toggleGroup(\''+gid2+'\')">' +
+        '<div class="class-group-left">'+chevron+
+          '<span class="class-group-name">'+gname+'</span>' +
+          '<span class="class-group-count">'+count+' student'+(count!==1?'s':'')+'</span>' +
+        '</div>'+admitBtn+
+      '</div>' +
+      '<div class="class-group-body '+(isOpen?'open':'')+'" id="gb-'+gid+'">' +
+        '<table><thead><tr><th>Student</th><th>Family</th><th>Status</th><th>Admitted</th><th>Actions</th></tr></thead>' +
+        '<tbody>'+group.students.map(rowHtml).join('')+'</tbody></table>' +
+      '</div></div>';
   }
 
-  const totalActive   = list.filter(s => s.is_active).length;
-  const totalInactive = list.filter(s => !s.is_active).length;
+  var summary =
+    '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">' +
+    '<div style="background:var(--primary-light,#e6f4ed);border:1px solid var(--primary);border-radius:10px;padding:9px 16px;font-size:13px;font-weight:700;color:var(--primary);">Total: '+list.length+' students</div>' +
+    '<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:9px 16px;font-size:13px;font-weight:700;color:#15803d;">Active: '+totalActive+'</div>' +
+    (totalInactive?'<div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:10px;padding:9px 16px;font-size:13px;font-weight:700;color:#dc2626;">Inactive: '+totalInactive+'</div>':'')+
+    '<div style="background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:9px 16px;font-size:13px;font-weight:700;color:var(--ink-3);">Classes: '+sortedGroups.length+'</div>' +
+    '</div>';
 
-  el.innerHTML = \`
-    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
-      <div style="background:var(--primary-light,#e6f4ed);border:1px solid var(--primary);border-radius:10px;padding:10px 18px;font-size:13px;font-weight:700;color:var(--primary);">
-        📊 \${list.length} students total
-      </div>
-      <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:10px 18px;font-size:13px;font-weight:700;color:#15803d;">
-        ✅ \${totalActive} active
-      </div>
-      \${totalInactive ? \`<div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:10px;padding:10px 18px;font-size:13px;font-weight:700;color:#dc2626;">
-        ⚠️ \${totalInactive} inactive
-      </div>\` : ''}
-      <div style="background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:10px 18px;font-size:13px;font-weight:700;color:var(--ink-3);">
-        🏫 \${sortedGroups.length} class\${sortedGroups.length !== 1 ? 'es' : ''}
-      </div>
-    </div>
-    \${sortedGroups.map(g => renderGroup(g, false)).join('')}
-    \${unassigned.length ? renderGroup({ id: '__unassigned__', name: 'Unassigned', students: unassigned }, true) : ''}
-  \`;
+  el.innerHTML = summary +
+    sortedGroups.map(function(g) { return groupHtml(g, false); }).join('') +
+    (unassigned.length ? groupHtml({id:'__unassigned__',name:'Unassigned',students:unassigned}, true) : '');
 }
+
 
 function openAdd() {
   document.getElementById('modalTitle').textContent = 'New Student Admission';
@@ -651,7 +566,6 @@ async function toggleActive(id, current) {
 }
 </script>
 
-
-<script src="../../js/assistant.js"></script>
+<script src="../../js/ai-assistant.js" defer></script>
 </body>
 </html>
