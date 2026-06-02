@@ -196,49 +196,63 @@ function redirectByRole(role) {
 
 // ── Logout ─────────────────────────────────────────────────────
 async function logout() {
-  // Clear SW portal cache so next user on same device sees nothing
+  // ── OFFLINE SAFETY: Never wipe the Supabase session token while offline.
+  // If we delete the session key from localStorage while offline, the user
+  // gets permanently locked out because authGuard can't find a session and
+  // immediately redirects to /login.html on every portal page load.
+  // Only perform the full sign-out when we have network connectivity.
+  if (!navigator.onLine) {
+    console.warn('[Auth] Logout blocked while offline — session preserved so portal pages remain accessible.');
+    // Show a brief notice instead of silently doing nothing
+    const n = document.createElement('div');
+    n.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#92400e;color:#fff;font-size:13px;font-family:system-ui;padding:10px 16px;text-align:center;';
+    n.textContent = '📶 You are offline. Sign-out will complete when you reconnect.';
+    document.body.prepend(n);
+    // Mark as pending-logout so the actual signout fires on reconnect
+    try { localStorage.setItem('et_pending_logout', '1'); } catch {}
+    return;
+  }
+
+  // Online path — full clean logout
   if (typeof clearPortalCacheOnLogout === 'function') clearPortalCacheOnLogout();
   _clearProfileCache();
   try { localStorage.removeItem('user'); sessionStorage.removeItem('user'); } catch {}
-  
-  // CRITICAL: Sign out from Supabase FIRST, then clear ALL auth storage
+  try { localStorage.removeItem('et_pending_logout'); } catch {}
+
   try {
     await db.auth.signOut();
   } catch (e) {
     console.warn('Signout failed:', e);
   }
-  
-  // Force clear ALL possible auth storage locations to prevent auto-login
+
+  // Clear auth-related localStorage keys (but NOT all keys — only auth ones)
   try {
-    // Clear Supabase session storage keys
     const keysToRemove = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && (key.includes('supabase') || key.includes('auth') || key.includes('et_user') || key.includes('et_student'))) {
+      if (key && (key.includes('supabase') || key.includes('et_user') || key.includes('et_student'))) {
         keysToRemove.push(key);
       }
     }
     keysToRemove.forEach(key => localStorage.removeItem(key));
-    
-    // Clear sessionStorage
     sessionStorage.clear();
-    
-    // Clear IndexedDB if it exists
-    if (window.indexedDB) {
-      const dbs = await indexedDB.databases();
-      dbs.forEach(db => {
-        indexedDB.deleteDatabase(db.name);
-      });
-    }
   } catch (e) {
     console.warn('Error clearing auth storage:', e);
   }
-  
-  // Add a small delay to ensure storage is cleared before redirect
+
   await new Promise(resolve => setTimeout(resolve, 100));
-  
   window.location.href = '/login.html';
 }
+
+// Complete a deferred logout when the user comes back online
+window.addEventListener('online', async () => {
+  try {
+    if (localStorage.getItem('et_pending_logout') === '1') {
+      console.log('[Auth] Completing deferred logout now online');
+      await logout();
+    }
+  } catch {}
+});
 
 // ── Student Portal Auth (PIN-based, no Supabase auth) ──────────
 function getStudentSession() {
