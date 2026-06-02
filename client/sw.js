@@ -11,7 +11,7 @@
 //   ⑦ Broadcast offline state to clients
 // ============================================================
 
-const SW_VERSION    = 'v3.2';
+const SW_VERSION    = 'v3.3';
 const SHELL_CACHE   = `edutrack-${SW_VERSION}-shell`;
 const PORTAL_CACHE  = `edutrack-${SW_VERSION}-portal`;
 const CDN_CACHE     = `edutrack-${SW_VERSION}-cdn`;
@@ -33,7 +33,7 @@ const APP_SHELL = [
   '/js/sync-engine.js',
   '/js/layout.js',
   '/js/notifications.js',
-  '/js/ai-assistant.js',
+  '/js/assistant.js',
   '/api/database.js',
   '/api/auth.js',
   '/api/calculations.js',
@@ -58,7 +58,7 @@ const PORTAL_PREFIXES = [
 ];
 
 // ── Helpers ───────────────────────────────────────────────────
-const isPortalPage  = url => url.pathname !== '/portals/student/login.html'
+const isPortalPage  = url => !url.pathname.endsWith('/login.html')
                             && PORTAL_PREFIXES.some(p => url.pathname.startsWith(p));
 const isSupabase    = url => url.hostname.includes('supabase.co');
 const isCdn         = url => CDN_ORIGINS.includes(url.hostname);
@@ -89,14 +89,16 @@ function cacheResponse(cacheName, cacheKey, response) {
 
 /**
  * Deduplicate concurrent fetch requests
- * If the same request is in-flight, return that Promise instead of fetching again
+ * If the same request is in-flight, return that Promise instead of fetching again.
+ * Each caller receives an independent clone so body streams are not shared.
  */
 function deduplicatedFetch(request) {
   const key = request.url;
   
   if (_inflightRequests.has(key)) {
     console.log(`[SW ${SW_VERSION}] Deduplicating fetch: ${key}`);
-    return _inflightRequests.get(key);
+    // Return a clone so each caller gets its own readable body stream
+    return _inflightRequests.get(key).then(resp => resp.clone());
   }
   
   const promise = fetch(request)
@@ -226,6 +228,7 @@ async function handlePortalNav(request, url) {
     return resp;
   } catch (e) {
     console.warn(`[SW ${SW_VERSION}] Portal fetch failed: ${url.pathname}`, e.message);
+    broadcastOfflineState(true); // FIX: actually broadcast offline state
     
     // Offline: try cached version
     const cached = await caches.match(key, { cacheName: PORTAL_CACHE });
@@ -343,7 +346,8 @@ async function handleSubResource(request) {
     return cached;
   }
 
-  return networkPromise;
+  const response = await networkPromise;
+  return response || Response.error();
 }
 
 /**
@@ -365,7 +369,7 @@ async function handleOfflinePagesAPI() {
     for (const req of keys) {
       try {
         const url = new URL(req.url);
-        if (url.search.includes('?')) continue;
+        if (url.search !== '') continue;
 
         const pathname = url.pathname;
         const parts = pathname.split('/').filter(p => p);
