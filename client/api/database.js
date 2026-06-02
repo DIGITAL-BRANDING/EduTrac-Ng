@@ -25,19 +25,50 @@ async function getSession() {
 async function getCurrentUser() {
   const session = await getSession();
   if (!session) return null;
-  const { data } = await db.from('users')
-    .select('*, schools(*)')
-    .eq('id', session.user.id)
-    .single();
-  return data;
+
+  // Online: fetch fresh from Supabase and refresh cache
+  if (navigator.onLine) {
+    try {
+      const { data } = await db.from('users')
+        .select('*, schools(*)')
+        .eq('id', session.user.id)
+        .single();
+      if (data) {
+        // Keep et_user_profile cache in sync so authGuard and getCurrentUser agree
+        try { localStorage.setItem('et_user_profile', JSON.stringify(data)); } catch {}
+        return data;
+      }
+    } catch {
+      // Network failed despite navigator.onLine — fall through to cache
+    }
+  }
+
+  // Offline (or network failed): return cached profile
+  try {
+    const raw = localStorage.getItem('et_user_profile');
+    if (raw) {
+      const cached = JSON.parse(raw);
+      // Only use cache if it belongs to the current session
+      if (cached && cached.id === session.user.id) return cached;
+    }
+  } catch {}
+
+  return null;
 }
 
 async function requireAuth(allowedRoles = []) {
   const session = await getSession();
   if (!session) { window.location.href = '/login.html'; return null; }
-  const user = await getCurrentUser();
-  if (!user) { window.location.href = '/login.html'; return null; }
-  if (user.is_active === false) {
+  const user = await getCurrentUser(); // now offline-safe via cache
+  if (!user) {
+    if (navigator.onLine) {
+      window.location.href = '/login.html';
+    }
+    // Offline with no cache: stay on page, authGuard's banner handles it
+    return null;
+  }
+  if (user.is_active === false && navigator.onLine) {
+    // Only enforce deactivation when online (same rule as authGuard)
     await db.auth.signOut();
     window.location.href = '/login.html'; return null;
   }
@@ -82,21 +113,41 @@ function bustSchoolContextCache(schoolId) {
 // School-wide bootstrap — call once per page, returns everything.
 // Results are cached in sessionStorage for 5 minutes to eliminate
 // repeated 6-query fan-outs on every navigation (ISSUE B-02).
+// OFFLINE FIX: falls back to a localStorage persistent copy when sessionStorage
+// is empty and the network is unavailable, so dashboards still populate offline.
+const _CTX_LS_KEY_PREFIX = 'school_ctx_persist_'; // persisted across sessions
+
+function _ctxLsKey(schoolId) { return `${_CTX_LS_KEY_PREFIX}${schoolId}`; }
+
 async function loadSchoolContext(schoolId) {
-  // 1. Try cache
+  // 1. Try sessionStorage (fast, in-memory for this session)
   try {
     const raw = sessionStorage.getItem(_ctxCacheKey(schoolId));
     if (raw) {
       const cached = JSON.parse(raw);
-      if (cached && cached._expires > Date.now()) {
-        return cached;
-      }
-      // Expired — remove stale entry
+      if (cached && cached._expires > Date.now()) return cached;
       sessionStorage.removeItem(_ctxCacheKey(schoolId));
     }
-  } catch (_) { /* sessionStorage unavailable or parse error — fall through */ }
+  } catch (_) {}
 
-  // 2. Cache miss — fire all 6 queries in parallel
+  // 2. Offline: return the persisted localStorage copy (may be slightly stale, but functional)
+  if (!navigator.onLine) {
+    try {
+      const raw = localStorage.getItem(_ctxLsKey(schoolId));
+      if (raw) {
+        const cached = JSON.parse(raw);
+        if (cached) {
+          console.log('[DB] Offline — serving school context from localStorage cache');
+          return cached;
+        }
+      }
+    } catch (_) {}
+    // No cache at all and offline — return empty-but-safe structure
+    console.warn('[DB] Offline and no school context cache found — returning empty context');
+    return { term: null, classes: [], subjects: [], terms: [], grading: [], dashSettings: null, _offline: true };
+  }
+
+  // 3. Online + cache miss — fire all 6 queries in parallel
   const [
     { data: term },
     { data: classes },
@@ -123,16 +174,21 @@ async function loadSchoolContext(schoolId) {
     _expires:    Date.now() + _CTX_TTL_MS,
   };
 
-  // 3. Write to cache; schedule auto-removal at TTL expiry
+  // 4. Write to sessionStorage (fast TTL) AND localStorage (offline fallback, no TTL)
   try {
     sessionStorage.setItem(_ctxCacheKey(schoolId), JSON.stringify(ctx));
     const tid = setTimeout(() => {
       sessionStorage.removeItem(_ctxCacheKey(schoolId));
       sessionStorage.removeItem(_ctxTimerKey(schoolId));
     }, _CTX_TTL_MS);
-    // Store timer ID so bustSchoolContextCache() can cancel it
     sessionStorage.setItem(_ctxTimerKey(schoolId), String(tid));
-  } catch (_) { /* sessionStorage full or unavailable — just return fresh data */ }
+  } catch (_) {}
+
+  // Persist to localStorage for offline use (strip _expires so it never auto-invalidates offline)
+  try {
+    const { _expires: _, ...persistable } = ctx;
+    localStorage.setItem(_ctxLsKey(schoolId), JSON.stringify(persistable));
+  } catch (_) {}
 
   return ctx;
 }
