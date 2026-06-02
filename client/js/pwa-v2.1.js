@@ -2,7 +2,7 @@
 //  EduTrack NG — PWA Manager (js/pwa-v2.1) - ENHANCED
 //  ─────────────────────────────────────────────────────────
 //  CRITICAL FIXES APPLIED:
-//   ✅ Fix #1: Correct cache version from v3.1 → v3.2
+//   ✅ Fix #1: Correct cache version from v3.2 -> v3.3
 //   ✅ Fix #2: Redundant connectivity check (multi-endpoint)
 //   ✅ Fix #3: Parallel SyncEngine initialization (not delayed)
 //   ✅ Fix #4: Add prefetch hook after successful auth
@@ -520,15 +520,18 @@ window.prefetchCriticalDataForOffline = async function() {
 /**
  * Lists all cached portal pages for offline navigation
  * Enhanced with metadata for better UX
- * ✅ FIX #1: Updated cache version to v3.2
+ * ✅ FIX #1: Updated cache version to v3.3
  */
 window._getOfflinePages = async function() {
   try {
-    const cache = await caches.open('edutrack-v3.2-portal');
-    if (!cache) {
+    // Dynamically find the portal cache (name contains 'portal') instead of hardcoding version
+    const cacheNames = await caches.keys();
+    const portalCacheName = cacheNames.find(n => n.includes('-portal'));
+    if (!portalCacheName) {
       console.warn('[PWA] Portal cache not found');
       return [];
     }
+    const cache = await caches.open(portalCacheName);
 
     const keys = await cache.keys();
     const pages = keys
@@ -539,7 +542,7 @@ window._getOfflinePages = async function() {
           return null;
         }
       })
-      .filter(url => url !== null && !url.search.includes('?'))
+      .filter(url => url !== null && url.search === '')
       .map(url => {
         const pathname = url.pathname;
         const parts = pathname.split('/').filter(p => p);
