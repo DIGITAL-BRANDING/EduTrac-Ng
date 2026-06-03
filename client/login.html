@@ -839,15 +839,66 @@ async function verifyRegPin() {
   const pin = document.getElementById('regPin').value.trim();
   if (!schoolId) { errEl.textContent = 'Please select your school.'; errEl.style.display = 'block'; return; }
   if (!pin || pin.length < 6) { errEl.textContent = 'Enter a valid scratch card PIN.'; errEl.style.display = 'block'; return; }
+
+  const btn = document.querySelector('#regStep1 button[onclick="verifyRegPin()"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Verifying…'; }
+
   try {
-    const { data: result, error: rpcErr } = await db.rpc('verify_scratch_pin', {
-      p_pin: pin,
-      p_school_id: schoolId
-    });
-    if (rpcErr) throw new Error('Unable to verify PIN. Please try again.');
-    if (!result?.valid) throw new Error(result?.error || 'Invalid PIN. Check your scratch card and try again.');
-    window.location.href = `student-application.html?school=${encodeURIComponent(schoolId)}&pin=${encodeURIComponent(pin)}`;
-  } catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
+    let verified = false;
+
+    // ── Primary path: RPC (handles card_type = 'registration') ──────────
+    try {
+      const { data: result, error: rpcErr } = await db.rpc('verify_scratch_pin', {
+        p_pin: pin,
+        p_school_id: schoolId
+      });
+      if (!rpcErr && result?.valid) verified = true;
+    } catch (_) { /* RPC unavailable — fall through */ }
+
+    // ── Fallback path: direct query for school-admin-generated cards ─────
+    // School admins create cards via admin/scratch-cards.html which may not
+    // set card_type. The RPC filters by card_type='registration' and misses
+    // these cards, returning "scratch card not found". We check directly.
+    if (!verified) {
+      const { data: card, error: cardErr } = await db
+        .from('scratch_cards')
+        .select('id, is_used, uses_count, max_uses, card_type, expires_at')
+        .eq('school_id', schoolId)
+        .eq('pin', pin)
+        .maybeSingle();
+
+      if (cardErr) throw new Error('Unable to verify PIN. Please try again.');
+      if (!card) throw new Error('Scratch card not found. Check the PIN and make sure you selected the correct school.');
+
+      // Validate card state
+      if (card.is_used || (card.uses_count ?? 0) >= (card.max_uses ?? 1)) {
+        throw new Error('This scratch card PIN has already been used. Please request a new card from the school office.');
+      }
+      if (card.expires_at && new Date(card.expires_at) < new Date()) {
+        throw new Error('This scratch card PIN has expired. Please request a new card from the school office.');
+      }
+      // card_type check: accept 'registration', null, or undefined (legacy cards)
+      if (card.card_type && card.card_type !== 'registration') {
+        throw new Error('This card is not a registration card. Please use a registration scratch card.');
+      }
+      verified = true;
+    }
+
+    if (!verified) throw new Error('Invalid PIN. Check your scratch card and try again.');
+
+    const { data: cls } = await db.from('classes').select('id,name').eq('school_id', schoolId).order('name');
+    document.getElementById('regClass').innerHTML = '<option value="">Select class…</option>' +
+      (cls || []).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    document.getElementById('regVerifiedPin').value = pin;
+    document.getElementById('regSchoolId').value = schoolId;
+    document.getElementById('regStep1').style.display = 'none';
+    document.getElementById('regStep2').style.display = '';
+  } catch(e) {
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Verify PIN →'; }
+  }
 }
 
 function previewPassport() {
