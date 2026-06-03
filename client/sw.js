@@ -40,6 +40,7 @@ const APP_SHELL = [
   '/assets/js/sidebar.js',
   '/assets/css/global.css',
   '/css/global.css',
+  '/admin/enrollment.html',
 ];
 
 // CDN origins to cache
