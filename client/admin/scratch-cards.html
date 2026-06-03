@@ -144,15 +144,21 @@ async function generateCards() {
   const count = parseInt(document.getElementById('genCount').value);
   if (!count || count < 1 || count > 200) { errEl.textContent = 'Enter a count between 1 and 200.'; errEl.style.display = 'block'; return; }
   btn.disabled = true; btn.textContent = 'Generating…';
-  const pinLen = parseInt(document.getElementById('genPinLen').value);
+  const pinLen  = parseInt(document.getElementById('genPinLen').value);
   const purpose = document.getElementById('genPurpose').value.trim();
+  // card_type must be set so verify_scratch_pin RPC can find these cards.
+  // School-admin cards are always registration cards (one use, for student sign-up).
+  const cardType = document.getElementById('genPurpose')?.value === 'result' ? 'result' : 'registration';
   const now = Date.now();
   const cards = Array.from({ length: count }, (_, i) => ({
-    school_id: currentUser.school_id,
-    serial_no: `SC${String(now).slice(-6)}${String(i+1).padStart(4,'0')}`,
-    pin: Array.from({ length: pinLen }, () => Math.floor(Math.random()*10)).join(''),
-    is_used: false,
-    purpose: purpose || null,
+    school_id:  currentUser.school_id,
+    serial_no:  `SC${String(now).slice(-6)}${String(i+1).padStart(4,'0')}`,
+    pin:        Array.from({ length: pinLen }, () => Math.floor(Math.random()*10)).join(''),
+    is_used:    false,
+    uses_count: 0,
+    max_uses:   1,        // registration cards: 1 use only
+    card_type:  'registration',
+    purpose:    purpose || null,
   }));
   const { error } = await db.from('scratch_cards').insert(cards);
   btn.disabled = false; btn.textContent = 'Generate';
