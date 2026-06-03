@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0a6e3f">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>EduTrack NG — Enrollment Manager</title>
+  <link rel="stylesheet" href="../assets/css/global.css">
+  <style>
+    /* ── Tab strip ─────────────────────────────────────── */
+    .tab-strip {
+      display: flex;
+      gap: 4px;
+      background: var(--surface-3);
+      border-radius: var(--radius);
+      padding: 4px;
+      margin-bottom: 24px;
+      width: fit-content;
+    }
+    .tab-btn {
+      padding: 8px 18px;
+      border-radius: calc(var(--radius) - 2px);
+      border: none;
+      background: transparent;
+      color: var(--ink-3);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all .15s;
+      white-space: nowrap;
+    }
+    .tab-btn.active {
+      background: var(--surface);
+      color: var(--primary);
+      box-shadow: var(--shadow-sm);
+    }
+    /* ── Summary stats bar ─────────────────────────────── */
+    .enroll-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .estat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .estat-icon { font-size: 24px; flex-shrink: 0; }
+    .estat-val  { font-size: 22px; font-weight: 800; line-height: 1; color: var(--primary); }
+    .estat-lbl  { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+    .estat.warn .estat-val  { color: var(--accent); }
+    .estat.danger .estat-val { color: var(--danger); }
+    /* ── Toolbar ───────────────────────────────────────── */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .toolbar .form-control { max-width: 220px; }
+    .toolbar select.form-control { max-width: 200px; }
+    .toolbar-right { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+    /* ── Unenrolled student list ───────────────────────── */
+    .stu-list { display: flex; flex-direction: column; gap: 0; }
+    .stu-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      transition: background .1s;
+    }
+    .stu-row:last-child { border-bottom: none; }
+    .stu-row:hover { background: var(--surface-2); }
+    .stu-row.selected { background: var(--primary-light); }
+    .stu-check { width: 18px; height: 18px; cursor: pointer; flex-shrink: 0; accent-color: var(--primary); }
+    .stu-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--primary-light);
+      color: var(--primary);
+      font-weight: 800;
+      font-size: 15px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .stu-info { flex: 1; min-width: 0; }
+    .stu-name { font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .stu-meta { font-size: 12px; color: var(--ink-3); margin-top: 1px; }
+    .stu-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    /* ── Class assignment select in row ─────────────────── */
+    .row-class-select { font-size: 13px; max-width: 180px; padding: 6px 10px; }
+    /* ── Enrolled view (class cards) ───────────────────── */
+    .class-overview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      gap: 16px;
+    }
+    .class-overview-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      transition: box-shadow .2s, border-color .2s;
+    }
+    .class-overview-card:hover {
+      box-shadow: var(--shadow);
+      border-color: var(--primary);
+    }
+    .coc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+    .coc-name   { font-weight: 800; font-size: 17px; color: var(--primary); }
+    .coc-badge  {
+      background: var(--primary-light); color: var(--primary);
+      padding: 3px 10px; border-radius: 30px; font-size: 12px; font-weight: 700;
+    }
+    .coc-badge.zero { background: var(--surface-3); color: var(--ink-3); }
+    .coc-fill-bar {
+      height: 6px; background: var(--border); border-radius: 3px; margin: 8px 0 12px;
+    }
+    .coc-fill-inner { height: 100%; border-radius: 3px; background: var(--primary); transition: width .4s; }
+    .coc-meta { font-size: 12px; color: var(--ink-3); margin-bottom: 12px; }
+    .coc-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    /* ── Bulk action bar ───────────────────────────────── */
+    .bulk-bar {
+      position: sticky;
+      bottom: 16px;
+      background: var(--primary);
+      color: white;
+      border-radius: var(--radius-lg);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 8px 30px rgba(10,110,63,.35);
+      z-index: 100;
+      flex-wrap: wrap;
+      margin-top: 16px;
+      display: none;
+    }
+    .bulk-bar.visible { display: flex; }
+    .bulk-count { font-weight: 800; font-size: 15px; }
+    .bulk-select { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3); color: white; border-radius: var(--radius-sm); padding: 7px 10px; font-size: 13px; font-weight: 600; font-family: inherit; flex: 1; min-width: 180px; max-width: 280px; }
+    .bulk-select option { color: var(--ink); background: white; }
+    .bulk-btn { padding: 8px 18px; border-radius: var(--radius-sm); border: none; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .bulk-btn-confirm { background: white; color: var(--primary); }
+    .bulk-btn-cancel  { background: rgba(255,255,255,.15); color: white; border: 1px solid rgba(255,255,255,.3); }
+    /* ── Empty state ───────────────────────────────────── */
+    .enroll-empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--ink-3);
+    }
+    .enroll-empty .ee-icon { font-size: 48px; margin-bottom: 12px; }
+    .enroll-empty h3 { font-size: 17px; font-weight: 700; color: var(--ink-2); margin-bottom: 6px; }
+    .enroll-empty p  { font-size: 14px; line-height: 1.6; }
+    /* ── Single-enroll modal select ────────────────────── */
+    .modal-class-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 8px;
+      max-height: 280px;
+      overflow-y: auto;
+      margin-top: 6px;
+    }
+    .mcg-item {
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 8px;
+      text-align: center;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all .15s;
+      background: var(--surface);
+    }
+    .mcg-item:hover  { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
+    .mcg-item.sel    { border-color: var(--primary); background: var(--primary); color: white; }
+    .mcg-count       { font-size: 11px; font-weight: 500; margin-top: 3px; opacity: .75; }
+    /* ── Term badge ─────────────────────────────────────── */
+    .term-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--primary-light); color: var(--primary);
+      padding: 4px 12px; border-radius: 30px; font-size: 12px; font-weight: 700;
+      margin-bottom: 20px;
+    }
+    .no-term-warn {
+      background: var(--accent-light); border: 1px solid var(--accent);
+      color: #92400e; border-radius: var(--radius); padding: 12px 16px;
+      font-size: 13px; font-weight: 600; margin-bottom: 20px;
+    }
+    /* ── Progress overlay ───────────────────────────────── */
+    .progress-overlay {
+      display: none;
+      position: fixed; inset: 0; background: rgba(0,0,0,.45);
+      z-index: 9000; align-items: center; justify-content: center;
+    }
+    .progress-overlay.active { display: flex; }
+    .progress-box {
+      background: var(--surface); border-radius: var(--radius-lg);
+      padding: 32px 40px; text-align: center; min-width: 280px;
+      box-shadow: var(--shadow-lg);
+    }
+    .progress-ring { width: 56px; height: 56px; margin: 0 auto 16px; }
+    .progress-ring svg { animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .progress-label { font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+    .progress-sub   { font-size: 13px; color: var(--ink-3); }
+    /* ── Transfer modal ─────────────────────────────────── */
+    .transfer-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 0; border-bottom: 1px solid var(--border);
+    }
+    .transfer-row:last-child { border: none; }
+    /* ── Responsive ─────────────────────────────────────── */
+    @media (max-width: 600px) {
+      .toolbar { flex-direction: column; align-items: stretch; }
+      .toolbar .form-control, .toolbar select.form-control { max-width: 100%; }
+      .toolbar-right { margin-left: 0; }
+      .stu-actions { display: none; }
+      .tab-strip { width: 100%; }
+      .tab-btn { flex: 1; text-align: center; padding: 8px 10px; }
+    }
+  </style>
+</head>
+<body>
+<div id="app"></div>
+
+<!-- ══════════════════════════════════════════════════════
+     SINGLE ENROLL MODAL
+══════════════════════════════════════════════════════ -->
+<div class="modal" id="singleEnrollModal">
+  <div class="modal__box" style="max-width:520px;">
+    <div class="modal__header">
+      <h2 class="modal__title">Enroll Student</h2>
+      <button class="modal__close" onclick="closeModal('singleEnrollModal')">✕</button>
+    </div>
+    <div class="modal__body">
+      <div id="seStudentInfo" style="margin-bottom:16px;padding:12px 14px;background:var(--surface-2);border-radius:var(--radius-sm);"></div>
+      <label class="form-label">Choose a Class</label>
+      <input class="form-control" id="seClassSearch" placeholder="Filter classes…" oninput="filterModalClasses()" style="margin-bottom:10px;">
+      <div class="modal-class-grid" id="seClassGrid"></div>
+      <div id="seComboRow" style="display:none;margin-top:14px;">
+        <label class="form-label">Subject Section (optional)</label>
+        <select class="form-control" id="seComboSelect">
+          <option value="">— No Section —</option>
+        </select>
+      </div>
+      <div id="seErr" class="form-error" style="display:none;margin-top:10px;"></div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--secondary" onclick="closeModal('singleEnrollModal')">Cancel</button>
+      <button class="btn btn--primary" id="seConfirmBtn" onclick="confirmSingleEnroll()" disabled>✓ Enroll</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     TRANSFER MODAL (move enrolled student to another class)
+══════════════════════════════════════════════════════ -->
+<div class="modal" id="transferModal">
+  <div class="modal__box" style="max-width:480px;">
+    <div class="modal__header">
+      <h2 class="modal__title">Transfer Student</h2>
+      <button class="modal__close" onclick="closeModal('transferModal')">✕</button>
+    </div>
+    <div class="modal__body">
+      <div id="txStudentInfo" style="margin-bottom:14px;padding:12px 14px;background:var(--surface-2);border-radius:var(--radius-sm);"></div>
+      <div class="form-group">
+        <label class="form-label">Transfer to Class</label>
+        <select class="form-control" id="txClassSelect">
+          <option value="">— Select class —</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Section (optional)</label>
+        <select class="form-control" id="txComboSelect">
+          <option value="">— No Section —</option>
+        </select>
+      </div>
+      <div id="txErr" class="form-error" style="display:none;"></div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--secondary" onclick="closeModal('transferModal')">Cancel</button>
+      <button class="btn btn--primary" id="txConfirmBtn" onclick="confirmTransfer()">↔ Transfer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     UNENROLL CONFIRM MODAL
+══════════════════════════════════════════════════════ -->
+<div class="modal" id="unenrollModal">
+  <div class="modal__box" style="max-width:420px;">
+    <div class="modal__header">
+      <h2 class="modal__title" style="color:var(--danger);">Remove from Class</h2>
+      <button class="modal__close" onclick="closeModal('unenrollModal')">✕</button>
+    </div>
+    <div class="modal__body">
+      <p id="unenrollMsg" style="font-size:14px;line-height:1.7;"></p>
+      <div style="background:var(--danger-light);border:1px solid var(--danger);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;color:var(--danger);margin-top:12px;">
+        ⚠️ This removes the class enrollment for the current term. The student record itself is not deleted.
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--secondary" onclick="closeModal('unenrollModal')">Cancel</button>
+      <button class="btn btn--danger" id="unenrollConfirmBtn" onclick="confirmUnenroll()">Remove Enrollment</button>
+    </div>
+  </div>
+</div>
+
+<!-- Progress overlay -->
+<div class="progress-overlay" id="progressOverlay">
+  <div class="progress-box">
+    <div class="progress-ring">
+      <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="28" cy="28" r="22" stroke="var(--border)" stroke-width="5"/>
+        <circle cx="28" cy="28" r="22" stroke="var(--primary)" stroke-width="5"
+          stroke-dasharray="138" stroke-dashoffset="100" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="progress-label" id="progressLabel">Processing…</div>
+    <div class="progress-sub"  id="progressSub">Please wait</div>
+  </div>
+</div>
+
+<script src="/js/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/api/database.js"></script>
+<script src="/api/auth.js"></script>
+<script src="/api/calculations.js"></script>
+<script src="/assets/js/sidebar.js"></script>
+<script src="/js/pwa-v2.1.js"></script>
+<script>
+// ══════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════
+let cu, currentTerm, allClasses = [], allCombos = [], allStudents = [],
+    unenrolledStudents = [], enrolledStudents = [], enrollmentMap = {},
+    classCounts = {}, comboSubMap = {},
+    activeTab = 'unenrolled', selectedIds = new Set(),
+    pendingSingleId = null, pendingSingleName = null, seSelectedClass = null,
+    pendingTxId = null, pendingTxName = null,
+    pendingUnenrollId = null, pendingUnenrollName = null;
+
+// ══════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════
+(async () => {
+  cu = await initPage(['admin', 'registrar', 'vp_admin'], 'Enrollment Manager', 'enrollment');
+  if (!cu) return;
+
+  document.getElementById('topbarActions').innerHTML =
+    `<button class="btn btn--secondary" onclick="loadAll()">↺ Refresh</button>`;
+
+  await loadAll();
+})();
+
+async function loadAll() {
+  showProgress('Loading enrollment data…', 'Fetching students, classes and terms');
+  try {
+    const [
+      { data: term },
+      { data: classes },
+      { data: combos },
+      { data: students },
+      { data: enrollments }
+    ] = await Promise.all([
+      db.from('terms').select('*').eq('school_id', cu.school_id).eq('is_current', true).maybeSingle(),
+      db.from('classes').select('id,name,level,combination_id').eq('school_id', cu.school_id).order('name'),
+      db.from('subject_combinations').select('*').eq('school_id', cu.school_id),
+      db.from('students').select('id,full_name,admission_no,gender,combination_id,is_active').eq('school_id', cu.school_id).eq('is_active', true).order('full_name'),
+      db.from('enrollments').select('student_id,class_id,term_id').eq('school_id', cu.school_id)
+        .eq('term_id', (await db.from('terms').select('id').eq('school_id', cu.school_id).eq('is_current', true).maybeSingle()).data?.id || '__none__')
+    ]);
+
+    currentTerm = term;
+    allClasses  = classes  || [];
+    allCombos   = combos   || [];
+    allStudents = students || [];
+
+    // Build enrollment map: student_id → class_id (for current term)
+    enrollmentMap = {};
+    classCounts   = {};
+    (enrollments || []).forEach(e => {
+      enrollmentMap[e.student_id] = e.class_id;
+      classCounts[e.class_id] = (classCounts[e.class_id] || 0) + 1;
+    });
+
+    unenrolledStudents = allStudents.filter(s => !enrollmentMap[s.id]);
+    enrolledStudents   = allStudents.filter(s =>  enrollmentMap[s.id]);
+
+    // Load combo→subjects map
+    if (allCombos.length) {
+      const { data: cs } = await db.from('combination_subjects')
+        .select('combination_id, subjects(id,name)')
+        .in('combination_id', allCombos.map(c => c.id));
+      comboSubMap = {};
+      (cs || []).forEach(r => {
+        if (!comboSubMap[r.combination_id]) comboSubMap[r.combination_id] = [];
+        if (r.subjects) comboSubMap[r.combination_id].push(r.subjects);
+      });
+    }
+
+    hideProgress();
+    renderPage();
+  } catch(e) {
+    hideProgress();
+    toast('Failed to load data: ' + e.message, 'error');
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  PAGE RENDER
+// ══════════════════════════════════════════════════════
+function renderPage() {
+  const body = document.getElementById('pageBody');
+  const totalActive = allStudents.length;
+  const totalEnrolled = enrolledStudents.length;
+  const totalUnenrolled = unenrolledStudents.length;
+  const termHtml = currentTerm
+    ? `<div class="term-pill">📅 Current Term: <strong>${escapeHTML(currentTerm.name)}</strong></div>`
+    : `<div class="no-term-warn">⚠️ No current term is set. Please set a current term in Settings before enrolling students.</div>`;
+
+  body.innerHTML = `
+    <div class="page-header">
+      <h1>📋 Enrollment Manager</h1>
+      <p>Enroll students into classes individually or in bulk for the current term</p>
+    </div>
+    ${termHtml}
+    <div class="enroll-stats">
+      <div class="estat">
+        <div class="estat-icon">👥</div>
+        <div><div class="estat-val">${totalActive}</div><div class="estat-lbl">Active Students</div></div>
+      </div>
+      <div class="estat">
+        <div class="estat-icon">✅</div>
+        <div><div class="estat-val">${totalEnrolled}</div><div class="estat-lbl">Enrolled</div></div>
+      </div>
+      <div class="estat ${totalUnenrolled > 0 ? 'warn' : ''}">
+        <div class="estat-icon">⏳</div>
+        <div><div class="estat-val">${totalUnenrolled}</div><div class="estat-lbl">Not Enrolled</div></div>
+      </div>
+      <div class="estat">
+        <div class="estat-icon">🏫</div>
+        <div><div class="estat-val">${allClasses.length}</div><div class="estat-lbl">Classes</div></div>
+      </div>
+    </div>
+    <div class="tab-strip">
+      <button class="tab-btn ${activeTab==='unenrolled'?'active':''}" onclick="switchTab('unenrolled')">
+        ⏳ Not Enrolled <span style="background:var(--accent);color:white;border-radius:30px;padding:1px 7px;font-size:11px;margin-left:4px;">${totalUnenrolled}</span>
+      </button>
+      <button class="tab-btn ${activeTab==='enrolled'?'active':''}" onclick="switchTab('enrolled')">
+        ✅ Enrolled (${totalEnrolled})
+      </button>
+      <button class="tab-btn ${activeTab==='byclass'?'active':''}" onclick="switchTab('byclass')">
+        🏫 By Class
+      </button>
+    </div>
+    <div id="tabContent"></div>
+  `;
+
+  renderTab();
+}
+
+function switchTab(tab) {
+  activeTab = tab;
+  selectedIds.clear();
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', ['unenrolled','enrolled','byclass'][i] === tab);
+  });
+  renderTab();
+}
+
+function renderTab() {
+  const el = document.getElementById('tabContent');
+  if (!el) return;
+  if (activeTab === 'unenrolled') el.innerHTML = buildUnenrolledTab();
+  else if (activeTab === 'enrolled')   el.innerHTML = buildEnrolledTab();
+  else                                 el.innerHTML = buildByClassTab();
+}
+
+// ══════════════════════════════════════════════════════
+//  TAB 1 — UNENROLLED STUDENTS
+// ══════════════════════════════════════════════════════
+function buildUnenrolledTab() {
+  if (!unenrolledStudents.length) return `
+    <div class="card" style="padding:0;">
+      <div class="enroll-empty">
+        <div class="ee-icon">🎉</div>
+        <h3>All students are enrolled!</h3>
+        <p>Every active student has a class assignment for the current term.</p>
+      </div>
+    </div>`;
+
+  const comboOptions = allCombos.filter(c => c.name !== 'Core Subjects')
+    .map(c => `<option value="${c.id}">${escapeHTML(c.name)}</option>`).join('');
+  const classOptions = allClasses
+    .map(c => `<option value="${c.id}">${escapeHTML(c.name)} (${classCounts[c.id]||0})</option>`).join('');
+
+  return `
+    <div class="toolbar">
+      <input class="form-control" id="unSearchInput" placeholder="🔍 Search name or admission no…" oninput="filterUnenrolled()">
+      <select class="form-control" id="unGenderFilter" onchange="filterUnenrolled()">
+        <option value="">All Genders</option>
+        <option value="M">♂ Male</option>
+        <option value="F">♀ Female</option>
+      </select>
+      <div class="toolbar-right">
+        <button class="btn btn--secondary btn--sm" onclick="selectAllUnenrolled()">☑ Select All</button>
+        <button class="btn btn--secondary btn--sm" onclick="clearSelectionUnenrolled()">☐ Clear</button>
+      </div>
+    </div>
+    <div class="card" style="padding:0;">
+      <div class="stu-list" id="unStudentList"></div>
+    </div>
+    <div class="bulk-bar" id="bulkBar">
+      <span class="bulk-count" id="bulkCount">0 selected</span>
+      <select class="bulk-select" id="bulkClassSelect">
+        <option value="">— Choose target class —</option>
+        ${classOptions}
+      </select>
+      <select class="bulk-select" id="bulkComboSelect" style="max-width:190px;">
+        <option value="">— Section (optional) —</option>
+        ${comboOptions}
+      </select>
+      <button class="bulk-btn bulk-btn-confirm" onclick="confirmBulkEnroll()">✓ Enroll Selected</button>
+      <button class="bulk-btn bulk-btn-cancel"  onclick="clearSelectionUnenrolled()">✕ Cancel</button>
+    </div>`;
+}
+
+let _filteredUnenrolled = [];
+
+function filterUnenrolled() {
+  const q  = (document.getElementById('unSearchInput')?.value || '').toLowerCase();
+  const g  = document.getElementById('unGenderFilter')?.value || '';
+  _filteredUnenrolled = unenrolledStudents.filter(s =>
+    (s.full_name.toLowerCase().includes(q) || (s.admission_no||'').toLowerCase().includes(q)) &&
+    (!g || s.gender === g)
+  );
+  renderUnenrolledList(_filteredUnenrolled);
+}
+
+function renderUnenrolledList(list) {
+  const el = document.getElementById('unStudentList');
+  if (!el) return;
+  if (!list.length) {
+    el.innerHTML = '<div style="padding:40px;text-align:center;color:var(--ink-3);">No students match your filter.</div>';
+    return;
+  }
+  const classOpts = allClasses.map(c =>
+    `<option value="${c.id}">${escapeHTML(c.name)} (${classCounts[c.id]||0})</option>`
+  ).join('');
+
+  el.innerHTML = list.map(s => {
+    const initials = s.full_name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    return `
+    <div class="stu-row${selectedIds.has(s.id)?' selected':''}" id="row-${s.id}">
+      <input type="checkbox" class="stu-check" data-id="${s.id}"
+        ${selectedIds.has(s.id)?'checked':''} onchange="toggleSelect('${s.id}', this.checked)">
+      <div class="stu-avatar">${initials}</div>
+      <div class="stu-info">
+        <div class="stu-name">${escapeHTML(s.full_name)}</div>
+        <div class="stu-meta">${s.admission_no||'No Adm No'} · ${s.gender==='M'?'♂ Male':s.gender==='F'?'♀ Female':'—'}</div>
+      </div>
+      <div class="stu-actions">
+        <button class="btn btn--primary btn--sm" onclick="openSingleEnroll('${s.id}','${escapeJS(s.full_name)}')">
+          + Enroll
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function selectAllUnenrolled() {
+  _filteredUnenrolled.forEach(s => selectedIds.add(s.id));
+  updateBulkBar();
+  renderUnenrolledList(_filteredUnenrolled);
+}
+
+function clearSelectionUnenrolled() {
+  selectedIds.clear();
+  updateBulkBar();
+  renderUnenrolledList(_filteredUnenrolled);
+}
+
+function toggleSelect(id, checked) {
+  checked ? selectedIds.add(id) : selectedIds.delete(id);
+  const row = document.getElementById(`row-${id}`);
+  if (row) row.classList.toggle('selected', checked);
+  updateBulkBar();
+}
+
+function updateBulkBar() {
+  const bar = document.getElementById('bulkBar');
+  if (!bar) return;
+  const n = selectedIds.size;
+  bar.classList.toggle('visible', n > 0);
+  const el = document.getElementById('bulkCount');
+  if (el) el.textContent = `${n} student${n===1?'':'s'} selected`;
+}
+
+// Initialise filtered list on first render
+document.addEventListener('DOMContentLoaded', () => {});
+// Called after tab renders
+const _origBuildUnenrolled = buildUnenrolledTab;
+
+// ══════════════════════════════════════════════════════
+//  TAB 2 — ENROLLED STUDENTS
+// ══════════════════════════════════════════════════════
+function buildEnrolledTab() {
+  if (!enrolledStudents.length) return `
+    <div class="card" style="padding:0;">
+      <div class="enroll-empty">
+        <div class="ee-icon">📋</div>
+        <h3>No students enrolled yet</h3>
+        <p>Switch to the "Not Enrolled" tab to enroll students into classes.</p>
+      </div>
+    </div>`;
+
+  return `
+    <div class="toolbar">
+      <input class="form-control" id="enSearchInput" placeholder="🔍 Search name or admission no…" oninput="filterEnrolled()">
+      <select class="form-control" id="enClassFilter" onchange="filterEnrolled()">
+        <option value="">All Classes</option>
+        ${allClasses.map(c=>`<option value="${c.id}">${escapeHTML(c.name)}</option>`).join('')}
+      </select>
+    </div>
+    <div class="card" style="padding:0;">
+      <div class="table-wrap">
+        <table class="full-width" id="enrolledTable">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Admission No</th>
+              <th>Class</th>
+              <th>Section</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="enrolledTbody"></tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+let _filteredEnrolled = [];
+
+function filterEnrolled() {
+  const q  = (document.getElementById('enSearchInput')?.value  || '').toLowerCase();
+  const cl = document.getElementById('enClassFilter')?.value   || '';
+  _filteredEnrolled = enrolledStudents.filter(s =>
+    (s.full_name.toLowerCase().includes(q) || (s.admission_no||'').toLowerCase().includes(q)) &&
+    (!cl || enrollmentMap[s.id] === cl)
+  );
+  renderEnrolledTable(_filteredEnrolled);
+}
+
+function renderEnrolledTable(list) {
+  const tbody = document.getElementById('enrolledTbody');
+  if (!tbody) return;
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--ink-3);">No students match your filter.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(s => {
+    const cls   = allClasses.find(c => c.id === enrollmentMap[s.id]);
+    const combo = allCombos.find(c => c.id === s.combination_id);
+    const initials = s.full_name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    return `
+    <tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="stu-avatar" style="width:32px;height:32px;font-size:13px;">${initials}</div>
+          <strong>${escapeHTML(s.full_name)}</strong>
+        </div>
+      </td>
+      <td><span style="font-family:monospace;font-size:13px;">${s.admission_no||'—'}</span></td>
+      <td><span class="badge badge--green">${cls?escapeHTML(cls.name):'Unknown'}</span></td>
+      <td>${combo?`<span class="badge badge--blue">${escapeHTML(combo.name)}</span>`:'<span style="color:var(--ink-3);">—</span>'}</td>
+      <td class="td-action">
+        <button class="btn btn--secondary btn--sm" onclick="openTransfer('${s.id}','${escapeJS(s.full_name)}')">↔ Transfer</button>
+        <button class="btn btn--danger btn--sm"    onclick="openUnenroll('${s.id}','${escapeJS(s.full_name)}','${cls?escapeJS(cls.name):''}')">✕ Remove</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════
+//  TAB 3 — BY CLASS
+// ══════════════════════════════════════════════════════
+function buildByClassTab() {
+  if (!allClasses.length) return `
+    <div class="enroll-empty">
+      <div class="ee-icon">🏫</div>
+      <h3>No classes found</h3>
+      <p>Create classes first in Settings → Classes.</p>
+    </div>`;
+
+  const maxCount = Math.max(...allClasses.map(c => classCounts[c.id]||0), 1);
+  return `
+    <div class="class-overview-grid">
+      ${allClasses.map(cls => {
+        const n = classCounts[cls.id] || 0;
+        const pct = Math.round((n / maxCount) * 100);
+        const combo = allCombos.find(c => c.id === cls.combination_id);
+        return `
+        <div class="class-overview-card">
+          <div class="coc-header">
+            <div class="coc-name">${escapeHTML(cls.name)}</div>
+            <div class="coc-badge ${n===0?'zero':''}">${n} student${n===1?'':'s'}</div>
+          </div>
+          ${combo?`<div style="margin-bottom:6px;"><span class="badge badge--blue" style="font-size:11px;">${escapeHTML(combo.name)}</span></div>`:''}
+          <div class="coc-fill-bar"><div class="coc-fill-inner" style="width:${pct}%;"></div></div>
+          <div class="coc-meta">Level: ${cls.level||'—'}</div>
+          <div class="coc-actions">
+            <button class="btn btn--primary btn--sm" onclick="openBulkToClass('${cls.id}','${escapeJS(cls.name)}')">
+              + Enroll to Class
+            </button>
+            <button class="btn btn--secondary btn--sm" onclick="viewClassStudents('${cls.id}','${escapeJS(cls.name)}')">
+              👥 View
+            </button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════════
+//  SINGLE ENROLL MODAL
+// ══════════════════════════════════════════════════════
+function openSingleEnroll(studentId, studentName) {
+  if (!currentTerm) { toast('No current term set. Please set a term in Settings.', 'error'); return; }
+  pendingSingleId   = studentId;
+  pendingSingleName = studentName;
+  seSelectedClass   = null;
+
+  document.getElementById('seStudentInfo').innerHTML =
+    `<strong>${escapeHTML(studentName)}</strong><br>
+     <span style="font-size:12px;color:var(--ink-3);">Enrolling for ${escapeHTML(currentTerm.name)} term</span>`;
+
+  // Build class grid
+  const comboOpts = allCombos.filter(c=>c.name!=='Core Subjects')
+    .map(c=>`<option value="${c.id}">${escapeHTML(c.name)}</option>`).join('');
+  document.getElementById('seComboSelect').innerHTML = '<option value="">— No Section —</option>' + comboOpts;
+  document.getElementById('seComboRow').style.display = 'none';
+  document.getElementById('seErr').style.display = 'none';
+  document.getElementById('seConfirmBtn').disabled = true;
+  document.getElementById('seClassSearch').value = '';
+  renderModalClasses(allClasses);
+  openModal('singleEnrollModal');
+}
+
+function renderModalClasses(list) {
+  const grid = document.getElementById('seClassGrid');
+  if (!grid) return;
+  if (!list.length) { grid.innerHTML = '<div style="color:var(--ink-3);font-size:13px;">No classes match.</div>'; return; }
+  grid.innerHTML = list.map(c => `
+    <div class="mcg-item ${seSelectedClass===c.id?'sel':''}"
+         onclick="pickModalClass('${c.id}')"
+         id="mcg-${c.id}">
+      <div>${escapeHTML(c.name)}</div>
+      <div class="mcg-count">${classCounts[c.id]||0} enrolled</div>
+    </div>`).join('');
+}
+
+function filterModalClasses() {
+  const q = (document.getElementById('seClassSearch')?.value||'').toLowerCase();
+  renderModalClasses(allClasses.filter(c => c.name.toLowerCase().includes(q)));
+}
+
+function pickModalClass(classId) {
+  seSelectedClass = classId;
+  document.querySelectorAll('.mcg-item').forEach(el => {
+    el.classList.toggle('sel', el.id === `mcg-${classId}`);
+  });
+  document.getElementById('seComboRow').style.display = '';
+  document.getElementById('seConfirmBtn').disabled = false;
+}
+
+async function confirmSingleEnroll() {
+  if (!seSelectedClass || !pendingSingleId || !currentTerm) return;
+  const btn = document.getElementById('seConfirmBtn');
+  btn.disabled = true; btn.textContent = 'Enrolling…';
+  const comboId = document.getElementById('seComboSelect').value || null;
+  try {
+    // Remove any existing enrollment for this student in this term
+    await db.from('enrollments').delete()
+      .eq('student_id', pendingSingleId).eq('term_id', currentTerm.id);
+    // Insert new enrollment
+    const { error } = await db.from('enrollments').insert({
+      school_id: cu.school_id,
+      student_id: pendingSingleId,
+      class_id: seSelectedClass,
+      term_id: currentTerm.id,
+    });
+    if (error) throw error;
+    // Update student's combination_id if section chosen
+    if (comboId) {
+      await db.from('students').update({ combination_id: comboId }).eq('id', pendingSingleId);
+    }
+    const cls = allClasses.find(c => c.id === seSelectedClass);
+    toast(`${pendingSingleName} enrolled in ${cls?.name || 'class'}!`, 'success');
+    closeModal('singleEnrollModal');
+    await loadAll();
+    switchTab('unenrolled');
+  } catch(e) {
+    document.getElementById('seErr').textContent = e.message;
+    document.getElementById('seErr').style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = '✓ Enroll';
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  BULK ENROLL (from unenrolled tab)
+// ══════════════════════════════════════════════════════
+async function confirmBulkEnroll() {
+  if (!currentTerm) { toast('No current term set.', 'error'); return; }
+  const classId = document.getElementById('bulkClassSelect')?.value;
+  if (!classId) { toast('Please choose a target class first.', 'error'); return; }
+  const comboId = document.getElementById('bulkComboSelect')?.value || null;
+  const ids = [...selectedIds];
+  if (!ids.length) return;
+  const cls = allClasses.find(c => c.id === classId);
+
+  if (!confirm(`Enroll ${ids.length} student(s) into ${cls?.name}?\nThis will replace any existing class assignment for the current term.`)) return;
+
+  showProgress(`Enrolling ${ids.length} students…`, `Into ${cls?.name}`);
+
+  let success = 0, failed = 0;
+  for (const sid of ids) {
+    try {
+      await db.from('enrollments').delete().eq('student_id', sid).eq('term_id', currentTerm.id);
+      await db.from('enrollments').insert({
+        school_id: cu.school_id, student_id: sid, class_id: classId, term_id: currentTerm.id,
+      });
+      if (comboId) {
+        await db.from('students').update({ combination_id: comboId }).eq('id', sid);
+      }
+      success++;
+    } catch { failed++; }
+  }
+
+  hideProgress();
+  selectedIds.clear();
+  if (failed > 0) toast(`${success} enrolled, ${failed} failed.`, 'error');
+  else toast(`${success} student(s) enrolled in ${cls?.name}!`, 'success');
+  await loadAll();
+  switchTab('unenrolled');
+}
+
+// ══════════════════════════════════════════════════════
+//  BULK ENROLL TO CLASS (from By Class tab)
+// ══════════════════════════════════════════════════════
+function openBulkToClass(classId, className) {
+  if (!currentTerm) { toast('No current term set.', 'error'); return; }
+  // Switch to unenrolled tab, pre-select class in bulk bar
+  switchTab('unenrolled');
+  setTimeout(() => {
+    const sel = document.getElementById('bulkClassSelect');
+    if (sel) sel.value = classId;
+    // Select all unenrolled
+    selectAllUnenrolled();
+    // Scroll to bulk bar
+    document.getElementById('bulkBar')?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    toast(`Tip: Review selection then click "Enroll Selected" to enroll into ${className}`, 'info');
+  }, 150);
+}
+
+function viewClassStudents(classId, className) {
+  // Filter enrolled tab to this class
+  switchTab('enrolled');
+  setTimeout(() => {
+    const sel = document.getElementById('enClassFilter');
+    if (sel) { sel.value = classId; filterEnrolled(); }
+  }, 150);
+}
+
+// ══════════════════════════════════════════════════════
+//  TRANSFER MODAL
+// ══════════════════════════════════════════════════════
+function openTransfer(studentId, studentName) {
+  pendingTxId   = studentId;
+  pendingTxName = studentName;
+  const currentClassId = enrollmentMap[studentId];
+  const currentClass = allClasses.find(c => c.id === currentClassId);
+  const student = enrolledStudents.find(s => s.id === studentId);
+
+  document.getElementById('txStudentInfo').innerHTML =
+    `<strong>${escapeHTML(studentName)}</strong><br>
+     <span style="font-size:12px;color:var(--ink-3);">Currently in: <strong>${currentClass?escapeHTML(currentClass.name):'Unknown'}</strong></span>`;
+
+  const classOpts = allClasses
+    .filter(c => c.id !== currentClassId)
+    .map(c => `<option value="${c.id}">${escapeHTML(c.name)} (${classCounts[c.id]||0})</option>`)
+    .join('');
+  document.getElementById('txClassSelect').innerHTML = '<option value="">— Select class —</option>' + classOpts;
+
+  const comboOpts = allCombos.filter(c=>c.name!=='Core Subjects')
+    .map(c=>`<option value="${c.id}" ${student?.combination_id===c.id?'selected':''}>${escapeHTML(c.name)}</option>`).join('');
+  document.getElementById('txComboSelect').innerHTML = '<option value="">— No Section —</option>' + comboOpts;
+
+  document.getElementById('txErr').style.display = 'none';
+  openModal('transferModal');
+}
+
+async function confirmTransfer() {
+  if (!pendingTxId || !currentTerm) return;
+  const newClassId = document.getElementById('txClassSelect').value;
+  if (!newClassId) { document.getElementById('txErr').textContent='Please select a target class.'; document.getElementById('txErr').style.display='block'; return; }
+  const comboId = document.getElementById('txComboSelect').value || null;
+  const btn = document.getElementById('txConfirmBtn');
+  btn.disabled = true; btn.textContent = 'Transferring…';
+
+  try {
+    await db.from('enrollments').delete().eq('student_id', pendingTxId).eq('term_id', currentTerm.id);
+    const { error } = await db.from('enrollments').insert({
+      school_id: cu.school_id, student_id: pendingTxId, class_id: newClassId, term_id: currentTerm.id
+    });
+    if (error) throw error;
+    if (comboId) await db.from('students').update({ combination_id: comboId }).eq('id', pendingTxId);
+    const cls = allClasses.find(c=>c.id===newClassId);
+    toast(`${pendingTxName} transferred to ${cls?.name}!`, 'success');
+    closeModal('transferModal');
+    await loadAll();
+    switchTab('enrolled');
+  } catch(e) {
+    document.getElementById('txErr').textContent = e.message;
+    document.getElementById('txErr').style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = '↔ Transfer';
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  UNENROLL MODAL
+// ══════════════════════════════════════════════════════
+function openUnenroll(studentId, studentName, className) {
+  pendingUnenrollId   = studentId;
+  pendingUnenrollName = studentName;
+  document.getElementById('unenrollMsg').innerHTML =
+    `Are you sure you want to remove <strong>${escapeHTML(studentName)}</strong> from <strong>${escapeHTML(className||'this class')}</strong>?<br>
+     They will appear in the "Not Enrolled" list and can be re-enrolled later.`;
+  openModal('unenrollModal');
+}
+
+async function confirmUnenroll() {
+  if (!pendingUnenrollId || !currentTerm) return;
+  const btn = document.getElementById('unenrollConfirmBtn');
+  btn.disabled = true; btn.textContent = 'Removing…';
+  try {
+    const { error } = await db.from('enrollments').delete()
+      .eq('student_id', pendingUnenrollId).eq('term_id', currentTerm.id);
+    if (error) throw error;
+    toast(`${pendingUnenrollName} removed from class.`, 'success');
+    closeModal('unenrollModal');
+    await loadAll();
+    switchTab('enrolled');
+  } catch(e) {
+    toast('Failed: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Remove Enrollment';
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  PROGRESS OVERLAY
+// ══════════════════════════════════════════════════════
+function showProgress(label, sub) {
+  document.getElementById('progressLabel').textContent = label;
+  document.getElementById('progressSub').textContent   = sub;
+  document.getElementById('progressOverlay').classList.add('active');
+}
+function hideProgress() {
+  document.getElementById('progressOverlay').classList.remove('active');
+}
+
+// ══════════════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════════════
+function escapeHTML(v) {
+  return String(v||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function escapeJS(v) {
+  return String(v||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+}
+
+// ── After tab renders, init filtered lists ────────────
+const _origRenderTab = renderTab;
+// Override renderTab to init filter lists after DOM insertion
+window.renderTab = function() {
+  _origRenderTab();
+  if (activeTab === 'unenrolled') {
+    _filteredUnenrolled = [...unenrolledStudents];
+    renderUnenrolledList(_filteredUnenrolled);
+  } else if (activeTab === 'enrolled') {
+    _filteredEnrolled = [...enrolledStudents];
+    renderEnrolledTable(_filteredEnrolled);
+  }
+};
+</script>
+</body>
+</html>
