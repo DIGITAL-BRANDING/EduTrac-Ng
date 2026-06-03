@@ -846,13 +846,7 @@ async function verifyRegPin() {
     });
     if (rpcErr) throw new Error('Unable to verify PIN. Please try again.');
     if (!result?.valid) throw new Error(result?.error || 'Invalid PIN. Check your scratch card and try again.');
-    const { data: cls } = await db.from('classes').select('id,name').eq('school_id', schoolId).order('name');
-    document.getElementById('regClass').innerHTML = '<option value="">Select class…</option>' +
-      (cls || []).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-    document.getElementById('regVerifiedPin').value = pin;
-    document.getElementById('regSchoolId').value = schoolId;
-    document.getElementById('regStep1').style.display = 'none';
-    document.getElementById('regStep2').style.display = '';
+    window.location.href = `student-application.html?school=${encodeURIComponent(schoolId)}&pin=${encodeURIComponent(pin)}`;
   } catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
 }
 

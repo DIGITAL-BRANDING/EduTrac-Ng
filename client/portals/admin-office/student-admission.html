@@ -170,7 +170,7 @@
 <script src="../../api/calculations.js"></script>
 <script src="../../assets/js/sidebar.js"></script>
 <script>
-let user, term, classes = [], combos = [], comboSubMap = {}, allStudents = [];
+let user, term, classes = [], combos = [], comboSubMap = {}, allStudents = [], pendingApplications = [];
 let curStep = 1, selCombo = null;
 
 (async () => {
@@ -194,6 +194,7 @@ let curStep = 1, selCombo = null;
   }
 
   await loadStudents();
+  await loadApplications();
   renderPage();
 })();
 
@@ -204,11 +205,53 @@ async function loadStudents() {
   allStudents = data || [];
 }
 
+async function loadApplications() {
+  const { data, error } = await db.from('student_applications')
+    .select('*,classes:intended_class_id(id,name)')
+    .eq('school_id', user.school_id)
+    .in('status', ['pending','submitted'])
+    .order('submitted_at', { ascending: true });
+  if (error) { console.warn('[Applications]', error); pendingApplications = []; return; }
+  pendingApplications = data || [];
+}
+
 function renderPage() {
   document.getElementById('pageBody').innerHTML =
     '<div class="page-header"><h1>Student Admissions</h1>' +
-    '<p>Students grouped by class &mdash; search, filter, or admit into any class</p></div>' +
-    '<div class="filter-bar" style="margin-bottom:16px;">' +
+    '<p>Approve online applications, enroll approved learners into class, or admit students manually</p></div>' +
+    '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">' +
+    '<button class="btn btn--primary" onclick="showApplications()">Pending Applications (' + pendingApplications.length + ')</button>' +
+    '<button class="btn btn--secondary" onclick="showStudentDirectory()">Student Directory</button>' +
+    '</div>' +
+    '<div id="admissionWorkspace"></div>';
+  showApplications();
+}
+
+function showApplications() {
+  const el = document.getElementById('admissionWorkspace');
+  if (!el) return;
+  if (!pendingApplications.length) {
+    el.innerHTML = '<div class="card" style="padding:34px;text-align:center;color:var(--ink-3);"><h3 style="margin-bottom:6px;color:var(--ink-2);">No pending applications</h3><p>Submitted student applications will appear here for registrar approval.</p></div>';
+    return;
+  }
+  el.innerHTML = '<div class="card" style="padding:0;overflow:hidden;"><table><thead><tr><th>Applicant</th><th>Requested Class</th><th>Guardian</th><th>Scratch Card</th><th>Submitted</th><th>Actions</th></tr></thead><tbody>' +
+    pendingApplications.map(function(a) {
+      var id = String(a.id).replace(/'/g, "\\'");
+      return '<tr>' +
+        '<td><div class="student-cell"><div class="avatar avatar--sm">' + escapeText((a.full_name||'?').charAt(0)) + '</div><div class="info"><div class="name">' + escapeText(a.full_name) + '</div><div class="sub">Ref: ' + escapeText(a.ref_id || 'Pending') + '</div></div></div></td>' +
+        '<td>' + escapeText(a.classes?.name || 'Registrar to assign') + '</td>' +
+        '<td><strong>' + escapeText(a.parent_name || '-') + '</strong><div style="font-size:12px;color:var(--ink-3);">' + escapeText(a.parent_phone || '') + '</div></td>' +
+        '<td><span style="font-family:var(--mono,monospace);font-size:12px;">' + escapeText(a.scratch_pin || '-') + '</span></td>' +
+        '<td style="font-size:12px;color:var(--ink-3);">' + formatDate(a.submitted_at || a.created_at) + '</td>' +
+        '<td><div class="td-action"><button class="btn btn--secondary btn--sm" onclick="viewApplication(\'' + id + '\')">Review</button><button class="btn btn--primary btn--sm" onclick="openApproveApplication(\'' + id + '\')">Approve</button></div></td>' +
+      '</tr>';
+    }).join('') + '</tbody></table></div>';
+}
+
+function showStudentDirectory() {
+  const el = document.getElementById('admissionWorkspace');
+  if (!el) return;
+  el.innerHTML = '<div class="filter-bar" style="margin-bottom:16px;">' +
     '<div class="search-box" style="flex:1;max-width:320px;">' +
     '<input class="form-control" id="srch" placeholder="Search name or admission no..." oninput="filter()"></div>' +
     '<select class="form-control" id="fStatus" onchange="filter()" style="max-width:140px;">' +
@@ -217,6 +260,41 @@ function renderPage() {
     '<option value="">All Students</option></select></div>' +
     '<div id="studentTable"></div>';
   filter();
+}
+
+function viewApplication(id) {
+  const a = pendingApplications.find(x => x.id === id);
+  if (!a) return;
+  const lines = [
+    ['Student', a.full_name], ['Gender', a.gender], ['Date of Birth', a.date_of_birth], ['Address', a.address],
+    ['Previous School', a.previous_school || '-'], ['Guardian', a.parent_name], ['Guardian Phone', a.parent_phone],
+    ['Guardian Email', a.parent_email || '-'], ['Emergency', a.emergency_phone || '-'], ['Blood Group', a.blood_group || '-'],
+    ['Medical Notes', a.medical_notes || '-']
+  ];
+  alert(lines.map(function(row) { return row[0] + ': ' + (row[1] || '-'); }).join('\n'));
+}
+
+function openApproveApplication(id) {
+  const a = pendingApplications.find(x => x.id === id);
+  if (!a) return;
+  openAdd();
+  document.getElementById('modalTitle').textContent = 'Approve Student Application';
+  document.getElementById('sName').value = a.full_name || '';
+  document.getElementById('sGender').value = a.gender || '';
+  document.getElementById('sDob').value = a.date_of_birth || '';
+  document.getElementById('sParentName').value = a.parent_name || '';
+  document.getElementById('sParentPhone').value = a.parent_phone || '';
+  document.getElementById('sAddress').value = a.address || '';
+  document.getElementById('sClass').value = a.intended_class_id || '';
+  document.getElementById('sErr').dataset.applicationId = a.id;
+  if (a.intended_class_id) pickClass();
+  goStep(3);
+}
+
+function escapeText(value) {
+  return String(value ?? '').replace(/[&<>"']/g, function(ch) {
+    return ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[ch];
+  });
 }
 
 var _openGroups = {};
@@ -337,6 +415,7 @@ function openAdd() {
   document.getElementById('sCanLogin').checked = false;
   document.getElementById('pinSection').style.display = 'none';
   document.getElementById('sErr').style.display = 'none';
+  delete document.getElementById('sErr').dataset.applicationId;
   selCombo = null;
   populateClassSelect();
   goStep(1);
@@ -522,6 +601,13 @@ async function saveStudent() {
         { school_id: user.school_id, student_id: sid, class_id: classId, term_id: term.id },
         { onConflict: 'student_id,term_id' }
       );
+    }
+
+    const applicationId = errEl.dataset.applicationId;
+    if (applicationId && !id) {
+      await db.from('student_applications').update({ status: 'approved', approved_at: new Date().toISOString(), approved_by: user.id, student_id: sid }).eq('id', applicationId);
+      delete errEl.dataset.applicationId;
+      await loadApplications();
     }
 
     toast(id ? 'Student updated!' : 'Student admitted successfully!', 'success');
