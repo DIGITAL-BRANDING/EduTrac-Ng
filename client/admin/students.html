@@ -124,59 +124,265 @@
       color: var(--primary);
       border-bottom-color: var(--primary);
     }
-    .id-card-wrap {
+    /* ══════════════════════════════════════════════
+       NYSC-STYLE ID CARD — STUDENT
+    ══════════════════════════════════════════════ */
+    .idc-wrap {
       display: flex;
-      justify-content: center;
-      padding: 24px;
-      background: #f0f4f8;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      padding: 24px 16px;
+      background: #e8ecf0;
     }
-    .id-card {
-      width: 360px;
-      font-family: Arial, sans-serif;
-      border: 2.5px solid #1a2e6e;
-      border-radius: 4px;
+    .idc-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 4px;
+      align-self: flex-start;
+      padding-left: 4px;
+    }
+    /* ── FRONT ──────────────────────────────────── */
+    .idc {
+      width: 340px;
+      border-radius: 10px;
       overflow: hidden;
-      background: white;
+      box-shadow: 0 8px 32px rgba(0,0,0,.25);
+      font-family: Arial, Helvetica, sans-serif;
+      position: relative;
     }
+    /* Green-and-gold diagonal header */
     .idc-hdr {
-      background: linear-gradient(135deg, #1a2e6e 0%, #2041a3 100%);
-      padding: 10px 14px;
+      background: #0a6e3f;
+      padding: 0;
+      position: relative;
+      overflow: hidden;
+      min-height: 80px;
+    }
+    /* Yellow diagonal stripe */
+    .idc-hdr::before {
+      content: '';
+      position: absolute;
+      top: -20px; right: -30px;
+      width: 130px; height: 160px;
+      background: #f0c040;
+      transform: rotate(-25deg);
+      z-index: 0;
+    }
+    .idc-hdr-inner {
+      position: relative;
+      z-index: 1;
+      padding: 12px 14px 10px;
       display: flex;
       align-items: center;
       gap: 10px;
     }
-    .idc-logo-box {
-      width: 54px;
-      height: 54px;
-      background: white;
+    .idc-logo-circle {
+      width: 52px; height: 52px;
       border-radius: 50%;
-      border: 2px solid #f0c040;
+      background: white;
+      border: 3px solid #f0c040;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; flex-shrink: 0;
+      font-size: 26px;
+    }
+    .idc-logo-circle img { width: 100%; height: 100%; object-fit: cover; }
+    .idc-hdr-text { flex: 1; }
+    .idc-school-name {
+      font-size: 12px; font-weight: 900;
+      color: white; text-transform: uppercase;
+      letter-spacing: .4px; line-height: 1.2;
+    }
+    .idc-school-addr {
+      font-size: 9px; color: rgba(255,255,255,.8); margin-top: 2px;
+    }
+    /* Gold title bar */
+    .idc-title-bar {
+      background: linear-gradient(90deg, #c8860a, #f0c040, #c8860a);
+      text-align: center;
+      padding: 5px;
+      font-size: 9.5px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #1a1a00;
+      border-top: 1px solid #a0680a;
+      border-bottom: 1px solid #a0680a;
+    }
+    /* White body */
+    .idc-body {
+      background: white;
+      display: flex;
+      gap: 10px;
+      padding: 10px 12px 8px;
+      position: relative;
+      min-height: 130px;
+    }
+    /* Watermark */
+    .idc-watermark {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      font-size: 72px; opacity: .05;
+      pointer-events: none; z-index: 0; user-select: none;
+    }
+    .idc-photo {
+      width: 72px; height: 90px;
+      border: 2px solid #0a6e3f;
+      border-radius: 3px;
+      background: #e8ecf0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 36px; flex-shrink: 0; overflow: hidden; z-index: 1;
+    }
+    .idc-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .idc-fields { flex: 1; z-index: 1; }
+    .idc-field { margin-bottom: 5px; }
+    .idc-fl {
+      font-size: 8px; font-weight: 700;
+      color: #0a6e3f; text-transform: uppercase;
+      letter-spacing: .05em; display: block; line-height: 1;
+    }
+    .idc-fv {
+      font-size: 11px; font-weight: 700;
+      color: #111; line-height: 1.3;
+    }
+    /* Two-column grid for fields */
+    .idc-fields-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px 8px;
+      z-index: 1;
+      flex: 1;
+    }
+    /* Signature + QR footer */
+    .idc-footer {
+      background: white;
+      border-top: 1px solid #e5e7eb;
+      padding: 6px 12px 8px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+    .idc-sig-block { text-align: center; }
+    .idc-sig-line {
+      width: 90px; height: 1px;
+      background: #333; margin-bottom: 2px; margin-top: 26px;
+    }
+    .idc-sig-label { font-size: 7.5px; font-weight: 700; color: #666; }
+    .idc-validity {
+      font-size: 8px; font-weight: 700;
+      color: #0a6e3f; text-align: right;
+    }
+    /* Holographic strip */
+    .idc-holo {
+      height: 5px;
+      background: linear-gradient(90deg,#ff0080,#ff8c00,#ffed00,#00ff80,#00c8ff,#a855f7,#ff0080);
+    }
+    /* ── BACK ──────────────────────────────────── */
+    .idc-back {
+      width: 340px;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,.25);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    .idc-back-hdr {
+      background: #0a6e3f;
+      padding: 10px 14px;
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
     }
-    .letter-wrap {
-      padding: 24px;
-      background: #f8f8f4;
+    .idc-back-hdr::before {
+      content: '';
+      position: absolute;
+      top: -20px; right: -30px;
+      width: 100px; height: 120px;
+      background: #f0c040;
+      transform: rotate(-25deg);
+      z-index: 0;
     }
-    .letter-doc {
+    .idc-back-school {
+      font-size: 13px; font-weight: 900;
+      color: white; text-transform: uppercase;
+      z-index: 1;
+    }
+    .idc-back-logo {
+      width: 44px; height: 44px;
+      border-radius: 50%;
       background: white;
-      max-width: 640px;
-      margin: 0 auto;
-      padding: 40px 48px;
-      border: 1px solid #ddd;
-      font-family: Georgia, serif;
+      border: 2px solid #f0c040;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; z-index: 1; font-size: 22px;
     }
+    .idc-back-logo img { width: 100%; height: 100%; object-fit: cover; }
+    .idc-back-body {
+      background: white;
+      padding: 12px 14px;
+      font-size: 11px;
+      color: #333;
+      line-height: 1.6;
+    }
+    .idc-back-nok {
+      font-weight: 700; color: #0a6e3f;
+      font-size: 12px; margin-bottom: 8px;
+    }
+    .idc-back-disclaimer {
+      font-size: 10px; color: #555;
+      line-height: 1.5; margin-bottom: 10px;
+    }
+    .idc-back-return {
+      font-size: 10px; color: #333;
+      border-top: 1px solid #e5e7eb;
+      padding-top: 8px; margin-top: 4px;
+    }
+    .idc-back-return strong { color: #0a6e3f; }
+    .idc-back-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding: 8px 14px 10px;
+      background: white;
+      border-top: 1px solid #e5e7eb;
+    }
+    .idc-back-emergency { font-size: 9px; color: #555; }
+
+    /* ── ADMISSION LETTER ──────────────────────── */
+    .letter-wrap { padding: 24px; background: #f8f8f4; }
+    .letter-doc {
+      background: white; max-width: 640px;
+      margin: 0 auto; padding: 40px 48px;
+      border: 1px solid #ddd;
+      font-family: Georgia, serif; font-size: 13px; line-height: 1.7; color: #222;
+      box-shadow: 0 4px 16px rgba(0,0,0,.08);
+    }
+    .letter-header { text-align: center; border-bottom: 3px double #0a6e3f; padding-bottom: 14px; margin-bottom: 18px; }
+    .letter-logo { font-size: 40px; margin-bottom: 6px; }
+    .letter-school { font-size: 17px; font-weight: 700; color: #0a6e3f; font-family: Arial,sans-serif; text-transform: uppercase; }
+    .letter-addr { font-size: 11px; color: #666; font-family: Arial,sans-serif; }
+    .letter-ref { display:flex; justify-content:space-between; font-size:12px; font-family:Arial,sans-serif; color:#555; margin-bottom:16px; }
+    .letter-title { text-align:center; font-size:15px; font-weight:700; text-decoration:underline; font-family:Arial,sans-serif; margin:14px 0; color:#0a6e3f; text-transform:uppercase; }
+    .letter-body p { margin-bottom:10px; }
+    .letter-table { width:100%; border-collapse:collapse; margin:12px 0; font-family:Arial,sans-serif; font-size:12px; }
+    .letter-table td { padding:7px 10px; border:1px solid #ddd; }
+    .letter-table td:first-child { font-weight:700; background:#f5f5f0; width:40%; }
+    .letter-sig { margin-top:28px; display:grid; grid-template-columns:1fr 1fr; gap:32px; }
+    .letter-sig-box { text-align:center; }
+    .letter-stamp { width:72px; height:72px; border:2px dashed #0a6e3f; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:9px; color:#0a6e3f; font-weight:700; text-align:center; margin:0 auto; }
+    .letter-sig-line { border-top:1px solid #333; margin-bottom:3px; margin-top:36px; }
+    .letter-sig-name { font-size:11px; font-weight:700; font-family:Arial,sans-serif; }
+    .letter-sig-title { font-size:10px; color:#666; font-family:Arial,sans-serif; }
     @media print {
       body * { display: none !important; }
-      #studentIDCardModal .modal__box, #admissionLetterModal .modal__box {
+      #studentIDCardModal .modal__box,
+      #admissionLetterModal .modal__box {
         display: block !important;
-        position: absolute;
-        top: 0;
-        left: 0;
-        margin: 0;
-        padding: 0;
-        background: white;
+        position: absolute; top: 0; left: 0;
+        margin: 0; padding: 0; background: white;
       }
       .modal__header, .modal__footer { display: none !important; }
     }
@@ -236,11 +442,193 @@
   </div>
 </div>
 
-<!-- Student ID Card Modal -->
-<div class="modal" id="studentIDCardModal"><div class="modal__box" style="max-width:600px;"><div class="modal__header"><h2>🆔 Student ID Card</h2><button class="modal__close" onclick="closeModal('studentIDCardModal')">✕</button></div><div class="modal__body" style="padding:0;"><div class="id-card-wrap"><div class="id-card" id="studentCard"><div class="idc-hdr"><div class="idc-logo-box" id="studentIDLogo">🏫</div><div class="idc-hdr-text"><div class="idc-school-nm" id="studentIDSchool">School</div><div class="idc-school-ad" id="studentIDSchoolAddr">Address</div></div></div><div class="idc-title-bar">STUDENT IDENTITY CARD</div><div class="idc-body"><div class="idc-fields"><div class="idc-field"><span class="idc-fl">Student ID</span><span class="idc-sep">:</span><span class="idc-fv" id="studentIDAdmission">—</span></div><div class="idc-field"><span class="idc-fl">Name</span><span class="idc-sep">:</span><span class="idc-fv" id="studentIDName">—</span></div><div class="idc-field"><span class="idc-fl">Class</span><span class="idc-sep">:</span><span class="idc-fv" id="studentIDClass">—</span></div><div class="idc-field"><span class="idc-fl">Contact</span><span class="idc-sep">:</span><span class="idc-fv" id="studentIDContact">—</span></div></div><div class="idc-photo-box" id="studentIDPhoto">📸</div></div><div class="idc-footer"><div><div class="idc-sig-line"></div><div class="idc-sig-label">Signature</div></div><canvas id="studentIDQR" width="48" height="48"></canvas><div id="studentIDSchoolShort">EduTrack</div></div></div></div></div><div class="modal__footer"><button class="btn btn--secondary" onclick="closeModal('studentIDCardModal')">Close</button><button class="btn btn--ghost" onclick="openAdmissionLetter()">📄 Letter</button><button class="btn btn--primary" onclick="printStudentIDCard()">🖨️ Print</button></div></div></div>
+<!-- ══ STUDENT ID CARD MODAL (NYSC-STYLE FRONT + BACK) ══ -->
+<div class="modal" id="studentIDCardModal">
+  <div class="modal__box" style="max-width:420px;">
+    <div class="modal__header">
+      <h2 class="modal__title">🆔 Student Identity Card</h2>
+      <button class="modal__close" onclick="closeModal('studentIDCardModal')">✕</button>
+    </div>
+    <div class="modal__body" style="padding:0;">
+      <div class="idc-wrap">
 
-<!-- Admission Letter Modal -->
-<div class="modal" id="admissionLetterModal"><div class="modal__box" style="max-width:720px;"><div class="modal__header"><h2>📜 Admission Letter</h2><button class="modal__close" onclick="closeModal('admissionLetterModal')">✕</button></div><div class="modal__body"><div class="letter-wrap"><div class="letter-doc" id="admissionLetterDoc"><div class="letter-header"><div class="letter-logo" id="admLetterLogo">🏫</div><div class="letter-school" id="admSchoolName">School</div></div><div class="letter-ref"><div>Ref: <strong id="admRef"></strong></div><div>Date: <strong id="admDate"></strong></div></div><div class="letter-title">Offer of Admission</div><div class="letter-body"><p>Dear Parent,</p><p>We are pleased to offer admission to <strong id="admStudentName">—</strong> into <strong id="admClass">—</strong>.</p><table class="letter-table"><tr><td>Admission No</td><td id="admNumber">—</td></tr></table><p>Congratulations.</p></div><div class="letter-sig"><div><div class="letter-stamp">STAMP</div><div class="letter-sig-line"></div><div id="admPrincipalName">Principal</div></div></div></div></div></div><div class="modal__footer"><button class="btn btn--primary" onclick="printAdmissionLetter()">Print Letter</button></div></div></div>
+        <!-- FRONT -->
+        <div class="idc-label">FRONT</div>
+        <div class="idc" id="studentCard">
+          <div class="idc-hdr">
+            <div class="idc-hdr-inner">
+              <div class="idc-logo-circle" id="stuIDLogo">🏫</div>
+              <div class="idc-hdr-text">
+                <div class="idc-school-name" id="stuIDSchool">School Name</div>
+                <div class="idc-school-addr" id="stuIDAddr">Address · Nigeria</div>
+              </div>
+            </div>
+          </div>
+          <div class="idc-title-bar">STUDENT IDENTITY CARD</div>
+          <div class="idc-body">
+            <div class="idc-watermark" id="stuIDWatermark">🏫</div>
+            <div class="idc-photo" id="stuIDPhoto">📸</div>
+            <div class="idc-fields-grid">
+              <div class="idc-field">
+                <span class="idc-fl">Full Name</span>
+                <span class="idc-fv" id="stuIDName">—</span>
+              </div>
+              <div class="idc-field">
+                <span class="idc-fl">Admission No</span>
+                <span class="idc-fv" id="stuIDAdmNo">—</span>
+              </div>
+              <div class="idc-field">
+                <span class="idc-fl">Date of Birth</span>
+                <span class="idc-fv" id="stuIDDob">—</span>
+              </div>
+              <div class="idc-field">
+                <span class="idc-fl">Sex</span>
+                <span class="idc-fv" id="stuIDGender">—</span>
+              </div>
+              <div class="idc-field">
+                <span class="idc-fl">Class</span>
+                <span class="idc-fv" id="stuIDClass">—</span>
+              </div>
+              <div class="idc-field">
+                <span class="idc-fl">Blood Group</span>
+                <span class="idc-fv" id="stuIDBlood">—</span>
+              </div>
+              <div class="idc-field">
+                <span class="idc-fl">Session</span>
+                <span class="idc-fv" id="stuIDSession">—</span>
+              </div>
+              <div class="idc-field">
+                <span class="idc-fl">Valid Till</span>
+                <span class="idc-fv" id="stuIDExpiry">—</span>
+              </div>
+            </div>
+          </div>
+          <div class="idc-footer">
+            <div class="idc-sig-block">
+              <div class="idc-sig-line"></div>
+              <div class="idc-sig-label">Student Signature</div>
+            </div>
+            <div class="idc-sig-block" style="text-align:center;">
+              <div class="idc-sig-line"></div>
+              <div class="idc-sig-label">Principal's Signature</div>
+            </div>
+            <div class="idc-validity" id="stuIDValidity">Valid 2025–2026</div>
+          </div>
+          <div class="idc-holo"></div>
+        </div>
+
+        <!-- BACK -->
+        <div class="idc-label">BACK</div>
+        <div class="idc-back">
+          <div class="idc-back-hdr">
+            <div class="idc-back-school" id="stuBackSchool">School Name</div>
+            <div class="idc-back-logo" id="stuBackLogo">🏫</div>
+          </div>
+          <div class="idc-back-body">
+            <div class="idc-back-nok">Emergency Contact: <span id="stuBackContact">—</span></div>
+            <div class="idc-back-disclaimer">
+              This identity card is an official document issued by the school and is
+              related only to the person described. Impersonation, alteration, destruction
+              or transfer to another person of this card is a punishable offence and will
+              be handled with appropriate disciplinary action.
+            </div>
+            <div class="idc-back-return">
+              If found, please return to:<br>
+              <strong id="stuBackSchoolFull">School Name</strong><br>
+              <span id="stuBackAddr">School Address · Nigeria</span>
+            </div>
+          </div>
+          <div class="idc-back-bottom">
+            <div class="idc-back-emergency">School Emergency No: <strong id="stuBackPhone">—</strong></div>
+            <canvas id="studentIDQR" width="60" height="60" style="border-radius:4px;"></canvas>
+          </div>
+          <div class="idc-holo"></div>
+        </div>
+
+      </div><!-- /.idc-wrap -->
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--secondary" onclick="closeModal('studentIDCardModal')">Close</button>
+      <button class="btn btn--ghost" onclick="openAdmissionLetter()">📜 Admission Letter</button>
+      <button class="btn btn--primary" onclick="printStudentIDCard()">🖨️ Print ID Card</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ADMISSION LETTER MODAL ══ -->
+<div class="modal" id="admissionLetterModal">
+  <div class="modal__box" style="max-width:700px;">
+    <div class="modal__header">
+      <h2 class="modal__title">📜 Offer of Admission</h2>
+      <button class="modal__close" onclick="closeModal('admissionLetterModal')">✕</button>
+    </div>
+    <div class="modal__body" style="padding:0;">
+      <div class="letter-wrap">
+        <div class="letter-doc" id="admissionLetterDoc">
+          <div class="letter-header">
+            <div class="letter-logo" id="admLetterLogo">🏫</div>
+            <div class="letter-school" id="admSchoolName">School Name</div>
+            <div class="letter-addr" id="admSchoolAddr">Address · Nigeria</div>
+          </div>
+          <div class="letter-ref">
+            <div>Ref: <strong id="admRef">ADM/2025/001</strong></div>
+            <div>Date: <strong id="admDate"></strong></div>
+          </div>
+          <div class="letter-title">Offer of Admission</div>
+          <div class="letter-body">
+            <p>Dear Parent / Guardian of <strong id="admStudentName">—</strong>,</p>
+            <p>
+              We are pleased to inform you that following the review of your ward's application,
+              the management of <strong id="admSchoolName2">—</strong> has approved the admission
+              of your ward into this institution on the following terms:
+            </p>
+            <table class="letter-table">
+              <tr><td>Student's Full Name</td><td><strong id="admFullName">—</strong></td></tr>
+              <tr><td>Admission Number</td><td><strong id="admNumber">—</strong></td></tr>
+              <tr><td>Class Admitted Into</td><td><strong id="admClass">—</strong></td></tr>
+              <tr><td>Date of Birth</td><td id="admDob">—</td></tr>
+              <tr><td>Gender</td><td id="admGender">—</td></tr>
+              <tr><td>Academic Session</td><td id="admSession">—</td></tr>
+              <tr><td>Resumption Date</td><td>As announced by the school</td></tr>
+            </table>
+            <p><strong>Conditions of Admission:</strong></p>
+            <p>
+              1. This admission is subject to verification of all credentials and documents submitted.<br>
+              2. The student is expected to abide by all school rules and regulations.<br>
+              3. School fees must be paid in full before or on the first day of resumption.<br>
+              4. The school reserves the right to withdraw this admission if any information provided is found to be false.
+            </p>
+            <p>
+              Please acknowledge acceptance of this offer by signing the copy below and returning it
+              to the school office within <strong>7 days</strong> of receipt.
+            </p>
+            <p>Congratulations and welcome to our school family!</p>
+            <p>Yours faithfully,</p>
+          </div>
+          <div class="letter-sig">
+            <div class="letter-sig-box">
+              <div class="letter-stamp">OFFICIAL<br>STAMP</div>
+              <div class="letter-sig-line"></div>
+              <div class="letter-sig-name" id="admPrincipalName">Principal / Head Teacher</div>
+              <div class="letter-sig-title">Head of Institution</div>
+            </div>
+            <div class="letter-sig-box">
+              <div style="margin-top:36px;"></div>
+              <div class="letter-sig-line"></div>
+              <div class="letter-sig-name">Parent / Guardian Signature &amp; Date</div>
+              <div class="letter-sig-title">Acceptance</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--secondary" onclick="closeModal('admissionLetterModal')">Close</button>
+      <button class="btn btn--ghost" onclick="openModal('studentIDCardModal');closeModal('admissionLetterModal')">← Back to ID Card</button>
+      <button class="btn btn--primary" onclick="printAdmissionLetter()">🖨️ Print Letter</button>
+    </div>
+  </div>
+</div>
 
 <!-- LINK PARENT MODAL -->
 <div class="modal" id="linkModal"><div class="modal__box"><div class="modal__header"><h2>Link Parent</h2><button class="modal__close" onclick="closeModal('linkModal')">✕</button></div><div class="modal__body"><input id="parentEmailInput" placeholder="parent@email.com"><select id="pRel"><option>Father</option><option>Mother</option></select><input type="hidden" id="lStudentId"><div id="lErr"></div></div><div class="modal__footer"><button onclick="linkParent()">Link</button></div></div></div>
@@ -637,35 +1025,136 @@ async function viewStudentIDCard(id) {
   const s = studentsInClass.find(x => x.id === id);
   if (!s) return;
   currentStudentForDocs = s;
-  const school = cu.schools || {};
-  document.getElementById('studentIDSchool').innerText = school.name || 'School';
-  document.getElementById('studentIDName').innerText = s.full_name;
-  document.getElementById('studentIDAdmission').innerText = s.admission_no || 'N/A';
-  document.getElementById('studentIDClass').innerText = currentSelectedClass?.name || '—';
-  document.getElementById('studentIDContact').innerText = s.parent_phone || '—';
-  const logo = document.getElementById('studentIDLogo');
-  if (school.logo_url) logo.innerHTML = `<img src="${school.logo_url}" style="width:100%;height:100%;object-fit:cover;">`;
+  const school  = cu.schools || {};
+  const today   = new Date();
+  const expiry  = new Date(today.getFullYear() + 1, 6, 31); // Jul 31 next year
+  const session = `${today.getFullYear()}/${today.getFullYear() + 1}`;
+  const className = currentSelectedClass?.name || '—';
+  const genderLabel = s.gender === 'M' ? 'Male' : s.gender === 'F' ? 'Female' : '—';
+  const dobLabel = s.date_of_birth
+    ? new Date(s.date_of_birth).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    : '—';
+
+  // ── FRONT ──
+  const logoEl     = document.getElementById('stuIDLogo');
+  const backLogoEl = document.getElementById('stuBackLogo');
+  if (school.logo_url) {
+    logoEl.innerHTML     = `<img src="${school.logo_url}" onerror="this.parentElement.textContent='🏫'">`;
+    backLogoEl.innerHTML = `<img src="${school.logo_url}" onerror="this.parentElement.textContent='🏫'">`;
+  } else {
+    logoEl.textContent = '🏫';
+    backLogoEl.textContent = '🏫';
+  }
+
+  document.getElementById('stuIDSchool').textContent   = school.name || 'School Name';
+  document.getElementById('stuIDAddr').textContent     = [school.lga, school.state].filter(Boolean).join(', ') || 'Nigeria';
+  document.getElementById('stuIDName').textContent     = s.full_name;
+  document.getElementById('stuIDAdmNo').textContent    = s.admission_no || 'N/A';
+  document.getElementById('stuIDDob').textContent      = dobLabel;
+  document.getElementById('stuIDGender').textContent   = genderLabel;
+  document.getElementById('stuIDClass').textContent    = className;
+  document.getElementById('stuIDBlood').textContent    = s.blood_group || '—';
+  document.getElementById('stuIDSession').textContent  = session;
+  document.getElementById('stuIDExpiry').textContent   = expiry.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  document.getElementById('stuIDValidity').textContent = `Valid Till ${expiry.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}`;
+  document.getElementById('stuIDWatermark').textContent = school.name ? school.name[0] : '🏫';
+
+  // Photo
+  const photoEl = document.getElementById('stuIDPhoto');
+  photoEl.innerHTML = s.photo_url
+    ? `<img src="${s.photo_url}" onerror="this.parentElement.textContent='📸'">`
+    : '📸';
+
+  // ── BACK ──
+  document.getElementById('stuBackSchool').textContent     = school.name || 'School Name';
+  document.getElementById('stuBackSchoolFull').textContent = school.name || 'School Name';
+  document.getElementById('stuBackAddr').textContent       = [school.address, school.lga, school.state].filter(Boolean).join(', ') || 'Nigeria';
+  document.getElementById('stuBackContact').textContent    = s.parent_phone || s.parent_name || '—';
+  document.getElementById('stuBackPhone').textContent      = school.phone || school.email || '—';
+
   openModal('studentIDCardModal');
+
+  // QR code
   setTimeout(() => {
     const qr = document.getElementById('studentIDQR');
-    if (qr && typeof QRCode !== 'undefined') QRCode.toCanvas(qr, `STU|${s.id}|${s.admission_no}`, { width: 48 });
-  }, 100);
+    if (qr && typeof QRCode !== 'undefined') {
+      QRCode.toCanvas(qr,
+        `EDUTRAC|STU|${s.admission_no || s.id}|${s.full_name}|${school.name || ''}`,
+        { width: 60, margin: 1, color: { dark: '#0a6e3f', light: '#ffffff' } }
+      ).catch(() => {});
+    }
+  }, 150);
 }
 
 function openAdmissionLetter() {
   const s = currentStudentForDocs;
   if (!s) return;
-  document.getElementById('admStudentName').innerText = s.full_name;
-  document.getElementById('admNumber').innerText = s.admission_no || '—';
-  document.getElementById('admClass').innerText = currentSelectedClass?.name || '—';
-  document.getElementById('admRef').innerText = `ADM/${s.admission_no || s.id}/${new Date().getFullYear()}`;
-  document.getElementById('admDate').innerText = new Date().toLocaleDateString();
+  const school    = cu.schools || {};
+  const today     = new Date();
+  const session   = `${today.getFullYear()}/${today.getFullYear() + 1}`;
+  const className = currentSelectedClass?.name || '—';
+  const genderLabel = s.gender === 'M' ? 'Male' : s.gender === 'F' ? 'Female' : '—';
+  const dobLabel = s.date_of_birth
+    ? new Date(s.date_of_birth).toLocaleDateString('en-NG', { day: '2-digit', month: 'long', year: 'numeric' })
+    : '—';
+
+  const logoEl = document.getElementById('admLetterLogo');
+  if (school.logo_url) {
+    logoEl.innerHTML = `<img src="${school.logo_url}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;display:block;margin:0 auto;" onerror="this.parentElement.textContent='🏫'">`;
+  } else {
+    logoEl.textContent = '🏫';
+  }
+
+  document.getElementById('admSchoolName').textContent  = school.name || 'School Name';
+  document.getElementById('admSchoolName2').textContent = school.name || 'our school';
+  document.getElementById('admSchoolAddr').textContent  = [school.address, school.lga, school.state].filter(Boolean).join(', ') || 'Nigeria';
+  document.getElementById('admStudentName').textContent = s.full_name;
+  document.getElementById('admFullName').textContent    = s.full_name;
+  document.getElementById('admNumber').textContent      = s.admission_no || '—';
+  document.getElementById('admClass').textContent       = className;
+  document.getElementById('admDob').textContent         = dobLabel;
+  document.getElementById('admGender').textContent      = genderLabel;
+  document.getElementById('admSession').textContent     = session;
+  document.getElementById('admRef').textContent         = `ADM/${s.admission_no || s.id.slice(0,6).toUpperCase()}/${today.getFullYear()}`;
+  document.getElementById('admDate').textContent        = today.toLocaleDateString('en-NG', { day: '2-digit', month: 'long', year: 'numeric' });
+  document.getElementById('admPrincipalName').textContent = cu.full_name || 'Principal / Head Teacher';
+
   closeModal('studentIDCardModal');
   openModal('admissionLetterModal');
 }
 
-function printStudentIDCard() { window.print(); }
-function printAdmissionLetter() { window.print(); }
+function printStudentIDCard() {
+  const wrap = document.querySelector('#studentIDCardModal .idc-wrap');
+  if (!wrap) return;
+  const styles = [...document.querySelectorAll('style, link[rel="stylesheet"]')].map(el => el.outerHTML).join('');
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">${styles}
+    <style>
+      body { margin:0; padding:24px; background:#e8ecf0; display:flex; flex-direction:column; align-items:center; gap:20px; }
+      @media print { body { background:#e8ecf0; } @page { size: portrait; margin: 8mm; } }
+    </style>
+    </head><body>${wrap.innerHTML}</body></html>`;
+  const blob = new Blob([html], { type: 'text/html' });
+  const url  = URL.createObjectURL(blob);
+  const w    = window.open(url, '_blank', 'width=480,height=800');
+  setTimeout(() => { if (w) { w.focus(); w.print(); } URL.revokeObjectURL(url); }, 700);
+}
+
+function printAdmissionLetter() {
+  const doc = document.getElementById('admissionLetterDoc');
+  if (!doc) return;
+  const styles = [...document.querySelectorAll('style, link[rel="stylesheet"]')].map(el => el.outerHTML).join('');
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">${styles}
+    <style>
+      body { margin:0; background:#f8f8f4; }
+      .letter-wrap { padding:20px; }
+      @media print { body { background:white; } @page { margin: 20mm; } }
+    </style>
+    </head><body><div class="letter-wrap"><div class="letter-doc">${doc.innerHTML}</div></div></body></html>`;
+  const blob = new Blob([html], { type: 'text/html' });
+  const url  = URL.createObjectURL(blob);
+  const w    = window.open(url, '_blank', 'width=800,height=900');
+  setTimeout(() => { if (w) { w.focus(); w.print(); } URL.revokeObjectURL(url); }, 700);
+}
 async function openLink(studentId) { document.getElementById('lStudentId').value = studentId; openModal('linkModal'); }
 async function linkParent() { const email = document.getElementById('parentEmailInput')?.value; if (!email) return; alert('Parent linking simulation: ' + email); closeModal('linkModal'); }
 
