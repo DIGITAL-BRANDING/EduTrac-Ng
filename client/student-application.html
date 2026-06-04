@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -55,9 +55,11 @@ const selectedClass=()=>classes.find(c=>c.id===val('intendedClass'));
 async function loadSchools(){const sel=document.getElementById('schoolId');try{const{data,error}=await db.from('schools').select('id,name,address,is_active').eq('is_active',true).order('name');if(error)throw error;schools=data||[];sel.innerHTML='<option value="">Select school</option>'+schools.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('')}catch(e){sel.innerHTML='<option value="">Unable to load schools</option>';console.warn(e)}}
 document.getElementById('schoolId').addEventListener('change',loadClassesForSchool);
 async function loadClassesForSchool(){const schoolId=val('schoolId'), cls=document.getElementById('intendedClass');classes=[];cls.innerHTML='<option value="">Registrar should assign</option>';if(!schoolId)return;try{const{data}=await db.from('classes').select('id,name,level').eq('school_id',schoolId).order('name');classes=data||[];cls.innerHTML='<option value="">Registrar should assign</option>'+classes.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}catch(e){console.warn(e)}}
-async function applyPrefillFromQuery(){const params=new URLSearchParams(location.search);const school=params.get('school');const pin=params.get('pin');if(school){document.getElementById('schoolId').value=school;await loadClassesForSchool()}if(pin)document.getElementById('scratchPin').value=pin;if(school&&pin){step=2}}
+async function applyPrefillFromQuery(){const params=new URLSearchParams(location.search);const school=params.get('school');const pin=params.get('pin');if(school){document.getElementById('schoolId').value=school;await loadClassesForSchool()}if(pin)document.getElementById('scratchPin').value=pin;
+// Do NOT skip to step 2 — card must be validated first (RC2 fix)
+}
 function validateStep(n){let ok=true;(requiredByStep[n]||[]).forEach(id=>{const wrap=document.querySelector(`[data-field="${id}"]`),missing=!val(id);if(wrap)wrap.classList.toggle('bad',missing);if(missing)ok=false});return ok}
-function nextStep(){if(step<total){if(!validateStep(step))return;step++;if(step===total)buildReview();updateStep();return}submitApplication()}
+async function nextStep(){if(step<total){if(!validateStep(step))return;if(step===1){const btn=document.getElementById('nextBtn');btn.disabled=true;btn.textContent='Validating card…';try{await validateScratchCard()}catch(e){btn.disabled=false;btn.textContent='Continue';const wrap=document.querySelector('[data-field="scratchPin"]');if(wrap)wrap.classList.add('bad');const err=wrap?.querySelector('.err');if(err){err.textContent=e.message;err.style.display='block'}return}finally{btn.disabled=false;btn.textContent='Continue'}}step++;if(step===total)buildReview();updateStep();return}submitApplication()}
 function prevStep(){if(step>1){step--;updateStep()}}
 function updateStep(){for(let i=1;i<=total;i++)document.getElementById('p'+i).classList.toggle('active',i===step);document.getElementById('bar').style.width=`${(step/total)*100}%`;document.getElementById('prevBtn').style.visibility=step===1?'hidden':'visible';document.getElementById('nextBtn').textContent=step===total?'Submit Application':'Continue'}
 function buildReview(){const rows=[['School',selectedSchool()?.name||''],['Scratch Card',val('scratchPin')],['Class Applying For',selectedClass()?.name||'Registrar should assign'],['Student',val('fullName')],['Gender',val('gender')==='M'?'Male':val('gender')==='F'?'Female':''],['Date of Birth',val('dob')],['Address',val('address')],['Guardian',val('parentName')],['Phone',val('parentPhone')],['Email',val('parentEmail')||'-'],['Medical Notes',val('medicalNotes')||'-']];document.getElementById('review').innerHTML=`<div class="review-box"><h3>Application Summary</h3>${rows.map(([k,v])=>`<div class="review-row"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>`}
