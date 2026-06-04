@@ -241,7 +241,7 @@ function showApplications() {
         '<td><div class="student-cell"><div class="avatar avatar--sm">' + escapeText((a.full_name||'?').charAt(0)) + '</div><div class="info"><div class="name">' + escapeText(a.full_name) + '</div><div class="sub">Ref: ' + escapeText(a.ref_id || 'Pending') + '</div></div></div></td>' +
         '<td>' + escapeText(a.classes?.name || 'Registrar to assign') + '</td>' +
         '<td><strong>' + escapeText(a.parent_name || '-') + '</strong><div style="font-size:12px;color:var(--ink-3);">' + escapeText(a.parent_phone || '') + '</div></td>' +
-        '<td><span style="font-family:var(--mono,monospace);font-size:12px;">' + escapeText(a.scratch_pin || '-') + '</span></td>' +
+        '<td><span style="font-family:var(--mono,monospace);font-size:12px;">' + escapeText(a.scratch_card_pin || a.scratch_pin || '-') + '</span></td>' +
         '<td style="font-size:12px;color:var(--ink-3);">' + formatDate(a.submitted_at || a.created_at) + '</td>' +
         '<td><div class="td-action"><button class="btn btn--secondary btn--sm" onclick="viewApplication(\'' + id + '\')">Review</button><button class="btn btn--primary btn--sm" onclick="openApproveApplication(\'' + id + '\')">Approve</button></div></td>' +
       '</tr>';
@@ -605,7 +605,15 @@ async function saveStudent() {
 
     const applicationId = errEl.dataset.applicationId;
     if (applicationId && !id) {
-      await db.from('student_applications').update({ status: 'approved', approved_at: new Date().toISOString(), approved_by: user.id, student_id: sid }).eq('id', applicationId);
+      const admNo = document.getElementById('sAdmNo').value.trim() || null;
+      const { error: appErr } = await db.from('student_applications').update({
+        status: 'approved',
+        reviewed_at: new Date().toISOString(),
+        reviewed_by: user.id,
+        student_id: sid,
+        admission_number: admNo,
+      }).eq('id', applicationId);
+      if (appErr) console.error('[Admission] Failed to update application status:', appErr.message);
       delete errEl.dataset.applicationId;
       await loadApplications();
     }
@@ -613,7 +621,7 @@ async function saveStudent() {
     toast(id ? 'Student updated!' : 'Student admitted successfully!', 'success');
     closeModal('studentModal');
     await loadStudents();
-    filter();
+    renderPage();
   } catch (err) {
     errEl.textContent = err.message; errEl.style.display = 'block';
   } finally {
