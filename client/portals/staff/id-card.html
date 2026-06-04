@@ -7,76 +7,108 @@
   <title>EduTrack NG — ID Card Generator</title>
   <link rel="stylesheet" href="../../assets/css/global.css">
   <style>
+    /* ── CR80 ID Card Size: 3.375 × 2.125 inches landscape ── */
+    /* At 96dpi screen: 324 × 204px. Print: exact CR80. */
+    :root {
+      --card-w: 324px;
+      --card-h: 204px;
+    }
+
     @media print {
       .no-print { display: none !important; }
       body { background: white; margin: 0; padding: 0; }
       .cards-grid {
-        grid-template-columns: repeat(3, 1fr) !important;
-        gap: 5mm !important;
-        padding: 8mm !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 6mm !important;
+        padding: 6mm !important;
+        justify-content: flex-start !important;
       }
-      .id-card { break-inside: avoid; }
-      @page { margin: 0; size: A4; }
+      .id-card-wrap {
+        width: 85.6mm !important;
+        height: 54mm !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        flex-shrink: 0 !important;
+      }
+      .id-card {
+        width: 85.6mm !important;
+        height: 54mm !important;
+        font-size: 7pt !important;
+      }
+      @page { margin: 5mm; size: A4 portrait; }
     }
 
     .cards-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      display: flex;
+      flex-wrap: wrap;
       gap: 18px;
       padding: 20px 0;
     }
 
-    /* ── ID Card Design ── */
+    .id-card-wrap {
+      width: var(--card-w);
+      height: var(--card-h);
+      flex-shrink: 0;
+    }
+
+    /* ── ID Card — exact CR80 landscape proportions ── */
     .id-card {
-      width: 100%;
-      aspect-ratio: 85.6 / 54; /* ISO/IEC 7810 ID-1 credit card ratio */
-      min-height: 152px;
-      border-radius: 10px;
+      width: var(--card-w);   /* 324px ≈ 3.375in at 96dpi */
+      height: var(--card-h);  /* 204px ≈ 2.125in at 96dpi */
+      border-radius: 8px;
       overflow: hidden;
       font-family: Arial, sans-serif;
-      box-shadow: 0 4px 20px rgba(0,0,0,.2);
+      box-shadow: 0 4px 20px rgba(0,0,0,.22);
       position: relative;
-      background: var(--card-bg, #1a2e6e);
+      background: var(--card-bg, #0a6e3f);
       display: flex;
       flex-direction: column;
     }
 
-    /* Holographic strip at top */
+    /* Holographic strip at bottom */
     .id-holo {
       height: 5px;
-      background: linear-gradient(90deg,
-        #ff0080, #ff4500, #ffed00, #00e676, #00bcd4, #a855f7, #ff0080);
-      background-size: 200% 100%;
-      animation: holo-shift 3s linear infinite;
+      background: linear-gradient(90deg,#ff0080,#ff8c00,#ffed00,#00ff80,#00c8ff,#a855f7,#ff0080);
       flex-shrink: 0;
-    }
-    @keyframes holo-shift {
-      0%   { background-position: 0% 50%; }
-      100% { background-position: 200% 50%; }
+      order: 99;
     }
 
+    /* Green header with diagonal gold stripe */
     .id-header {
-      background: var(--card-bg, #1a2e6e);
-      padding: 6px 8px 4px;
+      background: var(--card-bg, #0a6e3f);
+      padding: 6px 8px 5px;
       display: flex;
       align-items: center;
       gap: 7px;
       flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .id-header::before {
+      content: '';
+      position: absolute;
+      top: -10px; right: -16px;
+      width: 70px; height: 90px;
+      background: var(--card-accent, #f0c040);
+      transform: rotate(-25deg);
+      z-index: 0;
     }
 
     .id-logo {
-      width: 36px; height: 36px;
+      width: 34px; height: 34px;
       border-radius: 50%;
       border: 2px solid var(--card-accent, #f0c040);
       background: white;
       overflow: hidden;
       flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
-      font-size: 18px;
+      font-size: 16px;
+      position: relative; z-index: 1;
     }
     .id-logo img { width: 100%; height: 100%; object-fit: cover; }
 
-    .id-school-info { flex: 1; min-width: 0; }
+    .id-school-info { flex: 1; min-width: 0; position: relative; z-index: 1; }
     .id-school-name {
       font-size: 8px; font-weight: 900;
       text-transform: uppercase;
@@ -89,7 +121,7 @@
       -webkit-box-orient: vertical;
     }
     .id-card-type {
-      font-size: 6.5px;
+      font-size: 6px;
       color: var(--card-accent, #f0c040);
       font-weight: 700;
       letter-spacing: 1.5px;
@@ -99,7 +131,7 @@
 
     /* Gold accent bar */
     .id-accent-bar {
-      height: 3px;
+      height: 4px;
       background: linear-gradient(90deg,
         var(--card-accent, #c8860a),
         var(--card-accent-light, #f0c040),
@@ -110,38 +142,38 @@
     .id-body {
       flex: 1;
       background: white;
-      padding: 6px 8px;
+      padding: 5px 7px;
       display: flex;
-      gap: 7px;
+      gap: 6px;
       min-height: 0;
+      overflow: hidden;
     }
 
     .id-photo-col {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 4px;
+      gap: 3px;
       flex-shrink: 0;
     }
 
     .id-photo {
-      width: 50px; height: 60px;
-      border-radius: 4px;
-      border: 1.5px solid var(--card-bg, #1a2e6e);
+      width: 48px; height: 60px;
+      border-radius: 3px;
+      border: 1.5px solid var(--card-bg, #0a6e3f);
       object-fit: cover;
       background: #f0f4f8;
       display: flex; align-items: center; justify-content: center;
-      font-size: 24px;
+      font-size: 22px;
       overflow: hidden;
     }
-    .id-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .id-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
     .id-qr {
-      width: 44px; height: 44px;
+      width: 40px; height: 40px;
       background: white;
       border: 1px solid #ddd;
       border-radius: 3px;
-      padding: 2px;
       image-rendering: pixelated;
     }
 
@@ -150,74 +182,85 @@
       min-width: 0;
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      gap: 3px;
+      justify-content: flex-start;
+      gap: 2px;
+      padding-top: 1px;
     }
 
     .id-name {
-      font-size: 9.5px;
+      font-size: 9px;
       font-weight: 900;
-      color: #1a2e6e;
+      color: var(--card-bg, #0a6e3f);
       line-height: 1.2;
       text-transform: uppercase;
       overflow: hidden;
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
+      margin-bottom: 2px;
+    }
+
+    .id-fields-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px 6px;
     }
 
     .id-field {
       display: flex;
       flex-direction: column;
-      gap: 0;
     }
     .id-field-label {
-      font-size: 6px;
+      font-size: 5.5px;
       font-weight: 700;
-      color: #888;
+      color: var(--card-bg, #0a6e3f);
       text-transform: uppercase;
-      letter-spacing: .5px;
+      letter-spacing: .4px;
+      line-height: 1;
     }
     .id-field-value {
-      font-size: 8px;
-      font-weight: 600;
-      color: #1a1a1a;
+      font-size: 7.5px;
+      font-weight: 700;
+      color: #111;
+      line-height: 1.3;
     }
 
     .id-footer {
-      background: var(--card-bg, #1a2e6e);
-      padding: 3px 8px;
+      background: white;
+      border-top: 1px solid #e5e7eb;
+      padding: 3px 7px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-shrink: 0;
     }
     .id-footer-text {
-      font-size: 6px;
-      color: rgba(255,255,255,.6);
+      font-size: 5.5px;
+      color: #888;
       font-style: italic;
     }
     .id-validity {
       font-size: 6px;
       font-weight: 700;
-      color: var(--card-accent, #f0c040);
+      color: var(--card-bg, #0a6e3f);
     }
 
-    /* Watermark diagonal */
+    /* Faint watermark */
     .id-watermark {
       position: absolute;
       inset: 0;
       pointer-events: none;
       opacity: .04;
       display: flex; align-items: center; justify-content: center;
-      font-size: 22px;
+      font-size: 20px;
       font-weight: 900;
-      color: #1a2e6e;
+      color: #0a6e3f;
       transform: rotate(-25deg);
       text-transform: uppercase;
       letter-spacing: 2px;
       font-family: Arial, sans-serif;
       white-space: nowrap;
+      z-index: 0;
     }
 
     /* Controls */
@@ -245,8 +288,8 @@
     .select-bar span { font-size: 13px; font-weight: 600; color: var(--primary-dark); flex: 1; }
     .id-card .select-check {
       position: absolute;
-      top: 8px; right: 8px;
-      width: 18px; height: 18px;
+      top: 6px; right: 6px;
+      width: 16px; height: 16px;
       z-index: 10;
       cursor: pointer;
       accent-color: var(--primary);
@@ -443,69 +486,127 @@ function renderStep2() {
   `;
 }
 
-// ── Step 3: Load data and render cards ────────────────────────
 async function loadAndGenerate() {
-  // Mark step 3 active
-  const stepDots = document.querySelectorAll('.no-print [style*="border-radius:50%"]');
-  if (stepDots[2]) {
-    stepDots[2].style.background = 'var(--primary,#1a2e6e)';
-    stepDots[2].style.color = 'white';
-  }
-  const stepLines = document.querySelectorAll('.no-print [style*="height:3px"]');
-  if (stepLines[1]) stepLines[1].style.background = 'var(--primary,#1a2e6e)';
+  // Advance step indicator to 3
+  const stepDots = document.querySelectorAll('.step-dot');
+  stepDots.forEach((d, i) => {
+    if (i === 2) { d.style.background = 'var(--primary,#0a6e3f)'; d.style.color = 'white'; }
+  });
 
-  const classId  = document.getElementById('filterClass')?.value;
+  const classId   = document.getElementById('filterClass')?.value || '';
+  const session   = document.getElementById('sessionLabel')?.value || '';
   const container = document.getElementById('cardsContainer');
   if (!container) return;
 
-  showLoader(container, 'Loading…');
+  container.innerHTML = `<div style="padding:40px;text-align:center;color:var(--ink-3);">
+    <div style="font-size:32px;margin-bottom:10px;">⏳</div>Loading cards…
+  </div>`;
 
-  if (selectedCardType === 'staff') {
-    const { data } = await db.from('users')
-      .select('id,full_name,role,photo_url,email')
-      .eq('school_id', user.school_id)
-      .eq('is_active', true)
-      .order('full_name');
-    students = data || [];
-  } else {
-    let q = db.from('students')
-      .select('id,full_name,admission_no,gender,photo_url,parent_phone,qr_code_data,combination_id,class:enrollments(class_id,classes(name))')
-      .eq('school_id', user.school_id)
-      .eq('is_active', true);
-    if (classId) {
-      const { data: enroll } = await db.from('enrollments')
-        .select('student_id')
-        .eq('class_id', classId)
-        .eq('term_id', term?.id || '');
-      const ids = (enroll || []).map(e => e.student_id);
-      if (ids.length === 0) { showEmpty(container, 'No students enrolled in this class'); return; }
-      q = q.in('id', ids);
+  try {
+    if (selectedCardType === 'staff') {
+      // ── Staff ──────────────────────────────────────────────
+      const { data, error } = await db.from('users')
+        .select('id,full_name,role,photo_url,email,phone')
+        .eq('school_id', user.school_id)
+        .eq('is_active', true)
+        .not('role', 'in', '(parent,student,saas_owner)')
+        .order('full_name');
+      if (error) throw error;
+      students = data || [];
+
+    } else {
+      // ── Students ────────────────────────────────────────────
+      // Step 1: get enrolled student IDs for the chosen class
+      let enrolledIds = null;
+      if (classId) {
+        // Build enrollment query — term may be null, so don't require it
+        let enrQ = db.from('enrollments')
+          .select('student_id')
+          .eq('class_id', classId)
+          .eq('school_id', user.school_id);
+        // Only filter by term if one is active
+        if (term?.id) enrQ = enrQ.eq('term_id', term.id);
+        const { data: enr, error: enrErr } = await enrQ;
+        if (enrErr) throw enrErr;
+        enrolledIds = (enr || []).map(e => e.student_id);
+        if (enrolledIds.length === 0) {
+          container.innerHTML = `<div style="padding:60px;text-align:center;color:var(--ink-3);">
+            <div style="font-size:48px;margin-bottom:12px;">🏫</div>
+            <strong>No students enrolled in this class yet.</strong><br>
+            <span style="font-size:13px;">Enroll students first in the Enrollment Manager.</span>
+          </div>`;
+          return;
+        }
+      }
+
+      // Step 2: fetch student records
+      let stuQ = db.from('students')
+        .select('id,full_name,admission_no,gender,date_of_birth,blood_group,photo_url,parent_phone,parent_name,is_active')
+        .eq('school_id', user.school_id)
+        .eq('is_active', true)
+        .order('full_name');
+
+      if (enrolledIds) stuQ = stuQ.in('id', enrolledIds);
+
+      const { data: stuData, error: stuErr } = await stuQ;
+      if (stuErr) throw stuErr;
+      students = stuData || [];
+
+      // Step 3: fetch class name for each student separately
+      if (classId) {
+        // All students share the same class
+        const cls = classes.find(c => c.id === classId);
+        students = students.map(s => ({ ...s, _className: cls?.name || '—' }));
+      } else {
+        // Look up each student's class from enrollments
+        const { data: allEnr } = await db.from('enrollments')
+          .select('student_id,class_id')
+          .eq('school_id', user.school_id)
+          .in('student_id', students.map(s => s.id));
+        const enrMap = {};
+        (allEnr || []).forEach(e => { enrMap[e.student_id] = e.class_id; });
+        students = students.map(s => {
+          const cls = classes.find(c => c.id === enrMap[s.id]);
+          return { ...s, _className: cls?.name || '—' };
+        });
+      }
     }
-    const { data } = await q.order('full_name');
-    students = data || [];
-  }
 
-  if (students.length === 0) {
-    showEmpty(container, 'No records found');
-    return;
-  }
+    if (!students.length) {
+      container.innerHTML = `<div style="padding:60px;text-align:center;color:var(--ink-3);">
+        <div style="font-size:48px;margin-bottom:12px;">🪪</div>
+        <strong>No records found.</strong>
+      </div>`;
+      return;
+    }
 
-  renderCards();
+    renderCards(session);
+
+  } catch(e) {
+    container.innerHTML = `<div style="padding:40px;text-align:center;color:var(--danger);">
+      <strong>Error loading data:</strong> ${e.message}
+    </div>`;
+  }
 }
 
-async function renderCards() {
+async function renderCards(session) {
   const container = document.getElementById('cardsContainer');
   const cardType  = selectedCardType || 'student';
-  const session   = document.getElementById('sessionLabel')?.value || '';
+  session = session || document.getElementById('sessionLabel')?.value || `${new Date().getFullYear()}/${new Date().getFullYear()+1}`;
   const cfg       = idCardConfig || {};
-  const bg        = cfg.background_color || '#1a2e6e';
+  const bg        = cfg.background_color || '#0a6e3f';
   const accent    = cfg.accent_color     || '#f0c040';
   const accentLight = lightenHex(accent, 40);
+  const expYear   = new Date().getFullYear() + 1;
+  const validTill = `31 Jul ${expYear}`;
 
   container.innerHTML = `<div class="cards-grid" id="cardsGrid"></div>`;
   const grid = document.getElementById('cardsGrid');
 
   for (const s of students) {
+    const wrap = document.createElement('div');
+    wrap.className = 'id-card-wrap';
+
     const div = document.createElement('div');
     div.className = 'id-card';
     div.dataset.id = s.id;
@@ -513,90 +614,78 @@ async function renderCards() {
     div.style.setProperty('--card-accent', accent);
     div.style.setProperty('--card-accent-light', accentLight);
 
-    const className = s.class?.[0]?.classes?.name || (cardType === 'staff' ? formatRole(s.role) : '—');
-    const qrData    = s.qr_code_data || `ET-${cardType.toUpperCase()}-${s.id}`;
+    const className = s._className || (cardType === 'staff' ? formatRole(s.role) : '—');
+    const admNo     = s.admission_no || (cardType === 'staff' ? 'STF-' + s.id.slice(0,6).toUpperCase() : '—');
+    const qrData    = `EDUTRAC|${cardType.toUpperCase()}|${admNo}|${s.full_name}|${schoolInfo?.name || ''}`;
 
-    // Resolve passport photo URL
+    const dobLabel = s.date_of_birth
+      ? new Date(s.date_of_birth).toLocaleDateString('en-GB', {day:'2-digit',month:'2-digit',year:'numeric'})
+      : '—';
+    const genderLabel = s.gender === 'M' ? 'Male' : s.gender === 'F' ? 'Female' : (s.gender || '—');
+
     const photoUrl = resolvePhotoUrl(s.photo_url);
+    const noPhotoHtml = `<div style="width:100%;height:100%;background:#e8ecf0;display:flex;align-items:center;justify-content:center;"><svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='#94a3b8' stroke-width='1.5'><path d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/><circle cx='12' cy='7' r='4'/></svg></div>`;
 
-    // Photo placeholder for no-photo case
-    const noPhotoHtml = `<div style="width:100%;height:100%;background:#e8eef4;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;">
-      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      <span style="font-size:5px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:.3px;">No Photo</span>
-    </div>`;
+    const fieldsHtml = cardType === 'student' ? `
+      <div class="id-fields-grid">
+        <div class="id-field"><span class="id-field-label">Admission No</span><span class="id-field-value">${admNo}</span></div>
+        <div class="id-field"><span class="id-field-label">Sex</span><span class="id-field-value">${genderLabel}</span></div>
+        <div class="id-field"><span class="id-field-label">Date of Birth</span><span class="id-field-value">${dobLabel}</span></div>
+        <div class="id-field"><span class="id-field-label">Blood Group</span><span class="id-field-value">${s.blood_group || '—'}</span></div>
+        <div class="id-field"><span class="id-field-label">Class</span><span class="id-field-value">${className}</span></div>
+        <div class="id-field"><span class="id-field-label">Session</span><span class="id-field-value">${session}</span></div>
+      </div>` : `
+      <div class="id-fields-grid">
+        <div class="id-field"><span class="id-field-label">Staff ID</span><span class="id-field-value">${admNo}</span></div>
+        <div class="id-field"><span class="id-field-label">Role</span><span class="id-field-value">${formatRole(s.role)}</span></div>
+        <div class="id-field"><span class="id-field-label">Phone</span><span class="id-field-value">${s.phone || '—'}</span></div>
+        <div class="id-field"><span class="id-field-label">Session</span><span class="id-field-value">${session}</span></div>
+      </div>`;
 
     div.innerHTML = `
       <input type="checkbox" class="select-check no-print" onchange="toggleSelect('${s.id}', this)">
-      <div class="id-watermark">${schoolInfo?.name?.split(' ')[0] || 'SCHOOL'}</div>
-      <div class="id-holo"></div>
+      <div class="id-watermark">${(schoolInfo?.name || 'SCHOOL').split(' ')[0]}</div>
       <div class="id-header">
-        <div class="id-logo">
-          ${schoolInfo?.logo_url
-            ? `<img src="${schoolInfo.logo_url}" alt="Logo" crossorigin="anonymous">`
-            : '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>'}
-        </div>
+        <div class="id-logo">${schoolInfo?.logo_url ? `<img src="${schoolInfo.logo_url}" alt="Logo" crossorigin="anonymous" onerror="this.parentElement.innerHTML='🏫'">` : '🏫'}</div>
         <div class="id-school-info">
           <div class="id-school-name">${escapeHtml(schoolInfo?.name || 'School Name')}</div>
-          <div class="id-card-type">${cardType === 'staff' ? 'Staff Identity Card' : 'Student Identity Card'}</div>
+          <div class="id-card-type">${cardType === 'staff' ? 'STAFF IDENTITY CARD' : 'STUDENT IDENTITY CARD'}</div>
         </div>
       </div>
       <div class="id-accent-bar"></div>
       <div class="id-body">
         <div class="id-photo-col">
-          <div class="id-photo" id="photo-wrap-${s.id}">
-            ${photoUrl
-              ? `<img src="${photoUrl}" alt="${escapeHtml(s.full_name)}" crossorigin="anonymous"
-                   style="width:100%;height:100%;object-fit:cover;display:block;"
-                   onerror="this.parentElement.innerHTML='${noPhotoHtml.replace(/'/g, '&#39;').replace(/\n/g,'')}'">`
-              : noPhotoHtml}
-          </div>
-          <canvas class="id-qr" id="qr-${s.id}" width="44" height="44"></canvas>
+          <div class="id-photo" id="photo-wrap-${s.id}">${photoUrl ? `<img src="${photoUrl}" crossorigin="anonymous" onerror="this.parentElement.innerHTML='${noPhotoHtml.replace(/'/g,"&#39;")}'"  style="width:100%;height:100%;object-fit:cover;display:block;">` : noPhotoHtml}</div>
+          <canvas class="id-qr" id="qr-${s.id}" width="40" height="40"></canvas>
         </div>
         <div class="id-info-col">
           <div class="id-name">${escapeHtml(s.full_name)}</div>
-          ${cardType !== 'staff' ? `
-          <div class="id-field">
-            <span class="id-field-label">Admission No.</span>
-            <span class="id-field-value">${s.admission_no || '—'}</span>
-          </div>` : `
-          <div class="id-field">
-            <span class="id-field-label">Staff Email</span>
-            <span class="id-field-value" style="font-size:7px;">${s.email || '—'}</span>
-          </div>`}
-          <div class="id-field">
-            <span class="id-field-label">${cardType === 'staff' ? 'Role' : 'Class'}</span>
-            <span class="id-field-value">${className}</span>
-          </div>
-          ${cardType !== 'staff' && s.parent_phone ? `
-          <div class="id-field">
-            <span class="id-field-label">Parent Phone</span>
-            <span class="id-field-value">${s.parent_phone}</span>
-          </div>` : ''}
-          <div class="id-field">
-            <span class="id-field-label">Session</span>
-            <span class="id-field-value">${session}</span>
-          </div>
+          ${fieldsHtml}
         </div>
       </div>
       <div class="id-footer">
         <span class="id-footer-text">${cfg.footer_text || 'Return to school if found'}</span>
-        <span class="id-validity">${cfg.validity_text || 'Valid: ' + session}</span>
+        <span class="id-validity">Valid Till ${validTill}</span>
       </div>
-    `;
-    grid.appendChild(div);
+      <div class="id-holo"></div>`;
 
-    // Render QR code asynchronously
+    wrap.appendChild(div);
+    grid.appendChild(wrap);
+
     requestAnimationFrame(() => {
       const canvas = document.getElementById(`qr-${s.id}`);
       if (canvas && typeof QRCode !== 'undefined') {
-        QRCode.toCanvas(canvas, qrData, {
-          width: 44, margin: 1,
-          color: { dark: bg, light: '#ffffff' }
-        }).catch(() => {});
+        QRCode.toCanvas(canvas, qrData, {width:40,margin:1,color:{dark:bg,light:'#ffffff'}}).catch(()=>{});
       }
     });
   }
+
+  const bar = document.getElementById('selectBar');
+  if (bar) bar.style.display = 'flex';
+  const cnt = document.getElementById('selectCount');
+  if (cnt) cnt.textContent = `${students.length} card${students.length !== 1 ? 's' : ''} generated`;
 }
+
 
 function toggleSelect(id, cb) {
   if (cb.checked) {
@@ -667,5 +756,7 @@ function lightenHex(hex, amount) {
 
 
 <script src="../../js/assistant.js"></script>
+
+<script src="/js/pwa-v2.1.js"></script>
 </body>
 </html>
