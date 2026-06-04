@@ -160,7 +160,7 @@
       <div class="tab-nav">
         <button class="tab-btn active" id="tabLogin" onclick="switchTab('login')">Sign In</button>
         <button class="tab-btn" id="tabReset" onclick="switchTab('reset')">Forgot Password</button>
-        <button class="tab-btn" id="tabReg" onclick="switchTab('register')">Register</button>
+        <button class="tab-btn" id="tabReg" onclick="window.location.href='register.html'">Register School</button>
       </div>
 
       <!-- LOGIN PANEL -->
@@ -191,9 +191,9 @@
         <div style="margin-top:10px;padding:14px 15px;border-radius:var(--radius-sm);background:linear-gradient(135deg,#052e16,#14532d);border:1px solid rgba(74,222,128,.2);display:flex;align-items:center;justify-content:space-between;gap:10px;">
           <div>
             <div style="font-size:13px;font-weight:800;color:#4ade80;margin-bottom:2px;">📝 New Student?</div>
-            <p style="font-size:11px;color:rgba(255,255,255,.55);line-height:1.5;margin:0;">Register with your school-issued scratch card PIN.</p>
+            <p style="font-size:11px;color:rgba(255,255,255,.55);line-height:1.5;margin:0;">Apply online using your school-issued scratch card PIN.</p>
           </div>
-          <button type="button" onclick="switchTab('register')" style="flex-shrink:0;padding:9px 15px;border-radius:8px;background:#16a34a;color:white;font-size:12px;font-weight:800;border:none;cursor:pointer;white-space:nowrap;transition:background .15s;" onmouseover="this.style.background='#15803d'" onmouseout="this.style.background='#16a34a'">Apply Now →</button>
+          <button type="button" onclick="window.location.href='student-application.html'" style="flex-shrink:0;padding:9px 15px;border-radius:8px;background:#16a34a;color:white;font-size:12px;font-weight:800;border:none;cursor:pointer;white-space:nowrap;transition:background .15s;" onmouseover="this.style.background='#15803d'" onmouseout="this.style.background='#16a34a'">Apply Now →</button>
         </div>
 
         <div class="result-link">
