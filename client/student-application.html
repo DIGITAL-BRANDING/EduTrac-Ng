@@ -24,33 +24,38 @@
     .review{display:grid;gap:12px}.review-box{border:1px solid #e2e8f0;border-radius:8px;overflow:hidden}.review-box h3{margin:0;padding:10px 12px;background:#f8fafc;font-size:12px;text-transform:uppercase;color:#475569;letter-spacing:.04em}.review-row{display:flex;justify-content:space-between;gap:14px;padding:8px 12px;font-size:13px;border-top:1px solid #edf2f7}.review-row b{color:#0f172a;text-align:right}
     .success{display:none;padding:44px 26px;text-align:center}.success.show{display:block}.success-mark{width:58px;height:58px;border-radius:50%;background:#dcfce7;color:#15803d;display:grid;place-items:center;margin:0 auto 16px;font-size:30px}.ref{display:inline-flex;margin-top:12px;padding:8px 12px;background:#f8fafc;border:1px dashed #94a3b8;border-radius:8px;font-family:Consolas,monospace;font-weight:800}
 
-    /* ── Status Tracker ─────────────────────────────────────── */
-    .tracker-wrap{margin-top:32px}
-    .tracker-toggle{display:flex;align-items:center;gap:10px;background:#073d28;color:white;border:0;border-radius:8px;padding:13px 18px;font:700 13px/1 Inter,system-ui,sans-serif;cursor:pointer;width:100%;justify-content:center;transition:background .18s}
-    .tracker-toggle:hover{background:#0a5235}
-    .tracker-box{display:none;margin-top:12px;background:white;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;box-shadow:0 8px 24px rgba(15,23,42,.07)}
-    .tracker-box.open{display:block}
-    .tracker-head{padding:18px 20px 14px;border-bottom:1px solid #f1f5f9}
-    .tracker-head h3{margin:0 0 4px;font-size:16px;color:#0f172a}
-    .tracker-head p{margin:0;font-size:12px;color:#64748b}
-    .tracker-form{display:flex;gap:8px;padding:16px 20px}
-    .tracker-form input{flex:1;border:1px solid #cbd5e1;border-radius:8px;padding:10px 12px;font:14px Inter,system-ui,sans-serif;color:#0f172a}
-    .tracker-form input:focus{outline:2px solid rgba(10,110,63,.18);border-color:#0a6e3f}
-    .tracker-form button{background:#0a6e3f;color:white;border:0;border-radius:8px;padding:10px 18px;font:700 13px Inter,system-ui,sans-serif;cursor:pointer;white-space:nowrap}
-    .tracker-form button:disabled{opacity:.55;cursor:not-allowed}
-    .tracker-result{padding:0 20px 20px}
-    /* status cards */
-    .st-card{border-radius:8px;padding:16px;display:none}.st-card.show{display:block}
+    /* ── Tracker banner ── */
+    .track-bar{background:#fff;border-bottom:1px solid #e2e8f0;box-shadow:0 2px 8px rgba(15,23,42,.06);margin-bottom:24px;border-radius:8px;overflow:hidden}
+    .track-bar-inner{display:flex;align-items:center;gap:12px;padding:14px 20px;cursor:pointer;user-select:none;transition:background .15s}
+    .track-bar-inner:hover{background:#f6fbf8}
+    .track-bar-icon{width:36px;height:36px;border-radius:8px;background:#f0fdf4;border:1px solid #bbf7d0;display:grid;place-items:center;flex-shrink:0}
+    .track-bar-text{flex:1}
+    .track-bar-text strong{display:block;font-size:13px;font-weight:800;color:#0f172a}
+    .track-bar-text span{font-size:12px;color:#64748b}
+    .track-bar-chevron{color:#94a3b8;transition:transform .2s;flex-shrink:0}
+    .track-bar-inner.open .track-bar-chevron{transform:rotate(180deg)}
+    .track-panel{display:none;border-top:1px solid #e2e8f0;padding:20px;background:#fafcff}
+    .track-panel.open{display:block}
+    .track-row{display:flex;gap:10px;margin-bottom:14px}
+    .track-row input{flex:1;border:1.5px solid #cbd5e1;border-radius:8px;padding:11px 13px;font:14px/1 Inter,system-ui,sans-serif;color:#0f172a;min-width:0;transition:border-color .15s}
+    .track-row input:focus{outline:none;border-color:#0a6e3f;box-shadow:0 0 0 3px rgba(10,110,63,.1)}
+    .track-row button{background:#0a6e3f;color:#fff;border:0;border-radius:8px;padding:11px 22px;font:700 14px Inter,system-ui,sans-serif;cursor:pointer;white-space:nowrap;transition:background .15s}
+    .track-row button:hover{background:#085c33}
+    .track-row button:disabled{opacity:.55;cursor:not-allowed}
+    /* status result */
+    .st-card{border-radius:8px;padding:16px;display:none;animation:fadeIn .2s ease}
+    .st-card.show{display:block}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
     .st-pending{background:#fffbeb;border:1px solid #fde68a}
-    .st-approved{background:#f0fdf4;border:1px solid #86efac}
+    .st-approved,.st-enrolled{background:#f0fdf4;border:1px solid #86efac}
     .st-rejected{background:#fef2f2;border:1px solid #fecaca}
-    .st-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+    .st-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
     .st-badge.pending{background:#fef3c7;color:#92400e}
-    .st-badge.approved{background:#dcfce7;color:#14532d}
+    .st-badge.approved,.st-badge.enrolled{background:#dcfce7;color:#14532d}
     .st-badge.rejected{background:#fee2e2;color:#991b1b}
-    .st-name{font-size:18px;font-weight:900;color:#0f172a;margin:0 0 4px}
+    .st-name{font-size:18px;font-weight:900;color:#0f172a;margin:0 0 3px}
     .st-school{font-size:13px;color:#64748b;margin:0 0 12px}
-    .st-meta{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;font-size:12px;color:#475569;margin-bottom:14px}
+    .st-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:6px 14px;font-size:12px;color:#475569;margin-bottom:14px}
     .st-meta span b{color:#0f172a;font-weight:700}
     .st-reason{background:#fee2e2;border-radius:6px;padding:10px 12px;font-size:13px;color:#7f1d1d;margin-bottom:12px}
     .dl-btns{display:flex;gap:8px;flex-wrap:wrap}
@@ -59,44 +64,48 @@
     .dl-btn.letter:hover{background:#085c33}
     .dl-btn.idcard{background:#1e3a5f;color:white;box-shadow:0 4px 12px rgba(30,58,95,.25)}
     .dl-btn.idcard:hover{background:#172d4a}
-    /* Print frames */
-    #printFrame{position:fixed;left:-9999px;top:0;width:0;height:0;border:0}
+    /* success mark */
+    .success-mark{position:relative;width:80px;height:80px;border-radius:16px;background:#f0fdf4;border:2px solid #dcfce7;overflow:visible;margin:0 auto 20px;display:grid;place-items:center}
+    .success-mark img{width:64px;height:64px;border-radius:12px;object-fit:cover}
+    .check-badge{position:absolute;bottom:-8px;right:-8px;width:26px;height:26px;background:#16a34a;border-radius:50%;border:2.5px solid white;display:grid;place-items:center}
     @media(max-width:820px){.intro{grid-template-columns:1fr}.intro-panel{min-height:auto}}@media(max-width:560px){.apply-shell{width:min(100% - 20px,1120px);padding-top:18px}.grid{grid-template-columns:1fr}.panel,.nav{padding-left:16px;padding-right:16px}.nav{flex-direction:column-reverse}.btn{width:100%}}
   </style>
 </head>
 <body>
   <main class="apply-shell">
-    <div class="apply-top"><div class="brand"><img src="icons/logo.jpg" alt="EduTrack NG"><span>EduTrack NG</span></div><a class="login-link" href="login.html">Portal Login</a></div>
-    <section class="intro">
-      <aside class="intro-panel"><div><p style="font-size:12px;font-weight:900;text-transform:uppercase;color:#f8d26a;letter-spacing:.08em">Student enrollment</p><h1>Apply to your school with a scratch card.</h1><p>Select your school, validate your application card, complete the enrollment form, and wait for registrar approval.</p></div><div class="steps"><div class="step-pill"><span>1</span> Choose school and enter scratch card</div><div class="step-pill"><span>2</span> Complete student and guardian details</div><div class="step-pill"><span>3</span> Registrar approves and enrolls class</div></div>
-      <div class="tracker-wrap">
-        <button class="tracker-toggle" onclick="toggleTracker()">
-          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          Track Admission Status
+    <div class="apply-top">
+      <div class="brand"><img src="icons/logo.jpg" alt="EduTrack NG"><span>EduTrack NG</span></div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <button onclick="toggleTracker()" style="display:inline-flex;align-items:center;gap:7px;background:#073d28;color:white;border:0;border-radius:8px;padding:9px 16px;font:700 13px Inter,system-ui,sans-serif;cursor:pointer;transition:background .15s" onmouseover="this.style.background='#0a5235'" onmouseout="this.style.background='#073d28'">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Track Status
         </button>
-        <div class="tracker-box" id="trackerBox">
-          <div class="tracker-head">
-            <h3>Check your application</h3>
-            <p>Enter the reference number you received after submitting.</p>
-          </div>
-          <div class="tracker-form">
-            <input id="trackRef" placeholder="e.g. STU-MPZYG0A6" oninput="this.value=this.value.toUpperCase()">
-            <button id="trackBtn" onclick="checkStatus()">Check</button>
-          </div>
-          <div class="tracker-result" id="trackerResult"></div>
-        </div>
+        <a class="login-link" href="login.html">Portal Login</a>
       </div>
-      <iframe id="printFrame"></iframe>
-      </aside>
+    </div>
+    <!-- ── Track Status dropdown ── -->
+    <div class="track-bar" id="trackBar" style="display:none">
+      <div class="track-panel open" id="trackPanel">
+        <p style="font-size:13px;font-weight:700;color:#0f172a;margin:0 0 12px">&#128269; Check Admission Status</p>
+        <p style="font-size:12px;color:#64748b;margin:0 0 14px">Enter the reference number you received after submitting your application.</p>
+        <div class="track-row">
+          <input id="trackRef" placeholder="e.g. STU-MPZYG0A6" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')checkStatus()">
+          <button id="trackBtn" onclick="checkStatus()">Check</button>
+        </div>
+        <div id="trackerResult"></div>
+      </div>
+    </div>
+    <section class="intro">
+      <aside class="intro-panel"><div><p style="font-size:12px;font-weight:900;text-transform:uppercase;color:#f8d26a;letter-spacing:.08em">Student enrollment</p><h1>Apply to your school with a scratch card.</h1><p>Select your school, validate your application card, complete the enrollment form, and wait for registrar approval.</p></div><div class="steps"><div class="step-pill"><span>1</span> Choose school and enter scratch card</div><div class="step-pill"><span>2</span> Complete student and guardian details</div><div class="step-pill"><span>3</span> Registrar approves and enrolls class</div></div></aside>
       <section class="form-card" id="formCard">
         <div class="progress"><span id="bar"></span></div>
         <div class="panel active" id="p1"><h2>School and scratch card</h2><p class="panel-sub">Your application will be sent to the selected school's admin office.</p><div class="grid"><div class="full field" data-field="schoolId"><label>School *</label><select id="schoolId"><option value="">Loading schools...</option></select><div class="err">Select your school</div></div><div class="field" data-field="scratchPin"><label>Scratch Card PIN *</label><input id="scratchPin" placeholder="Enter card PIN"><div class="hint">The card must belong to the selected school and must not be exhausted.</div><div class="err">Enter a valid card PIN</div></div><div class="field" data-field="intendedClass"><label>Class Applying For</label><select id="intendedClass"><option value="">Select after school loads</option></select><div class="hint">Registrar may change this during approval.</div></div></div></div>
         <div class="panel" id="p2"><h2>Student details</h2><p class="panel-sub">Enter the learner's bio data as it should appear in school records.</p><div class="grid"><div class="full field" data-field="fullName"><label>Full Name *</label><input id="fullName" placeholder="Surname First Name Other Name"><div class="err">Full name is required</div></div><div class="field" data-field="gender"><label>Gender *</label><select id="gender"><option value="">Select...</option><option value="M">Male</option><option value="F">Female</option></select><div class="err">Gender is required</div></div><div class="field" data-field="dob"><label>Date of Birth *</label><input id="dob" type="date"><div class="err">Date of birth is required</div></div><div class="field"><label>Previous School</label><input id="previousSchool" placeholder="Optional"></div><div class="field"><label>Religion</label><input id="religion" placeholder="Optional"></div><div class="full field" data-field="address"><label>Home Address *</label><input id="address" placeholder="Street, town, state"><div class="err">Home address is required</div></div></div></div>
         <div class="panel" id="p3"><h2>Parent and medical information</h2><p class="panel-sub">These details help the school contact guardians and support the student safely.</p><div class="grid"><div class="field" data-field="parentName"><label>Parent/Guardian Name *</label><input id="parentName" placeholder="Guardian full name"><div class="err">Guardian name is required</div></div><div class="field" data-field="parentPhone"><label>Parent/Guardian Phone *</label><input id="parentPhone" placeholder="08012345678"><div class="err">Guardian phone is required</div></div><div class="field"><label>Parent Email</label><input id="parentEmail" type="email" placeholder="parent@email.com"></div><div class="field"><label>Relationship</label><select id="relationship"><option>Father</option><option>Mother</option><option>Guardian</option><option>Other</option></select></div><div class="field"><label>Emergency Contact</label><input id="emergencyPhone" placeholder="Optional"></div><div class="field"><label>Blood Group</label><input id="bloodGroup" placeholder="Optional"></div><div class="full field"><label>Medical Notes</label><textarea id="medicalNotes" placeholder="Allergies, conditions, medication, or special needs"></textarea></div></div></div>
         <div class="panel" id="p4"><h2>Review and submit</h2><p class="panel-sub">After submission, the registrar will review this application and approve enrollment into a class.</p><div class="review" id="review"></div></div>
-        <div class="success" id="success"><div class="success-mark" id="successMark" style="position:relative;width:80px;height:80px;border-radius:16px;background:#f0fdf4;border:2px solid #dcfce7;overflow:visible;margin:0 auto 20px;display:grid;place-items:center;"><img id="successLogo" src="icons/logo.jpg" alt="" style="width:64px;height:64px;border-radius:12px;object-fit:cover;"><span style="position:absolute;bottom:-8px;right:-8px;width:26px;height:26px;background:#16a34a;border-radius:50%;border:2.5px solid white;display:grid;place-items:center;"><svg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'/></svg></span></div><h2>Application submitted</h2><p class="panel-sub">Your application is awaiting registrar approval. Keep your reference number for follow-up.</p><div class="ref" id="refBox">REF: ...</div>
-          <p style="font-size:12px;color:#64748b;margin:14px 0 8px;">Use this reference to track your admission status below.</p>
-          <button onclick="autoTrack()" style="background:#0a6e3f;color:white;border:0;border-radius:8px;padding:10px 20px;font:700 13px Inter,system-ui,sans-serif;cursor:pointer;margin-top:4px;">Track My Status</button>
+        <div class="success" id="success"><div class="success-mark"><img id="successLogo" src="icons/logo.jpg" alt=""><span class="check-badge"><svg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'/></svg></span></div><h2>Application submitted</h2><p class="panel-sub">Your application is awaiting registrar approval. Keep your reference number for follow-up.</p><div class="ref" id="refBox">REF: ...</div>
+          <p style="font-size:12px;color:#64748b;margin:14px 0 8px">Use this reference to track your admission status at any time.</p>
+          <button onclick="autoTrack()" style="background:#073d28;color:white;border:0;border-radius:8px;padding:11px 22px;font:700 13px Inter,system-ui,sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:8px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Track My Admission</button>
         </div>
         <div class="nav" id="nav"><button class="btn secondary" id="prevBtn" onclick="prevStep()">Back</button><button class="btn primary" id="nextBtn" onclick="nextStep()">Continue</button></div>
       </section>
@@ -122,283 +131,215 @@ function prevStep(){if(step>1){step--;updateStep()}}
 function updateStep(){for(let i=1;i<=total;i++)document.getElementById('p'+i).classList.toggle('active',i===step);document.getElementById('bar').style.width=`${(step/total)*100}%`;document.getElementById('prevBtn').style.visibility=step===1?'hidden':'visible';document.getElementById('nextBtn').textContent=step===total?'Submit Application':'Continue'}
 function buildReview(){const rows=[['School',selectedSchool()?.name||''],['Scratch Card',val('scratchPin')],['Class Applying For',selectedClass()?.name||'Registrar should assign'],['Student',val('fullName')],['Gender',val('gender')==='M'?'Male':val('gender')==='F'?'Female':''],['Date of Birth',val('dob')],['Address',val('address')],['Guardian',val('parentName')],['Phone',val('parentPhone')],['Email',val('parentEmail')||'-'],['Medical Notes',val('medicalNotes')||'-']];document.getElementById('review').innerHTML=`<div class="review-box"><h3>Application Summary</h3>${rows.map(([k,v])=>`<div class="review-row"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>`}
 async function validateScratchCard(){const{data,error}=await db.from('scratch_cards').select('id,pin,school_id,is_used,uses_count,max_uses,student_id').eq('school_id',val('schoolId')).eq('pin',val('scratchPin')).maybeSingle();if(error)throw error;if(!data)throw new Error('Scratch card was not found for the selected school.');const usedUp=data.is_used===true||Number(data.uses_count||0)>=Number(data.max_uses||1);if(usedUp)throw new Error('This scratch card has already been used.');return data}
-async function submitApplication(){if(!validateStep(step))return;const btn=document.getElementById('nextBtn');btn.disabled=true;btn.textContent='Submitting...';try{const card=await validateScratchCard();const ref='STU-'+Date.now().toString(36).toUpperCase();const payload={school_id:val('schoolId'),scratch_card_id:card.id,scratch_pin:val('scratchPin'),intended_class_id:val('intendedClass')||null,full_name:val('fullName'),gender:val('gender'),date_of_birth:val('dob')||null,previous_school:val('previousSchool')||null,religion:val('religion')||null,address:val('address'),parent_name:val('parentName'),parent_phone:val('parentPhone'),parent_email:val('parentEmail')||null,relationship:val('relationship')||null,emergency_phone:val('emergencyPhone')||null,blood_group:val('bloodGroup')||null,medical_notes:val('medicalNotes')||null,status:'pending',ref_id:ref,submitted_at:new Date().toISOString()};const{error}=await db.from('student_applications').insert(payload);if(error)throw error;await db.from('scratch_cards').update({is_used:true,used_at:new Date().toISOString(),uses_count:Number(card.uses_count||0)+1}).eq('id',card.id);document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.getElementById('nav').style.display='none';document.getElementById('bar').style.width='100%';document.getElementById('refBox').textContent='REF: '+ref;const _sch=selectedSchool();if(_sch?.logo_url){const _img=document.getElementById('successLogo');if(_img){_img.src=_sch.logo_url;_img.alt=_sch.name;}}lastRef=ref;lastAppData=null;document.getElementById('success').classList.add('show')}catch(e){alert(e.message||'Application submission failed.')}finally{btn.disabled=false;btn.textContent='Submit Application'}}
+async function submitApplication(){if(!validateStep(step))return;const btn=document.getElementById('nextBtn');btn.disabled=true;btn.textContent='Submitting...';try{const card=await validateScratchCard();const ref='STU-'+Date.now().toString(36).toUpperCase();const payload={school_id:val('schoolId'),scratch_card_id:card.id,scratch_card_pin:val('scratchPin'),intended_class_id:val('intendedClass')||null,full_name:val('fullName'),gender:val('gender'),date_of_birth:val('dob')||null,previous_school:val('previousSchool')||null,religion:val('religion')||null,address:val('address'),parent_name:val('parentName'),parent_phone:val('parentPhone'),parent_email:val('parentEmail')||null,relationship:val('relationship')||null,emergency_phone:val('emergencyPhone')||null,blood_group:val('bloodGroup')||null,medical_notes:val('medicalNotes')||null,status:'pending',ref_id:ref,submitted_at:new Date().toISOString()};const{error}=await db.from('student_applications').insert(payload);if(error)throw error;await db.from('scratch_cards').update({is_used:true,used_at:new Date().toISOString(),uses_count:Number(card.uses_count||0)+1}).eq('id',card.id);document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.getElementById('nav').style.display='none';document.getElementById('bar').style.width='100%';document.getElementById('refBox').textContent='REF: '+ref;const _sch=selectedSchool();if(_sch?.logo_url){const _i=document.getElementById('successLogo');if(_i){_i.src=_sch.logo_url;_i.alt=_sch.name;}}lastRef=ref;lastAppData=null;document.getElementById('success').classList.add('show')}catch(e){alert(e.message||'Application submission failed.')}finally{btn.disabled=false;btn.textContent='Submit Application'}}
 let lastRef='', lastAppData=null;
+
 function toggleTracker(){
-  const box=document.getElementById('trackerBox');
-  box.classList.toggle('open');
-  if(box.classList.contains('open')) document.getElementById('trackRef').focus();
+  const bar=document.getElementById('trackBar');
+  const isOpen=bar.style.display!=='none';
+  bar.style.display=isOpen?'none':'block';
+  if(!isOpen){
+    document.getElementById('trackRef').focus();
+    bar.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
 }
+
 function autoTrack(){
-  const box=document.getElementById('trackerBox');
-  box.classList.add('open');
+  const bar=document.getElementById('trackBar');
+  bar.style.display='block';
   document.getElementById('trackRef').value=lastRef;
-  box.scrollIntoView({behavior:'smooth',block:'nearest'});
+  bar.scrollIntoView({behavior:'smooth',block:'start'});
   setTimeout(checkStatus,300);
 }
+
 async function checkStatus(){
   const ref=(document.getElementById('trackRef').value||'').trim().toUpperCase();
-  if(!ref){document.getElementById('trackerResult').innerHTML='<p style="font-size:13px;color:#dc2626;padding:4px 0">Enter a reference number.</p>';return;}
+  if(!ref){document.getElementById('trackerResult').innerHTML='<p style="font-size:13px;color:#dc2626;padding:4px 0">Please enter a reference number.</p>';return;}
   const btn=document.getElementById('trackBtn');
   btn.disabled=true;btn.textContent='Checking…';
   document.getElementById('trackerResult').innerHTML='';
   try{
     const{data,error}=await db.from('student_applications')
-      .select('ref_id,full_name,status,submitted_at,reviewed_at,rejection_reason,gender,date_of_birth,address,parent_name,parent_phone,blood_group,admission_number,schools(name,address,logo_url),classes(name)')
+      .select('ref_id,full_name,status,submitted_at,reviewed_at,rejection_reason,gender,date_of_birth,address,parent_name,parent_phone,blood_group,admission_number,intended_class_id,school_id,schools(name,address,logo_url)')
       .eq('ref_id',ref).maybeSingle();
     if(error)throw error;
-    if(!data){document.getElementById('trackerResult').innerHTML='<p style="font-size:13px;color:#dc2626;padding:4px 0">No application found for that reference number.</p>';return;}
+    if(!data){document.getElementById('trackerResult').innerHTML='<p style="font-size:13px;color:#dc2626;padding:4px 0">No application found for that reference number. Check the ref and try again.</p>';return;}
+    // Resolve class name without ambiguous embed
+    let className='—';
+    if(data.intended_class_id){
+      const cached=classes.find(c=>c.id===data.intended_class_id);
+      if(cached){className=cached.name;}
+      else{
+        try{const{data:cls}=await db.from('classes').select('name').eq('id',data.intended_class_id).single();if(cls)className=cls.name;}catch(_){}
+      }
+    }
+    data._className=className;
     lastAppData=data;
     renderStatus(data);
   }catch(e){
     document.getElementById('trackerResult').innerHTML=`<p style="font-size:13px;color:#dc2626;padding:4px 0">${esc(e.message)}</p>`;
   }finally{btn.disabled=false;btn.textContent='Check';}
 }
+
 function renderStatus(d){
   const s=d.status||'pending';
-  const badge={pending:'⏳ Pending Review',approved:'✓ Approved',rejected:'✗ Rejected',enrolled:'✓ Enrolled'}[s]||s;
+  const labels={pending:'⏳ Pending Review',approved:'✓ Approved',rejected:'✗ Rejected',enrolled:'✓ Enrolled'};
+  const badgeCls=s==='enrolled'?'approved':s;
   const sub=d.submitted_at?new Date(d.submitted_at).toLocaleDateString('en-NG',{day:'2-digit',month:'short',year:'numeric'}):'—';
-  const rev=d.reviewed_at?new Date(d.reviewed_at).toLocaleDateString('en-NG',{day:'2-digit',month:'short',year:'numeric'}):'—';
+  const rev=d.reviewed_at?new Date(d.reviewed_at).toLocaleDateString('en-NG',{day:'2-digit',month:'short',year:'numeric'}):'Pending';
   const schoolName=d.schools?.name||'';
-  const className=d.classes?.name||'—';
-  const admNo=d.admission_number||'—';
-  let html=`<div class="st-card st-${s==='enrolled'?'approved':s} show">
-    <span class="st-badge ${s==='enrolled'?'approved':s}">${esc(badge)}</span>
+  let html=`<div class="st-card st-${s} show">
+    <span class="st-badge ${badgeCls}">${labels[s]||s}</span>
     <p class="st-name">${esc(d.full_name||'')}</p>
     <p class="st-school">${esc(schoolName)}</p>
     <div class="st-meta">
       <span>Ref: <b>${esc(d.ref_id)}</b></span>
       <span>Submitted: <b>${sub}</b></span>
-      <span>Class: <b>${esc(className)}</b></span>
+      <span>Class: <b>${esc(d._className)}</b></span>
       <span>Reviewed: <b>${rev}</b></span>
-      ${(s==='approved'||s==='enrolled')?`<span>Adm. No: <b>${esc(admNo)}</b></span>`:''}
+      ${(s==='approved'||s==='enrolled')?`<span>Adm. No: <b>${esc(d.admission_number||'—')}</b></span>`:''}
     </div>`;
-  if(s==='rejected'&&d.rejection_reason){
-    html+=`<div class="st-reason"><b>Reason:</b> ${esc(d.rejection_reason)}</div>`;
-  }
+  if(s==='rejected'&&d.rejection_reason)html+=`<div class="st-reason"><b>Reason:</b> ${esc(d.rejection_reason)}</div>`;
   if(s==='approved'||s==='enrolled'){
     html+=`<div class="dl-btns">
-      <button class="dl-btn letter" onclick="downloadLetter()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-        Download Admission Letter
-      </button>
-      <button class="dl-btn idcard" onclick="downloadIDCard()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="9" cy="11" r="2.5"/><path d="M14 9h4M14 13h3"/></svg>
-        Download ID Card
-      </button>
+      <button class="dl-btn letter" onclick="downloadLetter()"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Download Admission Letter</button>
+      <button class="dl-btn idcard" onclick="downloadIDCard()"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="9" cy="11" r="2.5"/><path d="M14 9h4M14 13h3"/></svg>Download ID Card</button>
     </div>`;
   }
   html+='</div>';
   document.getElementById('trackerResult').innerHTML=html;
 }
 
-/* ── Admission Letter ─────────────────────────────────────── */
+/* ── Admission Letter ── */
 function downloadLetter(){
-  const d=lastAppData; if(!d)return;
+  const d=lastAppData;if(!d)return;
   const school=d.schools||{};
   const logoSrc=school.logo_url||'icons/logo.jpg';
   const today=new Date().toLocaleDateString('en-NG',{day:'2-digit',month:'long',year:'numeric'});
   const dob=d.date_of_birth?new Date(d.date_of_birth).toLocaleDateString('en-NG',{day:'2-digit',month:'long',year:'numeric'}):'—';
-  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
-<title>Admission Letter — ${esc(d.full_name)}</title>
-<style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Times New Roman',Georgia,serif;background:white;color:#111;padding:0}
-  .page{width:210mm;min-height:297mm;margin:0 auto;padding:18mm 20mm 16mm;position:relative;border:2px solid #073d28}
-  .watermark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:.04;font-size:72px;font-weight:900;color:#073d28;transform:rotate(-30deg);font-family:sans-serif;letter-spacing:-2px}
-  .header{display:flex;align-items:center;gap:16px;border-bottom:3px double #073d28;padding-bottom:14px;margin-bottom:14px}
-  .logo{width:70px;height:70px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0}
-  .school-name{font-size:22px;font-weight:bold;color:#073d28;line-height:1.2}
-  .school-addr{font-size:11px;color:#475569;margin-top:3px}
-  .doc-title{text-align:center;margin:10px 0 18px}
-  .doc-title h1{font-size:17px;text-transform:uppercase;letter-spacing:2px;color:#073d28;border-bottom:1px solid #073d28;display:inline-block;padding-bottom:4px}
-  .ref-date{display:flex;justify-content:space-between;font-size:12px;margin-bottom:18px;color:#475569}
-  .salutation{font-size:14px;margin-bottom:14px;line-height:1.7}
-  .body-text{font-size:13.5px;line-height:1.85;margin-bottom:14px}
-  .details-box{border:1px solid #073d28;border-radius:4px;padding:14px;margin:16px 0;background:#f8fdf9}
-  .details-box table{width:100%;border-collapse:collapse;font-size:13px}
-  .details-box td{padding:5px 8px;vertical-align:top}
-  .details-box td:first-child{font-weight:bold;width:40%;color:#073d28}
-  .details-box tr+tr td{border-top:1px solid #e2e8f0}
-  .conditions{font-size:12px;color:#475569;margin:16px 0}
-  .conditions li{margin-bottom:4px;padding-left:4px}
-  .sign-section{margin-top:32px;display:flex;justify-content:space-between;align-items:flex-end}
-  .sign-box{text-align:center;font-size:12px}
-  .sign-line{width:140px;border-bottom:1px solid #111;margin:0 auto 4px}
-  .footer{margin-top:24px;padding-top:10px;border-top:2px solid #073d28;font-size:10px;color:#94a3b8;text-align:center}
-  @media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
-</style></head><body>
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Admission Letter</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Times New Roman',Georgia,serif;background:white;color:#111}
+.page{width:210mm;min-height:297mm;margin:0 auto;padding:18mm 20mm 16mm;position:relative;border:2px solid #073d28}
+.watermark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:.04;font-size:72px;font-weight:900;color:#073d28;transform:rotate(-30deg);font-family:sans-serif}
+.header{display:flex;align-items:center;gap:16px;border-bottom:3px double #073d28;padding-bottom:14px;margin-bottom:14px}
+.logo{width:70px;height:70px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0}
+.school-name{font-size:22px;font-weight:bold;color:#073d28;line-height:1.2}
+.school-addr{font-size:11px;color:#475569;margin-top:3px}
+.doc-title{text-align:center;margin:10px 0 18px}
+.doc-title h1{font-size:17px;text-transform:uppercase;letter-spacing:2px;color:#073d28;border-bottom:1px solid #073d28;display:inline-block;padding-bottom:4px}
+.ref-date{display:flex;justify-content:space-between;font-size:12px;margin-bottom:18px;color:#475569}
+.body-text{font-size:13.5px;line-height:1.85;margin-bottom:14px}
+.details-box{border:1px solid #073d28;border-radius:4px;padding:14px;margin:16px 0;background:#f8fdf9}
+.details-box table{width:100%;border-collapse:collapse;font-size:13px}
+.details-box td{padding:5px 8px;vertical-align:top}
+.details-box td:first-child{font-weight:bold;width:40%;color:#073d28}
+.details-box tr+tr td{border-top:1px solid #e2e8f0}
+.conditions{font-size:12px;color:#475569;margin:16px 0;padding-left:18px}.conditions li{margin-bottom:4px}
+.sign-section{margin-top:32px;display:flex;justify-content:space-between;align-items:flex-end}
+.sign-box{text-align:center;font-size:12px}.sign-line{width:140px;border-bottom:1px solid #111;margin:0 auto 4px}
+.footer{margin-top:24px;padding-top:10px;border-top:2px solid #073d28;font-size:10px;color:#94a3b8;text-align:center}
+@media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact}}</style></head><body>
 <div class="page">
-  <div class="watermark">ADMISSION</div>
-  <div class="header">
-    <img class="logo" src="${logoSrc}" alt="">
-    <div>
-      <div class="school-name">${esc(school.name||'')}</div>
-      <div class="school-addr">${esc(school.address||'')}</div>
-    </div>
-  </div>
-  <div class="doc-title"><h1>Letter of Admission</h1></div>
-  <div class="ref-date">
-    <span>Ref: <b>${esc(d.ref_id||'')}</b></span>
-    <span>Date: <b>${today}</b></span>
-  </div>
-  <p class="salutation">Dear <b>${esc(d.parent_name||'Parent/Guardian')}</b>,</p>
-  <p class="body-text">
-    We are pleased to inform you that the application submitted on behalf of your ward,
-    <b>${esc(d.full_name||'')}</b>, has been reviewed and <b>approved</b> for admission
-    into <b>${esc(school.name||'our school')}</b>. This letter serves as an official
-    confirmation of admission for the academic session.
-  </p>
-  <div class="details-box">
-    <table>
-      <tr><td>Student Name</td><td>${esc(d.full_name||'')}</td></tr>
-      <tr><td>Gender</td><td>${d.gender==='M'?'Male':d.gender==='F'?'Female':'—'}</td></tr>
-      <tr><td>Date of Birth</td><td>${dob}</td></tr>
-      <tr><td>Class Admitted</td><td>${esc(d.classes?.name||'To be assigned')}</td></tr>
-      <tr><td>Admission Number</td><td><b>${esc(d.admission_number||'—')}</b></td></tr>
-      <tr><td>Parent / Guardian</td><td>${esc(d.parent_name||'')}</td></tr>
-      <tr><td>Parent Phone</td><td>${esc(d.parent_phone||'')}</td></tr>
-      <tr><td>Home Address</td><td>${esc(d.address||'')}</td></tr>
-    </table>
-  </div>
-  <p class="body-text">
-    You are required to report to the school's administrative office with this letter,
-    along with the original copies of all relevant credentials, to complete the
-    registration process.
-  </p>
-  <ol class="conditions">
-    <li>This admission is conditional upon the submission of valid academic certificates.</li>
-    <li>Fees must be paid before the commencement of classes.</li>
-    <li>The school reserves the right to withdraw admission if any information provided is found to be false.</li>
-  </ol>
-  <div class="sign-section">
-    <div class="sign-box">
-      <div class="sign-line"></div>
-      <div>Registrar's Signature &amp; Stamp</div>
-      <div style="color:#475569;margin-top:2px;">${esc(school.name||'')}</div>
-    </div>
-    <div class="sign-box" style="text-align:right;">
-      <div style="font-size:11px;color:#64748b;">Official Use Only</div>
-      <div style="margin-top:10px;padding:6px 14px;border:1px solid #073d28;border-radius:4px;font-size:11px;color:#073d28;font-weight:bold;">ADMITTED</div>
-    </div>
-  </div>
-  <div class="footer">${esc(school.name||'')} &nbsp;·&nbsp; ${esc(school.address||'')} &nbsp;·&nbsp; Generated via EduTrack NG</div>
+<div class="watermark">ADMISSION</div>
+<div class="header"><img class="logo" src="${logoSrc}" alt=""><div><div class="school-name">${esc(school.name||'')}</div><div class="school-addr">${esc(school.address||'')}</div></div></div>
+<div class="doc-title"><h1>Letter of Admission</h1></div>
+<div class="ref-date"><span>Ref: <b>${esc(d.ref_id||'')}</b></span><span>Date: <b>${today}</b></span></div>
+<p class="body-text">Dear <b>${esc(d.parent_name||'Parent/Guardian')}</b>,</p>
+<p class="body-text">We are pleased to inform you that the application submitted on behalf of your ward, <b>${esc(d.full_name||'')}</b>, has been reviewed and <b>approved</b> for admission into <b>${esc(school.name||'our school')}</b>. This letter serves as official confirmation of admission for the academic session.</p>
+<div class="details-box"><table>
+<tr><td>Student Name</td><td>${esc(d.full_name||'')}</td></tr>
+<tr><td>Gender</td><td>${d.gender==='M'?'Male':d.gender==='F'?'Female':'—'}</td></tr>
+<tr><td>Date of Birth</td><td>${dob}</td></tr>
+<tr><td>Class Admitted</td><td>${esc(d._className||'To be assigned')}</td></tr>
+<tr><td>Admission Number</td><td><b>${esc(d.admission_number||'—')}</b></td></tr>
+<tr><td>Parent / Guardian</td><td>${esc(d.parent_name||'')}</td></tr>
+<tr><td>Parent Phone</td><td>${esc(d.parent_phone||'')}</td></tr>
+<tr><td>Home Address</td><td>${esc(d.address||'')}</td></tr>
+</table></div>
+<p class="body-text">You are required to report to the school's administrative office with this letter, along with original copies of all relevant credentials, to complete the registration process.</p>
+<ol class="conditions">
+<li>This admission is conditional upon the submission of valid academic certificates.</li>
+<li>Fees must be paid before the commencement of classes.</li>
+<li>The school reserves the right to withdraw admission if any information provided is found to be false.</li>
+</ol>
+<div class="sign-section">
+<div class="sign-box"><div class="sign-line"></div><div>Registrar's Signature &amp; Stamp</div><div style="color:#475569;margin-top:2px;">${esc(school.name||'')}</div></div>
+<div class="sign-box" style="text-align:right;"><div style="font-size:11px;color:#64748b;">Official Use Only</div><div style="margin-top:10px;padding:6px 14px;border:1px solid #073d28;border-radius:4px;font-size:11px;color:#073d28;font-weight:bold;">ADMITTED</div></div>
 </div>
-<script>window.onload=()=>{window.print();}<\/script>
-</body></html>`;
-  printDoc(html,'admission-letter-'+esc(d.ref_id||''));
+<div class="footer">${esc(school.name||'')} &nbsp;·&nbsp; ${esc(school.address||'')} &nbsp;·&nbsp; Generated via EduTrack NG</div>
+</div><script>window.onload=()=>{window.print();}<\/script></body></html>`;
+  printDoc(html);
 }
 
-/* ── ID Card ─────────────────────────────────────────────── */
+/* ── ID Card ── */
 function downloadIDCard(){
-  const d=lastAppData; if(!d)return;
+  const d=lastAppData;if(!d)return;
   const school=d.schools||{};
   const logoSrc=school.logo_url||'icons/logo.jpg';
   const gender=d.gender==='M'?'Male':d.gender==='F'?'Female':'—';
   const dob=d.date_of_birth?new Date(d.date_of_birth).toLocaleDateString('en-NG',{day:'2-digit',month:'short',year:'numeric'}):'—';
-  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
-<title>ID Card — ${esc(d.full_name)}</title>
-<style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{background:#e5e7eb;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:'Segoe UI',system-ui,sans-serif;padding:20px}
-  .cards-wrap{display:flex;gap:24px;flex-wrap:wrap;justify-content:center}
-  .card{width:85.6mm;height:54mm;border-radius:10px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.22);position:relative;flex-shrink:0}
-  /* Front */
-  .front{background:linear-gradient(135deg,#073d28 0%,#0a6e3f 60%,#16a34a 100%)}
-  .front-stripe{position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#f0a500,#fbbf24,#f0a500)}
-  .front-bg{position:absolute;right:-14px;bottom:-14px;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,.04)}
-  .front-content{position:relative;z-index:1;padding:10px 12px;height:100%;display:flex;flex-direction:column}
-  .front-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-  .f-logo{width:28px;height:28px;border-radius:5px;object-fit:cover;background:white;border:1.5px solid rgba(255,255,255,.3)}
-  .f-school{font-size:8.5px;font-weight:700;color:white;line-height:1.25;max-width:160px}
-  .f-school em{color:#fbbf24;font-style:normal;font-size:7px;text-transform:uppercase;letter-spacing:.08em;display:block}
-  .front-body{display:flex;gap:10px;flex:1;align-items:flex-start}
-  .photo-box{width:38px;height:48px;border-radius:5px;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
-  .photo-placeholder{font-size:22px;opacity:.6}
-  .front-info{flex:1}
-  .f-name{font-size:10px;font-weight:800;color:white;line-height:1.3;margin-bottom:3px}
-  .f-row{font-size:8px;color:rgba(255,255,255,.75);margin-bottom:2px;line-height:1.4}
-  .f-row b{color:white}
-  .f-adm{margin-top:6px;background:rgba(255,255,255,.12);border-radius:4px;padding:4px 7px;display:inline-block}
-  .f-adm-label{font-size:6.5px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.08em}
-  .f-adm-no{font-size:11px;font-weight:900;color:#fbbf24;letter-spacing:1px;font-family:monospace}
-  .f-type{position:absolute;bottom:8px;right:10px;font-size:7px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.12em}
-  /* Back */
-  .back{background:white}
-  .back-header{background:#073d28;padding:7px 12px;display:flex;align-items:center;gap:6px}
-  .back-header span{font-size:9px;font-weight:700;color:white}
-  .back-body{padding:8px 12px}
-  .back-row{display:flex;justify-content:space-between;font-size:8px;padding:3px 0;border-bottom:1px solid #f1f5f9;color:#374151}
-  .back-row b{color:#0f172a;font-weight:600}
-  .back-note{font-size:7.5px;color:#9ca3af;margin-top:8px;line-height:1.5;text-align:center}
-  .back-barcode{text-align:center;margin-top:8px;font-family:monospace;font-size:7px;color:#cbd5e1;letter-spacing:3px}
-  @media print{body{background:white;padding:0}.cards-wrap{gap:12mm}
-    .card{page-break-inside:avoid}
-    @page{size:A4;margin:15mm}}
-</style></head><body>
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ID Card</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#e5e7eb;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:'Segoe UI',system-ui,sans-serif;padding:20px}
+.cards-wrap{display:flex;gap:24px;flex-wrap:wrap;justify-content:center}
+.card{width:85.6mm;height:54mm;border-radius:10px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.22);position:relative;flex-shrink:0}
+.front{background:linear-gradient(135deg,#073d28 0%,#0a6e3f 60%,#16a34a 100%)}
+.front-stripe{position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#f0a500,#fbbf24,#f0a500)}
+.front-bg{position:absolute;right:-14px;bottom:-14px;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,.04)}
+.front-content{position:relative;z-index:1;padding:10px 12px;height:100%;display:flex;flex-direction:column}
+.front-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.f-logo{width:28px;height:28px;border-radius:5px;object-fit:cover;background:white;border:1.5px solid rgba(255,255,255,.3)}
+.f-school{font-size:8.5px;font-weight:700;color:white;line-height:1.25;max-width:160px}
+.f-school em{color:#fbbf24;font-style:normal;font-size:7px;text-transform:uppercase;letter-spacing:.08em;display:block}
+.front-body{display:flex;gap:10px;flex:1;align-items:flex-start}
+.photo-box{width:38px;height:48px;border-radius:5px;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:22px;opacity:.7}
+.front-info{flex:1}
+.f-name{font-size:10px;font-weight:800;color:white;line-height:1.3;margin-bottom:3px}
+.f-row{font-size:8px;color:rgba(255,255,255,.75);margin-bottom:2px;line-height:1.4}.f-row b{color:white}
+.f-adm{margin-top:6px;background:rgba(255,255,255,.12);border-radius:4px;padding:4px 7px;display:inline-block}
+.f-adm-label{font-size:6.5px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.08em}
+.f-adm-no{font-size:11px;font-weight:900;color:#fbbf24;letter-spacing:1px;font-family:monospace}
+.f-type{position:absolute;bottom:8px;right:10px;font-size:7px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.12em}
+.back{background:white}
+.back-header{background:#073d28;padding:7px 12px;display:flex;align-items:center;gap:6px}
+.back-header span{font-size:9px;font-weight:700;color:white}
+.back-body{padding:8px 12px}
+.back-row{display:flex;justify-content:space-between;font-size:8px;padding:3px 0;border-bottom:1px solid #f1f5f9;color:#374151}
+.back-row b{color:#0f172a;font-weight:600;text-align:right;max-width:55%}
+.back-note{font-size:7.5px;color:#9ca3af;margin-top:7px;line-height:1.5;text-align:center}
+.back-barcode{text-align:center;margin-top:6px;font-family:monospace;font-size:7px;color:#cbd5e1;letter-spacing:3px}
+@media print{body{background:white;padding:0}.cards-wrap{gap:12mm}.card{page-break-inside:avoid}@page{size:A4;margin:15mm}}</style></head><body>
 <div class="cards-wrap">
-  <!-- FRONT -->
-  <div class="card front">
-    <div class="front-stripe"></div>
-    <div class="front-bg"></div>
-    <div class="front-content">
-      <div class="front-top">
-        <img class="f-logo" src="${logoSrc}" alt="">
-        <div class="f-school"><em>Student ID Card</em>${esc(school.name||'')}</div>
-      </div>
-      <div class="front-body">
-        <div class="photo-box"><span class="photo-placeholder">👤</span></div>
-        <div class="front-info">
-          <div class="f-name">${esc(d.full_name||'')}</div>
-          <div class="f-row">Class: <b>${esc(d.classes?.name||'—')}</b></div>
-          <div class="f-row">Gender: <b>${gender}</b></div>
-          <div class="f-row">DOB: <b>${dob}</b></div>
-          <div class="f-adm">
-            <div class="f-adm-label">Admission No.</div>
-            <div class="f-adm-no">${esc(d.admission_number||'—')}</div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="f-type">Student</div>
-  </div>
-  <!-- BACK -->
-  <div class="card back">
-    <div class="back-header">
-      <img src="${logoSrc}" style="width:18px;height:18px;border-radius:3px;object-fit:cover;">
-      <span>${esc(school.name||'')}</span>
-    </div>
-    <div class="back-body">
-      <div class="back-row"><span>Parent/Guardian</span><b>${esc(d.parent_name||'—')}</b></div>
-      <div class="back-row"><span>Contact</span><b>${esc(d.parent_phone||'—')}</b></div>
-      <div class="back-row"><span>Blood Group</span><b>${esc(d.blood_group||'—')}</b></div>
-      <div class="back-row"><span>Address</span><b style="max-width:110px;text-align:right;">${esc((d.address||'').substring(0,60))}</b></div>
-      <div class="back-note">If found, please return this card to the school office.<br>${esc(school.address||'')}</div>
-      <div class="back-barcode">||| ${esc(d.ref_id||'')} |||</div>
-    </div>
-  </div>
-</div>
-<script>window.onload=()=>{window.print();}<\/script>
-</body></html>`;
-  printDoc(html,'id-card-'+esc(d.ref_id||''));
+<div class="card front">
+<div class="front-stripe"></div><div class="front-bg"></div>
+<div class="front-content">
+<div class="front-top"><img class="f-logo" src="${logoSrc}" alt=""><div class="f-school"><em>Student ID Card</em>${esc(school.name||'')}</div></div>
+<div class="front-body">
+<div class="photo-box">&#128100;</div>
+<div class="front-info">
+<div class="f-name">${esc(d.full_name||'')}</div>
+<div class="f-row">Class: <b>${esc(d._className||'—')}</b></div>
+<div class="f-row">Gender: <b>${gender}</b></div>
+<div class="f-row">DOB: <b>${dob}</b></div>
+<div class="f-adm"><div class="f-adm-label">Admission No.</div><div class="f-adm-no">${esc(d.admission_number||'—')}</div></div>
+</div></div></div>
+<div class="f-type">Student</div></div>
+<div class="card back">
+<div class="back-header"><img src="${logoSrc}" style="width:18px;height:18px;border-radius:3px;object-fit:cover;"><span>${esc(school.name||'')}</span></div>
+<div class="back-body">
+<div class="back-row"><span>Parent/Guardian</span><b>${esc(d.parent_name||'—')}</b></div>
+<div class="back-row"><span>Contact</span><b>${esc(d.parent_phone||'—')}</b></div>
+<div class="back-row"><span>Blood Group</span><b>${esc(d.blood_group||'—')}</b></div>
+<div class="back-row"><span>Address</span><b>${esc((d.address||'').substring(0,55))}</b></div>
+<div class="back-note">If found, please return this card to the school office.<br>${esc(school.address||'')}</div>
+<div class="back-barcode">||| ${esc(d.ref_id||'')} |||</div>
+</div></div></div>
+<script>window.onload=()=>{window.print();}<\/script></body></html>`;
+  printDoc(html);
 }
 
-function printDoc(html,filename){
-  const f=document.getElementById('printFrame');
-  f.style.cssText='position:fixed;left:0;top:0;width:100%;height:100%;border:0;z-index:9999';
-  f.onload=()=>{
-    try{
-      f.contentWindow.focus();
-      f.contentWindow.print();
-    }catch(e){
-      // fallback: open in new tab
-      const w=window.open('','_blank');
-      if(w){w.document.write(html);w.document.close();}
-    }
-    setTimeout(()=>{f.style.cssText='position:fixed;left:-9999px;top:0;width:0;height:0;border:0';f.src='about:blank';},3000);
-  };
-  const blob=new Blob([html],{type:'text/html'});
-  f.src=URL.createObjectURL(blob);
+function printDoc(html){
+  let w=window.open('','_blank');
+  if(w){w.document.write(html);w.document.close();}
 }
 
 function esc(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
