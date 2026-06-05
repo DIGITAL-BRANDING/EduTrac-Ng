@@ -161,13 +161,13 @@
       width: 48px; height: 60px;
       border-radius: 3px;
       border: 1.5px solid var(--card-bg, #0a6e3f);
-      object-fit: cover;
-      background: #f0f4f8;
+      background: #e8ecf0;
       display: flex; align-items: center; justify-content: center;
-      font-size: 22px;
       overflow: hidden;
+      position: relative;
     }
-    .id-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .id-photo svg { position: absolute; }
+    .id-photo img { width: 100%; height: 100%; object-fit: cover; display: block; position: relative; z-index: 1; }
 
     .id-qr {
       width: 40px; height: 40px;
@@ -426,7 +426,7 @@
 <script src="../../api/auth.js"></script>
 <script src="../../assets/js/sidebar.js"></script>
 <script>
-let user, term, classes = [], students = [], schoolInfo = null, idCardConfig = null;
+let user, term, classes = [], students = [], schoolInfo = null, idCardConfig = null, allTerms = [];
 let selectedIds = new Set();
 // currentStep: 1 = type selection, 2 = filters + generate
 let currentStep = 1;
@@ -443,16 +443,18 @@ let selectedCardType = null; // 'student' | 'staff'
   `;
 
   const ctx = await loadSchoolContext(user.school_id);
-  term = ctx.term;
+  term    = ctx.term;
   classes = ctx.classes;
 
-  // Load school info + ID card config
-  const [{ data: school }, { data: idc }] = await Promise.all([
+  // Load school info, ID card config, and ALL terms for session dropdown
+  const [{ data: school }, { data: idc }, { data: terms }] = await Promise.all([
     db.from('schools').select('*').eq('id', user.school_id).single(),
     db.from('id_card_config').select('*').eq('school_id', user.school_id).maybeSingle(),
+    db.from('terms').select('id,name,is_current').eq('school_id', user.school_id).order('created_at', { ascending: false }),
   ]);
   schoolInfo   = school;
   idCardConfig = idc;
+  allTerms     = terms || [];
 
   renderStep1();
 })();
@@ -569,8 +571,12 @@ function renderStep2() {
           ${selectedCardType === 'student' ? studentFilters : ''}
           <div class="form-group">
             <label class="form-label">Session</label>
-            <input class="form-control" id="sessionLabel" placeholder="e.g. 2024/2025"
-              value="${new Date().getFullYear()}/${new Date().getFullYear()+1}">
+            <select class="form-control" id="sessionLabel">
+              ${allTerms.length
+                ? allTerms.map(t => `<option value="${t.name}" ${t.is_current ? 'selected' : ''}>${t.name}${t.is_current ? ' ✓ Current' : ''}</option>`).join('')
+                : `<option value="${new Date().getFullYear()}/${new Date().getFullYear()+1}">${new Date().getFullYear()}/${new Date().getFullYear()+1}</option>`
+              }
+            </select>
           </div>
           <div style="display:flex;align-items:flex-end;gap:8px;flex-shrink:0">
             <button class="btn btn--primary" onclick="loadAndGenerate()">
@@ -735,8 +741,8 @@ async function renderCards(session) {
       : '🏫';
     const noPhoto     = `<div style="width:100%;height:100%;background:#e8ecf0;display:flex;align-items:center;justify-content:center;"><svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='#94a3b8' stroke-width='1.5'><path d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/><circle cx='12' cy='7' r='4'/></svg></div>`;
     const photoHtml   = photoUrl
-      ? `<img src="${photoUrl}" crossorigin="anonymous" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentElement.innerHTML='${noPhoto.replace(/'/g,"&#39;")}'">` 
-      : noPhoto;
+      ? `<img src="${photoUrl}" crossorigin="anonymous" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.style.display='none';this.parentElement.dataset.nophoto='1'">` 
+      : '';
     const contactNo   = s.parent_phone || school.phone || '—';
     const schoolAddr  = [school.address, school.lga, school.state].filter(Boolean).join(', ') || 'Nigeria';
     const schoolPhone = school.phone || school.email || '—';
@@ -789,7 +795,10 @@ async function renderCards(session) {
       <div class="id-accent-bar"></div>
       <div class="id-body">
         <div class="id-photo-col">
-          <div class="id-photo" id="photo-wrap-${s.id}">${photoHtml}</div>
+          <div class="id-photo" id="photo-wrap-${s.id}">
+            <svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='#94a3b8' stroke-width='1.5' style='position:absolute;'><path d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/><circle cx='12' cy='7' r='4'/></svg>
+            ${photoHtml}
+          </div>
           <canvas class="id-qr" id="qr-${s.id}" width="40" height="40"></canvas>
         </div>
         <div class="id-info-col">
