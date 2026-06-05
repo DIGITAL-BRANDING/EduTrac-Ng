@@ -245,8 +245,118 @@
       color: var(--card-bg, #0a6e3f);
     }
 
-    /* Faint watermark */
-    .id-watermark {
+    /* ── Card pair: front + back stacked per student ── */
+    .card-pair {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .card-pair-label {
+      font-size: 9px;
+      font-weight: 700;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      padding-left: 2px;
+    }
+
+    /* ── BACK card ── */
+    .id-card-back {
+      width: var(--card-w);
+      height: var(--card-h);
+      border-radius: 8px;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      box-shadow: 0 4px 20px rgba(0,0,0,.22);
+      display: flex;
+      flex-direction: column;
+      background: white;
+    }
+    .id-back-header {
+      background: var(--card-bg, #0a6e3f);
+      padding: 6px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .id-back-header::before {
+      content: '';
+      position: absolute;
+      top: -10px; right: -16px;
+      width: 70px; height: 90px;
+      background: var(--card-accent, #f0c040);
+      transform: rotate(-25deg);
+      z-index: 0;
+    }
+    .id-back-school {
+      font-size: 9px; font-weight: 900;
+      color: white; text-transform: uppercase;
+      z-index: 1; max-width: 200px;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      line-height: 1.2;
+    }
+    .id-back-logo {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: white;
+      border: 2px solid var(--card-accent, #f0c040);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; z-index: 1; font-size: 14px; flex-shrink: 0;
+    }
+    .id-back-logo img { width: 100%; height: 100%; object-fit: cover; }
+    .id-back-body {
+      flex: 1; background: white;
+      padding: 5px 7px;
+      font-size: 7px; color: #333; line-height: 1.5;
+      overflow: hidden;
+    }
+    .id-back-nok {
+      font-weight: 700; color: var(--card-bg, #0a6e3f);
+      font-size: 8px; margin-bottom: 4px;
+    }
+    .id-back-disclaimer {
+      font-size: 6.5px; color: #555; line-height: 1.45;
+      margin-bottom: 4px;
+    }
+    .id-back-return {
+      font-size: 6.5px; color: #333;
+      border-top: 1px solid #e5e7eb;
+      padding-top: 4px;
+    }
+    .id-back-return strong { color: var(--card-bg, #0a6e3f); }
+    .id-back-footer {
+      background: white;
+      border-top: 1px solid #e5e7eb;
+      padding: 3px 7px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .id-back-emergency { font-size: 6px; color: #555; }
+
+    @media print {
+      .card-pair {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        gap: 3mm !important;
+      }
+      .id-card-back {
+        width: 85.6mm !important;
+        height: 54mm !important;
+      }
+      .card-pair-label { display: none !important; }
+      .cards-grid {
+        gap: 8mm !important;
+      }
+    }
       position: absolute;
       inset: 0;
       pointer-events: none;
@@ -298,6 +408,11 @@
       outline: 3px solid var(--primary);
       outline-offset: 2px;
     }
+    .card-pair.selected .id-card,
+    .card-pair.selected .id-card-back {
+      outline: 3px solid var(--primary, #0a6e3f);
+      outline-offset: 2px;
+    }
   </style>
 </head>
 <body>
@@ -324,7 +439,7 @@ let selectedCardType = null; // 'student' | 'staff'
   document.getElementById('topbarActions').innerHTML = `
     <button class="btn btn--secondary btn--sm no-print" onclick="selectAll()">Select All</button>
     <button class="btn btn--secondary btn--sm no-print" onclick="clearSelection()">Clear</button>
-    <button class="btn btn--primary btn--sm no-print" id="printBtn" onclick="window.print()"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Print Selected</button>
+    <button class="btn btn--primary btn--sm no-print" id="printBtn" onclick="printSelected()"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Print Selected</button>
   `;
 
   const ctx = await loadSchoolContext(user.school_id);
@@ -470,7 +585,7 @@ function renderStep2() {
         <span id="selectCount">0 selected</span>
         <button class="btn btn--sm btn--secondary" onclick="selectAll()">Select All</button>
         <button class="btn btn--sm btn--secondary" onclick="clearSelection()">Deselect All</button>
-        <button class="btn btn--sm btn--primary" onclick="window.print()">
+        <button class="btn btn--sm btn--primary" onclick="printSelected()">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
           Print Selected
         </button>
@@ -592,40 +707,41 @@ async function loadAndGenerate() {
 async function renderCards(session) {
   const container = document.getElementById('cardsContainer');
   const cardType  = selectedCardType || 'student';
-  session = session || document.getElementById('sessionLabel')?.value || `${new Date().getFullYear()}/${new Date().getFullYear()+1}`;
+  session = session || document.getElementById('sessionLabel')?.value
+            || `${new Date().getFullYear()}/${new Date().getFullYear()+1}`;
   const cfg       = idCardConfig || {};
   const bg        = cfg.background_color || '#0a6e3f';
   const accent    = cfg.accent_color     || '#f0c040';
   const accentLight = lightenHex(accent, 40);
   const expYear   = new Date().getFullYear() + 1;
   const validTill = `31 Jul ${expYear}`;
+  const school    = schoolInfo || {};
 
   container.innerHTML = `<div class="cards-grid" id="cardsGrid"></div>`;
   const grid = document.getElementById('cardsGrid');
 
   for (const s of students) {
-    const wrap = document.createElement('div');
-    wrap.className = 'id-card-wrap';
-
-    const div = document.createElement('div');
-    div.className = 'id-card';
-    div.dataset.id = s.id;
-    div.style.setProperty('--card-bg', bg);
-    div.style.setProperty('--card-accent', accent);
-    div.style.setProperty('--card-accent-light', accentLight);
-
-    const className = s._className || (cardType === 'staff' ? formatRole(s.role) : '—');
-    const admNo     = s.admission_no || (cardType === 'staff' ? 'STF-' + s.id.slice(0,6).toUpperCase() : '—');
-    const qrData    = `EDUTRAC|${cardType.toUpperCase()}|${admNo}|${s.full_name}|${schoolInfo?.name || ''}`;
-
-    const dobLabel = s.date_of_birth
+    // ── Common values ───────────────────────────────────────
+    const className   = s._className || (cardType === 'staff' ? formatRole(s.role) : '—');
+    const admNo       = s.admission_no || (cardType === 'staff' ? 'STF-' + s.id.slice(0,6).toUpperCase() : '—');
+    const qrData      = `EDUTRAC|${cardType.toUpperCase()}|${admNo}|${s.full_name}|${school.name || ''}`;
+    const dobLabel    = s.date_of_birth
       ? new Date(s.date_of_birth).toLocaleDateString('en-GB', {day:'2-digit',month:'2-digit',year:'numeric'})
       : '—';
     const genderLabel = s.gender === 'M' ? 'Male' : s.gender === 'F' ? 'Female' : (s.gender || '—');
+    const photoUrl    = resolvePhotoUrl(s.photo_url);
+    const logoHtml    = school.logo_url
+      ? `<img src="${school.logo_url}" crossorigin="anonymous" onerror="this.parentElement.innerHTML='🏫'">`
+      : '🏫';
+    const noPhoto     = `<div style="width:100%;height:100%;background:#e8ecf0;display:flex;align-items:center;justify-content:center;"><svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='#94a3b8' stroke-width='1.5'><path d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/><circle cx='12' cy='7' r='4'/></svg></div>`;
+    const photoHtml   = photoUrl
+      ? `<img src="${photoUrl}" crossorigin="anonymous" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentElement.innerHTML='${noPhoto.replace(/'/g,"&#39;")}'">` 
+      : noPhoto;
+    const contactNo   = s.parent_phone || school.phone || '—';
+    const schoolAddr  = [school.address, school.lga, school.state].filter(Boolean).join(', ') || 'Nigeria';
+    const schoolPhone = school.phone || school.email || '—';
 
-    const photoUrl = resolvePhotoUrl(s.photo_url);
-    const noPhotoHtml = `<div style="width:100%;height:100%;background:#e8ecf0;display:flex;align-items:center;justify-content:center;"><svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='#94a3b8' stroke-width='1.5'><path d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/><circle cx='12' cy='7' r='4'/></svg></div>`;
-
+    // ── Fields for front ────────────────────────────────────
     const fieldsHtml = cardType === 'student' ? `
       <div class="id-fields-grid">
         <div class="id-field"><span class="id-field-label">Admission No</span><span class="id-field-value">${admNo}</span></div>
@@ -642,20 +758,38 @@ async function renderCards(session) {
         <div class="id-field"><span class="id-field-label">Session</span><span class="id-field-value">${session}</span></div>
       </div>`;
 
-    div.innerHTML = `
+    // ══════════════════════════════════════════
+    //  PAIR WRAPPER (front + back per student)
+    // ══════════════════════════════════════════
+    const pair = document.createElement('div');
+    pair.className = 'card-pair';
+    pair.style.setProperty('--card-bg', bg);
+    pair.style.setProperty('--card-accent', accent);
+    pair.style.setProperty('--card-accent-light', accentLight);
+
+    // ── FRONT ──────────────────────────────────
+    const front = document.createElement('div');
+    front.innerHTML = `<div class="card-pair-label">FRONT</div>`;
+
+    const frontCard = document.createElement('div');
+    frontCard.className = 'id-card';
+    frontCard.dataset.id = s.id;
+    frontCard.style.setProperty('--card-bg', bg);
+    frontCard.style.setProperty('--card-accent', accent);
+    frontCard.innerHTML = `
       <input type="checkbox" class="select-check no-print" onchange="toggleSelect('${s.id}', this)">
-      <div class="id-watermark">${(schoolInfo?.name || 'SCHOOL').split(' ')[0]}</div>
+      <div class="id-watermark">${(school.name || 'SCHOOL').split(' ')[0]}</div>
       <div class="id-header">
-        <div class="id-logo">${schoolInfo?.logo_url ? `<img src="${schoolInfo.logo_url}" alt="Logo" crossorigin="anonymous" onerror="this.parentElement.innerHTML='🏫'">` : '🏫'}</div>
+        <div class="id-logo">${logoHtml}</div>
         <div class="id-school-info">
-          <div class="id-school-name">${escapeHtml(schoolInfo?.name || 'School Name')}</div>
+          <div class="id-school-name">${escapeHtml(school.name || 'School Name')}</div>
           <div class="id-card-type">${cardType === 'staff' ? 'STAFF IDENTITY CARD' : 'STUDENT IDENTITY CARD'}</div>
         </div>
       </div>
       <div class="id-accent-bar"></div>
       <div class="id-body">
         <div class="id-photo-col">
-          <div class="id-photo" id="photo-wrap-${s.id}">${photoUrl ? `<img src="${photoUrl}" crossorigin="anonymous" onerror="this.parentElement.innerHTML='${noPhotoHtml.replace(/'/g,"&#39;")}'"  style="width:100%;height:100%;object-fit:cover;display:block;">` : noPhotoHtml}</div>
+          <div class="id-photo" id="photo-wrap-${s.id}">${photoHtml}</div>
           <canvas class="id-qr" id="qr-${s.id}" width="40" height="40"></canvas>
         </div>
         <div class="id-info-col">
@@ -669,14 +803,54 @@ async function renderCards(session) {
       </div>
       <div class="id-holo"></div>`;
 
-    wrap.appendChild(div);
-    grid.appendChild(wrap);
+    front.appendChild(frontCard);
 
+    // ── BACK ───────────────────────────────────
+    const back = document.createElement('div');
+    back.innerHTML = `<div class="card-pair-label">BACK</div>`;
+
+    const backCard = document.createElement('div');
+    backCard.className = 'id-card-back';
+    backCard.style.setProperty('--card-bg', bg);
+    backCard.style.setProperty('--card-accent', accent);
+    backCard.innerHTML = `
+      <div class="id-back-header">
+        <div class="id-back-school">${escapeHtml(school.name || 'School Name')}</div>
+        <div class="id-back-logo">${logoHtml}</div>
+      </div>
+      <div class="id-back-body">
+        <div class="id-back-nok">Emergency Contact: <strong>${contactNo}</strong></div>
+        <div class="id-back-disclaimer">
+          This identity card is an official document and is related only to the person described.
+          Impersonation, alteration, destruction or transfer of this card to another person
+          are offences and will be met with appropriate sanctions.
+        </div>
+        <div class="id-back-return">
+          If found, please return to:<br>
+          <strong>${escapeHtml(school.name || 'School Name')}</strong><br>
+          ${escapeHtml(schoolAddr)}
+        </div>
+      </div>
+      <div class="id-back-footer">
+        <span class="id-back-emergency">School Emergency No: <strong>${schoolPhone}</strong></span>
+        <canvas id="qr-back-${s.id}" width="36" height="36" style="border-radius:3px;"></canvas>
+      </div>
+      <div class="id-holo"></div>`;
+
+    back.appendChild(backCard);
+
+    pair.appendChild(front);
+    pair.appendChild(back);
+    grid.appendChild(pair);
+
+    // ── Render both QR codes ────────────────────
     requestAnimationFrame(() => {
-      const canvas = document.getElementById(`qr-${s.id}`);
-      if (canvas && typeof QRCode !== 'undefined') {
-        QRCode.toCanvas(canvas, qrData, {width:40,margin:1,color:{dark:bg,light:'#ffffff'}}).catch(()=>{});
-      }
+      if (typeof QRCode === 'undefined') return;
+      const q1 = document.getElementById(`qr-${s.id}`);
+      const q2 = document.getElementById(`qr-back-${s.id}`);
+      const opts = { margin: 1, color: { dark: bg, light: '#ffffff' } };
+      if (q1) QRCode.toCanvas(q1, qrData, { ...opts, width: 40 }).catch(() => {});
+      if (q2) QRCode.toCanvas(q2, qrData, { ...opts, width: 36 }).catch(() => {});
     });
   }
 
@@ -690,12 +864,83 @@ async function renderCards(session) {
 function toggleSelect(id, cb) {
   if (cb.checked) {
     selectedIds.add(id);
+    // Highlight the whole pair wrapper
+    document.querySelector(`.id-card[data-id="${id}"]`)?.closest('.card-pair')?.classList.add('selected');
     document.querySelector(`.id-card[data-id="${id}"]`)?.classList.add('selected');
   } else {
     selectedIds.delete(id);
+    document.querySelector(`.id-card[data-id="${id}"]`)?.closest('.card-pair')?.classList.remove('selected');
     document.querySelector(`.id-card[data-id="${id}"]`)?.classList.remove('selected');
   }
   updateSelectBar();
+}
+
+function printSelected() {
+  // Collect HTML of all selected card pairs (front + back)
+  const pairs = [];
+  if (selectedIds.size === 0) {
+    // Print all if nothing selected
+    document.querySelectorAll('.card-pair').forEach(p => pairs.push(p.outerHTML));
+  } else {
+    selectedIds.forEach(id => {
+      const card = document.querySelector(`.id-card[data-id="${id}"]`);
+      const pair = card?.closest('.card-pair');
+      if (pair) pairs.push(pair.outerHTML);
+    });
+  }
+  if (!pairs.length) { alert('No cards to print.'); return; }
+
+  // Collect all styles
+  const styles = [...document.querySelectorAll('style, link[rel="stylesheet"]')]
+    .map(el => el.outerHTML).join('');
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  ${styles}
+  <style>
+    body {
+      margin: 0;
+      padding: 6mm;
+      background: white;
+    }
+    .print-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6mm;
+      justify-content: flex-start;
+    }
+    .card-pair {
+      page-break-inside: avoid;
+      break-inside: avoid;
+      display: flex;
+      flex-direction: column;
+      gap: 3mm;
+    }
+    .card-pair-label { display: none !important; }
+    .select-check    { display: none !important; }
+    .id-card, .id-card-back {
+      width: 85.6mm !important;
+      height: 54mm !important;
+    }
+    @page { size: A4 portrait; margin: 5mm; }
+  </style>
+</head>
+<body>
+  <div class="print-grid">
+    ${pairs.join('\n')}
+  </div>
+</body>
+</html>`;
+
+  const blob = new Blob([html], { type: 'text/html' });
+  const url  = URL.createObjectURL(blob);
+  const w    = window.open(url, '_blank', 'width=900,height=700');
+  setTimeout(() => {
+    if (w) { w.focus(); w.print(); }
+    URL.revokeObjectURL(url);
+  }, 800);
 }
 
 function selectAll() {
