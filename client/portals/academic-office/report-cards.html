@@ -56,23 +56,26 @@ body{background:#d8dde8;font-family:'EB Garamond',Georgia,serif;padding:0 0 60px
 }
 .ssel-wrap{display:flex;align-items:center;gap:7px;flex:1;min-width:180px;}
 
+/* ── Institution theme selector ── */
+.inst-theme-bar{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.inst-theme-bar label{font-size:11px;color:#555;font-weight:600;white-space:nowrap;}
+.inst-theme-sel{padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;
+  font-family:'Segoe UI',sans-serif;color:#111;background:white;cursor:pointer;max-width:160px;}
+.inst-theme-sel:focus{outline:none;border-color:var(--primary);}
+.theme-auto-badge{display:inline-block;padding:1px 7px;background:#e8f0fe;color:#1a2e6e;
+  border-radius:10px;font-size:10px;font-weight:700;letter-spacing:.3px;white-space:nowrap;}
+
 /* ── Mobile control bar ── */
 @media(max-width:640px){
   .control-bar{padding:8px 10px;gap:7px;}
-  /* Student selector fills full width on its own row */
   .ssel-wrap{flex-basis:100%;min-width:0;order:0;}
   .ssel-wrap select{font-size:12px;}
-  /* Theme label hidden on mobile */
   .control-bar > h3{display:none;}
-  /* Swatches row: scrollable, full width */
   .color-presets{overflow-x:auto;flex-wrap:nowrap;flex-basis:100%;order:1;padding-bottom:2px;
     -webkit-overflow-scrolling:touch;scrollbar-width:none;}
   .color-presets::-webkit-scrollbar{display:none;}
-  /* Custom color picker inline with swatches */
-  .custom-cw{order:2;flex-shrink:0;}
-  /* Divider hidden on mobile */
+  .custom-cw,.inst-theme-bar{order:2;flex-shrink:0;}
   .dv{display:none;}
-  /* Action buttons: wrap, right-aligned, last row */
   .ctrl-actions{order:3;margin-left:0;width:100%;justify-content:flex-end;flex-wrap:wrap;gap:5px;}
   .ctrl-btn{padding:6px 10px;font-size:11px;}
   .btn-pr svg{display:none;}
@@ -417,6 +420,169 @@ table.gs tr td:first-child{background:var(--grade-row);}
   border-top:2px solid #b85c00;background:#fff8f2;gap:4px;}
 
 /* ══════════════════════════════════════════════
+   VOCATIONAL / TECHNICAL CARD — Industrial Bold
+   ══════════════════════════════════════════════ */
+.vc-card{font-family:'Poppins',sans-serif;}
+.vc-card .report-card{padding:0;box-shadow:0 4px 28px rgba(0,0,0,.18);}
+.vc-outer{border:3px solid #8b4500;padding:4px;background:white;}
+.vc-inner{border:1px solid #e0c8a8;background:white;overflow:hidden;}
+.vc-top-bar{height:9px;background:repeating-linear-gradient(90deg,#8b4500 0,#8b4500 12px,#f0a832 12px,#f0a832 24px,#1a3a6e 24px,#1a3a6e 36px,#f0a832 36px,#f0a832 48px);}
+
+.vc-header{display:grid;grid-template-columns:72px 1fr 76px;gap:10px;align-items:center;
+  padding:11px 14px 10px;border-bottom:2px solid #8b4500;
+  background:linear-gradient(135deg,#fdf8f0 0%,#faf2e4 100%);}
+.vc-logo{width:66px;height:66px;border-radius:4px;border:2px solid #8b4500;overflow:hidden;
+  background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(139,69,0,.2);}
+.vc-logo img{width:100%;height:100%;object-fit:cover;}
+.vc-hc{text-align:center;}
+.vc-school{font-family:'Cinzel',serif;font-size:clamp(11px,2.2vw,18px);font-weight:900;color:#5a2a00;letter-spacing:.3px;line-height:1.2;}
+.vc-meta{font-size:9.5px;color:#777;margin-top:2px;font-style:italic;}
+.vc-rule{height:2px;background:linear-gradient(90deg,transparent,#f0a832,#8b4500,#f0a832,transparent);margin:5px auto;width:70%;}
+.vc-badge{display:inline-block;padding:3px 14px;background:#8b4500;color:white;
+  font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;font-weight:600;text-transform:uppercase;border-radius:2px;}
+.vc-sess{font-size:10px;color:#7a4500;margin-top:4px;font-weight:600;}
+.vc-pp-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.vc-pp{width:66px;height:80px;border:2px solid #8b4500;background:#fdf8f0;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;border-radius:2px;}
+.vc-pp img{width:100%;height:100%;object-fit:cover;}
+.vc-pp-ph{text-align:center;font-size:8px;color:#bbb;font-family:sans-serif;line-height:1.4;padding:4px;}
+
+.vc-info{display:grid;grid-template-columns:1fr 1fr;border-bottom:2px solid #8b4500;font-size:11.5px;}
+.vc-info-row{display:flex;align-items:baseline;padding:4.5px 12px;border-bottom:1px solid #f0e0c8;gap:5px;}
+.vc-info-row:nth-child(odd){background:#fdf8f2;border-right:1px solid #f0dfc0;}
+.vc-info-row:nth-child(even){background:#fff;}
+.vc-info-row:nth-last-child(-n+2){border-bottom:none;}
+.vc-il{font-weight:700;color:#5a2a00;white-space:nowrap;min-width:114px;font-size:10.5px;}
+.vc-iv{border-bottom:1px dotted #c8a080;flex:1;min-height:14px;color:#111;padding-left:2px;font-style:italic;font-family:'EB Garamond',Georgia,serif;font-size:12px;}
+
+.vc-sec-hdr{background:linear-gradient(90deg,#8b4500,#b05a00);color:white;padding:4px 12px;
+  font-family:'Cinzel',serif;font-size:8.5px;letter-spacing:1.8px;text-transform:uppercase;
+  display:flex;align-items:center;gap:6px;}
+.vc-sec-hdr span{opacity:.8;}
+
+.vc-table{width:100%;border-collapse:collapse;font-size:11px;}
+.vc-table th,.vc-table td{border:1px solid #e8d0b0;padding:4px 5px;text-align:center;vertical-align:middle;}
+.vc-table th{background:linear-gradient(90deg,#8b4500,#a05000);color:white;
+  font-family:'Cinzel',serif;font-size:7.8px;letter-spacing:.4px;font-weight:600;}
+.vc-sn{text-align:left!important;font-weight:700;font-size:11px;color:#5a2a00;padding-left:10px!important;background:#fdf8f2!important;white-space:nowrap;}
+.vc-table tr:nth-child(even) td:not(.vc-sn){background:#fdf5ec;}
+.vc-grade{display:inline-block;padding:1px 8px;background:#fff3e0;border:1px solid #e8a060;
+  border-radius:3px;font-size:10px;font-weight:700;color:#5a2a00;}
+
+.vc-sum{display:grid;grid-template-columns:repeat(4,1fr);border-top:2px solid #8b4500;border-bottom:1px solid #e8d0b0;}
+.vc-sum-cell{text-align:center;padding:8px 4px;border-right:1px solid #e8d0b0;}
+.vc-sum-cell:last-child{border-right:none;}
+.vc-sum-lbl{font-family:'Cinzel',serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#888;margin-bottom:4px;}
+.vc-sum-val{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;line-height:1.1;}
+
+.vc-two-col{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #e8d0b0;}
+.vc-co-col{border-right:2px solid #8b4500;}
+.vc-col-hdr{background:linear-gradient(90deg,#8b4500,#a05800);color:white;text-align:center;
+  padding:4px 8px;font-family:'Cinzel',serif;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;}
+.vc-di-col .vc-col-hdr{background:linear-gradient(90deg,#1a3a6e,#2a5090);}
+.vc-col-sub{display:flex;justify-content:space-between;padding:3px 10px;
+  font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+.vc-co-col .vc-col-sub{background:rgba(139,69,0,.07);color:#5a2a00;}
+.vc-di-col .vc-col-sub{background:rgba(26,58,110,.07);color:#1a2e5a;}
+.vc-ar{display:flex;align-items:center;justify-content:space-between;padding:3.5px 10px;
+  border-bottom:1px solid rgba(0,0,0,.05);font-size:11px;}
+.vc-co-col .vc-ar{background:#fdf8f2;}
+.vc-di-col .vc-ar{background:#f4f7ff;}
+.vc-ar:nth-child(even){filter:brightness(.975);}
+.vc-grade-box{min-width:36px;height:18px;border:1px solid #e0c8a8;background:white;
+  display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#5a2a00;}
+
+.vc-remark{padding:5px 12px;font-size:11px;border-top:1px solid #f0e0c8;background:#fdf8f0;font-family:'EB Garamond',Georgia,serif;}
+.vc-remark-lbl{font-family:'Cinzel',serif;font-size:7.5px;text-transform:uppercase;letter-spacing:.8px;color:#8b4500;display:block;margin-bottom:2px;font-weight:700;}
+.vc-promo{padding:6px 14px;border-top:1px solid #f0e0c8;background:#fdf8f0;
+  font-family:'Playfair Display',serif;font-size:12.5px;font-weight:700;color:#5a2a00;}
+.vc-promo span{border-bottom:1.5px dotted #c87800;min-width:70px;display:inline-block;font-style:italic;}
+.vc-next{padding:4px 14px;font-size:11px;border-top:1px solid #f0e0c8;background:#fdf8f0;font-family:'EB Garamond',Georgia,serif;}
+.vc-sig{display:grid;grid-template-columns:repeat(4,1fr);padding:8px 14px 6px;
+  border-top:2px solid #8b4500;background:#fdf8f0;gap:4px;}
+
+/* ══════════════════════════════════════════════
+   TERTIARY CARD — Formal Academic Transcript
+   ══════════════════════════════════════════════ */
+.tc-card{font-family:'EB Garamond',Georgia,serif;}
+.tc-card .report-card{padding:0;box-shadow:0 4px 28px rgba(0,0,0,.18);}
+.tc-outer{border:3px solid #1a2e6e;padding:5px;background:white;}
+.tc-inner{border:1.5px solid #c0cae8;background:white;overflow:hidden;}
+
+.tc-crest-band{display:flex;align-items:stretch;border-bottom:2px solid #1a2e6e;}
+.tc-crest-left,.tc-crest-right{flex:1;background:linear-gradient(135deg,#1a2e6e 0%,#2a44a0 100%);}
+.tc-crest-left{background:linear-gradient(135deg,#1a2e6e,#2a3e8e);}
+.tc-crest-right{background:linear-gradient(135deg,#2a3e8e,#1a2e6e);}
+.tc-crest-center{flex-shrink:0;padding:10px 16px;background:white;border-left:2px solid #c8a832;border-right:2px solid #c8a832;}
+.tc-logo{width:64px;height:64px;border-radius:50%;border:3px double #1a2e6e;overflow:hidden;
+  background:#f8f9fe;display:flex;align-items:center;justify-content:center;}
+.tc-logo img{width:100%;height:100%;object-fit:cover;}
+
+.tc-school-block{text-align:center;padding:10px 14px 8px;border-bottom:1px solid #dde4f4;
+  background:linear-gradient(180deg,#f8f9fe 0%,#fff 100%);}
+.tc-school{font-family:'Cinzel',serif;font-size:clamp(12px,2.4vw,20px);font-weight:900;color:#1a2e6e;letter-spacing:.4px;line-height:1.2;}
+.tc-meta{font-size:9.5px;color:#666;margin-top:2px;font-style:italic;}
+.tc-rule{height:1.5px;background:linear-gradient(90deg,transparent,#c8a832,#1a2e6e,#c8a832,transparent);margin:6px auto;width:60%;}
+.tc-doc-title{font-family:'Cinzel',serif;font-size:11px;letter-spacing:3px;color:#1a2e6e;text-transform:uppercase;font-weight:700;}
+.tc-sess{font-size:10.5px;color:#555;margin-top:3px;}
+
+.tc-student-block{display:grid;grid-template-columns:82px 1fr;gap:12px;padding:10px 14px;border-bottom:2px solid #1a2e6e;align-items:start;}
+.tc-pp-wrap{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.tc-pp{width:72px;height:88px;border:2px solid #1a2e6e;background:#f8f9fe;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;}
+.tc-pp img{width:100%;height:100%;object-fit:cover;}
+.tc-pp-ph{text-align:center;font-size:8px;color:#bbb;font-family:sans-serif;line-height:1.4;padding:4px;}
+.tc-details{display:grid;grid-template-columns:1fr 1fr;gap:0;}
+.tc-detail-row{display:flex;align-items:baseline;padding:4px 8px;border-bottom:1px solid #edf0f8;gap:4px;}
+.tc-detail-row:nth-child(odd){background:#f8f9fe;border-right:1px solid #e8ecf8;}
+.tc-detail-row:nth-child(even){background:#fff;}
+.tc-dl{font-weight:700;color:#333;white-space:nowrap;min-width:105px;font-size:10.5px;font-family:'Poppins',sans-serif;}
+.tc-dv{border-bottom:1px dotted #a0aacf;flex:1;min-height:14px;color:#111;padding-left:2px;font-style:italic;}
+
+.tc-sec-hdr{background:#1a2e6e;color:white;padding:5px 14px;
+  font-family:'Cinzel',serif;font-size:8.5px;letter-spacing:2px;text-transform:uppercase;font-weight:600;border-bottom:2px solid #c8a832;}
+
+.tc-table{width:100%;border-collapse:collapse;font-size:11px;}
+.tc-table th,.tc-table td{border:1px solid #d0d8f0;padding:4px 5px;text-align:center;vertical-align:middle;}
+.tc-table th{background:#1a2e6e;color:white;font-family:'Cinzel',serif;font-size:8px;letter-spacing:.4px;font-weight:600;}
+.tc-sn{text-align:left!important;font-weight:700;font-size:11px;color:#1a2e6e;padding-left:12px!important;background:#f8f9fe!important;white-space:nowrap;}
+.tc-table tr:nth-child(even) td:not(.tc-sn){background:#f2f5fd;}
+.tc-grade{display:inline-block;padding:1px 8px;background:#eef2fe;border:1px solid #b0bcee;
+  border-radius:3px;font-size:10px;font-weight:700;color:#1a2e6e;}
+
+.tc-gpa-band{display:grid;grid-template-columns:1fr 1fr 1.3fr 1fr;border-top:2px solid #1a2e6e;border-bottom:1px solid #d0d8f0;}
+.tc-gpa-cell{text-align:center;padding:8px 4px;border-right:1px solid #d0d8f0;}
+.tc-gpa-cell:last-child{border-right:none;}
+.tc-gpa-highlight{background:linear-gradient(180deg,#eef2fe,#fff);}
+.tc-gpa-lbl{font-family:'Cinzel',serif;font-size:7px;letter-spacing:1.2px;text-transform:uppercase;color:#888;margin-bottom:3px;}
+.tc-gpa-val{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;line-height:1.1;color:#1a2e6e;}
+
+.tc-two-col{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #d0d8f0;}
+.tc-co-col{border-right:2px solid #1a2e6e;}
+.tc-col-hdr{background:#1a2e6e;color:white;text-align:center;padding:4px 8px;
+  font-family:'Cinzel',serif;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;}
+.tc-di-col .tc-col-hdr{background:#2a4488;}
+.tc-col-sub{display:flex;justify-content:space-between;padding:3px 10px;
+  font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+.tc-co-col .tc-col-sub{background:rgba(26,46,110,.07);color:#111e4a;}
+.tc-di-col .tc-col-sub{background:rgba(42,68,136,.07);color:#1a2e6e;}
+.tc-ar{display:flex;align-items:center;justify-content:space-between;padding:3.5px 10px;
+  border-bottom:1px solid rgba(0,0,0,.05);font-size:11px;}
+.tc-co-col .tc-ar{background:#f8f9fe;}
+.tc-di-col .tc-ar{background:#f5f7fe;}
+.tc-ar:nth-child(even){filter:brightness(.975);}
+.tc-grade-box{min-width:36px;height:18px;border:1px solid #b0bcee;background:white;
+  display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#1a2e6e;}
+
+.tc-remark{padding:5px 12px;font-size:11.5px;border-top:1px solid #dde4f4;background:#f8f9fe;}
+.tc-remark-lbl{font-family:'Cinzel',serif;font-size:7.5px;text-transform:uppercase;letter-spacing:.8px;color:#1a2e6e;display:block;margin-bottom:2px;font-weight:700;}
+.tc-promo{padding:6px 14px;border-top:1px solid #dde4f4;background:#f8f9fe;
+  font-family:'Playfair Display',serif;font-size:12.5px;font-weight:700;color:#1a2e6e;}
+.tc-promo span{border-bottom:1.5px dotted #c8a832;min-width:70px;display:inline-block;font-style:italic;}
+.tc-next{padding:4px 14px;font-size:11px;border-top:1px solid #dde4f4;background:#f8f9fe;}
+.tc-sig{display:grid;grid-template-columns:repeat(4,1fr);padding:8px 14px 6px;
+  border-top:2px solid #1a2e6e;background:#f8f9fe;gap:4px;}
+.tc-foot-rule{height:6px;background:linear-gradient(90deg,#1a2e6e,#c8a832,#1a2e6e);}
+
+/* ══════════════════════════════════════════════
    CERTIFICATE / TESTIMONIAL STYLES
    ══════════════════════════════════════════════ */
 .cert-wrap{max-width:820px;margin:14px auto;}
@@ -526,7 +692,20 @@ table.gs tr td:first-child{background:var(--grade-row);}
   </div>
   <div class="dv" id="dvSel" style="display:none"></div>
 
-  <h3 style="font-size:12px;font-weight:700;color:#333;white-space:nowrap">🎨 Theme:</h3>
+  <div class="inst-theme-bar" id="instThemeBar">
+    <label>🏫 Layout:</label>
+    <select class="inst-theme-sel" id="instThemeSel" onchange="onInstThemeChange(this.value)">
+      <option value="auto">⚡ Auto-detect</option>
+      <option value="secondary">🏛️ Secondary / High School</option>
+      <option value="primary">📗 Primary / Elementary</option>
+      <option value="nursery">🎨 Nursery / Kindergarten</option>
+      <option value="vocational">🔧 Vocational / Technical</option>
+      <option value="tertiary">🎓 Tertiary / Institution</option>
+    </select>
+    <span class="theme-auto-badge" id="detectedBadge" style="display:none"></span>
+  </div>
+  <div class="dv"></div>
+  <h3 style="font-size:12px;font-weight:700;color:#333;white-space:nowrap">🎨 Colour:</h3>
   <div class="color-presets">
     <div class="preset-swatch active" title="Royal Blue" style="background:#1a2e6e" onclick="applyPreset(this,'#1a2e6e','#111e4a','#2a44a0','#c8860a','#f0c040','#fff8e6','#c8860a','#e6f3fb','#1a6eaa','#e8f0fc')"></div>
     <div class="preset-swatch" title="Forest Green" style="background:#1a5c2e" onclick="applyPreset(this,'#1a5c2e','#103a1c','#267a3c','#8a6a00','#e0b830','#fffde7','#a07020','#d4edda','#1a5c2e','#e8f5e9')"></div>
@@ -669,7 +848,6 @@ let _classSubjects=null;
 let _allTerms=[];
 let _currentStudent=null; // track for certificate/testimonial
 
-/* ═══ SECTION TYPE DETECTION ═══ */
 /* ═══ OPEN CERTIFICATE / TESTIMONIAL PAGES ═══ */
 function openCertPage(){
   if(!_currentStudent){alert('Please load a student report card first.');return;}
@@ -682,11 +860,127 @@ function openTestPage(){
   window.open(`/report-card/testimonial.html?student_id=${encodeURIComponent(student.id)}&term_id=${encodeURIComponent(_tid)}`,'_blank');
 }
 
-function getSectionType(classRow){
-  const s=(classRow?.level||classRow?.section||classRow?.name||'').toLowerCase();
-  if(/nursery|crèche|creche|toddler|kinder|reception|pre[\s-]?school|early|playgroup|kg|k\.g|kindergarten/.test(s)) return 'nursery';
-  if(/primary|junior|basic|elementary|standard|pry|jss|jnr|lower/.test(s)) return 'primary';
+/* ═══ INSTITUTION THEME ENGINE ═══
+ * Theme is resolved in this priority order:
+ *  1. Manual override via the Layout dropdown (stored in _cardThemeOverride)
+ *  2. school.school_type from the database
+ *  3. Class name / level / section keyword pattern matching (fallback)
+ *
+ * Themes: nursery | primary | secondary | vocational | tertiary
+ * Each maps to a distinct card builder and visual style.
+ */
+let _cardThemeOverride = null;   // null = auto; string = manual pick
+
+/* Map school_type DB values → internal theme keys */
+const SCHOOL_TYPE_MAP = {
+  // Nursery / Early childhood
+  'nursery':        'nursery',
+  'nursery_school': 'nursery',
+  'creche':         'nursery',
+  'crèche':         'nursery',
+  'kindergarten':   'nursery',
+  'pre_school':     'nursery',
+  'preschool':      'nursery',
+  'early_childhood':'nursery',
+  // Primary
+  'primary':        'primary',
+  'primary_school': 'primary',
+  'elementary':     'primary',
+  'basic':          'primary',
+  // Secondary / High school
+  'secondary':      'secondary',
+  'high_school':    'secondary',
+  'senior_secondary':'secondary',
+  'junior_secondary':'primary',
+  'jss':            'primary',
+  'sss':            'secondary',
+  // Vocational / Technical
+  'vocational':     'vocational',
+  'technical':      'vocational',
+  'polytechnic':    'vocational',
+  'trade':          'vocational',
+  'vocational_training':'vocational',
+  'training_center':'vocational',
+  'training_centre':'vocational',
+  // Tertiary / Higher institution
+  'tertiary':       'tertiary',
+  'university':     'tertiary',
+  'college':        'tertiary',
+  'institute':      'tertiary',
+  'institution':    'tertiary',
+  'higher_institution':'tertiary',
+};
+
+/* Human-readable theme labels */
+const THEME_LABELS = {
+  nursery:    '🎨 Nursery / Kindergarten',
+  primary:    '📗 Primary / Elementary',
+  secondary:  '🏛️ Secondary / High School',
+  vocational: '🔧 Vocational / Technical',
+  tertiary:   '🎓 Tertiary / Institution',
+};
+
+/**
+ * Detect theme from school_type first, then fall back to class-name keywords.
+ * Returns one of: nursery | primary | secondary | vocational | tertiary
+ */
+function detectTheme(schoolTypeRaw, classRow) {
+  // 1. school_type from DB
+  if (schoolTypeRaw) {
+    const key = schoolTypeRaw.toString().toLowerCase().replace(/[\s-]/g, '_');
+    if (SCHOOL_TYPE_MAP[key]) return SCHOOL_TYPE_MAP[key];
+  }
+  // 2. Class name / level / section keyword fallback
+  const s = (classRow?.level || classRow?.section || classRow?.name || '').toLowerCase();
+  if (/nursery|crèche|creche|toddler|kinder|reception|pre[\s-]?school|early\s*child|playgroup|kg|k\.g|kindergarten/.test(s))
+    return 'nursery';
+  if (/vocational|technical|trade|craft|artisan|nce|ond|hnd|diploma|certificate\s*prog/.test(s))
+    return 'vocational';
+  if (/university|tertiary|degree|bsc|hnd|college|institution|faculty|department|level\s*[1-9]00/.test(s))
+    return 'tertiary';
+  if (/primary|pry|basic|elementary|standard\s*[1-9]|class\s*[1-6]$|year\s*[1-6]$/.test(s))
+    return 'primary';
+  if (/jss|junior|lower\s*sec/.test(s))
+    return 'primary';
+  // Default for anything else (sss, ss1-3, senior, form, etc.)
   return 'secondary';
+}
+
+/**
+ * Get the resolved theme, respecting manual overrides.
+ */
+function getCardTheme(classRow) {
+  if (_cardThemeOverride && _cardThemeOverride !== 'auto') return _cardThemeOverride;
+  return detectTheme(_school?.school_type || _school?.type || null, classRow);
+}
+
+/**
+ * Called when admin changes the Layout dropdown manually.
+ */
+function onInstThemeChange(val) {
+  _cardThemeOverride = val === 'auto' ? null : val;
+  updateDetectedBadge(_classRow);
+  if (_students.length) _loadCard(_students[_ci]);
+}
+
+/**
+ * Update the "Auto-detected: X" badge in the control bar.
+ */
+function updateDetectedBadge(classRow) {
+  const badge = document.getElementById('detectedBadge');
+  const sel   = document.getElementById('instThemeSel');
+  if (!badge) return;
+  if (!_cardThemeOverride || _cardThemeOverride === 'auto') {
+    const detected = detectTheme(_school?.school_type || _school?.type || null, classRow);
+    badge.textContent = 'Auto: ' + (THEME_LABELS[detected] || detected);
+    badge.style.display = 'inline-block';
+    if (sel) sel.value = 'auto';
+  } else {
+    badge.textContent = THEME_LABELS[_cardThemeOverride] || _cardThemeOverride;
+    badge.style.display = 'inline-block';
+    badge.style.background = '#fef3c7';
+    badge.style.color = '#92400e';
+  }
 }
 
 /* ═══ SHARED DATA PREP ═══ */
@@ -915,6 +1209,230 @@ ${affective?.next_term_begins?`<div style="padding:4px 14px;font-size:11px;borde
 }
 
 
+/* ═══ VOCATIONAL CARD BUILDER ═══ */
+function buildVocationalCard(student, results, attData, affective) {
+  const d = prepCardData(student, results, attData, affective);
+  const {classLabel, subRows, avg, raw, og, att, meta, sessLabel, logoH, pp, sid} = d;
+  const eHdrs = d.examList.map(e =>
+    `<th>${e.name}<br><span style="font-weight:400;font-size:7.5px">/${e.max_score}</span></th>`
+  ).join('');
+  const sRows = subRows.map(sub => {
+    const cells = d.examList.map(e => {
+      const r = sub.rows.find(r => r.exam_id === e.id);
+      return `<td>${r !== undefined ? r.score : '—'}</td>`;
+    }).join('');
+    return `<tr><td class="vc-sn">${sub.name}</td>${cells}
+      <td><strong style="color:#c25000">${sub.total ?? '—'}</strong></td>
+      <td><span class="vc-grade">${sub.grade}</span></td>
+      <td style="font-size:10px;color:#555;text-align:left">${sub.remark || '—'}</td></tr>`;
+  }).join('') || `<tr><td colspan="99" style="text-align:center;padding:16px;color:#999;font-size:12px">No results recorded for this term.</td></tr>`;
+  const coF = [['work_education','Practical Work'],['art_education','Technical Drawing'],
+    ['physical_education','Workshop Safety'],['social_skills','Team Collaboration'],['sports','Industry Practice']];
+  const diF = [['punctuality','Punctuality & Attendance'],['sincerity','Work Ethics'],
+    ['conduct','Conduct & Discipline'],['respect','Respect for Tools & Rules'],
+    ['attitude_teachers','Relationship with Instructors'],['attitude_society','Industry Readiness']];
+  const prActRows = (fields, data) => fields.map(([k,l]) =>
+    `<div class="vc-ar"><span>${l}</span><span class="vc-grade-box">${data?.[k] || ''}</span></div>`
+  ).join('');
+  const scH = (_scale||[]).length
+    ? `<thead><tr><th>Grade</th>${(_scale||[]).map(g=>`<th>${g.grade}</th>`).join('')}</tr></thead>
+       <tbody><tr><td>Marks</td>${(_scale||[]).map(g=>`<td>${g.min_score}–${g.max_score}</td>`).join('')}</tr>
+       <tr><td>Remark</td>${(_scale||[]).map(g=>`<td style="font-size:8px">${g.remark||'—'}</td>`).join('')}</tr></tbody>`
+    : `<thead><tr><th>91–100</th><th>81–90</th><th>71–80</th><th>61–70</th><th>50–60</th><th>40–49</th></tr></thead>
+       <tbody><tr><td>Distinction</td><td>Merit</td><td>Credit</td><td>Pass</td><td>Marginal</td><td>Fail</td></tr></tbody>`;
+  return `
+<div class="card-wrap vc-card">
+<div class="report-card"><div class="vc-outer"><div class="vc-inner">
+<div class="vc-top-bar"></div>
+<div class="vc-header">
+  <div class="vc-logo">${logoH}</div>
+  <div class="vc-hc">
+    <div class="vc-school">${_school?.name || 'Institution Name'}</div>
+    <div class="vc-meta">${meta}</div>
+    <div class="vc-rule"></div>
+    <div class="vc-badge">STUDENT PERFORMANCE RECORD</div>
+    <div class="vc-sess">${sessLabel} &nbsp;|&nbsp; Term: ${_term?.name || '—'}</div>
+  </div>
+  <div class="vc-pp-wrap">
+    <div class="vc-pp" onclick="document.getElementById('ppInput_${sid}').click()">
+      <img id="ppImg_${sid}" src="${pp}" style="${pp ? '' : 'display:none'}" alt="Photo">
+      <div class="vc-pp-ph" id="ppPh_${sid}" ${pp ? 'style="display:none"' : ''}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg><span style="font-size:8px">Photo</span></div>
+    </div>
+    <input type="file" id="ppInput_${sid}" accept="image/*" onchange="loadPP(event,'${sid}')" style="display:none">
+    <div style="font-size:8px;color:#aaa;margin-top:3px;text-align:center">Passport</div>
+  </div>
+</div>
+<div class="vc-info">
+  <div class="vc-info-row"><span class="vc-il">Student Name</span><span class="vc-iv">${student.full_name || '—'}</span></div>
+  <div class="vc-info-row"><span class="vc-il">Admission No.</span><span class="vc-iv">${student.admission_no || student.roll_no || '—'}</span></div>
+  <div class="vc-info-row"><span class="vc-il">Programme / Class</span><span class="vc-iv">${classLabel}</span></div>
+  <div class="vc-info-row"><span class="vc-il">Date of Birth</span><span class="vc-iv">${fmtDate(student.dob || student.date_of_birth)}</span></div>
+  <div class="vc-info-row"><span class="vc-il">Guardian / Sponsor</span><span class="vc-iv">${student.guardian_name || student.father_name || '—'}</span></div>
+  <div class="vc-info-row"><span class="vc-il">Academic Session</span><span class="vc-iv">${(_term?.academic_years?.label || _term?.name) || '—'}</span></div>
+</div>
+<div class="vc-sec-hdr"><span>▶</span> Academic &amp; Technical Performance</div>
+<div style="overflow-x:auto"><table class="vc-table">
+  <thead><tr>
+    <th rowspan="2" style="text-align:left;padding-left:10px;min-width:120px">Subject / Unit</th>
+    ${eHdrs}
+    <th rowspan="2">Total</th><th rowspan="2">Grade</th><th rowspan="2" style="min-width:60px">Remark</th>
+  </tr><tr></tr></thead>
+  <tbody>${sRows}</tbody>
+</table></div>
+<div class="vc-sum">
+  <div class="vc-sum-cell"><div class="vc-sum-lbl">TOTAL MARKS</div><div class="vc-sum-val" style="color:#c25000">${raw ?? '—'}</div></div>
+  <div class="vc-sum-cell"><div class="vc-sum-lbl">AVERAGE</div><div class="vc-sum-val" style="color:#b87800">${avg !== null ? avg + '%' : '—'}</div></div>
+  <div class="vc-sum-cell"><div class="vc-sum-lbl">GRADE</div><div class="vc-sum-val" style="color:#1a5c9e">${og.grade}</div></div>
+  <div class="vc-sum-cell"><div class="vc-sum-lbl">ATTENDANCE</div><div class="vc-sum-val" style="color:#166534">${att !== null ? att + '%' : '—'}</div></div>
+</div>
+<div class="vc-two-col">
+  <div class="vc-co-col">
+    <div class="vc-col-hdr">Practical &amp; Skill Assessment</div>
+    <div class="vc-col-sub"><span>Area</span><span>Rating</span></div>
+    ${prActRows(coF, affective)}
+  </div>
+  <div class="vc-di-col">
+    <div class="vc-col-hdr">Work Ethics &amp; Conduct</div>
+    <div class="vc-col-sub"><span>Area</span><span>Rating</span></div>
+    ${prActRows(diF, affective)}
+  </div>
+</div>
+${affective?.class_teacher_remark ? `<div class="vc-remark"><span class="vc-remark-lbl">Instructor's Remark</span>${affective.class_teacher_remark}</div>` : ''}
+${affective?.vp_academic_remark ? `<div class="vc-remark" style="background:#f0f7ff"><span class="vc-remark-lbl" style="color:#1a5c9e">HOD / VP Remark</span>${affective.vp_academic_remark}</div>` : ''}
+${affective?.principal_remark ? `<div class="vc-remark" style="background:#f5f5f0"><span class="vc-remark-lbl" style="color:#3d3a00">Principal / Director Remark</span>${affective.principal_remark}</div>` : ''}
+<div class="vc-promo">Promoted / Progressed to: <span>${affective?.promoted_to || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</span></div>
+${affective?.next_term_begins ? `<div class="vc-next"><strong>Next Term / Semester Begins:</strong> ${fmtDate(affective.next_term_begins)}</div>` : ''}
+<div class="gs-wrap" style="background:#f8f6f0;border-top-color:#e8d8c0">
+  <div class="gs-title" style="color:#8b4500">Grading Scale</div>
+  <table class="gs">${scH}</table>
+</div>
+<div class="vc-sig">
+  ${sigHTML('Class Instructor', _school?.class_teacher_signature_url)}
+  ${sigHTML('H.O.D / VP Academic', _school?.vp_signature_url)}
+  ${sigHTML('Exam Officer', _school?.exam_officer_signature_url)}
+  ${sigHTML('Principal / Director', _school?.principal_signature_url)}
+</div>
+<div class="vc-top-bar"></div>
+<div class="card-stamp">Generated by EduTrack NG &nbsp;·&nbsp; ${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</div>
+</div></div></div></div>`;
+}
+
+
+/* ═══ TERTIARY CARD BUILDER ═══ */
+function buildTertiaryCard(student, results, attData, affective) {
+  const d = prepCardData(student, results, attData, affective);
+  const {classLabel, subRows, avg, raw, og, att, meta, sessLabel, logoH, pp, sid} = d;
+  const eHdrs = d.examList.map(e =>
+    `<th>${e.name}<br><span style="font-weight:400;font-size:7.5px">/${e.max_score}</span></th>`
+  ).join('');
+  const sRows = subRows.map(sub => {
+    const cells = d.examList.map(e => {
+      const r = sub.rows.find(r => r.exam_id === e.id);
+      return `<td>${r !== undefined ? r.score : '—'}</td>`;
+    }).join('');
+    return `<tr><td class="tc-sn">${sub.name}</td>${cells}
+      <td><strong style="color:#2c3e6e">${sub.total ?? '—'}</strong></td>
+      <td><span class="tc-grade">${sub.grade}</span></td>
+      <td style="font-size:10px;color:#555;text-align:left">${sub.remark || '—'}</td></tr>`;
+  }).join('') || `<tr><td colspan="99" style="text-align:center;padding:16px;color:#999;font-size:12px">No results recorded for this semester.</td></tr>`;
+  const coF = [['work_education','Research & Project Work'],['art_education','Seminar Participation'],
+    ['physical_education','Laboratory/Practical Skills'],['social_skills','Group Assignments'],['sports','Field Work / Internship']];
+  const diF = [['punctuality','Attendance & Punctuality'],['sincerity','Academic Integrity'],
+    ['conduct','Campus Conduct'],['respect','Respect for Regulations'],
+    ['attitude_teachers','Relationship with Faculty'],['attitude_society','Community Engagement']];
+  const prActRows = (fields, data) => fields.map(([k,l]) =>
+    `<div class="tc-ar"><span>${l}</span><span class="tc-grade-box">${data?.[k] || ''}</span></div>`
+  ).join('');
+  const scH = (_scale||[]).length
+    ? `<thead><tr><th>Grade</th>${(_scale||[]).map(g=>`<th>${g.grade}</th>`).join('')}</tr></thead>
+       <tbody><tr><td>Marks</td>${(_scale||[]).map(g=>`<td>${g.min_score}–${g.max_score}</td>`).join('')}</tr>
+       <tr><td>Remark</td>${(_scale||[]).map(g=>`<td style="font-size:8px">${g.remark||'—'}</td>`).join('')}</tr></tbody>`
+    : `<thead><tr><th>70–100</th><th>60–69</th><th>50–59</th><th>45–49</th><th>40–44</th><th>0–39</th></tr></thead>
+       <tbody><tr><td>A</td><td>B</td><td>C</td><td>D</td><td>E</td><td>F</td></tr></tbody>`;
+  return `
+<div class="card-wrap tc-card">
+<div class="report-card"><div class="tc-outer"><div class="tc-inner">
+<div class="tc-crest-band">
+  <div class="tc-crest-left"></div>
+  <div class="tc-crest-center">
+    <div class="tc-logo">${logoH}</div>
+  </div>
+  <div class="tc-crest-right"></div>
+</div>
+<div class="tc-school-block">
+  <div class="tc-school">${_school?.name || 'Institution Name'}</div>
+  <div class="tc-meta">${meta}</div>
+  <div class="tc-rule"></div>
+  <div class="tc-doc-title">OFFICIAL ACADEMIC TRANSCRIPT</div>
+  <div class="tc-sess">${sessLabel}</div>
+</div>
+<div class="tc-student-block">
+  <div class="tc-pp-wrap">
+    <div class="tc-pp" onclick="document.getElementById('ppInput_${sid}').click()">
+      <img id="ppImg_${sid}" src="${pp}" style="${pp ? '' : 'display:none'}" alt="Photo">
+      <div class="tc-pp-ph" id="ppPh_${sid}" ${pp ? 'style="display:none"' : ''}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg><span style="font-size:8px">Photo</span></div>
+    </div>
+    <input type="file" id="ppInput_${sid}" accept="image/*" onchange="loadPP(event,'${sid}')" style="display:none">
+    <div style="font-size:8px;color:#aaa;text-align:center;margin-top:3px">Passport</div>
+  </div>
+  <div class="tc-details">
+    <div class="tc-detail-row"><span class="tc-dl">Student Name</span><span class="tc-dv">${student.full_name || '—'}</span></div>
+    <div class="tc-detail-row"><span class="tc-dl">Matric / Adm. No.</span><span class="tc-dv">${student.admission_no || student.roll_no || '—'}</span></div>
+    <div class="tc-detail-row"><span class="tc-dl">Department / Class</span><span class="tc-dv">${classLabel}</span></div>
+    <div class="tc-detail-row"><span class="tc-dl">Date of Birth</span><span class="tc-dv">${fmtDate(student.dob || student.date_of_birth)}</span></div>
+    <div class="tc-detail-row"><span class="tc-dl">Sponsor / Guardian</span><span class="tc-dv">${student.guardian_name || student.father_name || '—'}</span></div>
+    <div class="tc-detail-row"><span class="tc-dl">Academic Session</span><span class="tc-dv">${(_term?.academic_years?.label || _term?.name) || '—'}</span></div>
+  </div>
+</div>
+<div class="tc-sec-hdr">ACADEMIC PERFORMANCE — COURSE RESULTS</div>
+<div style="overflow-x:auto"><table class="tc-table">
+  <thead><tr>
+    <th rowspan="2" style="text-align:left;padding-left:12px;min-width:130px">Course / Subject</th>
+    ${eHdrs}
+    <th rowspan="2">Total</th><th rowspan="2">Grade</th><th rowspan="2" style="min-width:65px">Remark</th>
+  </tr><tr></tr></thead>
+  <tbody>${sRows}</tbody>
+</table></div>
+<div class="tc-gpa-band">
+  <div class="tc-gpa-cell"><div class="tc-gpa-lbl">TOTAL SCORE</div><div class="tc-gpa-val">${raw ?? '—'}</div></div>
+  <div class="tc-gpa-cell"><div class="tc-gpa-lbl">AVERAGE (%)</div><div class="tc-gpa-val">${avg !== null ? avg + '%' : '—'}</div></div>
+  <div class="tc-gpa-cell tc-gpa-highlight"><div class="tc-gpa-lbl">OVERALL GRADE</div><div class="tc-gpa-val" style="font-size:26px">${og.grade}</div></div>
+  <div class="tc-gpa-cell"><div class="tc-gpa-lbl">ATTENDANCE</div><div class="tc-gpa-val">${att !== null ? att + '%' : '—'}</div></div>
+</div>
+<div class="tc-two-col">
+  <div class="tc-co-col">
+    <div class="tc-col-hdr">Academic Activities</div>
+    <div class="tc-col-sub"><span>Activity</span><span>Rating</span></div>
+    ${prActRows(coF, affective)}
+  </div>
+  <div class="tc-di-col">
+    <div class="tc-col-hdr">Conduct &amp; Character</div>
+    <div class="tc-col-sub"><span>Activity</span><span>Rating</span></div>
+    ${prActRows(diF, affective)}
+  </div>
+</div>
+${affective?.class_teacher_remark ? `<div class="tc-remark"><span class="tc-remark-lbl">Class Adviser's Remark</span>${affective.class_teacher_remark}</div>` : ''}
+${affective?.vp_academic_remark ? `<div class="tc-remark"><span class="tc-remark-lbl">Dean / HOD Remark</span>${affective.vp_academic_remark}</div>` : ''}
+${affective?.exam_officer_remark ? `<div class="tc-remark"><span class="tc-remark-lbl">Examination Officer</span>${affective.exam_officer_remark}</div>` : ''}
+${affective?.principal_remark ? `<div class="tc-remark"><span class="tc-remark-lbl">Registrar / Principal Remark</span>${affective.principal_remark}</div>` : ''}
+<div class="tc-promo">Progressed / Promoted to: <span>${affective?.promoted_to || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</span></div>
+${affective?.next_term_begins ? `<div class="tc-next"><strong>Next Semester / Term Begins:</strong> ${fmtDate(affective.next_term_begins)}</div>` : ''}
+<div class="gs-wrap" style="background:#f5f7fc;border-top-color:#cfd8f0">
+  <div class="gs-title" style="color:#1a2e6e">Grading Scale</div>
+  <table class="gs">${scH}</table>
+</div>
+<div class="tc-sig">
+  ${sigHTML('Class Adviser', _school?.class_teacher_signature_url)}
+  ${sigHTML('Dean / HOD', _school?.vp_signature_url)}
+  ${sigHTML('Exam Officer', _school?.exam_officer_signature_url)}
+  ${sigHTML('Registrar / Principal', _school?.principal_signature_url)}
+</div>
+<div class="tc-foot-rule"></div>
+<div class="card-stamp">Generated by EduTrack NG &nbsp;·&nbsp; ${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</div>
+</div></div></div></div>`;
+}
+
+
 /* ═══ BUILD ONE CARD — routes to section-specific builder ═══ */
 async function buildCard(student, termId, extraClass=''){
   let studentResults = [];
@@ -984,555 +1502,4 @@ async function buildCard(student, termId, extraClass=''){
   });
 
   const ws2=subRows.filter(s=>s.total!==null);
-  const avg=ws2.length?Math.round(ws2.reduce((s,r)=>s+r.total,0)/ws2.length*10)/10:null;
-  const raw=studentResults?.reduce((s,r)=>s+(r.score||0),0)??null;
-  const og=gradeFromScale(avg,_scale||[]);
-  const days=new Set((attData||[]).map(a=>a.date)).size;
-  const pres=(attData||[]).filter(a=>a.status==='P'||a.status==='L').length;
-  const att=days>0?Math.round(pres/days*100):null;
-
-  const parts=[
-    _school?.affiliation_no?`Affiliation No.: ${_school.affiliation_no}`:null,
-    _school?.phone?`Ph: ${_school.phone}`:null,
-    _school?.email?`Email: ${_school.email}`:null,
-  ].filter(Boolean);
-  const meta=parts.length?parts.join(' &nbsp;|&nbsp; '):
-    [_school?.address,_school?.lga,_school?.state].filter(Boolean).join(', ')||'&nbsp;';
-  const sessLabel=(_term?.academic_years?.label||_term?.name)
-    ?`Academic Session — ${_term?.academic_years?.label||_term?.name}`:'Academic Session';
-
-  const logoH=_school?.logo_url
-    ?`<img src="${_school.logo_url}" alt="Logo" onerror="this.outerHTML='<div class=logo-fb>SCHOOL<br>CREST</div>'">`
-    :`<div class="logo-fb">SCHOOL<br>CREST</div>`;
-
-  const pp=student.photo_url||student.passport_url||student.avatar_url||'';
-
-  const eHdrs=examList.map(e=>
-    `<th>${e.name}<br><span style="font-weight:400;font-size:7.5px">/${e.max_score}</span></th>`
-  ).join('');
-  
-  const sRows=subRows.map(sub=>{
-    const cells=examList.map(e=>{
-      const r=sub.rows.find(r=>r.exam_id===e.id);
-      return`<td>${r!==undefined?r.score:'—'}</td>`;
-    }).join('');
-    return`<tr><td class="sn">${sub.name}</td>${cells}
-      <td><strong style="color:var(--primary)">${sub.total??'—'}</strong></td>
-      <td>${gradeBadge(sub.grade)}</td>
-      <td style="font-size:10px;color:#555;text-align:left">${sub.remark||'—'}</td></tr>`;
-  }).join('')||`<tr><td colspan="99" style="text-align:center;padding:18px;color:#999;font-family:sans-serif;font-size:12px">No results recorded for this term.</td></tr>`;
-
-  const coF=[['work_education','Work Education'],['art_education','Art Education'],
-    ['physical_education','Health &amp; Physical Education'],['social_skills','Social Skills'],['sports','Sports']];
-  const diF=[['punctuality','Regularity &amp; Punctuality'],['sincerity','Sincerity'],
-    ['conduct','Behaviour &amp; Values'],['respect','Respectfulness for Rules &amp; Reg.'],
-    ['attitude_teachers','Attitude Towards Teachers'],['attitude_society','Attitude Towards Society']];
-
-  const scH=(_scale||[]).length
-    ?`<thead><tr><th>Grade</th>${(_scale||[]).map(g=>`<th>${g.grade}</th>`).join('')}</thead>
-      <tbody><tr><th>Marks</th>${(_scale||[]).map(g=>`<td>${g.min_score}–${g.max_score}</td>`).join('')}</tr>
-      <tr><th>Remark</th>${(_scale||[]).map(g=>`<td style="font-size:8.5px">${g.remark||'—'}</td>`).join('')}</tr></tbody>`
-    :`<thead><tr><th>91–100</th><th>81–90</th><th>71–80</th><th>61–70</th><th>51–60</th><th>41–50</th><th>32–40</th></thead>
-     <tbody><tr><td>A+</td><td>A</td><td>B+</td><td>B</td><td>C+</td><td>C</td><td>D</td></tr></tbody>`;
-
-  const sid=student.id.replace(/-/g,'_');
-
-  // Deduplicate exams — prevents duplicate score columns
-  const examDeduped = [];
-  const examSeen = new Set();
-  (_exams || []).forEach(e => { if (e && !examSeen.has(e.id)) { examSeen.add(e.id); examDeduped.push(e); } });
-  if (examDeduped.length) _exams = examDeduped;
-
-  // Deduplicate class subjects — prevents duplicate subject rows
-  if (_classSubjects?.length) {
-    const csSeen = new Map();
-    _classSubjects.forEach(cs => {
-      if (!csSeen.has(cs.subject_id)) csSeen.set(cs.subject_id, cs);
-    });
-    _classSubjects = [...csSeen.values()];
-  }
-
-  // Also deduplicate studentResults per (subject_id, exam_id) pair
-  const resultKey = r => `${r.subject_id}||${r.exam_id}`;
-  const resultSeen = new Set();
-  studentResults = studentResults.filter(r => {
-    const k = resultKey(r);
-    if (resultSeen.has(k)) return false;
-    resultSeen.add(k);
-    return true;
-  });
-
-  // Store current student for certificate/testimonial generation
-  _currentStudent={student,results:studentResults,attData,affective};
-
-  // Route to section-specific card builder
-  const sType=getSectionType(_classRow);
-  if(sType==='nursery') return buildNurseryCard(student,studentResults,attData,affective);
-  if(sType==='primary') return buildPrimaryCard(student,studentResults,attData,affective);
-
-  return`
-<div class="card-wrap ${extraClass}">
-<div class="report-card"><div class="deco-border"><div class="card-inner">
-<div class="deco-strip"></div>
-<div class="rc-header">
-  <div class="logo-circle">${logoH}</div>
-  <div class="hc">
-    <div class="school-name">${_school?.name||'School Name'}</div>
-    <div class="school-meta">${meta}</div>
-    <div class="gold-div"></div>
-    <div class="card-title">Student Academic Report</div>
-    <div class="sess-txt">${sessLabel}</div>
-    <div class="sess-txt" style="font-size:10px;color:#777;font-weight:400;font-style:italic;margin-top:1px">Term: ${_term?.name||'—'}</div>
-  </div>
-  <div class="pp-box">
-    <div class="pp-frame" onclick="document.getElementById('ppInput_${sid}').click()">
-      <img id="ppImg_${sid}" src="${pp}" style="${pp?'':'display:none'}" alt="Student Photo">
-      <div class="pp-ph" id="ppPh_${sid}" ${pp?'style="display:none"':''}>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5">
-          <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-        </svg>
-        <span style="font-size:8px">Affix<br>Photo</span>
-      </div>
-    </div>
-    <input type="file" id="ppInput_${sid}" accept="image/*" onchange="loadPP(event,'${sid}')" style="display:none">
-    <div class="pp-lbl">Passport Size</div>
-  </div>
-</div>
-<div class="info-strip">
-  <div class="info-row"><span class="il">Name of Student</span><span class="iv">${student.full_name||'—'}</span></div>
-  <div class="info-row"><span class="il">Admission No.</span><span class="iv">${student.admission_no||student.roll_no||'—'}</span></div>
-  <div class="info-row"><span class="il">Class / Arm</span><span class="iv">${classLabel}</span></div>
-  <div class="info-row"><span class="il">Date of Birth</span><span class="iv">${fmtDate(student.dob||student.date_of_birth)}</span></div>
-  <div class="info-row"><span class="il">Guardian</span><span class="iv">${student.guardian_name||student.father_name||'—'}</span></div>
-  <div class="info-row"><span class="il">Academic Session</span><span class="iv">${(_term?.academic_years?.label||_term?.name)||'—'}</span></div>
-</div>
-<div class="sec-hdr">Scholastic Area — Academic Performance</div>
-<div class="aw"><table class="ac">
-  <thead><tr><th rowspan="2" style="text-align:left;padding-left:10px;min-width:110px">Subjects</th>${eHdrs}<th rowspan="2">Total</th><th rowspan="2">Grade</th><th rowspan="2" style="min-width:60px">Remark</th></tr><tr></tr></thead>
-  <tbody>${sRows}</tbody>
-</table></div>
-<div class="sum-band">
-  <div class="sum-cell"><span class="sl c1">Overall Marks</span><span class="sv" style="color:var(--primary)">${raw??'—'}</span></div>
-  <div class="sum-cell"><span class="sl c2">Percentage</span><span class="sv" style="color:var(--accent)">${avg!==null?avg+'%':'—'}</span></div>
-  <div class="sum-cell"><span class="sl c3">Grade</span><span class="sv" style="color:#16a34a">${og.grade}</span></div>
-  <div class="sum-cell"><span class="sl c4">Attendance</span><span class="sv" style="color:#7c3aed">${att!==null?att+'%':'—'}</span></div>
-</div>
-<div class="two-col">
-  <div class="co-col"><div class="co-h">Co-Scholastic Activities</div><div class="ach"><span>Activity</span><span>Grade</span></div>${actRows(coF,affective)}</div>
-  <div class="di-col"><div class="di-h">Discipline &amp; Character</div><div class="ach"><span>Activity</span><span>Grade</span></div>${actRows(diF,affective)}</div>
-</div>
-${rmHTML("Class Teacher's Remark",affective?.class_teacher_remark,'#f8faff','var(--primary)')}
-${rmHTML("VP Academic's Remark", affective?.vp_academic_remark, '#eff6ff','#1e40af')}
-${rmHTML("Exam Officer's Remark", affective?.exam_officer_remark, '#faf5ff','#6b21a8')}
-${rmHTML("Principal's Remark", affective?.principal_remark, '#f0fdf4','#166534')}
-<div class="promo-band">Promoted to Class &mdash; <span>${affective?.promoted_to||'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</span></div>
-${affective?.next_term_begins?`<div class="nt-row"><strong>Next Term Begins:</strong> ${fmtDate(affective.next_term_begins)}</div>`:''}
-<div class="gs-wrap"><div class="gs-title">Grading Scale for Scholastic Areas</div><table class="gs">${scH}</table></div>
-<div class="sig-ft">
-  ${sigHTML('Class Teacher', _school?.class_teacher_signature_url)}
-  ${sigHTML('VP Academic', _school?.vp_signature_url)}
-  ${sigHTML('Exam Officer', _school?.exam_officer_signature_url)}
-  ${sigHTML('Principal', _school?.principal_signature_url)}
-</div>
-<div class="deco-strip"></div>
-<div class="card-stamp">Generated by EduTrack NG &nbsp;·&nbsp; ${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</div>
-</div></div></div></div>`;
-}
-
-function showNoReportCard(student){
-  document.getElementById('mainContent').innerHTML = `
-    <div class="no-report-card">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <circle cx="12" cy="12" r="10"/>
-        <line x1="12" y1="8" x2="12" y2="12"/>
-        <circle cx="12" cy="16" r="0.5" fill="currentColor" stroke="none"/>
-      </svg>
-      <h3>📄 No Results Found</h3>
-      <p><strong>${student.full_name || 'This student'}</strong> has no scores recorded for the selected term.</p>
-      <p>Please ensure that subject scores have been entered for this student in the <strong>Results</strong> section before generating a report card.</p>
-      <button onclick="_loadCard(${JSON.stringify(student).replace(/</g,'\u003c')})">↺ Retry</button>
-      <button onclick="history.back()">← Go Back</button>
-    </div>
-  `;
-}
-
-function loadPP(e,sid){
-  const file=e.target.files[0];if(!file)return;
-  const rd=new FileReader();
-  rd.onload=ev=>{
-    const img=document.getElementById('ppImg_'+sid);
-    const ph =document.getElementById('ppPh_'+sid);
-    if(img){img.src=ev.target.result;img.style.display='block';}
-    if(ph) ph.style.display='none';
-  };
-  rd.readAsDataURL(file);
-}
-
-let _students=[],_ci=0,_tid='';
-
-function switchStudent(id){
-  const i=_students.findIndex(s=>s.id===id);if(i<0)return;
-  _ci=i;_updateNav();_loadCard(_students[i]);
-}
-
-function stepStudent(d){
-  const n=_ci+d;if(n<0||n>=_students.length)return;
-  _ci=n;document.getElementById('ssel').value=_students[_ci].id;
-  _updateNav();_loadCard(_students[_ci]);
-}
-
-function _updateNav(){
-  document.getElementById('btnPrev').disabled=_ci===0;
-  document.getElementById('btnNext').disabled=_ci===_students.length-1;
-  document.getElementById('sCtr').textContent=`${_ci+1} / ${_students.length}`;
-}
-
-async function _loadCard(s){
-  document.getElementById('mainContent').innerHTML=
-    `<div class="rc-loader"><div class="rc-spinner"></div><p id="loadMsg">Loading ${s.full_name||'student'}...</p><div class="rc-loader-steps" id="loadSteps"></div></div>`;
-  steps.length=0;
-  
-  try{
-    const html=await buildCard(s,_tid);
-    if(html===null){
-      showNoReportCard(s);
-    } else {
-      document.getElementById('mainContent').innerHTML=html;
-    }
-  }
-  catch(e){
-    console.error('_loadCard error:', e);
-    showErr('Failed to load report card', e.message||String(e));
-  }
-}
-
-async function switchTerm(newTermId){
-  if(!newTermId||newTermId===_tid) return;
-  const chosen=_allTerms.find(t=>t.id===newTermId);
-  if(!chosen) return;
-  _tid=newTermId; _term=chosen;
-  _bulkResults=null; _bulkAtt=null; _bulkAffective=null; _exams=null; _classSubjects=null;
-  await _initClassCards(_classRow.school_id, _classRow.id);
-}
-
-async function _initClassCards(schoolId, classId){
-  try{
-    setMsg('Loading grade scale, exams and class subjects…');
-    document.getElementById('mainContent').innerHTML=
-      `<div class="rc-loader"><div class="rc-spinner"></div><p id="loadMsg">Loading data for ${_term?.name||'selected term'}…</p><div class="rc-loader-steps" id="loadSteps"></div></div>`;
-    steps.length=0;
-
-    const [scaleData,examsData]=await Promise.all([
-      sq('Grading scale', db.from('grading_scales').select('*').eq('school_id',schoolId).order('min_score',{ascending:false})),
-      sqSafe('Exams list', db.from('exams').select('*').eq('school_id',schoolId).eq('term_id',_tid).order('name')),
-    ]);
-    _scale=scaleData; _exams=examsData||[];
-
-    setMsg('Loading class subjects…');
-    let csData=await sqSafe('Class subjects',
-      db.from('class_subjects')
-        .select('subject_id,subjects(id,name,code)')
-        .eq('class_id',classId)
-        .order('subjects(name)',{ascending:true}));
-    if(!csData?.length){
-      csData=await sqSafe('Class subjects (alt)',
-        db.from('class_subjects')
-          .select('subject_id,subject_name')
-          .eq('class_id',classId));
-    }
-    _classSubjects=csData||[];
-
-    setMsg('Loading student list…');
-    let enrollments=await sq('Enrollments',
-      db.from('enrollments').select('student_id').eq('class_id',classId).eq('term_id',_tid));
-
-    if(!enrollments?.length){
-      const fallback=await sqSafe('Enrollments (class-only fallback)',
-        db.from('enrollments').select('student_id').eq('class_id',classId));
-      if(fallback?.length){
-        enrollments=fallback;
-      }
-    }
-
-    if(!enrollments?.length){
-      document.getElementById('mainContent').innerHTML=`
-        <div class="no-report-card">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <circle cx="12" cy="12" r="10"/>
-            <line x1="12" y1="8" x2="12" y2="12"/>
-            <circle cx="12" cy="16" r="0.5" fill="currentColor" stroke="none"/>
-          </svg>
-          <h3>No Students Enrolled</h3>
-          <p>No students are enrolled in this class for the selected term.</p>
-          <p>Try selecting a different term, or ensure students are enrolled in this class.</p>
-          <button onclick="history.back()">← Go Back</button>
-        </div>`;
-      return;
-    }
-
-    const studentIds=enrollments.map(e=>e.student_id).filter(Boolean);
-
-    setMsg(`Loading ${studentIds.length} student records…`);
-    const studentsData=await sq('Student records',
-      db.from('students').select('id,full_name,admission_no,roll_no,mother_name,father_name,guardian_name,scholar_no,dob,date_of_birth,photo_url,passport_url,avatar_url,school_id').in('id',studentIds));
-
-    _students=(studentsData||[]).sort((a,b)=>(a.full_name||'').localeCompare(b.full_name||''));
-
-    setMsg('Bulk loading results, attendance and affective data…');
-    const [allResults, allAtt, allAffective]=await Promise.all([
-      sq('All results (bulk)',
-         db.from('results')
-           .select('score,student_id,subject_id,exam_id,subjects(id,name,code),exams(id,name,max_score,weight)')
-           .in('student_id',studentIds).eq('term_id',_tid)),
-      sq('All attendance (bulk)',
-         db.from('attendance')
-           .select('status,date,student_id').in('student_id',studentIds).eq('term_id',_tid)),
-      sq('All affective (bulk)',
-         db.from('affective_domain')
-           .select('*').in('student_id',studentIds).eq('term_id',_tid)),
-    ]);
-    _bulkResults = allResults || [];
-    _bulkAtt = allAtt || [];
-    _bulkAffective = allAffective || [];
-
-    const sel=document.getElementById('ssel');
-    sel.innerHTML=_students.map(s=>
-      `<option value="${s.id}">${s.full_name||'Unknown'}${s.admission_no?' ('+s.admission_no+')':''}</option>`
-    ).join('');
-    document.getElementById('sselWrap').style.display='flex';
-    document.getElementById('dvSel').style.display='block';
-    document.getElementById('btnPrintAll').style.display='flex';
-    document.getElementById('btnCert').style.display='flex';
-    document.getElementById('btnTest').style.display='flex';
-
-    // Update the banner with student count and selected term
-    const cntBadge=document.getElementById('studentCountBadge');
-    if(cntBadge) cntBadge.textContent=`${_students.length} student${_students.length!==1?'s':''}`;
-    const termLabel=document.getElementById('termBadgeLabel');
-    if(termLabel){
-      const tName=_term?.name||'Selected Term';
-      const sessLabel=_term?.academic_years?.label?` — ${_term.academic_years.label}`:'';
-      termLabel.textContent=`Term: ${tName}${sessLabel}`;
-      termLabel.style.color='var(--primary)';
-      termLabel.style.fontWeight='600';
-    }
-
-    _ci=0; _updateNav();
-    await _loadCard(_students[0]);
-
-  }catch(e){
-    if(document.querySelector('.rc-loader')){
-      showErr('Unexpected error loading report cards', e.message||String(e));
-    }
-    console.error('Report card error:',e);
-  }
-}
-
-async function printAll(){
-  const btn=document.getElementById('btnPrintAll');
-  btn.textContent='⏳ Preparing…';btn.disabled=true;
-  document.getElementById('mainContent').innerHTML=
-    `<div class="rc-loader"><div class="rc-spinner"></div><p id="loadMsg">Building all cards…</p><div class="rc-loader-steps" id="loadSteps"></div></div>`;
-  steps.length=0;
-  let html='';
-  let printedCount=0;
-  for(let i=0;i<_students.length;i++){
-    try{
-      const cardHtml=await buildCard(_students[i],_tid);
-      if(cardHtml){
-        html+=cardHtml+(i>0?'<div class="print-page-break"></div>':'');
-        printedCount++;
-      }
-    }catch(e){}
-  }
-  if(printedCount===0){
-    document.getElementById('mainContent').innerHTML='<div class="err-box"><h2>No students with published report cards found.</h2></div>';
-  } else {
-    document.getElementById('mainContent').innerHTML=html;
-    setTimeout(()=>window.print(),500);
-  }
-  btn.textContent='🖨 Print All';btn.disabled=false;
-}
-
-function showTermPicker(schoolId, classId, terms){
-  const opts=terms.map(t=>{
-    const sess=t.academic_years?.label||'';
-    const label=sess?`${t.name} — ${sess}`:t.name;
-    const isCurrent=t.is_current?' ★ Current':'';
-    return `<option value="${t.id}">${label}${isCurrent}</option>`;
-  }).join('');
-  document.getElementById('mainContent').innerHTML=`
-    <div class="term-picker">
-      <h2>📋 Select Term to Generate Report Cards</h2>
-      <p>Choose the academic term for which you want to generate report cards for this class.</p>
-      <div class="term-picker-row">
-        <select id="termPickerSel">${opts}</select>
-        <button class="term-go-btn" onclick="onTermPickerGo('${schoolId}','${classId}')">Generate Reports →</button>
-      </div>
-    </div>`;
-}
-
-async function onTermPickerGo(schoolId, classId){
-  const sel=document.getElementById('termPickerSel');
-  if(!sel||!sel.value) return;
-  const chosen=_allTerms.find(t=>t.id===sel.value);
-  if(!chosen) return;
-  _tid=sel.value; _term=chosen;
-  _populateTermBar();
-  _bulkResults=null; _bulkAtt=null; _bulkAffective=null; _exams=null; _classSubjects=null;
-  await _initClassCards(schoolId, classId);
-}
-
-function _populateTermBar(){
-  const bar=document.getElementById('termSelBar');
-  const tsel=document.getElementById('termSel');
-  if(!bar||!tsel) return;
-  tsel.innerHTML=_allTerms.map(t=>{
-    const sess=t.academic_years?.label||'';
-    const label=sess?`${t.name} — ${sess}`:t.name;
-    return `<option value="${t.id}"${t.id===_tid?' selected':''}>${label}${t.is_current?' ★':''}</option>`;
-  }).join('');
-  bar.style.display='flex';
-}
-
-(async()=>{
-  const P=new URLSearchParams(location.search);
-  const classId  =P.get('class');
-  const studentId=P.get('student');
-  let   termId   =P.get('term');
-
-  if(classId){
-    try{
-      setMsg('Loading class info…');
-      _classRow=await sq('Class info', db.from('classes').select('id,name,level,section,school_id').eq('id',classId).single());
-      if(!_classRow) return;
-
-      const schoolId=_classRow.school_id;
-
-      setMsg('Loading school and terms…');
-      const [schoolData, allTermsData]=await Promise.all([
-        sq('School data', db.from('schools').select('name,logo_url,address,state,lga,phone,email,motto,affiliation_no,vp_signature_url,exam_officer_signature_url,principal_signature_url,class_teacher_signature_url').eq('id',schoolId).single()),
-        sq('All terms', db.from('terms').select('*,academic_years(label)').eq('school_id',schoolId).order('start_date',{ascending:false})),
-      ]);
-      _school=schoolData;
-      _allTerms=allTermsData||[];
-
-      const sec=(_classRow.section||_classRow.level||'').toUpperCase();
-      const cLabel=sec?`${_classRow.name} — Section ${sec}`:_classRow.name;
-      const bannerDiv=document.createElement('div');
-      bannerDiv.className='class-banner no-print';
-      bannerDiv.id='classBanner';
-      bannerDiv.innerHTML=`<strong>${cLabel}</strong><span class="cbadge" id="studentCountBadge">—</span><span id="termBadgeLabel" style="color:#6b7280">Select a term to load results</span><span style="color:#6b7280">·</span><span style="color:#6b7280">School: ${_school?.name||schoolId}</span>`;
-      document.getElementById('mainContent').insertAdjacentElement('beforebegin', bannerDiv);
-
-      if(termId){
-        const chosen=_allTerms.find(t=>t.id===termId);
-        if(chosen){ _tid=chosen.id; _term=chosen; }
-        else {
-          _tid=termId;
-          const termDetail=await sqSafe('Term detail',db.from('terms').select('*,academic_years(label)').eq('id',termId).maybeSingle());
-          _term=termDetail||{id:termId,name:'Selected Term'};
-        }
-        _populateTermBar();
-        await _initClassCards(schoolId, classId);
-      } else if(_allTerms.length===1){
-        _tid=_allTerms[0].id; _term=_allTerms[0];
-        _populateTermBar();
-        await _initClassCards(schoolId, classId);
-      } else if(_allTerms.length>1){
-        showTermPicker(schoolId, classId, _allTerms);
-      } else {
-        showErr('No terms found for this school.','Please create at least one term in the admin panel.');
-      }
-    }catch(e){
-      if(document.querySelector('.rc-loader')){
-        showErr('Unexpected error loading report card', e.message||String(e));
-      }
-      console.error('Report card error:',e);
-    }
-    return;
-  }
-
-  if(!studentId){
-    // No class/student param — show a class picker so the sidebar button works
-    try{
-      const userData = await getCurrentUser();
-      const schoolId = userData?.school_id || userData?.schools?.id;
-      if(!schoolId){ window.location.href = '/login.html'; return; }
-      document.getElementById('mainContent').innerHTML='<div class="rc-loader"><div class="rc-spinner"></div><p id="loadMsg">Loading classes…</p></div>';
-      const {data:classes,error}=await db.from('classes').select('id,name,level,section').eq('school_id',schoolId).order('name');
-      if(error||!classes?.length){ showErr('No classes found','Please create classes in the admin panel first.'); return; }
-      const rows=classes.map(c=>{
-        const sec=(c.section||c.level||'').toUpperCase();
-        const label=sec?`${c.name} — Section ${sec}`:c.name;
-        return `<div onclick="location.href='report-cards.html?class=${c.id}'" style="padding:14px 18px;border:1.5px solid #e5e7eb;border-radius:9px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:all .15s;background:white;" onmouseover="this.style.borderColor='var(--primary)';this.style.background='#f0f4ff'" onmouseout="this.style.borderColor='#e5e7eb';this.style.background='white'">
-          <span style="width:38px;height:38px;border-radius:7px;background:var(--primary);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></span>
-          <div><div style="font-weight:700;font-size:14px;color:#1e293b">${label}</div><div style="font-size:11px;color:#6b7280;margin-top:2px">Click to view report cards</div></div>
-          <span style="margin-left:auto;color:#9ca3af">&rsaquo;</span>
-        </div>`;
-      }).join('');
-      document.getElementById('mainContent').innerHTML=`
-        <div style="max-width:680px;margin:30px auto;">
-          <div style="background:white;border-radius:12px;padding:28px;box-shadow:0 1px 4px rgba(0,0,0,.08);">
-            <h2 style="font-family:'Cinzel',serif;color:var(--primary);font-size:18px;margin-bottom:6px">📋 Select a Class</h2>
-            <p style="font-size:13px;color:#6b7280;margin-bottom:22px">Choose the class whose report cards you want to view or print.</p>
-            <div style="display:flex;flex-direction:column;gap:10px">${rows}</div>
-          </div>
-        </div>`;
-    }catch(e){ showErr('Failed to load classes', e.message||String(e)); }
-    return;
-  }
-
-  try{
-    setMsg('Loading student…');
-    const student=await sq('Student record',
-      db.from('students').select('id,full_name,admission_no,roll_no,mother_name,father_name,guardian_name,scholar_no,dob,date_of_birth,photo_url,passport_url,avatar_url,school_id').eq('id',studentId).single());
-    if(!student) return;
-
-    const schoolId=student.school_id;
-
-    if(!termId){
-      try{
-        const {data:t}=await db.from('terms').select('*,academic_years(label)').eq('school_id',schoolId).eq('is_current',true).maybeSingle();
-        if(t){_term=t;termId=t.id;}
-        else{
-          const {data:t2}=await db.from('terms').select('*,academic_years(label)').eq('school_id',schoolId).order('start_date',{ascending:false}).limit(1).maybeSingle();
-          _term=t2;termId=t2?.id;
-        }
-      }catch(e){console.error('Term resolution failed:',e);}
-    }
-    _tid=termId;
-    if(!_tid){showErr('No active term found for this school.');return;}
-
-    setMsg('Loading school data…');
-    const [schoolData,scaleData,examsData,termRow]=await Promise.all([
-      sq('School data', db.from('schools').select('name,logo_url,address,state,lga,phone,email,motto,affiliation_no,vp_signature_url,exam_officer_signature_url,principal_signature_url,class_teacher_signature_url').eq('id',schoolId).single()),
-      sq('Grading scale', db.from('grading_scales').select('*').eq('school_id',schoolId).order('min_score',{ascending:false})),
-      sq('Exams list', db.from('exams').select('*').eq('school_id',schoolId).eq('term_id',_tid).order('name')),
-      !_term?sq('Term info', db.from('terms').select('*,academic_years(label)').eq('id',_tid).single()):Promise.resolve(_term),
-    ]);
-    _school=schoolData;_scale=scaleData;_exams=examsData;
-    if(!_term)_term=termRow;
-
-    const {data:enr}=await db.from('enrollments').select('class_id,classes(id,name,level,section)').eq('student_id',studentId).eq('term_id',_tid).maybeSingle();
-    _classRow=enr?.classes||null;
-
-    steps.length=0;
-    const html=await buildCard(student,_tid);
-    if(html===null){
-      showNoReportCard(student);
-    } else {
-      document.getElementById('mainContent').innerHTML=html;
-    }
-  }catch(e){
-    if(document.querySelector('.rc-loader')){
-      showErr('Unexpected error loading report card', e.message||String(e));
-    }
-    console.error('Report card error:',e);
-  }
-})();
-</script>
-<script src="/js/pwa-v2.1.js"></script>
-<script src="../../js/assistant.js"></script>
-</body>
-</html>
+  const avg=ws2.length?Math.round(ws2.reduce((s,r)=>s+r.total,0)/ws
