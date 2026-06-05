@@ -115,7 +115,11 @@
     .letter-table{width:100%;border-collapse:collapse;margin:12px 0;font-family:Arial,sans-serif;font-size:13px;}
     .letter-table td{padding:8px 10px;border:1px solid #ddd;}
     .letter-table td:first-child{font-weight:700;background:#f5f5f0;width:40%;}
-  </style>
+  
+    /* ── Assign subjects accordion ──────────────────────── */
+    #assignList [data-subject-count] { display:inline-block; }
+    #assignModal .modal__body { padding:0; }
+</style>
 </head>
 <body>
 <div id="app"></div>
@@ -383,18 +387,25 @@
 
 <!-- ═══════════════ ASSIGN SUBJECTS MODAL ═══════════════ -->
 <div class="modal" id="assignModal">
-  <div class="modal__box" style="max-width:480px;">
+  <div class="modal__box" style="max-width:700px;">
     <div class="modal__header">
-      <h2 class="modal__title">Assign Classes &amp; Subjects</h2>
-      <button class="modal__close" onclick="closeModal('assignModal')">✕</button>
+      <h2 class="modal__title">&#128218; Assign Classes &amp; Subjects</h2>
+      <button class="modal__close" onclick="closeModal('assignModal')">&#10005;</button>
     </div>
-    <div class="modal__body">
-      <p style="font-size:14px;color:var(--ink-3);margin-bottom:16px;">Assign subjects to <strong id="assignTeacherName"></strong> for the current term.</p>
-      <div id="assignList"></div>
+    <div class="modal__body" style="padding:0;">
+      <div style="padding:16px 20px 12px;border-bottom:1px solid var(--border);background:var(--surface-2);">
+        <div style="font-size:15px;font-weight:800;color:var(--ink);" id="assignTeacherName">—</div>
+        <div style="font-size:12px;color:var(--ink-3);margin-top:2px;">
+          Term: <strong id="assignTermName">—</strong> &nbsp;·&nbsp;
+          Tick the subjects this teacher will teach in each class. Only subjects already assigned to a class appear here.
+        </div>
+      </div>
       <input type="hidden" id="assignTeacherId">
-      <div id="assignError" class="form-error" style="display:none;"></div>
+      <div id="assignList" style="max-height:460px;overflow-y:auto;padding:0;"></div>
+      <div id="assignError" class="form-error" style="display:none;margin:0 20px 12px;"></div>
     </div>
     <div class="modal__footer">
+      <div style="font-size:13px;color:var(--ink-3);" id="assignSummary"></div>
       <button class="btn btn--secondary" onclick="closeModal('assignModal')">Cancel</button>
       <button class="btn btn--primary" id="saveAssignBtn" onclick="saveAssignments()">Save Assignments</button>
     </div>
@@ -507,6 +518,7 @@ const PORTAL_LINKS = {
 
   renderPage();
   await loadStaff();
+  refreshTeacherSubjectCounts(); // populate subject count badges
 
   if (new URLSearchParams(location.search).get('action') === 'add') openAddStaff();
 })();
@@ -844,7 +856,7 @@ function buildStaffTable(staff) {
             <td>
               <div class="td-action">
                 <button class="btn btn--secondary btn--sm" onclick="editStaff('${s.id}')">Edit</button>
-                ${['teacher','vp_academic','exam_officer'].includes(s.role) ? `<button class="btn btn--ghost btn--sm" onclick="openAssign('${s.id}','${escJS(s.full_name)}')">📚</button>` : ''}
+                ${['teacher','vp_academic','exam_officer'].includes(s.role) ? `<button class="btn btn--ghost btn--sm" onclick="openAssign('${s.id}','${escJS(s.full_name)}')" title="Assign subjects" style="display:inline-flex;align-items:center;gap:5px;">&#128218; <span data-subject-count data-teacher-id="${s.id}" style="font-size:11px;color:var(--ink-4);">…</span></button>` : ''}
                 <button class="btn btn--ghost btn--sm" onclick="viewIDCard('${s.id}')">🆔</button>
                 <button class="btn btn--ghost btn--sm" onclick="resetStaffPassword('${s.id}','${escJS(s.full_name)}','${s.email||''}')">🔑</button>
                 <button class="btn btn--ghost btn--sm" onclick="toggleStaff('${s.id}',${s.is_active})">${s.is_active?'Deactivate':'Activate'}</button>
@@ -885,7 +897,7 @@ function buildStaffCards(staff) {
           <div class="staff-card-actions">
             <button class="btn btn--secondary btn--sm" onclick="editStaff('${s.id}')">Edit</button>
             <button class="btn btn--ghost btn--sm" onclick="viewIDCard('${s.id}')">🆔 ID</button>
-            ${['teacher','vp_academic','exam_officer'].includes(s.role) ? `<button class="btn btn--ghost btn--sm" onclick="openAssign('${s.id}','${escJS(s.full_name)}')">📚 Subjects</button>` : ''}
+            ${['teacher','vp_academic','exam_officer'].includes(s.role) ? `<button class="btn btn--ghost btn--sm" onclick="openAssign('${s.id}','${escJS(s.full_name)}')" style="display:flex;align-items:center;gap:5px;">&#128218; <span data-subject-count data-teacher-id="${s.id}" style="font-size:11px;color:var(--ink-4);">…</span></button>` : ''}
           </div>
         </div>`;
     }).join('')}
@@ -1198,58 +1210,250 @@ function openPrintWindow(html) {
 }
 
 // ══════════════════════════════════════════════════════
-//  ASSIGN SUBJECTS
+//  ASSIGN SUBJECTS — rebuilt
+//  Logic: for each class, show only subjects already
+//  assigned to that class (class_subjects with no
+//  teacher_id). Teacher picks which of those they teach.
 // ══════════════════════════════════════════════════════
+let _assignClassSubMap = {}; // classId → [{id,name,code}]
+let _assignExisting   = new Set(); // "classId::subjectId" already assigned to this teacher
+let _assignPending    = new Set(); // current checkbox state
+
 async function openAssign(teacherId, teacherName) {
+  const errEl = document.getElementById('assignError');
+  errEl.style.display = 'none';
   document.getElementById('assignTeacherId').value = teacherId;
   document.getElementById('assignTeacherName').textContent = teacherName;
-  document.getElementById('assignError').style.display = 'none';
-  if (!currentTerm) { document.getElementById('assignList').innerHTML=`<p style="color:var(--danger);">No current term set. Configure in Settings.</p>`; openModal('assignModal'); return; }
-  const { data:existing } = await db.from('class_subjects').select('class_id,subject_id').eq('teacher_id', teacherId).eq('term_id', currentTerm.id);
-  const existingSet = new Set((existing||[]).map(e=>`${e.class_id}::${e.subject_id}`));
-  document.getElementById('assignList').innerHTML = `
-    <div style="max-height:320px;overflow-y:auto;">
-      ${classes.map(cls=>`
-        <div style="margin-bottom:12px;">
-          <div style="font-size:13px;font-weight:700;color:var(--ink-2);margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--border);">${cls.name}</div>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;">
-            ${subjects.map(sub=>{
-              const key=`${cls.id}::${sub.id}`;
-              return `<label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;padding:4px 8px;border-radius:4px;border:1px solid var(--border);background:${existingSet.has(key)?'var(--primary-light)':'white'}">
-                <input type="checkbox" name="assign" value="${cls.id}::${sub.id}" ${existingSet.has(key)?'checked':''} style="accent-color:var(--primary);">
-                ${sub.name}
-              </label>`;
+  document.getElementById('assignTermName').textContent = currentTerm?.name || 'No term set';
+  document.getElementById('assignSummary').textContent = '';
+  document.getElementById('assignList').innerHTML =
+    '<div style="padding:20px;text-align:center;color:var(--ink-3)">Loading...</div>';
+  openModal('assignModal');
+
+  if (!currentTerm) {
+    document.getElementById('assignList').innerHTML =
+      '<div style="padding:20px;color:var(--danger);font-weight:600;">No current term set. Configure a term in Settings first.</div>';
+    return;
+  }
+
+  // Fetch: (a) all class_subjects for this term (no teacher filter = class-level assignments)
+  // (b) existing teacher assignments
+  const [csRes, teacherRes] = await Promise.all([
+    db.from('class_subjects')
+      .select('class_id,subject_id,subjects(id,name,code)')
+      .eq('school_id', currentUser.school_id)
+      .eq('term_id', currentTerm.id)
+      .is('teacher_id', null),
+    db.from('class_subjects')
+      .select('class_id,subject_id')
+      .eq('school_id', currentUser.school_id)
+      .eq('term_id', currentTerm.id)
+      .eq('teacher_id', teacherId),
+  ]);
+
+  // Build class→subjects map (subjects the class HAS)
+  _assignClassSubMap = {};
+  (csRes.data || []).forEach(row => {
+    if (!_assignClassSubMap[row.class_id]) _assignClassSubMap[row.class_id] = [];
+    if (row.subjects) _assignClassSubMap[row.class_id].push(row.subjects);
+  });
+
+  // Build existing teacher assignment set
+  _assignExisting = new Set((teacherRes.data || []).map(r => r.class_id + '::' + r.subject_id));
+  _assignPending  = new Set(_assignExisting);
+
+  renderAssignList(teacherId);
+}
+
+function renderAssignList(teacherId) {
+  const listEl = document.getElementById('assignList');
+
+  // Only show classes that have at least one subject
+  const assignableClasses = classes.filter(c => (_assignClassSubMap[c.id]||[]).length > 0);
+
+  if (!assignableClasses.length) {
+    listEl.innerHTML = `
+      <div style="padding:24px;text-align:center;color:var(--ink-3);">
+        <div style="font-size:32px;margin-bottom:8px;">&#128218;</div>
+        <p style="font-weight:600;color:var(--ink-2);margin-bottom:4px;">No subjects assigned to any class yet.</p>
+        <p style="font-size:12px;">Go to <a href="class-subjects.html" style="color:var(--primary);font-weight:700;">Assign Class Subjects</a> to add subjects to classes first.</p>
+      </div>`;
+    return;
+  }
+
+  // Build accordion: one section per class
+  listEl.innerHTML = assignableClasses.map((cls, i) => {
+    const subs = _assignClassSubMap[cls.id] || [];
+    const assignedCount = subs.filter(s => _assignPending.has(cls.id + '::' + s.id)).length;
+    const isFormMaster = cls.teacher_id === teacherId;
+    return `
+      <div style="border-bottom:1px solid var(--border);">
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 20px;cursor:pointer;user-select:none;background:var(--surface-2);"
+             onclick="toggleAssignClass('acc-${cls.id}')">
+          <span style="flex:1;font-size:14px;font-weight:700;color:var(--ink);">
+            ${escHtml(cls.name)}
+            ${isFormMaster ? '<span style="font-size:11px;background:var(--primary-light);color:var(--primary);border-radius:100px;padding:2px 8px;margin-left:6px;font-weight:700;">Form Master</span>' : ''}
+          </span>
+          <span id="badge-${cls.id}" style="font-size:12px;font-weight:700;color:${assignedCount>0?'var(--primary)':'var(--ink-4)'};">
+            ${assignedCount} / ${subs.length} subject${subs.length!==1?'s':''}
+          </span>
+          <span style="color:var(--ink-3);">&#9660;</span>
+        </div>
+        <div id="acc-${cls.id}" style="display:${i===0?'block':'none'};padding:12px 20px 16px;background:var(--surface);">
+          <div style="display:flex;gap:6px;margin-bottom:10px;">
+            <button class="btn btn--secondary btn--sm" onclick="assignAllInClass('${cls.id}')">Select All</button>
+            <button class="btn btn--ghost btn--sm" onclick="clearClassAssign('${cls.id}')">Clear</button>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;">
+            ${subs.map(sub => {
+              const key = cls.id + '::' + sub.id;
+              const checked = _assignPending.has(key);
+              return `
+                <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius-sm);border:1.5px solid ${checked?'var(--primary)':'var(--border)'};background:${checked?'var(--primary-light)':'white'};cursor:pointer;font-size:13px;font-weight:600;transition:all .15s;"
+                       id="lbl-${cls.id}-${sub.id}">
+                  <input type="checkbox" name="assign" value="${key}"
+                    ${checked ? 'checked' : ''}
+                    style="accent-color:var(--primary);"
+                    onchange="onAssignToggle('${cls.id}','${sub.id}',this.checked)">
+                  ${escHtml(sub.name)}
+                  ${sub.code ? '<span style="font-size:10px;color:var(--ink-4);margin-left:2px;">('+escHtml(sub.code)+')</span>' : ''}
+                </label>`;
             }).join('')}
           </div>
-        </div>`).join('')}
-    </div>`;
-  openModal('assignModal');
+        </div>
+      </div>`;
+  }).join('');
+
+  updateAssignSummary();
+}
+
+function toggleAssignClass(accId) {
+  const el = document.getElementById(accId);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function onAssignToggle(classId, subjectId, checked) {
+  const key = classId + '::' + subjectId;
+  if (checked) _assignPending.add(key); else _assignPending.delete(key);
+  // Update label style
+  const lbl = document.getElementById('lbl-' + classId + '-' + subjectId);
+  if (lbl) {
+    lbl.style.borderColor = checked ? 'var(--primary)' : 'var(--border)';
+    lbl.style.background  = checked ? 'var(--primary-light)' : 'white';
+  }
+  // Update class badge count
+  const subs = _assignClassSubMap[classId] || [];
+  const count = subs.filter(s => _assignPending.has(classId + '::' + s.id)).length;
+  const badge = document.getElementById('badge-' + classId);
+  if (badge) {
+    badge.textContent = count + ' / ' + subs.length + ' subject' + (subs.length!==1?'s':'');
+    badge.style.color = count > 0 ? 'var(--primary)' : 'var(--ink-4)';
+  }
+  updateAssignSummary();
+}
+
+function assignAllInClass(classId) {
+  (_assignClassSubMap[classId] || []).forEach(sub => {
+    const key = classId + '::' + sub.id;
+    _assignPending.add(key);
+    const cb  = document.querySelector(`input[name="assign"][value="${key}"]`);
+    if (cb) cb.checked = true;
+    const lbl = document.getElementById('lbl-' + classId + '-' + sub.id);
+    if (lbl) { lbl.style.borderColor='var(--primary)'; lbl.style.background='var(--primary-light)'; }
+  });
+  const subs = _assignClassSubMap[classId] || [];
+  const badge = document.getElementById('badge-' + classId);
+  if (badge) { badge.textContent = subs.length + ' / ' + subs.length + ' subjects'; badge.style.color='var(--primary)'; }
+  updateAssignSummary();
+}
+
+function clearClassAssign(classId) {
+  (_assignClassSubMap[classId] || []).forEach(sub => {
+    const key = classId + '::' + sub.id;
+    _assignPending.delete(key);
+    const cb  = document.querySelector(`input[name="assign"][value="${key}"]`);
+    if (cb) cb.checked = false;
+    const lbl = document.getElementById('lbl-' + classId + '-' + sub.id);
+    if (lbl) { lbl.style.borderColor='var(--border)'; lbl.style.background='white'; }
+  });
+  const badge = document.getElementById('badge-' + classId);
+  if (badge) { badge.textContent = '0 / ' + (_assignClassSubMap[classId]||[]).length + ' subjects'; badge.style.color='var(--ink-4)'; }
+  updateAssignSummary();
+}
+
+function updateAssignSummary() {
+  const total = _assignPending.size;
+  const el = document.getElementById('assignSummary');
+  if (el) el.textContent = total + ' subject assignment' + (total!==1?'s':'') + ' selected';
 }
 
 async function saveAssignments() {
   const teacherId = document.getElementById('assignTeacherId').value;
-  const checked   = [...document.querySelectorAll('input[name="assign"]:checked')].map(c=>c.value);
-  const unchecked = [...document.querySelectorAll('input[name="assign"]:not(:checked)')].map(c=>c.value);
+  if (!currentTerm) return;
+  const errEl = document.getElementById('assignError');
+  errEl.style.display = 'none';
   const btn = document.getElementById('saveAssignBtn');
-  btn.disabled=true; btn.textContent='Saving…';
+  btn.disabled = true; btn.textContent = 'Saving…';
+
   try {
-    if (unchecked.length) {
-      const ucCls = [...new Set(unchecked.map(v=>v.split('::')[0]))];
-      const ucSub = [...new Set(unchecked.map(v=>v.split('::')[1]))];
-      const { error } = await db.from('class_subjects').delete().eq('teacher_id',teacherId).eq('term_id',currentTerm.id).in('class_id',ucCls).in('subject_id',ucSub);
+    // Keys to ADD (in pending but not in existing)
+    const toAdd = [..._assignPending].filter(k => !_assignExisting.has(k));
+    // Keys to REMOVE (in existing but not in pending)
+    const toRemove = [..._assignExisting].filter(k => !_assignPending.has(k));
+
+    // Delete removed assignments
+    for (const key of toRemove) {
+      const [class_id, subject_id] = key.split('::');
+      const { error } = await db.from('class_subjects')
+        .delete()
+        .eq('school_id', currentUser.school_id)
+        .eq('teacher_id', teacherId)
+        .eq('term_id', currentTerm.id)
+        .eq('class_id', class_id)
+        .eq('subject_id', subject_id);
       if (error) throw error;
     }
-    if (checked.length) {
-      const rows = checked.map(v=>{ const [class_id,subject_id]=v.split('::'); return {school_id:currentUser.school_id,class_id,subject_id,teacher_id:teacherId,term_id:currentTerm.id}; });
-      const { error } = await db.from('class_subjects').upsert(rows,{onConflict:'class_id,subject_id,teacher_id,term_id'});
+
+    // Insert new assignments
+    if (toAdd.length) {
+      const rows = toAdd.map(key => {
+        const [class_id, subject_id] = key.split('::');
+        return { school_id: currentUser.school_id, class_id, subject_id, teacher_id: teacherId, term_id: currentTerm.id };
+      });
+      const { error } = await db.from('class_subjects')
+        .upsert(rows, { onConflict: 'class_id,subject_id,teacher_id,term_id' });
       if (error) throw error;
     }
-    toast(`Assignments saved! ${checked.length} subject(s) assigned.`,'success');
+
+    // Update summary badge on staff table row
+    _assignExisting = new Set(_assignPending);
+    toast('Subject assignments saved — ' + _assignPending.size + ' total assigned.', 'success');
     closeModal('assignModal');
-  } catch(err) {
-    document.getElementById('assignError').textContent=err.message;
-    document.getElementById('assignError').style.display='block';
-  } finally { btn.disabled=false; btn.textContent='Save Assignments'; }
+    // Refresh teacher subject count badges in table
+    await refreshTeacherSubjectCounts();
+  } catch (err) {
+    errEl.textContent = err.message; errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Save Assignments';
+  }
+}
+
+// Refresh subject count badges in the staff table after saving
+async function refreshTeacherSubjectCounts() {
+  if (!currentTerm) return;
+  const { data } = await db.from('class_subjects')
+    .select('teacher_id')
+    .eq('school_id', currentUser.school_id)
+    .eq('term_id', currentTerm.id)
+    .not('teacher_id', 'is', null);
+  const counts = {};
+  (data || []).forEach(r => { counts[r.teacher_id] = (counts[r.teacher_id] || 0) + 1; });
+  document.querySelectorAll('[data-subject-count]').forEach(el => {
+    const tid = el.dataset.teacherId;
+    const n = counts[tid] || 0;
+    el.textContent = n + ' subject' + (n !== 1 ? 's' : '');
+    el.style.color = n > 0 ? 'var(--primary)' : 'var(--ink-4)';
+  });
 }
 
 // ══════════════════════════════════════════════════════
