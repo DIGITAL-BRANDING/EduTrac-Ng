@@ -222,6 +222,7 @@ function renderPage() {
     '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">' +
     '<button class="btn btn--primary" onclick="showApplications()">Pending Applications (' + pendingApplications.length + ')</button>' +
     '<button class="btn btn--secondary" onclick="showStudentDirectory()">Student Directory</button>' +
+    '<button class="btn btn--secondary" onclick="openHistory()">&#128203; Application History</button>' +
     '</div>' +
     '<div id="admissionWorkspace"></div>';
   showApplications();
@@ -277,18 +278,140 @@ function viewApplication(id) {
 function openApproveApplication(id) {
   const a = pendingApplications.find(x => x.id === id);
   if (!a) return;
-  openAdd();
-  document.getElementById('modalTitle').textContent = 'Approve Student Application';
-  document.getElementById('sName').value = a.full_name || '';
-  document.getElementById('sGender').value = a.gender || '';
-  document.getElementById('sDob').value = a.date_of_birth || '';
-  document.getElementById('sParentName').value = a.parent_name || '';
-  document.getElementById('sParentPhone').value = a.parent_phone || '';
-  document.getElementById('sAddress').value = a.address || '';
-  document.getElementById('sClass').value = a.intended_class_id || '';
-  document.getElementById('sErr').dataset.applicationId = a.id;
-  if (a.intended_class_id) pickClass();
-  goStep(3);
+  // populate approval modal
+  document.getElementById('appName').textContent    = a.full_name || '';
+  document.getElementById('appRef').textContent     = a.ref_id || '';
+  document.getElementById('appGender').textContent  = a.gender === 'M' ? 'Male' : a.gender === 'F' ? 'Female' : '—';
+  document.getElementById('appDob').textContent     = a.date_of_birth || '—';
+  document.getElementById('appParent').textContent  = (a.parent_name || '—') + ' · ' + (a.parent_phone || '');
+  document.getElementById('appClass').textContent   = a.classes?.name || 'Not specified';
+  document.getElementById('appApproveId').value     = a.id;
+  // pre-select intended class
+  const cls = document.getElementById('appClassSelect');
+  cls.innerHTML = '<option value="">— Assign class —</option>' +
+    classes.map(x => '<option value="'+x.id+'"'+(x.id===a.intended_class_id?' selected':'')+'>'+escapeText(x.name)+'</option>').join('');
+  // reset section picker
+  selApproveCombo = null;
+  renderApproveComboSection(a.intended_class_id);
+  // clear admission number (will auto-generate on approve)
+  document.getElementById('appAdmNo').value = '';
+  document.getElementById('appErr').style.display = 'none';
+  document.getElementById('appErr').textContent = '';
+  openModal('approveModal');
+}
+
+function renderApproveComboSection(classId) {
+  const wrap = document.getElementById('approveComboSection');
+  if (!classId || !combos.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  document.getElementById('approveComboList').innerHTML =
+    '<div class="combo-opt" onclick="selApproveCombo=null;document.querySelectorAll('#approveComboList .combo-opt').forEach(e=>e.classList.remove('selected'));this.classList.add('selected');" style="border:2px solid var(--border);border-radius:var(--radius);padding:10px;cursor:pointer;text-align:center;">' +
+    '<div style="font-weight:700;font-size:13px;">No Section</div></div>' +
+    combos.map(x =>
+      '<div onclick="selApproveCombo=''+x.id+'';document.querySelectorAll('#approveComboList .combo-opt').forEach(e=>e.classList.remove('selected'));this.classList.add('selected');" ' +
+      'class="combo-opt" style="border:2px solid var(--border);border-radius:var(--radius);padding:10px;cursor:pointer;text-align:center;">' +
+      '<div style="font-weight:700;font-size:13px;color:'+(x.color||'var(--primary)')+';">'+escapeText(x.name)+'</div>' +
+      '<div style="font-size:11px;color:var(--ink-3);">'+(comboSubMap[x.id]||[]).length+' subjects</div></div>'
+    ).join('');
+}
+
+async function approveApplication() {
+  const appId = document.getElementById('appApproveId').value;
+  const a = pendingApplications.find(x => x.id === appId);
+  if (!a) return;
+  const errEl = document.getElementById('appErr');
+  errEl.style.display = 'none';
+  const classId = document.getElementById('appClassSelect').value;
+  const manualAdmNo = document.getElementById('appAdmNo').value.trim();
+
+  const btn = document.getElementById('approveBtn');
+  btn.disabled = true; btn.textContent = 'Approving…';
+
+  try {
+    // ── Auto-generate admission number ──────────────────────────
+    let admNo = manualAdmNo;
+    if (!admNo) {
+      admNo = await generateAdmissionNumber(classId, selApproveCombo);
+    }
+
+    // ── Create student record ───────────────────────────────────
+    const payload = {
+      school_id: user.school_id,
+      full_name: a.full_name,
+      admission_no: admNo,
+      gender: a.gender || null,
+      date_of_birth: a.date_of_birth || null,
+      parent_name: a.parent_name || null,
+      parent_phone: a.parent_phone || null,
+      address: a.address || null,
+      blood_group: a.blood_group || null,
+      combination_id: selApproveCombo || null,
+      is_active: true,
+    };
+    const { data: ns, error: insErr } = await db.from('students').insert(payload).select().single();
+    if (insErr) throw insErr;
+    const sid = ns.id;
+
+    // ── Enroll in class ─────────────────────────────────────────
+    if (classId && term) {
+      await db.from('enrollments').upsert(
+        { school_id: user.school_id, student_id: sid, class_id: classId, term_id: term.id },
+        { onConflict: 'student_id,term_id' }
+      );
+    }
+
+    // ── Update application record ───────────────────────────────
+    const { error: updErr } = await db.from('student_applications').update({
+      status: 'approved',
+      reviewed_at: new Date().toISOString(),
+      reviewed_by: user.id,
+      student_id: sid,
+      admission_number: admNo,
+    }).eq('id', appId);
+    if (updErr) console.error('[Admission] Application update failed:', updErr.message);
+
+    toast('Student admitted successfully! Adm No: ' + admNo, 'success');
+    closeModal('approveModal');
+    await loadStudents();
+    await loadApplications();
+    renderPage();
+  } catch (err) {
+    errEl.textContent = err.message; errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Approve & Admit';
+  }
+}
+
+async function generateAdmissionNumber(classId, comboId) {
+  // Build prefix: SCHOOL_ABBREV/YY/CLASS_ABBREV/SECTION_ABBREV
+  const school = user.schools || {};
+  const schoolName = school.name || '';
+  // Abbreviate: take first letter of each word (max 4 words, skip short words)
+  const abbrev = schoolName.split(/\s+/).filter(w => w.length > 2).map(w => w[0].toUpperCase()).join('').slice(0, 5);
+  const year = String(new Date().getFullYear()).slice(2); // "25"
+  // Class abbreviation
+  let classAbbr = '';
+  if (classId) {
+    const cls = classes.find(x => x.id === classId);
+    if (cls) classAbbr = cls.name.replace(/[^A-Za-z0-9]/g, '').slice(0, 4).toUpperCase();
+  }
+  // Section/combo abbreviation
+  let comboAbbr = '';
+  if (comboId) {
+    const combo = combos.find(x => x.id === comboId);
+    if (combo) comboAbbr = combo.name.replace(/[^A-Za-z0-9]/g, '').slice(0, 4).toUpperCase();
+  }
+  // Build prefix parts (only non-empty)
+  const parts = [abbrev, year, classAbbr, comboAbbr].filter(Boolean);
+  const prefix = parts.join('/');
+  // Count existing admission numbers that start with this prefix to get next serial
+  const { data: existing } = await db.from('students')
+    .select('admission_no')
+    .eq('school_id', user.school_id)
+    .like('admission_no', prefix + '/%');
+  const count = (existing || []).length;
+  const serial = String(count + 1).padStart(4, '0');
+  return prefix + '/' + serial;
 }
 
 function escapeText(value) {
@@ -605,15 +728,13 @@ async function saveStudent() {
 
     const applicationId = errEl.dataset.applicationId;
     if (applicationId && !id) {
-      const admNo = document.getElementById('sAdmNo').value.trim() || null;
-      const { error: appErr } = await db.from('student_applications').update({
+      await db.from('student_applications').update({
         status: 'approved',
         reviewed_at: new Date().toISOString(),
         reviewed_by: user.id,
         student_id: sid,
-        admission_number: admNo,
+        admission_number: document.getElementById('sAdmNo').value.trim() || null,
       }).eq('id', applicationId);
-      if (appErr) console.error('[Admission] Failed to update application status:', appErr.message);
       delete errEl.dataset.applicationId;
       await loadApplications();
     }
@@ -627,6 +748,68 @@ async function saveStudent() {
   } finally {
     btn.disabled = false; btn.innerHTML = '<span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Admit Student';
   }
+}
+
+let selApproveCombo = null;
+let allHistory = [];
+
+async function rejectApplicationPrompt() {
+  const appId = document.getElementById('appApproveId').value;
+  const reason = prompt('Reason for rejection (optional):');
+  if (reason === null) return; // cancelled
+  const { error } = await db.from('student_applications').update({
+    status: 'rejected',
+    reviewed_at: new Date().toISOString(),
+    reviewed_by: user.id,
+    rejection_reason: reason || null,
+  }).eq('id', appId);
+  if (error) { alert('Error: ' + error.message); return; }
+  toast('Application rejected.', 'error');
+  closeModal('approveModal');
+  await loadApplications();
+  renderPage();
+}
+
+async function openHistory() {
+  openModal('historyModal');
+  document.getElementById('historyList').innerHTML = '<div style="text-align:center;padding:24px;color:var(--ink-3)">Loading…</div>';
+  const { data, error } = await db.from('student_applications')
+    .select('ref_id,full_name,status,submitted_at,reviewed_at,parent_name,parent_phone,admission_number,rejection_reason,schools(name),classes:intended_class_id(name)')
+    .eq('school_id', user.school_id)
+    .order('submitted_at', { ascending: false })
+    .limit(200);
+  if (error) { document.getElementById('historyList').innerHTML = '<p style="color:red">'+error.message+'</p>'; return; }
+  allHistory = data || [];
+  filterHistory();
+}
+
+function filterHistory() {
+  const q = (document.getElementById('histSearch')?.value||'').toLowerCase();
+  const st = document.getElementById('histStatus')?.value||'';
+  const list = allHistory.filter(a => {
+    if (st && a.status !== st) return false;
+    if (q && !(a.full_name||'').toLowerCase().includes(q) &&
+              !(a.ref_id||'').toLowerCase().includes(q) &&
+              !(a.parent_phone||'').includes(q) &&
+              !(a.parent_name||'').toLowerCase().includes(q) &&
+              !(a.admission_number||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+  const el = document.getElementById('historyList');
+  if (!list.length) { el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--ink-3)">No applications found.</div>'; return; }
+  const statusColor = { pending:'#92400e', approved:'#14532d', rejected:'#991b1b', enrolled:'#14532d' };
+  const statusBg    = { pending:'#fef3c7', approved:'#dcfce7', rejected:'#fee2e2', enrolled:'#dcfce7' };
+  el.innerHTML = '<table><thead><tr><th>Applicant</th><th>Ref</th><th>Status</th><th>Adm No</th><th>Guardian</th><th>Submitted</th></tr></thead><tbody>' +
+    list.map(a => '<tr>' +
+      '<td><strong>'+escapeText(a.full_name||'—')+'</strong><div style="font-size:11px;color:var(--ink-3);">'+escapeText(a.classes?.name||'—')+'</div></td>' +
+      '<td><span style="font-family:monospace;font-size:12px;">'+escapeText(a.ref_id||'—')+'</span></td>' +
+      '<td><span style="background:'+statusBg[a.status]||'#f1f5f9'+';color:'+statusColor[a.status]||'#475569'+';padding:2px 8px;border-radius:100px;font-size:11px;font-weight:800;text-transform:uppercase;">'+escapeText(a.status)+'</span>' +
+        (a.rejection_reason?'<div style="font-size:11px;color:#dc2626;margin-top:2px;">'+escapeText(a.rejection_reason)+'</div>':'')+'</td>' +
+      '<td><span style="font-family:monospace;font-size:12px;">'+(a.admission_number?escapeText(a.admission_number):'—')+'</span></td>' +
+      '<td>'+escapeText(a.parent_name||'—')+'<div style="font-size:11px;color:var(--ink-3);">'+escapeText(a.parent_phone||'')+'</div></td>' +
+      '<td style="font-size:12px;color:var(--ink-3);">'+formatDate(a.submitted_at)+'</td>' +
+    '</tr>').join('') +
+    '</tbody></table>';
 }
 
 async function editStudent(id) {
@@ -661,5 +844,76 @@ async function toggleActive(id, current) {
 </script>
 
 <script src="../../js/ai-assistant.js" defer></script>
+
+<!-- ══ APPROVE APPLICATION MODAL ══ -->
+<div class="modal" id="approveModal">
+  <div class="modal__box" style="max-width:560px;">
+    <div class="modal__header">
+      <h2 class="modal__title">&#10003; Approve Student Application</h2>
+      <button class="modal__close" onclick="closeModal('approveModal')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal__body">
+      <input type="hidden" id="appApproveId">
+      <!-- Applicant summary -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:18px;">
+        <div style="font-size:18px;font-weight:900;color:var(--ink-1);" id="appName">—</div>
+        <div style="font-size:12px;color:var(--ink-3);margin-top:2px;">Ref: <strong id="appRef">—</strong></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;font-size:13px;">
+          <div><span style="color:var(--ink-3)">Gender:</span> <strong id="appGender">—</strong></div>
+          <div><span style="color:var(--ink-3)">DOB:</span> <strong id="appDob">—</strong></div>
+          <div style="grid-column:1/-1"><span style="color:var(--ink-3)">Guardian:</span> <strong id="appParent">—</strong></div>
+          <div style="grid-column:1/-1"><span style="color:var(--ink-3)">Requested Class:</span> <strong id="appClass">—</strong></div>
+        </div>
+      </div>
+      <!-- Class assignment -->
+      <div class="form-group">
+        <label class="form-label">Assign Class <span class="required">*</span></label>
+        <select id="appClassSelect" class="form-control" onchange="renderApproveComboSection(this.value)">
+          <option value="">— Select class —</option>
+        </select>
+      </div>
+      <!-- Section / Combination -->
+      <div id="approveComboSection" style="display:none;margin-bottom:14px;">
+        <label class="form-label">Subject Section / Combination</label>
+        <div id="approveComboList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-top:8px;"></div>
+      </div>
+      <!-- Admission number (auto if blank) -->
+      <div class="form-group">
+        <label class="form-label">Admission Number <span style="color:var(--ink-3);font-weight:400">(auto-generated if blank)</span></label>
+        <input type="text" id="appAdmNo" class="form-control" placeholder="e.g. KCT/25/ND/ICT/0011">
+        <div class="form-hint">Format: SCHOOL/YY/CLASS/SECTION/SERIAL — generated from school name + session + class + section.</div>
+      </div>
+      <div id="appErr" class="form-error" style="display:none;"></div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--secondary" onclick="rejectApplicationPrompt()">&#10007; Reject</button>
+      <button class="btn btn--secondary" onclick="closeModal('approveModal')">Cancel</button>
+      <button class="btn btn--primary" id="approveBtn" onclick="approveApplication()">&#10003; Approve &amp; Admit</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ APPLICATION HISTORY MODAL ══ -->
+<div class="modal" id="historyModal">
+  <div class="modal__box" style="max-width:760px;">
+    <div class="modal__header">
+      <h2 class="modal__title">&#128203; Application History</h2>
+      <button class="modal__close" onclick="closeModal('historyModal')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal__body">
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+        <input type="text" id="histSearch" class="form-control" placeholder="Search name, ref, phone…" oninput="filterHistory()" style="flex:1;min-width:200px;">
+        <select id="histStatus" class="form-control" onchange="filterHistory()" style="max-width:140px;">
+          <option value="">All Status</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
+      <div id="historyList" style="max-height:420px;overflow-y:auto;"></div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
