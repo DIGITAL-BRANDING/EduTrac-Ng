@@ -181,12 +181,17 @@ let curStep = 1, selCombo = null;
     `<button class="btn btn--primary" onclick="openAdd()"><span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span> Admit Student</button>`;
 
   const ctx = await loadSchoolContext(user.school_id);
-  term = ctx.term; classes = ctx.classes; combos = ctx.combos || [];
+  term = ctx.term; classes = ctx.classes;
+
+  // loadSchoolContext doesn't include combos — fetch separately
+  const { data: combosData } = await db.from('subject_combinations')
+    .select('id,name,color').eq('school_id', user.school_id);
+  combos = combosData || [];
 
   if (combos.length) {
     const { data: cs } = await db.from('combination_subjects')
       .select('combination_id,subjects(id,name,code),is_compulsory')
-      .in('combination_id', combos.map(c => c.id));
+      .in('combination_id', combos.map(x => x.id));
     (cs || []).forEach(r => {
       if (!comboSubMap[r.combination_id]) comboSubMap[r.combination_id] = [];
       comboSubMap[r.combination_id].push(r.subjects);
@@ -369,11 +374,23 @@ async function approveApplication() {
     const sid = ns.id;
 
     // ── Enroll in class ─────────────────────────────────────────
-    if (classId && term) {
-      await db.from('enrollments').upsert(
-        { school_id: user.school_id, student_id: sid, class_id: classId, term_id: term.id },
-        { onConflict: 'student_id,term_id' }
-      );
+    if (classId) {
+      if (!term) {
+        // No current term set — enroll without term_id using insert
+        const { error: enrErr } = await db.from('enrollments').insert(
+          { school_id: user.school_id, student_id: sid, class_id: classId }
+        );
+        if (enrErr && !enrErr.message.includes('duplicate')) throw new Error('Enrollment failed: ' + enrErr.message);
+      } else {
+        const { error: enrErr } = await db.from('enrollments').upsert(
+          { school_id: user.school_id, student_id: sid, class_id: classId, term_id: term.id },
+          { onConflict: 'student_id,class_id,term_id' }
+        );
+        if (enrErr) throw new Error('Enrollment failed: ' + enrErr.message);
+      }
+    } else {
+      // No class selected — still admit but warn
+      console.warn('[Admission] No class selected; student admitted without enrollment.');
     }
 
     // ── Update application record ───────────────────────────────
