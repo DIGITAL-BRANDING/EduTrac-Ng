@@ -443,15 +443,24 @@ async function checkResult() {
     // Load results, grading, affective
     // Note: enrollment/class info already returned by RPC in useResult.class_name
     const studentId = student.id;
-    const [{ data: results }, { data: grading }, { data: affective }] = await Promise.all([
+    const [{ data: results }, { data: grading }, { data: affective }, { data: _subjects }] = await Promise.all([
       db.from('results')
         .select('score,subject_id,exam_id,subjects(id,name,code),exams(id,name,max_score,weight)')
         .eq('student_id', studentId).eq('term_id', termId),
       db.from('grading_scales')
         .select('*').eq('school_id', currentSchoolId).order('min_score', { ascending: false }),
       db.from('affective_domain')
-        .select('*').eq('student_id', studentId).eq('term_id', termId).maybeSingle()
+        .select('*').eq('student_id', studentId).eq('term_id', termId).maybeSingle(),
+      // Fetch subjects directly — RLS on subjects table can block embedded join for anon/parent
+      db.from('subjects').select('id,name,code').eq('school_id', currentSchoolId),
     ]);
+    // Patch null subjects in results using direct fetch
+    const _subjectLookup = {};
+    (_subjects || []).forEach(s => { _subjectLookup[s.id] = s; });
+    (results || []).forEach(r => {
+      if (!r.subjects && _subjectLookup[r.subject_id]) r.subjects = _subjectLookup[r.subject_id];
+      if (!r.exams) r.exams = { id: r.exam_id, name: 'Score', max_score: 100, weight: 1 };
+    });
 
     const summary   = buildTermSummary(results || [], grading || []);
     const className = useResult.class_name || '—';
