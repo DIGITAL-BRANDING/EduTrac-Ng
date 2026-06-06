@@ -191,7 +191,7 @@
         <div style="margin-top:10px;padding:14px 15px;border-radius:var(--radius-sm);background:linear-gradient(135deg,#052e16,#14532d);border:1px solid rgba(74,222,128,.2);display:flex;align-items:center;justify-content:space-between;gap:10px;">
           <div>
             <div style="font-size:13px;font-weight:800;color:#4ade80;margin-bottom:2px;">📝 New Student?</div>
-            <p style="font-size:11px;color:rgba(255,255,255,.55);line-height:1.5;margin:0;">Apply online using your school-issued scratch card PIN.</p>
+            <p style="font-size:11px;color:rgba(255,255,255,.55);line-height:1.5;margin:0;">Register with your school-issued scratch card PIN.</p>
           </div>
           <button type="button" onclick="window.location.href='student-application.html'" style="flex-shrink:0;padding:9px 15px;border-radius:8px;background:#16a34a;color:white;font-size:12px;font-weight:800;border:none;cursor:pointer;white-space:nowrap;transition:background .15s;" onmouseover="this.style.background='#15803d'" onmouseout="this.style.background='#16a34a'">Apply Now →</button>
         </div>
@@ -300,11 +300,20 @@
             <select id="regSchool" class="form-ctrl"><option value="">Loading schools…</option></select>
           </div>
           <div class="form-grp">
-            <label class="form-lbl">Scratch Card PIN <span class="req">*</span></label>
-            <input type="text" id="regPin" class="form-ctrl" placeholder="Enter 10-digit PIN" maxlength="12" style="font-family:monospace;font-size:18px;letter-spacing:4px;text-align:center;" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-            <div style="font-size:11px;color:var(--T3);margin-top:4px;">You must have a school-issued scratch card to register.</div>
+            <label class="form-lbl">Serial Number <span class="req">*</span></label>
+            <input type="text" id="regSerial" class="form-ctrl" placeholder="e.g. ETN12345670001" maxlength="20"
+              style="font-family:monospace;font-size:14px;letter-spacing:2px;text-transform:uppercase;"
+              oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')">
+            <div style="font-size:11px;color:var(--T3);margin-top:4px;">Found on the top of your scratch card (e.g. ETN12345670001)</div>
           </div>
-          <button type="button" class="btn-sign-in" onclick="verifyRegPin()">Verify PIN →</button>
+          <div class="form-grp">
+            <label class="form-lbl">Scratch Card PIN <span class="req">*</span></label>
+            <input type="text" id="regPin" class="form-ctrl" placeholder="Enter 12-digit PIN" maxlength="12"
+              style="font-family:monospace;font-size:18px;letter-spacing:4px;text-align:center;"
+              oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+            <div style="font-size:11px;color:var(--T3);margin-top:4px;">Scratch the silver panel to reveal your PIN.</div>
+          </div>
+          <button type="button" class="btn-sign-in" onclick="verifyRegPin()">Verify Serial & PIN →</button>
         </div>
 
         <div id="regStep2" style="display:none;">
@@ -336,6 +345,7 @@
             <select id="regClass" class="form-ctrl"><option value="">Select class…</option></select>
           </div>
           <input type="hidden" id="regVerifiedPin">
+          <input type="hidden" id="regVerifiedSerial">
           <input type="hidden" id="regSchoolId">
           <button type="button" class="btn-sign-in" style="margin-top:6px;" onclick="submitRegistration()">Complete Registration →</button>
           <button type="button" onclick="document.getElementById('regStep2').style.display='none';document.getElementById('regStep1').style.display='';" style="width:100%;margin-top:8px;padding:10px;border:1.5px solid var(--BD);border-radius:var(--radius-sm);background:white;cursor:pointer;font-size:13px;font-weight:600;color:var(--T3);transition:var(--transition);">← Back</button>
@@ -831,14 +841,17 @@ async function loadRegSchools() {
   } catch(e) { sel.innerHTML = '<option value="">Failed to load schools</option>'; }
 }
 
-// Verify scratch card PIN
+// Verify scratch card Serial Number + PIN
 async function verifyRegPin() {
-  const errEl = document.getElementById('regError');
+  const errEl    = document.getElementById('regError');
   errEl.style.display = 'none';
   const schoolId = document.getElementById('regSchool').value;
-  const pin = document.getElementById('regPin').value.trim();
+  const serial   = document.getElementById('regSerial').value.trim().toUpperCase();
+  const pin      = document.getElementById('regPin').value.trim();
+
   if (!schoolId) { errEl.textContent = 'Please select your school.'; errEl.style.display = 'block'; return; }
-  if (!pin || pin.length < 6) { errEl.textContent = 'Enter a valid scratch card PIN.'; errEl.style.display = 'block'; return; }
+  if (!serial)   { errEl.textContent = 'Please enter your card Serial Number.'; errEl.style.display = 'block'; return; }
+  if (!pin || pin.length < 6) { errEl.textContent = 'Please enter your scratch card PIN (min 6 digits).'; errEl.style.display = 'block'; return; }
 
   const btn = document.querySelector('#regStep1 button[onclick="verifyRegPin()"]');
   if (btn) { btn.disabled = true; btn.textContent = 'Verifying…'; }
@@ -846,58 +859,67 @@ async function verifyRegPin() {
   try {
     let verified = false;
 
-    // ── Primary path: RPC (handles card_type = 'registration') ──────────
+    // ── Primary path: RPC (serial + pin) ─────────────────────────
     try {
       const { data: result, error: rpcErr } = await db.rpc('verify_scratch_pin', {
-        p_pin: pin,
-        p_school_id: schoolId
+        p_school_id: schoolId,
+        p_serial_no: serial,
+        p_pin:       pin,
       });
       if (!rpcErr && result?.valid) verified = true;
-    } catch (_) { /* RPC unavailable — fall through */ }
+      else if (!rpcErr && result?.error) throw new Error(result.error);
+    } catch (rpcEx) {
+      if (rpcEx.message && !rpcEx.message.includes('function')) throw rpcEx;
+      // RPC not updated yet — fall through to direct query
+    }
 
-    // ── Fallback path: direct query for school-admin-generated cards ─────
-    // School admins create cards via admin/scratch-cards.html which may not
-    // set card_type. The RPC filters by card_type='registration' and misses
-    // these cards, returning "scratch card not found". We check directly.
+    // ── Fallback: direct query (for legacy cards / old RPC signature) ─
     if (!verified) {
       const { data: card, error: cardErr } = await db
         .from('scratch_cards')
-        .select('id, is_used, uses_count, max_uses, card_type, expires_at')
+        .select('id,is_used,uses_count,max_uses,card_type,expires_at')
         .eq('school_id', schoolId)
+        .ilike('serial_no', serial)
         .eq('pin', pin)
         .maybeSingle();
 
-      if (cardErr) throw new Error('Unable to verify PIN. Please try again.');
-      if (!card) throw new Error('Scratch card not found. Check the PIN and make sure you selected the correct school.');
+      if (cardErr) throw new Error('Unable to verify. Please try again.');
+      if (!card)   throw new Error('Scratch card not found. Check your Serial Number and PIN, and make sure you selected the correct school.');
 
-      // Validate card state
-      if (card.is_used || (card.uses_count ?? 0) >= (card.max_uses ?? 1)) {
-        throw new Error('This scratch card PIN has already been used. Please request a new card from the school office.');
-      }
-      if (card.expires_at && new Date(card.expires_at) < new Date()) {
-        throw new Error('This scratch card PIN has expired. Please request a new card from the school office.');
-      }
-      // card_type check: accept 'registration', null, or undefined (legacy cards)
-      if (card.card_type && card.card_type !== 'registration') {
-        throw new Error('This card is not a registration card. Please use a registration scratch card.');
-      }
+      if (card.is_used || (card.uses_count ?? 0) >= (card.max_uses ?? 1))
+        throw new Error('This scratch card has already been used. Please request a new card from the school office.');
+      if (card.expires_at && new Date(card.expires_at) < new Date())
+        throw new Error('This scratch card has expired. Please request a new card from the school office.');
+      if (card.card_type && card.card_type !== 'registration')
+        throw new Error('This is not a registration card. Please use a registration scratch card.');
+
       verified = true;
     }
 
-    if (!verified) throw new Error('Invalid PIN. Check your scratch card and try again.');
+    if (!verified) throw new Error('Verification failed. Check your Serial Number and PIN.');
 
+    // Load classes for this school
     const { data: cls } = await db.from('classes').select('id,name').eq('school_id', schoolId).order('name');
     document.getElementById('regClass').innerHTML = '<option value="">Select class…</option>' +
       (cls || []).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-    document.getElementById('regVerifiedPin').value = pin;
-    document.getElementById('regSchoolId').value = schoolId;
+
+    // Carry serial + pin + school forward to step 2
+    document.getElementById('regVerifiedPin').value    = pin;
+    document.getElementById('regVerifiedSerial').value = serial;
+    document.getElementById('regSchoolId').value        = schoolId;
+
     document.getElementById('regStep1').style.display = 'none';
     document.getElementById('regStep2').style.display = '';
+
+    // Update the verified badge
+    const badge = document.querySelector('#regStep2 [style*="e6f4ed"]');
+    if (badge) badge.innerHTML = `<strong>✓ Card Verified</strong> — Serial: <code>${serial}</code> · Now complete your details`;
+
   } catch(e) {
     errEl.textContent = e.message;
     errEl.style.display = 'block';
   } finally {
-    if (btn) { btn.disabled = false; btn.textContent = 'Verify PIN →'; }
+    if (btn) { btn.disabled = false; btn.textContent = 'Verify Serial & PIN →'; }
   }
 }
 
@@ -938,7 +960,8 @@ async function submitRegistration() {
   const parentPhone = document.getElementById('regParentPhone').value.trim();
   const parentName = document.getElementById('regParentName').value.trim();
   const classId = document.getElementById('regClass').value || null;
-  const pin = document.getElementById('regVerifiedPin').value;
+  const pin      = document.getElementById('regVerifiedPin').value;
+  const serial   = document.getElementById('regVerifiedSerial').value;
   const schoolId = document.getElementById('regSchoolId').value;
   const passportFile = document.getElementById('regPassport').files[0];
 
@@ -966,6 +989,7 @@ async function submitRegistration() {
 
     const { data: result, error: rpcErr } = await db.rpc('register_student_public', {
       p_school_id:     schoolId,
+      p_serial_no:     serial,
       p_pin:           pin,
       p_full_name:     name,
       p_admission_no:  admNo,

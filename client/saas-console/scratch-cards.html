@@ -114,11 +114,11 @@ let user, schools = [], selectedSchool = '', generatedPins = [], existingCards =
   user = await initPage(['saas_owner'], 'Scratch Card Generator', 'scratch-cards');
   if (!user) return;
 
-  document.getElementById('topbarActions').innerHTML = `
-    <button class="btn btn--secondary no-print" onclick="window.print()"><span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></span> Print Cards</button>
-  `;
+  document.getElementById('topbarActions').innerHTML =
+    `<button class="btn btn--secondary no-print" onclick="openPermissionManager()">🔐 School Permissions</button>
+     <button class="btn btn--secondary no-print" onclick="window.print()">🖨️ Print Cards</button>`;
 
-  const { data: schoolList } = await db.from('schools').select('id,name,lga,state,logo_url').eq('is_active', true).order('name');
+  const { data: schoolList } = await db.from('schools').select('id,name,lga,state,logo_url,can_self_generate_cards,self_generate_limit').eq('is_active', true).order('name');
   schools = schoolList || [];
 
   renderPage();
@@ -128,7 +128,7 @@ function renderPage() {
   document.getElementById('pageBody').innerHTML = `
     <div class="page-header">
       <h1><span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/><line x1="9" y1="12" x2="15" y2="12"/></svg></span> Scratch Card Generator</h1>
-      <p>Generate 10-digit scratch card PINs for schools</p>
+      <p>Generate 12-digit scratch card PINs with serial numbers for schools</p>
     </div>
 
     <div class="card no-print" style="margin-bottom:24px;">
@@ -229,10 +229,30 @@ async function generatePins() {
 
   if (!schoolId) { toast('Select a school first.', 'error'); return; }
 
-  const pins = generateScratchPins(qty);
-  const rows = pins.map(pin => ({
+  // Generate 12-digit PINs with unique serial numbers
+  const now = Date.now();
+  const usedPins    = new Set();
+  const usedSerials = new Set();
+
+  function gen12DigitPin() {
+    let pin;
+    do { pin = Array.from({length:12}, () => Math.floor(Math.random()*10)).join(''); }
+    while (usedPins.has(pin));
+    usedPins.add(pin);
+    return pin;
+  }
+
+  function genSerial(i) {
+    // Format: ETN-XXXXXX-YYYY  (ETN prefix, timestamp slice, index)
+    const serial = `ETN${String(now).slice(-7)}${String(i+1).padStart(4,'0')}`;
+    usedSerials.add(serial);
+    return serial;
+  }
+
+  const rows = Array.from({length: qty}, (_, i) => ({
     school_id:  schoolId,
-    pin,
+    serial_no:  genSerial(i),
+    pin:        gen12DigitPin(),
     batch_id:   batchLabel,
     card_type:  cardType,
     is_used:    false,
@@ -245,10 +265,8 @@ async function generatePins() {
   if (error) { toast('Error: ' + error.message, 'error'); return; }
 
   generatedPins = data || [];
-  toast(`<span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> ${qty} ${cardType === 'registration' ? 'Registration' : 'Result Checking'} PINs generated!`, 'success');
+  toast(`✓ ${qty} ${cardType === 'registration' ? 'Registration' : 'Result Checking'} cards generated!`, 'success');
 
-  /* loadExistingCards now auto-renders all batches grouped; 
-     but first scroll to the new batch for convenience */
   await loadExistingCards();
 }
 
@@ -318,7 +336,7 @@ function renderCards(cards, schoolId, batchLabel = '') {
           </div>
           <div class="sc-title-bar" style="${isResult ? '' : 'background:#854d0e;'}">${cardTitle}</div>
           <div class="sc-body">
-            <div style="text-align:center;margin-bottom:6px;">${typeBadge}</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">${typeBadge}<span style="font-size:7px;font-weight:800;color:#1a2e6e;letter-spacing:.5px;font-family:monospace;background:#e8edf5;padding:2px 5px;border-radius:3px;border:1px solid #c5d0e0;">S/N: ${card.serial_no||'—'}</span></div>
             <div class="sc-scratch-area"><span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span> SCRATCH TO REVEAL PIN <span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span></div>
             <div class="sc-label">PIN / Access Code</div>
             <div class="sc-pin-box">
@@ -331,7 +349,7 @@ function renderCards(cards, schoolId, batchLabel = '') {
             <div class="sc-instructions">${instructions}</div>
           </div>
           <div class="sc-footer">
-            <span class="sc-batch">${batchLabel || ''}</span>
+            <span class="sc-batch" style="font-family:monospace;font-size:7.5px;color:#444;font-style:normal;font-weight:700;letter-spacing:.3px;">${card.serial_no||batchLabel||''}</span>
             <span class="sc-num">#${String(i + 1).padStart(3,'0')}</span>
           </div>
           <div class="sc-holo"></div>
@@ -409,14 +427,14 @@ async function renderAllCards(schoolId) {
                   <div class="sc-hdr">${logoHtml}<div class="sc-hdr-text"><div class="sc-school">${schoolName}</div><div class="sc-subtitle">${schoolAddr}</div></div></div>
                   <div class="sc-title-bar" style="${isResult ? '' : 'background:#854d0e;'}">${isResult ? 'RESULT CHECKING CARD' : 'REGISTRATION CARD'}</div>
                   <div class="sc-body">
-                    <div style="text-align:center;margin-bottom:6px;">${typeBadge}</div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">${typeBadge}<span style="font-size:7px;font-weight:800;color:#1a2e6e;letter-spacing:.5px;font-family:monospace;background:#e8edf5;padding:2px 5px;border-radius:3px;border:1px solid #c5d0e0;">S/N: ${card.serial_no||'—'}</span></div>
                     <div class="sc-scratch-area">&#9733; SCRATCH TO REVEAL PIN &#9733;</div>
                     <div class="sc-label">PIN / Access Code</div>
                     <div class="sc-pin-box"><div class="sc-pin">${formatPin(card.pin)}</div></div>
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">${dots}${usageLabel}</div>
                     <div class="sc-instructions">${instructions}</div>
                   </div>
-                  <div class="sc-footer"><span class="sc-batch">${batch}</span><span class="sc-num">#${String(i + 1).padStart(3,'0')}</span></div>
+                  <div class="sc-footer"><span class="sc-batch" style="font-family:monospace;font-size:7.5px;color:#444;font-style:normal;font-weight:700;letter-spacing:.3px;">${card.serial_no||batch}</span><span class="sc-num">#${String(i + 1).padStart(3,'0')}</span></div>
                   <div class="sc-holo"></div>
                 </div>`;
             }).join('')}
@@ -425,9 +443,83 @@ async function renderAllCards(schoolId) {
     }).join('')}
   `;
 }
+
+// ── School Self-Generate Permission Management ───────────────
+function openPermissionManager() {
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;';
+  modal.innerHTML = `
+    <div style="background:white;border-radius:12px;padding:0;max-width:620px;width:100%;max-height:80vh;display:flex;flex-direction:column;overflow:hidden;">
+      <div style="padding:20px 24px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <strong style="font-size:16px;">🔐 School Card Generation Permissions</strong>
+          <p style="font-size:13px;color:#666;margin:2px 0 0;">Allow school admins to generate their own scratch cards</p>
+        </div>
+        <button onclick="this.closest('[style*=fixed]').remove()" style="background:none;border:none;font-size:20px;cursor:pointer;">✕</button>
+      </div>
+      <div style="overflow-y:auto;flex:1;">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <thead>
+            <tr style="background:#f9fafb;">
+              <th style="padding:10px 16px;text-align:left;font-weight:700;color:#374151;">School</th>
+              <th style="padding:10px 16px;text-align:center;">Can Generate</th>
+              <th style="padding:10px 16px;text-align:center;">Max per Batch</th>
+              <th style="padding:10px 16px;text-align:center;">Save</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${schools.map(s => `
+            <tr style="border-top:1px solid #f3f4f6;" id="perm-row-${s.id}">
+              <td style="padding:10px 16px;">
+                <div style="font-weight:700;">${s.name}</div>
+                <div style="font-size:11px;color:#9ca3af;">${[s.lga,s.state].filter(Boolean).join(', ')||'Nigeria'}</div>
+              </td>
+              <td style="padding:10px 16px;text-align:center;">
+                <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;">
+                  <input type="checkbox" id="perm-chk-${s.id}" ${s.can_self_generate_cards ? 'checked' : ''}
+                    style="width:16px;height:16px;accent-color:#0a6e3f;cursor:pointer;">
+                </label>
+              </td>
+              <td style="padding:10px 16px;text-align:center;">
+                <input type="number" id="perm-limit-${s.id}" value="${s.self_generate_limit||100}"
+                  min="1" max="500" style="width:70px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;text-align:center;font-size:13px;">
+              </td>
+              <td style="padding:10px 16px;text-align:center;">
+                <button class="btn btn--primary btn--sm" onclick="savePermission('${s.id}')">Save</button>
+              </td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+async function savePermission(schoolId) {
+  const canGenerate = document.getElementById(`perm-chk-${schoolId}`)?.checked;
+  const limit       = parseInt(document.getElementById(`perm-limit-${schoolId}`)?.value) || 100;
+  const { error } = await db.from('schools')
+    .update({ can_self_generate_cards: canGenerate, self_generate_limit: limit })
+    .eq('id', schoolId);
+  if (error) { toast('Failed: ' + error.message, 'error'); return; }
+  // Update local schools array
+  const s = schools.find(s => s.id === schoolId);
+  if (s) { s.can_self_generate_cards = canGenerate; s.self_generate_limit = limit; }
+  toast(`✓ Permission ${canGenerate ? 'granted' : 'revoked'} for ${s?.name}`, 'success');
+}
+
+function formatPin(pin) {
+  if (!pin) return '—';
+  const p = String(pin).replace(/\s|-/g, '');
+  if (p.length === 12) return p.slice(0,4)+'-'+p.slice(4,8)+'-'+p.slice(8);
+  if (p.length === 10) return p.slice(0,4)+'-'+p.slice(4,7)+'-'+p.slice(7);
+  return p.match(/.{1,4}/g)?.join('-') || p;
+}
 </script>
 
 
 <script src="../js/assistant.js"></script>
+
+<script src="/js/pwa-v2.1.js"></script>
 </body>
 </html>

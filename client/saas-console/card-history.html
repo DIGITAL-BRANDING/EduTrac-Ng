@@ -226,9 +226,9 @@ function resendBatch(schoolId, batchName) {
     const usedU = c.uses_count ?? 0;
     const isExpired = c.is_used || usedU >= maxU;
     const status = isExpired ? '[EXPIRED]' : usedU > 0 ? `[IN USE — ${usedU}/${maxU}]` : '[UNUSED]';
-    return `${String(i+1).padStart(3,'0')}. ${formatPin(c.pin)}  ${status}`;
+    return `${String(i+1).padStart(3,'0')}. Serial: ${c.serial_no||'—'}  PIN: ${formatPin(c.pin)}  ${status}`;
   }).join('\n');
-  const msg = `EduTrack NG — Scratch Card PINs\nSchool: ${school?.name}\nBatch: ${batchName}\nGenerated: ${batchCards.length} cards\n\n${pins}\n\nHow to use:\n1. Visit your school result portal\n2. Enter Admission No. and PIN\n3. Each PIN is valid for 5 checks — one student & term only`;
+  const msg = `EduTrack NG — Scratch Card PINs\nSchool: ${school?.name}\nBatch: ${batchName}\nGenerated: ${batchCards.length} cards\n\n${pins}\n\nHow to use:\n1. Visit your school portal\n2. Enter your Serial Number AND PIN\n3. Both must match for verification`;
   const modal = document.createElement('div');
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;';
   modal.innerHTML = `
@@ -250,7 +250,17 @@ function resendBatch(schoolId, batchName) {
 
 function formatPin(pin) {
   if (!pin) return '—';
-  return pin.length === 10 ? pin.slice(0,4)+' '+pin.slice(4,7)+' '+pin.slice(7) : pin.match(/.{1,4}/g).join(' ');
+  const p = String(pin).replace(/\s/g, '');
+  // 12-digit: XXXX-XXXX-XXXX
+  if (p.length === 12) return p.slice(0,4)+'-'+p.slice(4,8)+'-'+p.slice(8);
+  // 10-digit: XXXX-XXX-XXX
+  if (p.length === 10) return p.slice(0,4)+'-'+p.slice(4,7)+'-'+p.slice(7);
+  // fallback: groups of 4
+  return p.match(/.{1,4}/g)?.join('-') || p;
+}
+
+function formatSerial(serial) {
+  return serial || '—';
 }
 
 function printBatchPins(schoolId, batchName) {
@@ -260,7 +270,7 @@ function printBatchPins(schoolId, batchName) {
     body{font-family:Arial,sans-serif;padding:20mm;font-size:12px;}
     h2{font-size:16px;margin-bottom:4px;}h3{font-size:13px;color:#555;margin-bottom:16px;font-weight:normal;}
     table{width:100%;border-collapse:collapse;}
-    th{background:#1a2e6e;color:white;padding:8px 10px;text-align:left;font-size:11px;}
+    th{background:#0a6e3f;color:white;padding:8px 10px;text-align:left;font-size:11px;}
     td{padding:7px 10px;border-bottom:1px solid #eee;font-size:11px;}
     .used{color:#dc2626;font-weight:700;}.avail{color:#166534;font-weight:700;}.partial{color:#d97706;font-weight:700;}
     @page{margin:15mm;}
@@ -268,7 +278,7 @@ function printBatchPins(schoolId, batchName) {
     <h2>${school?.name} — Scratch Card PINs</h2>
     <h3>Batch: ${batchName} · ${batchCards.length} cards · Printed ${new Date().toLocaleDateString('en-NG')}</h3>
     <table>
-      <thead><tr><th>#</th><th>PIN</th><th>Checks Used</th><th>Status</th><th>Last Used</th></tr></thead>
+      <thead><tr><th>#</th><th>Serial No</th><th>PIN</th><th>Uses</th><th>Status</th><th>Last Used</th></tr></thead>
       <tbody>
         ${batchCards.map((c,i) => {
           const maxU  = c.max_uses   ?? 5;
@@ -279,6 +289,7 @@ function printBatchPins(schoolId, batchName) {
           return `
           <tr>
             <td>${i+1}</td>
+            <td style="font-family:monospace;font-weight:700;">${c.serial_no||'—'}</td>
             <td style="font-family:monospace;font-size:13px;font-weight:700;letter-spacing:2px;">${formatPin(c.pin)}</td>
             <td style="text-align:center;">${usedU} / ${maxU}</td>
             <td class="${statusClass}">${statusLabel}</td>
@@ -287,15 +298,14 @@ function printBatchPins(schoolId, batchName) {
         }).join('')}
       </tbody>
     </table>
-  
-<\/script>
-<script src="../js/assistant.js"></script>
-</body></html>`;
+  </body></html>`;
   const blob = new Blob([html], { type:'text/html' });
   const url  = URL.createObjectURL(blob);
   const w    = window.open(url, '_blank', 'width=900,height=700');
   setTimeout(() => { w?.print(); URL.revokeObjectURL(url); }, 600);
 }
 </script>
+
+<script src="/js/pwa-v2.1.js"></script>
 </body>
 </html>

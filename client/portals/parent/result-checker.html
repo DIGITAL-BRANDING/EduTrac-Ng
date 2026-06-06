@@ -9,115 +9,60 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>EduTrack NG — Result Checker</title>
   <link rel="stylesheet" href="../../assets/css/global.css">
-  <style>
-    @media print { .no-print { display:none!important; } body { background:white; } }
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=EB+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Playfair+Display:wght@400;700;900&family=Nunito:wght@400;600;700;800;900&family=Poppins:wght@400;500;600;700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+  
+<style>
+@media print {
+  .no-print { display:none!important; }
+  .rc-page-header { display:none!important; }
+  .rc-shell { background:white!important; padding:0!important; min-height:unset!important; }
+  body { background:white!important; }
+  .report-card { box-shadow:none!important; }
+  .card-wrap { margin:0!important; }
+  .deco-border { border:3px solid #000!important; }
+}
+/* ── Shell & gate card ── */
+.rc-shell{min-height:100vh;background:var(--ink);background-image:radial-gradient(circle at 20% 80%,#2563eb18 0%,transparent 50%),radial-gradient(circle at 80% 20%,#7c3aed0d 0%,transparent 50%);padding:32px 16px;}
+.rc-header{max-width:460px;margin:0 auto 28px;text-align:center;}
+.rc-header-logo{width:56px;height:56px;border-radius:14px;background:var(--primary);display:inline-flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:14px;overflow:hidden;}
+.rc-header-logo img{width:56px;height:56px;object-fit:cover;border-radius:14px;}
+.rc-header h1{color:white;font-size:22px;font-weight:800;margin-bottom:4px;}
+.rc-header p{color:#9ca3af;font-size:13px;}
+.rc-card{max-width:460px;margin:0 auto;background:white;border-radius:16px;padding:32px;box-shadow:0 20px 60px rgba(0,0,0,.35);}
+.rc-card h2{font-size:18px;font-weight:700;margin-bottom:4px;color:var(--ink);}
+.rc-card p.sub{font-size:13px;color:var(--ink-3);margin-bottom:22px;line-height:1.5;}
+.step{display:none;}.step.active{display:block;}
+.school-search-wrap{position:relative;}
+.school-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:white;border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:100;max-height:220px;overflow-y:auto;display:none;}
+.school-dropdown.open{display:block;}
+.school-option{padding:11px 14px;cursor:pointer;font-size:14px;border-bottom:1px solid var(--border);transition:background .1s;}
+.school-option:last-child{border-bottom:none;}.school-option:hover{background:var(--primary-light);}
+.school-option__name{font-weight:600;color:var(--ink);}.school-option__sub{font-size:11px;color:var(--ink-3);margin-top:2px;}
+.school-badge{display:flex;align-items:center;gap:10px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px 14px;margin-bottom:20px;}
+.school-badge__name{font-weight:700;font-size:14px;color:#166534;}.school-badge__sub{font-size:11px;color:#16a34a;}
+.school-badge__change{font-size:12px;color:var(--primary);cursor:pointer;text-decoration:underline;background:none;border:none;padding:0;margin-left:auto;flex-shrink:0;}
+.pin-display{font-family:var(--mono);font-size:24px;letter-spacing:6px;text-align:center;}
+/* report-card shell */
+.report-card-shell{max-width:820px;margin:0 auto;}
+.card-action-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.usage-banner-ok{background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px 16px;margin-bottom:16px;font-size:13px;color:#166534;}
+.usage-banner-expired{background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#991b1b;}
+</style>
 
-    /* ── Page shell ──────────────────────────────────────── */
-    .rc-shell {
-      min-height: 100vh;
-      background: var(--ink);
-      background-image:
-        radial-gradient(circle at 20% 80%, #2563eb18 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, #7c3aed0d 0%, transparent 50%);
-      padding: 32px 16px;
-    }
-
-    /* ── Header branding ─────────────────────────────────── */
-    .rc-header { max-width: 460px; margin: 0 auto 28px; text-align: center; }
-    .rc-header-logo {
-      width: 56px; height: 56px; border-radius: 14px;
-      background: var(--primary);
-      display: inline-flex; align-items: center; justify-content: center;
-      font-size: 26px; margin-bottom: 14px; overflow: hidden;
-    }
-    .rc-header-logo img { width: 56px; height: 56px; object-fit: cover; border-radius: 14px; }
-    .rc-header h1 { color: white; font-size: 22px; font-weight: 800; margin-bottom: 4px; }
-    .rc-header p  { color: #9ca3af; font-size: 13px; }
-
-    /* ── Card ────────────────────────────────────────────── */
-    .rc-card {
-      max-width: 460px; margin: 0 auto;
-      background: white; border-radius: 16px; padding: 32px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.35);
-    }
-    .rc-card h2    { font-size: 18px; font-weight: 700; margin-bottom: 4px; color: var(--ink); }
-    .rc-card p.sub { font-size: 13px; color: var(--ink-3); margin-bottom: 22px; line-height: 1.5; }
-
-    /* ── Steps ───────────────────────────────────────────── */
-    .step { display: none; }
-    .step.active { display: block; }
-
-    /* ── School search ───────────────────────────────────── */
-    .school-search-wrap { position: relative; }
-    .school-dropdown {
-      position: absolute; top: calc(100% + 4px); left: 0; right: 0;
-      background: white; border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      box-shadow: 0 8px 24px rgba(0,0,0,.12);
-      z-index: 100; max-height: 220px; overflow-y: auto; display: none;
-    }
-    .school-dropdown.open { display: block; }
-    .school-option {
-      padding: 11px 14px; cursor: pointer; font-size: 14px;
-      border-bottom: 1px solid var(--border); transition: background .1s;
-    }
-    .school-option:last-child { border-bottom: none; }
-    .school-option:hover { background: var(--primary-light); }
-    .school-option__name { font-weight: 600; color: var(--ink); }
-    .school-option__sub  { font-size: 11px; color: var(--ink-3); margin-top: 2px; }
-
-    /* ── Confirmed school badge ──────────────────────────── */
-    .school-badge {
-      display: flex; align-items: center; gap: 10px;
-      background: #f0fdf4; border: 1px solid #86efac;
-      border-radius: 8px; padding: 10px 14px; margin-bottom: 20px;
-    }
-    .school-badge__name   { font-weight: 700; font-size: 14px; color: #166534; }
-    .school-badge__sub    { font-size: 11px; color: #16a34a; }
-    .school-badge__change {
-      font-size: 12px; color: var(--primary); cursor: pointer;
-      text-decoration: underline; background: none; border: none;
-      padding: 0; margin-left: auto; flex-shrink: 0;
-    }
-
-    /* ── PIN input ───────────────────────────────────────── */
-    .pin-display {
-      font-family: var(--mono); font-size: 24px;
-      letter-spacing: 6px; text-align: center;
-    }
-
-    /* ── Result card ─────────────────────────────────────── */
-    .result-card { max-width: 740px; margin: 0 auto; }
-    .rc-band {
-      background: var(--ink); color: white;
-      padding: 24px 32px; border-radius: var(--radius) var(--radius) 0 0;
-    }
-    .rc-band h2 { font-size: 20px; font-weight: 800; }
-    .rc-band p  { font-size: 13px; color: #9ca3af; margin-top: 4px; }
-    .rc-body {
-      padding: 24px 32px; background: white;
-      border-radius: 0 0 var(--radius) var(--radius);
-      border: 1px solid var(--border); border-top: none;
-    }
-    .subject-row {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 10px 0; border-bottom: 1px solid var(--border);
-    }
-    .subject-row:last-child { border-bottom: none; }
-    .grade-pill { padding: 3px 10px; border-radius: 100px; font-size: 12px; font-weight: 700; }
-  </style>
 </head>
 <body>
 <div class="rc-shell">
 
   <!-- ── Header ─────────────────────────────────────────── -->
   <div class="rc-header">
-    <div class="rc-header-logo" id="headerLogo"><span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg></span></div>
+    <div class="rc-header-logo" id="headerLogo">
+      <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+    </div>
     <h1 id="headerTitle">EduTrack NG</h1>
     <p id="headerSub">Result Checker Portal</p>
   </div>
 
-  <!-- ── Gate card (Step 1 & 2) ─────────────────────────── -->
+  <!-- ── Gate card (Steps 1–3) ─────────────────────────── -->
   <div class="rc-card" id="gateCard">
 
     <!-- STEP 1: Find your school -->
@@ -140,7 +85,7 @@
     <!-- STEP 2: Select Term -->
     <div class="step" id="stepTerm">
       <div class="school-badge" id="termSchoolBadge">
-        <span id="termBadgeLogo" style="font-size:20px;"><span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg></span></span>
+        <span id="termBadgeLogo" style="font-size:20px;">🏫</span>
         <div style="flex:1;">
           <div class="school-badge__name" id="termBadgeName">—</div>
           <div class="school-badge__sub">Confirmed school</div>
@@ -148,33 +93,30 @@
         <button class="school-badge__change" onclick="changeSchool()">Change</button>
       </div>
       <h2>Select Term</h2>
-      <p class="sub">Choose the academic term you want to check results for. Your scratch card will be locked to this term once used.</p>
+      <p class="sub">Choose the academic term. Your scratch card will be locked to this term once used.</p>
       <div class="form-group">
         <label class="form-label">Academic Term <span class="required">*</span></label>
         <select id="termSelect" class="form-control" style="font-size:15px;font-weight:600;">
           <option value="">— Select a term —</option>
         </select>
-        <div class="form-hint" style="margin-top:6px;"><span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>️ Your scratch card PIN will be locked to this term once used. It cannot be reused for a different term.</div>
+        <div class="form-hint" style="margin-top:6px;">⚠️ PIN is locked to 1 student &amp; 1 term only.</div>
       </div>
       <div id="termErr" class="form-error" style="display:none;margin-bottom:12px;"></div>
       <button class="btn btn--primary btn--full" onclick="goToPin()">Continue →</button>
     </div>
 
-    <!-- STEP 3: Enter admission no + PIN -->
+    <!-- STEP 3: Admission no + PIN -->
     <div class="step" id="stepPin">
-
       <div class="school-badge">
-        <span id="badgeLogo" style="font-size:20px;"><span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg></span></span>
+        <span id="badgeLogo" style="font-size:20px;">🏫</span>
         <div style="flex:1;">
           <div class="school-badge__name" id="badgeName">—</div>
           <div class="school-badge__sub">Confirmed school</div>
         </div>
         <button class="school-badge__change" onclick="changeSchool()">Change</button>
       </div>
-
-      <!-- Selected term badge shown above form -->
       <div id="pinTermBadge" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#e6f4ed;border:1px solid #0a6e3f;border-radius:10px;margin-bottom:16px;">
-        <span style="font-size:16px;"><span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span></span>
+        <span style="font-size:16px;">📅</span>
         <div style="flex:1;">
           <div style="font-size:11px;color:#0a6e3f;font-weight:700;text-transform:uppercase;letter-spacing:.5px;">Checking Results For</div>
           <div id="pinTermBadgeName" style="font-size:14px;font-weight:800;color:#111;"></div>
@@ -182,24 +124,20 @@
         <button onclick="goBackToTerm()" style="font-size:11px;color:#0a6e3f;background:none;border:none;cursor:pointer;font-weight:600;">Change</button>
       </div>
       <h2>Check Results</h2>
-      <p class="sub">Enter the student's admission number and scratch card PIN</p>
-
+      <p class="sub">Enter the student's admission number and scratch card PIN to generate the report card.</p>
       <div class="form-group">
         <label class="form-label">Admission Number <span class="required">*</span></label>
-        <input type="text" id="admNo" class="form-control"
-               placeholder="e.g. ADM/2025/001"
-               style="text-transform:uppercase;">
+        <input type="text" id="admNo" class="form-control" placeholder="e.g. ADM/2025/001" style="text-transform:uppercase;">
       </div>
       <div class="form-group">
         <label class="form-label">Scratch Card PIN <span class="required">*</span></label>
-        <input type="text" id="pinInput" class="form-control pin-display"
-               placeholder="XXXX-XXXX-XX" maxlength="12">
-        <div class="form-hint">Format: XXXX-XXXX-XX (found on your printed scratch card). Card is locked to 1 student &amp; 1 term only.</div>
+        <input type="text" id="pinInput" class="form-control pin-display" placeholder="XXXX-XXXX-XX" maxlength="12">
+        <div class="form-hint">Format: XXXX-XXXX-XX. Card is locked to 1 student &amp; 1 term only.</div>
       </div>
-
       <div id="gateErr" class="form-error" style="display:none;margin-bottom:12px;"></div>
-      <button class="btn btn--primary btn--full" id="checkBtn" onclick="checkResult()"><span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span> Check Result</button>
-
+      <button class="btn btn--primary btn--full" id="checkBtn" onclick="checkResult()">
+        🎓 Generate Report Card
+      </button>
       <div style="margin-top:16px;text-align:center;font-size:12px;color:var(--ink-4);line-height:1.8;">
         Scratch cards are available from your school's admin office.<br>
         Each PIN is valid for <strong>5 checks</strong> for one student &amp; one term only.
@@ -207,13 +145,19 @@
     </div>
   </div>
 
-  <!-- ── Result display ─────────────────────────────────── -->
-  <div id="resultDisplay" style="display:none;max-width:740px;margin:0 auto;">
-    <div class="no-print" style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
-      <button class="btn btn--primary" onclick="window.print()"><span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></span> Print Result</button>
-      <button class="btn btn--secondary" onclick="location.reload()">← Check Another</button>
+  <!-- ── Report Card Display ─────────────────────────────── -->
+  <div id="resultDisplay" style="display:none;">
+    <div class="report-card-shell">
+      <!-- Action bar -->
+      <div class="card-action-bar no-print">
+        <button class="btn btn--primary" onclick="window.print()">🖨 Print Report Card</button>
+        <button class="btn btn--secondary" onclick="location.reload()">← Check Another</button>
+      </div>
+      <!-- Usage banner -->
+      <div id="usageBanner"></div>
+      <!-- Report card content -->
+      <div id="reportCardContent"></div>
     </div>
-    <div class="result-card" id="resultCard"></div>
   </div>
 
 </div>
@@ -222,46 +166,40 @@
 <script src="../../js/config.js"></script>
 <script src="../../api/database.js"></script>
 <script src="../../api/calculations.js"></script>
+<script src="../../js/report-card-engine.js"></script>
 <script>
 let currentSchoolId = null;
 let allSchools      = [];
 let searchTimeout   = null;
-let schoolTerms     = [];   // terms for the selected school
-let selectedTermId  = null; // term chosen before PIN entry
+let schoolTerms     = [];
+let selectedTermId  = null;
 
-// ── Initialise ─────────────────────────────────────────────
+// ── Init ────────────────────────────────────────────────────
 (async () => {
   const schoolId = new URLSearchParams(location.search).get('school');
-
   if (schoolId) {
     const { data: school } = await db.from('schools')
       .select('id,name,logo_url,is_active,state,lga')
       .eq('id', schoolId).maybeSingle();
     if (school && school.is_active) { selectSchool(school); return; }
   }
-
   const { data: schools } = await db.from('schools')
-    .select('id,name,state,lga,logo_url')
-    .eq('is_active', true).order('name');
+    .select('id,name,state,lga,logo_url').eq('is_active', true).order('name');
   allSchools = schools || [];
-
-  // Single-school platform — auto-select
   if (allSchools.length === 1) { selectSchool(allSchools[0]); return; }
-
   showStep('stepSchool');
 })();
 
-// ── School search ───────────────────────────────────────────
+// ── School search ────────────────────────────────────────────
 function searchSchools(q) {
   clearTimeout(searchTimeout);
   const dd = document.getElementById('schoolDropdown');
   if (!q.trim()) { dd.classList.remove('open'); return; }
-
   searchTimeout = setTimeout(() => {
     const matches = allSchools.filter(s =>
       s.name.toLowerCase().includes(q.toLowerCase()) ||
-      (s.state || '').toLowerCase().includes(q.toLowerCase()) ||
-      (s.lga   || '').toLowerCase().includes(q.toLowerCase())
+      (s.state||'').toLowerCase().includes(q.toLowerCase()) ||
+      (s.lga||'').toLowerCase().includes(q.toLowerCase())
     );
     dd.innerHTML = matches.length
       ? matches.map(s => `
@@ -269,7 +207,7 @@ function searchSchools(q) {
             <div class="school-option__name">${s.name}</div>
             <div class="school-option__sub">${[s.state, s.lga].filter(Boolean).join(', ') || 'Location not set'}</div>
           </div>`).join('')
-      : `<div class="school-option" style="color:var(--ink-3);cursor:default;">No schools found matching "<strong>${q}</strong>"</div>`;
+      : `<div class="school-option" style="color:var(--ink-3);cursor:default;">No schools found for "<strong>${q}</strong>"</div>`;
     dd.classList.add('open');
   }, 200);
 }
@@ -282,47 +220,34 @@ function pickSchool(school) {
 
 async function selectSchool(school) {
   currentSchoolId = school.id;
-
-  // Update header
   document.getElementById('headerTitle').textContent = school.name;
-  document.getElementById('headerSub').textContent   = 'Result Checker';
-  document.title = school.name + ' — Result Checker';
+  document.getElementById('headerSub').textContent   = 'Report Card Portal';
+  document.title = school.name + ' — Report Card';
   if (school.logo_url) {
-    document.getElementById('headerLogo').innerHTML =
-      `<img src="${school.logo_url}" onerror="this.parentElement.innerHTML = '<span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg></span>'">`;
-    document.getElementById('badgeLogo').innerHTML =
-      `<img src="${school.logo_url}" style="width:24px;height:24px;border-radius:4px;object-fit:cover;" onerror="this.parentElement.innerHTML = '<span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg></span>'">`;
+    document.getElementById('headerLogo').innerHTML = `<img src="${school.logo_url}" onerror="this.parentElement.innerHTML='🏫'" style="width:56px;height:56px;object-fit:cover;border-radius:14px;">`;
+    document.getElementById('badgeLogo').innerHTML  = `<img src="${school.logo_url}" style="width:24px;height:24px;border-radius:4px;object-fit:cover;" onerror="this.parentElement.innerHTML='🏫'">`;
   }
-  document.getElementById('badgeName').textContent = school.name;
-
-  // Persist in URL
+  document.getElementById('badgeName').textContent    = school.name;
   const url = new URL(location.href);
   url.searchParams.set('school', school.id);
   history.replaceState(null, '', url.toString());
-
-  // Fetch terms for this school, then go to term selection step
   await loadSchoolTerms(school.id, school.name);
 }
 
 async function loadSchoolTerms(schoolId, schoolName) {
-  // Show term step with loading state
   document.getElementById('termBadgeName').textContent = schoolName;
   const termSel = document.getElementById('termSelect');
   termSel.innerHTML = '<option value="">Loading terms…</option>';
   showStep('stepTerm');
-
   const { data: terms } = await db.from('terms')
     .select('id,name,is_current,results_published')
     .eq('school_id', schoolId)
     .order('created_at', { ascending: false });
-
   schoolTerms = terms || [];
   termSel.innerHTML = '<option value="">— Select a term —</option>'
     + schoolTerms.map(t =>
         `<option value="${t.id}" ${t.is_current ? 'selected' : ''}>${t.name}${t.is_current ? ' (Current)' : ''}</option>`
       ).join('');
-
-  // Auto-select current term if available
   const cur = schoolTerms.find(t => t.is_current);
   if (cur) termSel.value = cur.id;
 }
@@ -336,8 +261,7 @@ function goToPin() {
     errEl.style.display = 'block'; return;
   }
   selectedTermId = termSel.value;
-  const termName = termSel.options[termSel.selectedIndex].text;
-  document.getElementById('pinTermBadgeName').textContent = termName;
+  document.getElementById('pinTermBadgeName').textContent = termSel.options[termSel.selectedIndex].text;
   showStep('stepPin');
   setTimeout(() => document.getElementById('admNo')?.focus(), 100);
 }
@@ -351,9 +275,7 @@ function goBackToTerm() {
 }
 
 function changeSchool() {
-  currentSchoolId = null;
-  selectedTermId  = null;
-  schoolTerms     = [];
+  currentSchoolId = null; selectedTermId = null; schoolTerms = [];
   document.getElementById('admNo').value    = '';
   document.getElementById('pinInput').value = '';
   document.getElementById('gateErr').style.display  = 'none';
@@ -369,7 +291,7 @@ document.addEventListener('click', e => {
     document.getElementById('schoolDropdown')?.classList.remove('open');
 });
 
-// ── PIN auto-format ─────────────────────────────────────────
+// ── PIN auto-format ──────────────────────────────────────────
 document.addEventListener('input', e => {
   if (e.target.id !== 'pinInput') return;
   let v = e.target.value.replace(/[^0-9]/g, '');
@@ -383,7 +305,7 @@ document.addEventListener('keydown', e => {
   if (document.querySelector('.step.active')?.id === 'stepPin') checkResult();
 });
 
-// ── Check result ────────────────────────────────────────────
+// ── Check result & generate report card ─────────────────────
 async function checkResult() {
   const admNo  = document.getElementById('admNo').value.trim().toUpperCase();
   const rawPin = document.getElementById('pinInput').value.replace(/-/g,'').trim();
@@ -391,30 +313,14 @@ async function checkResult() {
   const btn    = document.getElementById('checkBtn');
   errEl.style.display = 'none';
 
-  if (!currentSchoolId) {
-    errEl.textContent = 'School not selected. Please search for your school above.';
-    errEl.style.display = 'block'; return;
-  }
-  if (!admNo || !rawPin) {
-    errEl.textContent = 'Please enter both admission number and PIN.';
-    errEl.style.display = 'block'; return;
-  }
-  if (rawPin.length !== 10) {
-    errEl.textContent = 'PIN must be 10 digits (XXXX-XXXX-XX format).';
-    errEl.style.display = 'block'; return;
-  }
-  if (!selectedTermId) {
-    errEl.textContent = 'No term selected. Please go back and choose a term.';
-    errEl.style.display = 'block'; return;
-  }
+  if (!currentSchoolId) { errEl.textContent = 'School not selected.'; errEl.style.display = 'block'; return; }
+  if (!admNo || !rawPin) { errEl.textContent = 'Please enter both admission number and PIN.'; errEl.style.display = 'block'; return; }
+  if (rawPin.length !== 10) { errEl.textContent = 'PIN must be 10 digits (XXXX-XXXX-XX format).'; errEl.style.display = 'block'; return; }
+  if (!selectedTermId) { errEl.textContent = 'No term selected. Please go back and choose a term.'; errEl.style.display = 'block'; return; }
 
-  btn.disabled = true; btn.textContent = 'Checking…';
+  btn.disabled = true; btn.textContent = '⏳ Generating Report Card…';
 
   try {
-    // FIX: Pass p_term_id so RPC locks the card to the term the parent chose.
-    // FIX: RPC now returns full student + term + school data directly,
-    //      eliminating the direct anon db.from('students') query that was
-    //      blocked by RLS and caused "Student record not found".
     const { data: useResult, error: useErr } = await db.rpc('use_scratch_card', {
       p_pin:          rawPin,
       p_school_id:    currentSchoolId,
@@ -423,27 +329,21 @@ async function checkResult() {
       p_student_id:   null,
       p_term_id:      selectedTermId
     });
-
     if (useErr) throw new Error(useErr.message);
     if (useResult?.error) throw new Error(useResult.error);
 
-    // All data comes directly from the RPC — no extra DB calls needed
     const maxUses    = useResult.max_uses;
     const usesLeft   = useResult.uses_left;
     const nowExpired = useResult.now_expired;
     const termId     = useResult.term_id || selectedTermId;
-
-    // Student, term, school — all returned by the RPC (no anon direct queries)
-    const student  = useResult.student;
-    const term     = useResult.term;
-    const school   = useResult.school;
+    const student    = useResult.student;
+    const term       = useResult.term;
+    const school     = useResult.school;
 
     if (!student) throw new Error('Student data not returned. Please contact your school admin.');
 
-    // Load results, grading, affective
-    // Note: enrollment/class info already returned by RPC in useResult.class_name
     const studentId = student.id;
-    const [{ data: results }, { data: grading }, { data: affective }, { data: _subjects }] = await Promise.all([
+    const [{ data: results }, { data: grading }, { data: affective }, { data: _subjects }, { data: attendance }] = await Promise.all([
       db.from('results')
         .select('score,subject_id,exam_id,subjects(id,name,code),exams(id,name,max_score,weight)')
         .eq('student_id', studentId).eq('term_id', termId),
@@ -451,158 +351,145 @@ async function checkResult() {
         .select('*').eq('school_id', currentSchoolId).order('min_score', { ascending: false }),
       db.from('affective_domain')
         .select('*').eq('student_id', studentId).eq('term_id', termId).maybeSingle(),
-      // Fetch subjects directly — RLS on subjects table can block embedded join for anon/parent
       db.from('subjects').select('id,name,code').eq('school_id', currentSchoolId),
+      db.from('attendance')
+        .select('status,date').eq('student_id', studentId).eq('term_id', termId),
     ]);
-    // Patch null subjects in results using direct fetch
-    const _subjectLookup = {};
-    (_subjects || []).forEach(s => { _subjectLookup[s.id] = s; });
+
+    // Patch subject references
+    const subjectLookup = {};
+    (_subjects || []).forEach(s => { subjectLookup[s.id] = s; });
     (results || []).forEach(r => {
-      if (!r.subjects && _subjectLookup[r.subject_id]) r.subjects = _subjectLookup[r.subject_id];
+      if (!r.subjects && subjectLookup[r.subject_id]) r.subjects = subjectLookup[r.subject_id];
       if (!r.exams) r.exams = { id: r.exam_id, name: 'Score', max_score: 100, weight: 1 };
     });
 
-    const summary   = buildTermSummary(results || [], grading || []);
-    const className = useResult.class_name || '—';
-
-    // 6. Get class position (no extra enrollments query — class_id from RPC)
+    // Class position
     let positionStr = '—';
+    let classRow = null;
     try {
-      // Get class_id by querying enrollments (authenticated read via RPC above already verified student)
       const { data: enrData } = await db.from('enrollments')
-        .select('class_id').eq('student_id', studentId).eq('term_id', termId).maybeSingle();
+        .select('class_id,classes(id,name,level,section)').eq('student_id', studentId).eq('term_id', termId).maybeSingle();
+      classRow = enrData?.classes || null;
       if (enrData?.class_id) {
         const { data: posData } = await db.rpc('class_positions', {
           p_class_id: enrData.class_id, p_term_id: termId
         });
         const pos = (posData || []).find(p => p.student_id === studentId);
-        if (pos) positionStr = getOrdinalSuffix(pos.position) + ' of ' + pos.out_of;
+        if (pos) positionStr = getOrdinalSuffix(pos.position) + ' / ' + pos.out_of;
       }
     } catch {}
 
-    // 7. Render result — RPC already handled the update, just pass usage info for the banner
-    renderResult({
-      student, term, school, summary,
-      grading: grading || [], className, positionStr,
-      affective, results: results || [],
-      usesLeft, maxUses, nowExpired
+    // Fetch school detail (logo, sigs, etc.)
+    let schoolDetail = school;
+    try {
+      const { data: sd } = await db.from('schools')
+        .select('name,logo_url,address,state,lga,phone,email,affiliation_no,principal_signature_url,class_teacher_signature_url,exam_officer_signature_url')
+        .eq('id', currentSchoolId).maybeSingle();
+      if (sd) schoolDetail = { ...school, ...sd };
+    } catch {}
+
+    renderReportCard({
+      student, term, school: schoolDetail, grading: grading || [],
+      results: results || [], affective, attendance: attendance || [],
+      classRow, positionStr, usesLeft, maxUses, nowExpired
     });
-    document.getElementById('gateCard').style.display      = 'none';
-    document.getElementById('resultDisplay').style.display  = 'block';
+
+    document.getElementById('gateCard').style.display     = 'none';
+    document.getElementById('resultDisplay').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 
   } catch (err) {
     errEl.textContent = err.message; errEl.style.display = 'block';
   } finally {
-    btn.disabled = false; btn.innerHTML = '<span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span> Check Result';
+    btn.disabled = false; btn.textContent = '🎓 Generate Report Card';
   }
 }
 
-// ── Render result ───────────────────────────────────────────
-function renderResult({ student, term, school, summary, grading, className, positionStr, affective, results, usesLeft, maxUses, nowExpired }) {
-  const overallColor = summary.overall >= 70 ? 'var(--success)' : summary.overall >= 50 ? 'var(--warning)' : 'var(--danger)';
+// ── Report Card Renderer → delegates to js/report-card-engine.js ──────────
+function renderReportCard({ student, term, school, grading, results, affective,
+                            attendance, classRow, positionStr, usesLeft, maxUses, nowExpired }) {
+  // Hydrate shared engine state
+  _school        = school;
+  _scale         = grading || [];
+  _term          = term;
+  _classRow      = classRow;
+  _exams         = null;
+  _classSubjects = null;
+  _bulkResults   = null;
+  _bulkAtt       = null;
+  _bulkAffective = null;
 
-  // Usage notice banner
-  const usageBanner = nowExpired
-    ? `<div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#991b1b;" class="no-print">
-        <span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>️ <strong>This scratch card has now expired.</strong> All ${maxUses} permitted checks have been used.
-        Please obtain a new card from your school's admin office to check again.
-      </div>`
-    : `<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px 16px;margin-bottom:16px;font-size:13px;color:#166534;" class="no-print">
-        <span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Check ${maxUses - usesLeft} of ${maxUses}.</strong>
-        You have <strong>${usesLeft}</strong> remaining check${usesLeft !== 1 ? 's' : ''} left on this scratch card.
-        This card is locked to this student for ${term?.name || 'this term'}.
-      </div>`;
-  const TRAIT_LABELS = {
-    punctuality: 'Punctuality', neatness: 'Neatness & Appearance',
-    conduct: 'Conduct', attentiveness: 'Attentiveness',
-    honesty: 'Honesty & Integrity', creativity: 'Creativity'
-  };
-
-  document.getElementById('resultCard').innerHTML = usageBanner + `
-        <div class="rc-body">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;padding-bottom:20px;border-bottom:2px solid var(--border);margin-bottom:20px;">
-        <div><div style="font-size:11px;color:var(--ink-3);font-weight:700;text-transform:uppercase;">Student Name</div><div style="font-size:18px;font-weight:800;">${student.full_name}</div></div>
-        <div><div style="font-size:11px;color:var(--ink-3);font-weight:700;text-transform:uppercase;">Admission Number</div><div style="font-size:16px;font-weight:700;font-family:var(--mono);">${student.admission_no || '—'}</div></div>
-        <div><div style="font-size:11px;color:var(--ink-3);font-weight:700;text-transform:uppercase;">Class</div><div style="font-weight:600;">${className}</div></div>
-        <div><div style="font-size:11px;color:var(--ink-3);font-weight:700;text-transform:uppercase;">Gender</div><div style="font-weight:600;">${student.gender === 'M' ? 'Male' : student.gender === 'F' ? 'Female' : '—'}</div></div>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;">
-        <div style="background:var(--surface-2);padding:16px;border-radius:var(--radius-sm);text-align:center;border:2px solid ${overallColor}22;">
-          <div style="font-size:28px;font-weight:900;color:${overallColor};">${summary.overall !== null ? summary.overall + '%' : '—'}</div>
-          <div style="font-size:11px;color:var(--ink-3);font-weight:700;text-transform:uppercase;">Overall Average</div>
-        </div>
-        <div style="background:var(--surface-2);padding:16px;border-radius:var(--radius-sm);text-align:center;">
-          <div style="font-size:28px;font-weight:900;color:var(--primary);">${positionStr}</div>
-          <div style="font-size:11px;color:var(--ink-3);font-weight:700;text-transform:uppercase;">Class Position</div>
-        </div>
-        <div style="background:var(--surface-2);padding:16px;border-radius:var(--radius-sm);text-align:center;">
-          <div style="font-size:28px;font-weight:900;color:var(--success);">${summary.passed}</div>
-          <div style="font-size:11px;color:var(--ink-3);font-weight:700;text-transform:uppercase;">Subjects Passed</div>
-          ${summary.failed > 0 ? `<div style="font-size:11px;color:var(--danger);">${summary.failed} failed</div>` : ''}
-        </div>
-      </div>
-      <div style="margin-bottom:24px;">
-        <div style="font-size:13px;font-weight:800;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px;letter-spacing:.5px;">Subject Results</div>
-        ${summary.subjects.map(s => {
-          const color = s.total >= 70 ? 'var(--success)' : s.total >= 50 ? 'var(--warning)' : 'var(--danger)';
-          return `<div class="subject-row">
-            <span style="font-weight:600;">${s.name}</span>
-            <div style="display:flex;align-items:center;gap:12px;">
-              <span style="font-family:var(--mono);font-weight:700;font-size:16px;color:${color};">${s.total}%</span>
-              <span class="grade-pill" style="background:${color}22;color:${color};">${s.grade}</span>
-              <span style="font-size:12px;color:var(--ink-3);">${s.remark}</span>
-            </div>
-          </div>`;
-        }).join('')}
-      </div>
-      ${grading && grading.length ? `
-      <div style="margin-bottom:16px;padding:10px 14px;background:var(--surface-2);border-radius:var(--radius-sm);border:1px solid var(--border);">
-        <div style="font-size:11px;font-weight:800;text-transform:uppercase;color:var(--ink-3);letter-spacing:.5px;margin-bottom:8px;">Grading Scale</div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;">
-          ${grading.map(g => `
-            <div style="display:flex;align-items:center;gap:5px;padding:4px 10px;background:white;border-radius:100px;border:1px solid var(--border);font-size:12px;">
-              <span style="font-weight:800;color:var(--primary);">${g.grade}</span>
-              <span style="color:var(--ink-3);">${g.min_score}–${g.max_score}</span>
-              <span style="color:var(--ink-4);font-size:11px;">${g.remark}</span>
-            </div>`).join('')}
-        </div>
-      </div>` : ''}
-      ${affective ? `
-        <div style="margin-bottom:24px;">
-          <div style="font-size:13px;font-weight:800;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px;letter-spacing:.5px;">Behaviour & Traits</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-            ${Object.entries(TRAIT_LABELS).map(([key, label]) => affective[key] ? `
-              <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--surface-2);border-radius:var(--radius-sm);">
-                <span style="font-size:13px;">${label}</span>
-                <span style="font-weight:700;font-size:13px;color:${affective[key]==='Excellent'?'var(--success)':affective[key]==='Good'?'var(--info)':affective[key]==='Average'?'var(--warning)':'var(--danger)'};">${affective[key]}</span>
-              </div>` : '').join('')}
-          </div>
-          ${affective.class_teacher_remark ? `<div style="margin-top:12px;padding:12px;background:var(--surface-2);border-radius:var(--radius-sm);"><div style="font-size:11px;font-weight:700;color:var(--ink-3);text-transform:uppercase;margin-bottom:4px;">Class Teacher's Remark</div><p style="font-size:14px;">${affective.class_teacher_remark}</p></div>` : ''}
-          ${affective.principal_remark ? `<div style="margin-top:8px;padding:12px;background:var(--primary-light);border-radius:var(--radius-sm);"><div style="font-size:11px;font-weight:700;color:var(--primary);text-transform:uppercase;margin-bottom:4px;">Principal's Remark</div><p style="font-size:14px;">${affective.principal_remark}</p></div>` : ''}
-          ${affective.next_term_begins ? `<div style="margin-top:8px;padding:10px 12px;background:var(--accent-light);border-radius:var(--radius-sm);font-size:13px;"><strong>Next Term Begins:</strong> ${formatDate(affective.next_term_begins)}</div>` : ''}
-        </div>` : ''}
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;padding-top:20px;border-top:2px solid var(--border);">
-        ${['Class Teacher','VP Academic','Principal'].map(t => `
-          <div><div style="border-top:1px solid var(--border);padding-top:6px;font-size:12px;color:var(--ink-3);text-align:center;">${t}</div></div>`).join('')}
-      </div>
+  // Usage banner
+  const bannerEl = document.getElementById('usageBanner');
+  if (nowExpired) {
+    bannerEl.innerHTML = `<div class="usage-banner-expired no-print">
+      ⚠️ <strong>This scratch card has now expired.</strong> All ${maxUses} permitted checks have been used.
+      Please obtain a new card from your school admin office.
     </div>`;
+  } else {
+    bannerEl.innerHTML = `<div class="usage-banner-ok no-print">
+      ✅ <strong>Check ${maxUses - usesLeft} of ${maxUses}.</strong>
+      You have <strong>${usesLeft}</strong> check${usesLeft !== 1 ? 's' : ''} remaining on this PIN.
+      This card is locked to this student for ${term?.name || 'this term'}.
+    </div>`;
+  }
+
+  // Build card via shared engine, then swap Attendance → Position in summary band
+  const sType = getSectionType(classRow);
+  let html;
+  if (sType === 'nursery') html = buildNurseryCard(student, results, attendance, affective);
+  else if (sType === 'primary') html = buildPrimaryCard(student, results, attendance, affective);
+  else html = buildSecondaryCard(student, results, attendance, affective);
+
+  // Replace the last sum-cell value (Attendance) with Class Position for the public portal
+  html = html.replace(/(<span class="sv"[^>]*>)([^<]*)(<\/span>\s*<\/div>\s*<\/div>\s*<div class="(?:gs-wrap|two-col|pr-two-col|ns-sec-hdr))/, (m, open, val, after) => {
+    return `${open}${positionStr}${after}`;
+  });
+  // Simpler fallback: replace last .sv span before two-col section
+  const posMatch = html.lastIndexOf('<span class="sv"');
+  if (posMatch > -1) {
+    const closeSpan = html.indexOf('</span>', posMatch);
+    if (closeSpan > -1) {
+      html = html.slice(0, posMatch) +
+        `<span class="sv" style="color:#7c3aed;font-size:16px">${positionStr}` +
+        html.slice(closeSpan);
+    }
+  }
+
+  document.getElementById('reportCardContent').innerHTML = html;
 }
+
 
 // ── Helpers ─────────────────────────────────────────────────
 function showStep(id) {
   document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
   document.getElementById(id)?.classList.add('active');
 }
+
 function getOrdinalSuffix(n) {
   const s = ['th','st','nd','rd'], v = n % 100;
   return n + (s[(v-20)%10] || s[v] || s[0]);
 }
-function formatDate(d) {
+
+function fmtDate(d) {
   try { return new Date(d).toLocaleDateString('en-NG', { day:'numeric', month:'long', year:'numeric' }); }
-  catch { return d; }
+  catch { return d || '—'; }
+}
+
+function gradeFromScale(score, scale) {
+  if (score === null || score === undefined || !scale?.length) return { grade:'—', remark:'' };
+  const g = scale.find(s => score >= s.min_score && score <= s.max_score);
+  return g ? { grade: g.grade, remark: g.remark || '' } : { grade:'—', remark:'' };
+}
+
+function gradeBadge(g) {
+  if (!g || g === '—') return '<span class="gb gDf">—</span>';
+  const m = {'A+':'Ap','A':'A','B+':'Bp','B':'B','C+':'Cp','C':'C','D':'D','F':'F'};
+  const c = m[g] || (g.startsWith('A') ? 'Ap' : g.startsWith('B') ? 'Bp' : g.startsWith('C') ? 'Cp' : 'F');
+  return `<span class="gb g${c}">${g}</span>`;
 }
 </script>
-
 
 <script src="../../js/assistant.js"></script>
 </body>

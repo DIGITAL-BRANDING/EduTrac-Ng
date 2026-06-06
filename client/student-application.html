@@ -170,7 +170,13 @@
           <p class="panel-sub">Your application will be sent to the selected school's admin office.</p>
           <div class="grid">
             <div class="full field" data-field="schoolId"><label>School *</label><select id="schoolId"><option value="">Loading schools...</option></select><div class="err">Select your school</div></div>
-            <div class="field" data-field="scratchPin"><label>Scratch Card PIN *</label><input id="scratchPin" placeholder="Enter card PIN"><div class="hint">The card must belong to the selected school and must not be exhausted.</div><div class="err">Enter a valid card PIN</div></div>
+            <div class="full field" data-field="serialNo"><label>Serial Number *</label><input id="serialNo" placeholder="e.g. ETN12345670001" maxlength="20" style="font-family:monospace;font-size:14px;letter-spacing:2px;text-transform:uppercase;" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')"><div class="hint">Found on the top of your scratch card (e.g. ETN12345670001).</div><div class="err">Enter the serial number printed on your card</div></div>
+            <div class="field" data-field="scratchPin"><label>Scratch Card PIN *</label><input id="scratchPin" placeholder="0000 – 0000 – 0000" maxlength="16" style="font-family:monospace;font-size:18px;letter-spacing:3px;text-align:center;" oninput="
+  let v=this.value.replace(/[^0-9]/g,'').slice(0,12);
+  let fmt='';
+  for(let i=0;i<v.length;i++){if(i===4||i===8)fmt+=' – ';fmt+=v[i];}
+  this.value=fmt;
+"><div class="hint">Enter the 12-digit PIN exactly as shown on your card (e.g. 5638 – 5281 – 5469).</div><div class="err">Enter the full 12-digit card PIN</div></div>
             <div class="field" data-field="intendedClass"><label>Class Applying For</label><select id="intendedClass"><option value="">Select after school loads</option></select><div class="hint">Registrar may change this during approval.</div></div>
           </div>
         </div>
@@ -232,8 +238,9 @@
 <script>
 let step=1, schools=[], classes=[], lastRef='', lastAppData=null;
 const total=4;
-const requiredByStep={1:['schoolId','scratchPin'],2:['fullName','gender','dob','address'],3:['parentName','parentPhone']};
+const requiredByStep={1:['schoolId','serialNo','scratchPin'],2:['fullName','gender','dob','address'],3:['parentName','parentPhone']};
 const val=id=>(document.getElementById(id)?.value||'').trim();
+const pinVal=()=>val('scratchPin').replace(/[^0-9]/g,''); // strips ' – ' formatting for DB queries
 const selectedSchool=()=>schools.find(s=>s.id===val('schoolId'));
 const selectedClass=()=>classes.find(c=>c.id===val('intendedClass'));
 
@@ -264,8 +271,9 @@ async function loadClassesForSchool(){
 
 async function applyPrefillFromQuery(){
   const p=new URLSearchParams(location.search);
-  const school=p.get('school'),pin=p.get('pin');
+  const school=p.get('school'),pin=p.get('pin'),serial=p.get('serial');
   if(school){document.getElementById('schoolId').value=school;await loadClassesForSchool();}
+  if(serial)document.getElementById('serialNo').value=serial.toUpperCase();
   if(pin)document.getElementById('scratchPin').value=pin;
 }
 
@@ -276,6 +284,17 @@ function validateStep(n){
     if(wrap)wrap.classList.toggle('bad',missing);
     if(missing)ok=false;
   });
+  // Extra check: PIN must be exactly 12 digits
+  if(n===1&&val('scratchPin')){
+    const digits=pinVal();
+    const pinWrap=document.querySelector('[data-field="scratchPin"]');
+    const pinErr=pinWrap?.querySelector('.err');
+    if(digits.length!==12){
+      if(pinWrap)pinWrap.classList.add('bad');
+      if(pinErr){pinErr.textContent='PIN must be exactly 12 digits ('+digits.length+' entered).';pinErr.style.display='block';}
+      ok=false;
+    }
+  }
   return ok;
 }
 
@@ -309,7 +328,7 @@ function updateStep(){
 
 function buildReview(){
   const rows=[
-    ['School',selectedSchool()?.name||''],['Scratch Card',val('scratchPin')],
+    ['School',selectedSchool()?.name||''],['Serial No.',val('serialNo')],['Scratch Card PIN',val('scratchPin')],
     ['Class Applying For',selectedClass()?.name||'Registrar should assign'],
     ['Student',val('fullName')],['Gender',val('gender')==='M'?'Male':val('gender')==='F'?'Female':''],
     ['Date of Birth',val('dob')],['Address',val('address')],
@@ -320,14 +339,24 @@ function buildReview(){
 }
 
 async function validateScratchCard(){
-  const{data,error}=await db.from('scratch_cards')
-    .select('id,pin,school_id,is_used,uses_count,max_uses,student_id')
-    .eq('school_id',val('schoolId')).eq('pin',val('scratchPin')).maybeSingle();
-  if(error)throw error;
-  if(!data)throw new Error('Scratch card was not found for the selected school.');
-  if(data.is_used===true||Number(data.uses_count||0)>=Number(data.max_uses||1))
-    throw new Error('This scratch card has already been used.');
-  return data;
+  const schoolId=val('schoolId'),serialNo=val('serialNo'),pin=pinVal();
+
+  // 1. Try the RPC (serial + pin) — works for cards generated after SQL migration
+  const{data,error}=await db.rpc('verify_scratch_pin',{p_school_id:schoolId,p_serial_no:serialNo,p_pin:pin});
+  if(!error&&data?.valid)return{id:data.card_id,card_type:data.card_type};
+
+  // 2. Fallback: direct table query by pin only — for legacy cards where serial_no is still NULL
+  //    (SQL backfill not yet run). If found via pin, treat serial as matching so the user can proceed.
+  const{data:card,error:fbErr}=await db.from('scratch_cards')
+    .select('id,pin,school_id,serial_no,is_used,uses_count,max_uses,card_type')
+    .eq('school_id',schoolId).eq('pin',pin).maybeSingle();
+  if(fbErr)throw new Error(fbErr.message);
+  if(!card)throw new Error(data?.error||'Scratch card not found. Check your Serial Number and PIN, and make sure you selected the correct school.');
+  if(card.serial_no&&card.serial_no.toUpperCase()!==serialNo.toUpperCase())
+    throw new Error('Serial Number does not match this PIN. Please check your card.');
+  if(card.is_used===true||Number(card.uses_count||0)>=Number(card.max_uses||1))
+    throw new Error('This scratch card has already been used. Please request a new card.');
+  return{id:card.id,card_type:card.card_type||'registration'};
 }
 
 async function submitApplication(){
@@ -337,19 +366,49 @@ async function submitApplication(){
   try{
     const card=await validateScratchCard();
     const ref='STU-'+Date.now().toString(36).toUpperCase();
-    const payload={
-      school_id:val('schoolId'),scratch_card_id:card.id,scratch_card_pin:val('scratchPin'),
-      intended_class_id:val('intendedClass')||null,full_name:val('fullName'),gender:val('gender'),
-      date_of_birth:val('dob')||null,previous_school:val('previousSchool')||null,
-      religion:val('religion')||null,address:val('address'),parent_name:val('parentName'),
-      parent_phone:val('parentPhone'),parent_email:val('parentEmail')||null,
-      relationship:val('relationship')||null,emergency_phone:val('emergencyPhone')||null,
-      blood_group:val('bloodGroup')||null,medical_notes:val('medicalNotes')||null,
-      status:'pending',ref_id:ref,submitted_at:new Date().toISOString()
-    };
-    const{error}=await db.from('student_applications').insert(payload);
-    if(error)throw error;
-    await db.from('scratch_cards').update({is_used:true,used_at:new Date().toISOString(),uses_count:Number(card.uses_count||0)+1}).eq('id',card.id);
+
+    // Try the RPC first (handles card marking atomically)
+    const{data:result,error:rpcErr}=await db.rpc('submit_student_application',{
+      p_school_id:val('schoolId'),
+      p_serial_no:val('serialNo'),
+      p_pin:pinVal(),
+      p_full_name:val('fullName'),
+      p_gender:val('gender'),
+      p_date_of_birth:val('dob')||null,
+      p_address:val('address'),
+      p_guardian_name:val('parentName'),
+      p_parent_phone:val('parentPhone'),
+      p_parent_email:val('parentEmail')||null,
+      p_medical_notes:val('medicalNotes')||null,
+      p_requested_class_id:val('intendedClass')||null,
+      p_photo_url:null
+    });
+
+    let appId=null;
+    if(!rpcErr&&result&&!result.error){
+      appId=result.id;
+    } else {
+      // Fallback: direct insert for legacy cards (serial_no null / RPC not yet deployed)
+      const payload={
+        school_id:val('schoolId'),scratch_card_id:card.id,scratch_card_pin:pinVal(),
+        intended_class_id:val('intendedClass')||null,full_name:val('fullName'),gender:val('gender'),
+        date_of_birth:val('dob')||null,address:val('address'),parent_name:val('parentName'),
+        parent_phone:val('parentPhone'),parent_email:val('parentEmail')||null,
+        blood_group:val('bloodGroup')||null,medical_notes:val('medicalNotes')||null,
+        ref_id:ref,status:'pending',submitted_at:new Date().toISOString()
+      };
+      const{data:ins,error:insErr}=await db.from('student_applications').insert(payload).select('id').single();
+      if(insErr)throw new Error(insErr.message);
+      appId=ins?.id;
+      // Mark card used manually in fallback path
+      await db.from('scratch_cards').update({is_used:true,used_at:new Date().toISOString(),uses_count:Number(card.uses_count||0)+1}).eq('id',card.id);
+    }
+
+    // Patch ref_id if RPC path was used (RPC doesn't store ref_id)
+    if(appId&&!rpcErr&&result&&!result.error){
+      await db.from('student_applications').update({ref_id:ref}).eq('id',appId);
+    }
+
     document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
     document.getElementById('nav').style.display='none';
     document.getElementById('bar').style.width='100%';

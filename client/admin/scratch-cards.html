@@ -129,9 +129,13 @@ function renderCards() {
   }
   wrap.innerHTML = `<div class="card-grid">${filtered.slice(0,100).map(c=>`
     <div class="scratch-card">
-      <div class="sc-serial">${c.serial_no||'—'}</div>
-      <div class="sc-pin">${c.pin||'—'}</div>
-      <span class="sc-status ${c.is_used?'used':''}">${c.is_used?'Used':'Available'}</span>
+      <div class="sc-serial">S/N: ${c.serial_no||'—'}</div>
+      <div style="font-size:.6rem;opacity:.6;margin-bottom:4px;letter-spacing:.5px;">SCRATCH TO REVEAL PIN</div>
+      <div class="sc-pin">${formatPin(c.pin)}</div>
+      <span class="sc-status ${c.is_used?'used':''}">
+        ${c.is_used?'✕ Used':'✓ Available'}
+        ${!c.is_used&&(c.uses_count||0)>0?` (${c.uses_count}/${c.max_uses||1} uses)`:''}
+      </span>
       ${c.purpose?`<div class="sc-meta">${c.purpose}</div>`:''}
       ${c.used_at?`<div class="sc-meta">Used: ${new Date(c.used_at).toLocaleDateString('en-GB')}</div>`:''}
     </div>`).join('')}</div>
@@ -143,27 +147,64 @@ async function generateCards() {
   const errEl = document.getElementById('genErr');
   const count = parseInt(document.getElementById('genCount').value);
   if (!count || count < 1 || count > 200) { errEl.textContent = 'Enter a count between 1 and 200.'; errEl.style.display = 'block'; return; }
+
+  // Check if this school has permission to self-generate
+  const { data: schoolData } = await db.from('schools')
+    .select('can_self_generate_cards, self_generate_limit')
+    .eq('id', currentUser.school_id).single();
+
+  if (!schoolData?.can_self_generate_cards) {
+    errEl.textContent = 'Your school does not have permission to generate scratch cards. Please contact your EduTrack NG administrator.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const limit = schoolData.self_generate_limit || 100;
+  if (count > limit) {
+    errEl.textContent = `Your school can generate a maximum of ${limit} cards per batch.`;
+    errEl.style.display = 'block';
+    return;
+  }
+
   btn.disabled = true; btn.textContent = 'Generating…';
-  const pinLen  = parseInt(document.getElementById('genPinLen').value);
-  const purpose = document.getElementById('genPurpose').value.trim();
-  // card_type must be set so verify_scratch_pin RPC can find these cards.
-  // School-admin cards are always registration cards (one use, for student sign-up).
-  const cardType = document.getElementById('genPurpose')?.value === 'result' ? 'result' : 'registration';
-  const now = Date.now();
-  const cards = Array.from({ length: count }, (_, i) => ({
-    school_id:  currentUser.school_id,
-    serial_no:  `SC${String(now).slice(-6)}${String(i+1).padStart(4,'0')}`,
-    pin:        Array.from({ length: pinLen }, () => Math.floor(Math.random()*10)).join(''),
-    is_used:    false,
-    uses_count: 0,
-    max_uses:   1,        // registration cards: 1 use only
-    card_type:  'registration',
-    purpose:    purpose || null,
-  }));
+  errEl.style.display = 'none';
+
+  const purpose  = document.getElementById('genPurpose').value.trim();
+  const cardType = purpose.toLowerCase().includes('result') ? 'result' : 'registration';
+  const maxUses  = cardType === 'result' ? 3 : 1;
+  const now      = Date.now();
+  const usedPins = new Set();
+
+  const cards = Array.from({ length: count }, (_, i) => {
+    let pin;
+    do { pin = Array.from({length: 12}, () => Math.floor(Math.random()*10)).join(''); }
+    while (usedPins.has(pin));
+    usedPins.add(pin);
+    return {
+      school_id:  currentUser.school_id,
+      serial_no:  `ETN${String(now).slice(-7)}${String(i+1).padStart(4,'0')}`,
+      pin,
+      is_used:    false,
+      uses_count: 0,
+      max_uses:   maxUses,
+      card_type:  cardType,
+      purpose:    purpose || null,
+      batch_id:   purpose || `BATCH_${String(now).slice(-8)}`,
+    };
+  });
+
   const { error } = await db.from('scratch_cards').insert(cards);
   btn.disabled = false; btn.textContent = 'Generate';
   if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
   closeModal('genModal'); toast(`${count} cards generated.`, 'success'); loadCards();
+}
+
+function formatPin(pin) {
+  if (!pin) return '—';
+  const p = String(pin).replace(/\s|-/g, '');
+  if (p.length === 12) return p.slice(0,4)+'-'+p.slice(4,8)+'-'+p.slice(8);
+  if (p.length === 10) return p.slice(0,4)+'-'+p.slice(4,7)+'-'+p.slice(7);
+  return p.match(/.{1,4}/g)?.join('-') || p;
 }
 
 function exportCards() {
