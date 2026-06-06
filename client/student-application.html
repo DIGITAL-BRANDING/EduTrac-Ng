@@ -101,8 +101,7 @@
     /* ── Admission Letter (exact match to students.html) ── */
     .letter-wrap{padding:24px;background:#f8f8f4}
     .letter-doc{background:white;max-width:640px;margin:0 auto;padding:40px 48px;border:1px solid #ddd;font-family:Georgia,serif;font-size:13px;line-height:1.7;color:#222;box-shadow:0 4px 16px rgba(0,0,0,.08)}
-    .letter-header{text-align:center;border-bottom:3px double #0a6e3f;padding-bottom:14px;margin-bottom:18px}
-    .letter-logo{font-size:40px;margin-bottom:6px}
+    .letter-header{display:flex;align-items:center;gap:16px;border-bottom:3px double #0a6e3f;padding-bottom:14px;margin-bottom:18px}
     .letter-school{font-size:17px;font-weight:700;color:#0a6e3f;font-family:Arial,sans-serif;text-transform:uppercase}
     .letter-addr{font-size:11px;color:#666;font-family:Arial,sans-serif}
     .letter-ref{display:flex;justify-content:space-between;font-size:12px;font-family:Arial,sans-serif;color:#555;margin-bottom:16px}
@@ -190,6 +189,21 @@
             <div class="field"><label>Previous School</label><input id="previousSchool" placeholder="Optional"></div>
             <div class="field"><label>Religion</label><input id="religion" placeholder="Optional"></div>
             <div class="full field" data-field="address"><label>Home Address *</label><input id="address" placeholder="Street, town, state"><div class="err">Home address is required</div></div>
+            <div class="full field">
+              <label>Passport Photograph</label>
+              <div style="display:flex;align-items:center;gap:14px;margin-top:2px">
+                <div id="passportPreview" style="width:80px;height:100px;border:2px dashed #cbd5e1;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#f8fafc;font-size:36px;flex-shrink:0;color:#94a3b8">&#128247;</div>
+                <div>
+                  <input type="file" id="passportUpload" accept="image/*" style="display:none" onchange="handlePassportUpload(this)">
+                  <button type="button" onclick="document.getElementById('passportUpload').click()" style="background:#0a6e3f;color:white;border:0;border-radius:8px;padding:10px 16px;font:700 13px Inter,system-ui,sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:7px">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    Choose Photo
+                  </button>
+                  <div class="hint" style="margin-top:6px">Clear recent passport photo (JPG/PNG, max 2 MB). Will appear on your ID card.</div>
+                  <div id="passportErr" style="display:none;color:#dc2626;font-size:12px;font-weight:700;margin-top:5px"></div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div class="panel" id="p3">
@@ -236,7 +250,7 @@
 <script src="js/config.js"></script>
 <script src="js/supabase.js"></script>
 <script>
-let step=1, schools=[], classes=[], lastRef='', lastAppData=null;
+let step=1, schools=[], classes=[], lastRef='', lastAppData=null, passportDataUrl=null;
 const total=4;
 const requiredByStep={1:['schoolId','serialNo','scratchPin'],2:['fullName','gender','dob','address'],3:['parentName','parentPhone']};
 const val=id=>(document.getElementById(id)?.value||'').trim();
@@ -464,6 +478,9 @@ async function checkStatus(){
           .select('subjects(name,code)')
           .eq('class_id',data.intended_class_id);
         subjects=(cs||[]).map(r=>r.subjects).filter(Boolean);
+        // Deduplicate — class_subjects may have duplicate rows
+        const _seen=new Set();
+        subjects=subjects.filter(s=>{const k=(s.name||'')+(s.code||'');if(_seen.has(k))return false;_seen.add(k);return true;});
       }catch(_){}
     }
     data._subjects=subjects;
@@ -531,8 +548,7 @@ function downloadLetter(){
 body{margin:0;background:#f8f8f4;font-family:Georgia,serif}
 .letter-wrap{padding:24px;background:#f8f8f4}
 .letter-doc{background:white;max-width:640px;margin:0 auto;padding:40px 48px;border:1px solid #ddd;font-family:Georgia,serif;font-size:13px;line-height:1.7;color:#222;box-shadow:0 4px 16px rgba(0,0,0,.08)}
-.letter-header{text-align:center;border-bottom:3px double #0a6e3f;padding-bottom:14px;margin-bottom:18px}
-.letter-logo{font-size:40px;margin-bottom:6px}
+.letter-header{display:flex;align-items:center;gap:16px;border-bottom:3px double #0a6e3f;padding-bottom:14px;margin-bottom:18px}
 .letter-school{font-size:17px;font-weight:700;color:#0a6e3f;font-family:Arial,sans-serif;text-transform:uppercase}
 .letter-addr{font-size:11px;color:#666;font-family:Arial,sans-serif}
 .letter-ref{display:flex;justify-content:space-between;font-size:12px;font-family:Arial,sans-serif;color:#555;margin-bottom:16px}
@@ -551,9 +567,11 @@ body{margin:0;background:#f8f8f4;font-family:Georgia,serif}
 </style></head><body>
 <div class="letter-wrap"><div class="letter-doc">
   <div class="letter-header">
-    <div class="letter-logo"><img src="${logoSrc}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;display:block;margin:0 auto;" onerror="this.outerHTML='🏫'"></div>
-    <div class="letter-school">${esc(school.name||'School Name')}</div>
-    <div class="letter-addr">${esc(schoolAddr)}</div>
+    <img src="${logoSrc}" style="width:64px;height:64px;object-fit:cover;border-radius:8px;flex-shrink:0;" onerror="this.outerHTML='&#127979;'">
+    <div>
+      <div class="letter-school">${esc(school.name||'School Name')}</div>
+      <div class="letter-addr">${esc(schoolAddr)}</div>
+    </div>
   </div>
   <div class="letter-ref">
     <div>Ref: <strong>${esc(admRef)}</strong></div>
@@ -679,7 +697,7 @@ body{background:#e8ecf0;font-family:Arial,Helvetica,sans-serif;padding:20px;disp
   <div class="idc-title-bar">STUDENT IDENTITY CARD</div>
   <div class="idc-body">
     <div class="idc-watermark">${esc(watermark)}</div>
-    <div class="idc-photo">&#128248;</div>
+    <div class="idc-photo">${passportDataUrl?`<img src="${passportDataUrl}" style="width:100%;height:100%;object-fit:cover">`:'&#128247;'}</div>
     <div class="idc-fields-grid">
       <div class="idc-field"><span class="idc-fl">Full Name</span><span class="idc-fv">${esc(d.full_name||'—')}</span></div>
       <div class="idc-field"><span class="idc-fl">Admission No</span><span class="idc-fv">${esc(d.admission_number||'—')}</span></div>
@@ -723,6 +741,22 @@ body{background:#e8ecf0;font-family:Arial,Helvetica,sans-serif;padding:20px;disp
 function printDoc(html){
   const w=window.open('','_blank','width=700,height=900');
   if(w){w.document.write(html);w.document.close();}
+}
+
+function handlePassportUpload(input){
+  const file=input.files[0];
+  if(!file)return;
+  const err=document.getElementById('passportErr');
+  if(file.size>2*1024*1024){err.textContent='Photo must be under 2 MB.';err.style.display='block';input.value='';return;}
+  if(!file.type.startsWith('image/')){err.textContent='Please upload a valid image file (JPG/PNG).';err.style.display='block';input.value='';return;}
+  err.style.display='none';
+  const reader=new FileReader();
+  reader.onload=e=>{
+    passportDataUrl=e.target.result;
+    const prev=document.getElementById('passportPreview');
+    prev.innerHTML=`<img src="${passportDataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:6px">`;
+  };
+  reader.readAsDataURL(file);
 }
 
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
