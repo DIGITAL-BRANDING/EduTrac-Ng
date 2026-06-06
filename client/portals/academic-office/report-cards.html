@@ -986,7 +986,7 @@ function detectTheme(schoolTypeRaw, classRow) {
  */
 function getCardTheme(classRow) {
   if (_cardThemeOverride && _cardThemeOverride !== 'auto') return _cardThemeOverride;
-  return detectTheme(_school?.school_type || _school?.type || null, classRow);
+  return detectTheme(_school?.school_type || null, classRow);
 }
 
 /**
@@ -1006,7 +1006,7 @@ function updateDetectedBadge(classRow) {
   const sel   = document.getElementById('instThemeSel');
   if (!badge) return;
   if (!_cardThemeOverride || _cardThemeOverride === 'auto') {
-    const detected = detectTheme(_school?.school_type || _school?.type || null, classRow);
+    const detected = detectTheme(_school?.school_type || null, classRow);
     badge.textContent = 'Auto: ' + (THEME_LABELS[detected] || detected);
     badge.style.display = 'inline-block';
     if (sel) sel.value = 'auto';
@@ -2029,7 +2029,7 @@ function _populateTermBar(){
 
       setMsg('Loading school and terms…');
       const [schoolData, allTermsData]=await Promise.all([
-        sq('School data', db.from('schools').select('name,logo_url,address,state,lga,phone,email,motto,affiliation_no,school_type,type,vp_signature_url,exam_officer_signature_url,principal_signature_url,class_teacher_signature_url').eq('id',schoolId).single()),
+        sq('School data', db.from('schools').select('name,logo_url,address,state,lga,phone,email,motto,affiliation_no,school_type,vp_signature_url,exam_officer_signature_url,principal_signature_url,class_teacher_signature_url').eq('id',schoolId).single()),
         sq('All terms', db.from('terms').select('*,academic_years(label)').eq('school_id',schoolId).order('start_date',{ascending:false})),
       ]);
       _school=schoolData;
@@ -2129,7 +2129,7 @@ function _populateTermBar(){
 
     setMsg('Loading school data…');
     const [schoolData,scaleData,examsData,termRow]=await Promise.all([
-      sq('School data', db.from('schools').select('name,logo_url,address,state,lga,phone,email,motto,affiliation_no,school_type,type,vp_signature_url,exam_officer_signature_url,principal_signature_url,class_teacher_signature_url').eq('id',schoolId).single()),
+      sq('School data', db.from('schools').select('name,logo_url,address,state,lga,phone,email,motto,affiliation_no,school_type,vp_signature_url,exam_officer_signature_url,principal_signature_url,class_teacher_signature_url').eq('id',schoolId).single()),
       sq('Grading scale', db.from('grading_scales').select('*').eq('school_id',schoolId).order('min_score',{ascending:false})),
       sq('Exams list', db.from('exams').select('*').eq('school_id',schoolId).eq('term_id',_tid).order('name')),
       !_term?sq('Term info', db.from('terms').select('*,academic_years(label)').eq('id',_tid).single()):Promise.resolve(_term),
