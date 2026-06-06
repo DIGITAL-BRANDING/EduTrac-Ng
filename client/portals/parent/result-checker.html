@@ -519,22 +519,7 @@ function renderResult({ student, term, school, summary, grading, className, posi
   };
 
   document.getElementById('resultCard').innerHTML = usageBanner + `
-    <div class="rc-band">
-      <div style="display:flex;align-items:center;gap:16px;">
-        ${school?.logo_url
-          ? `<img src="${school.logo_url}" style="width:56px;height:56px;border-radius:10px;object-fit:cover;flex-shrink:0;">`
-          : `<div style="width:56px;height:56px;background:var(--primary);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;"><span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg></span></div>`}
-        <div>
-          <h2>${school?.name || 'EduTrack NG School'}</h2>
-          <p>${school?.address || ''}</p>
-        </div>
-        <div style="margin-left:auto;text-align:right;">
-          <div style="font-size:13px;color:#f59e0b;font-weight:700;">STUDENT RESULT SHEET</div>
-          <div style="font-size:12px;color:#9ca3af;">${term?.name || 'Term'}</div>
-        </div>
-      </div>
-    </div>
-    <div class="rc-body">
+        <div class="rc-body">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;padding-bottom:20px;border-bottom:2px solid var(--border);margin-bottom:20px;">
         <div><div style="font-size:11px;color:var(--ink-3);font-weight:700;text-transform:uppercase;">Student Name</div><div style="font-size:18px;font-weight:800;">${student.full_name}</div></div>
         <div><div style="font-size:11px;color:var(--ink-3);font-weight:700;text-transform:uppercase;">Admission Number</div><div style="font-size:16px;font-weight:700;font-family:var(--mono);">${student.admission_no || '—'}</div></div>
@@ -570,6 +555,18 @@ function renderResult({ student, term, school, summary, grading, className, posi
           </div>`;
         }).join('')}
       </div>
+      ${grading && grading.length ? `
+      <div style="margin-bottom:16px;padding:10px 14px;background:var(--surface-2);border-radius:var(--radius-sm);border:1px solid var(--border);">
+        <div style="font-size:11px;font-weight:800;text-transform:uppercase;color:var(--ink-3);letter-spacing:.5px;margin-bottom:8px;">Grading Scale</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          ${grading.map(g => `
+            <div style="display:flex;align-items:center;gap:5px;padding:4px 10px;background:white;border-radius:100px;border:1px solid var(--border);font-size:12px;">
+              <span style="font-weight:800;color:var(--primary);">${g.grade}</span>
+              <span style="color:var(--ink-3);">${g.min_score}–${g.max_score}</span>
+              <span style="color:var(--ink-4);font-size:11px;">${g.remark}</span>
+            </div>`).join('')}
+        </div>
+      </div>` : ''}
       ${affective ? `
         <div style="margin-bottom:24px;">
           <div style="font-size:13px;font-weight:800;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px;letter-spacing:.5px;">Behaviour & Traits</div>
