@@ -10,7 +10,11 @@
   <title>EduTrack NG — Result Checker</title>
   <link rel="stylesheet" href="../../assets/css/global.css">
   <style>
-    @media print { .no-print { display:none!important; } body { background:white; } }
+    @media print {
+      .no-print { display:none!important; }
+      body { background:white; }
+      @page { margin: 8mm 10mm; size: A4 portrait; }
+    }
 
     /* ── Page shell ──────────────────────────────────────── */
     .rc-shell {
@@ -210,7 +214,7 @@
   <!-- ── Result display ─────────────────────────────────── -->
   <div id="resultDisplay" style="display:none;max-width:740px;margin:0 auto;">
     <div class="no-print" style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
-      <button class="btn btn--primary" onclick="window.print()"><span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></span> Print Result</button>
+      <button class="btn btn--primary" onclick="doPrint()"><span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></span> Print Result</button>
       <button class="btn btn--secondary" onclick="location.reload()">← Check Another</button>
     </div>
     <div class="result-card" id="resultCard"></div>
@@ -218,7 +222,14 @@
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0">
+function doPrint() {
+  const _t = document.title;
+  document.title = ' ';
+  window.print();
+  setTimeout(() => { document.title = _t; }, 500);
+}
+</script>
 <script src="../../js/config.js"></script>
 <script src="../../api/database.js"></script>
 <script src="../../api/calculations.js"></script>
