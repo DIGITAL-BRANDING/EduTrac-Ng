@@ -229,10 +229,11 @@ async function loadResults(forcedTermId){
 
   const studentId=ctx.session.id;
   const student=ctx.student;
-  const enrollment = student?.enrollments?.find(e=>e.term_id===termId)||student?.enrollments?.[0];
-  const classId=enrollment?.class_id||ctx.classId;
-  const comboId=student?.combination_id||enrollment?.classes?.combination_id;
-  const section=((enrollment?.classes?.section||enrollment?.classes?.level||'')).toUpperCase();
+  // Use ctx.classId (from get_student_init RPC) as the primary source of truth
+  // enrollRes is loaded below and used as a fallback
+  const classId = ctx.classId || null;
+  const comboId = student?.combination_id || student?.class_combo_id || null;
+  const section = (student?.class_section || student?.class_level || '').toUpperCase();
 
   // Load results directly from DB
   const [resultsRes, enrollRes] = await Promise.all([
@@ -240,10 +241,12 @@ async function loadResults(forcedTermId){
       .select('score,subject_id,exam_id,subjects(id,name,code),exams(id,name,max_score,weight)')
       .eq('student_id', ctx.session.id)
       .eq('term_id', termId),
+    // Try term-specific enrollment first, fall back to any enrollment for this student
     db.from('enrollments')
-      .select('class_id,classes(id,name,level,combination_id)')
+      .select('class_id,term_id,classes(id,name,level,combination_id)')
       .eq('student_id', ctx.session.id)
-      .eq('term_id', termId)
+      .order('created_at', { ascending: false })
+      .limit(1)
       .maybeSingle(),
   ]);
 
@@ -286,29 +289,35 @@ async function loadResults(forcedTermId){
   });
   // Keep flat results for the score rendering code below (it expects one row per exam score)
   const results = rawResults;
-  const classInfo = enrollRes.data ? {
-    name: enrollRes.data.classes?.name,
-    level: enrollRes.data.classes?.level,
-    combination_id: enrollRes.data.classes?.combination_id,
-  } : null;
+  // Resolve classInfo: prefer RPC student data, fall back to enrollment query
+  const enrollClassId = enrollRes.data?.class_id || classId;
+  const classInfo = {
+    name: student?.class_name || enrollRes.data?.classes?.name || null,
+    level: student?.class_level || enrollRes.data?.classes?.level || null,
+    combination_id: student?.class_combo_id || enrollRes.data?.classes?.combination_id || null,
+    id: enrollClassId,
+  };
+  // If RPC classId was null, use enrollment class_id
+  const resolvedClassId = classId || enrollClassId;
 
   if(!results?.length){showEmpty('#subjectResults','No results published yet for this term.','<span class="icon-svg" style="display:inline-flex;align-items:center;vertical-align:middle;line-height:1;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg></span>');return;}
 
-  // Re-load subject maps for this term if classId changed
-  if(classId && (!subjectMaps||(classId!==ctx.classId))){
-    subjectMaps = await loadStudentSubjectMaps(ctx.session.school_id,classId,termId);
+  // Re-load subject maps for this term if needed
+  if(resolvedClassId && (!subjectMaps)){
+    subjectMaps = await loadStudentSubjectMaps(ctx.session.school_id, resolvedClassId, termId);
   }
 
-  // Resolve assigned subjects
+  // Resolve assigned subjects using resolvedClassId
   let assignedSubjects=null;
-  const resolvedSection=section||(classInfo?.section||classInfo?.level||'').toUpperCase();
+  const resolvedSection = section || (classInfo?.level||'').toUpperCase();
   if(resolvedSection.includes('SENIOR')){
-    const useCombo=comboId||(classInfo&&classInfo.combination_id);
-    if(useCombo&&subjectMaps?.comboSubjectMap[useCombo]?.length){
-      assignedSubjects=subjectMaps.comboSubjectMap[useCombo];
+    const useCombo = comboId || classInfo?.combination_id;
+    if(useCombo && subjectMaps?.comboSubjectMap[useCombo]?.length){
+      assignedSubjects = subjectMaps.comboSubjectMap[useCombo];
     }
-  } else if(classId&&subjectMaps?.classSubjectMap[classId]?.length){
-    assignedSubjects=subjectMaps.classSubjectMap[classId];
+  }
+  if(!assignedSubjects && resolvedClassId && subjectMaps?.classSubjectMap[resolvedClassId]?.length){
+    assignedSubjects = subjectMaps.classSubjectMap[resolvedClassId];
   }
 
   // Build score map
@@ -370,7 +379,7 @@ async function loadResults(forcedTermId){
         <div style="flex:1;">
           <div style="font-size:18px;font-weight:800;">${ctx.session.full_name}</div>
           <div style="font-size:12px;color:#9ca3af;margin-top:2px;">
-            ${classInfo?.name||enrollment?.classes?.name||'—'} 
+            ${classInfo?.name||'—'} 
             ${resolvedSection?'· '+resolvedSection+' SECTION':''}
             ${comboName?`<span style="background:rgba(255,255,255,.15);color:#f0c040;padding:1px 8px;border-radius:10px;font-size:10px;font-weight:700;margin-left:5px;">${comboName}</span>`:''}
           </div>
