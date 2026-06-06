@@ -23,10 +23,14 @@
 body{background:#d8dde8;font-family:'EB Garamond',Georgia,serif;padding:0 0 60px;}
 .no-print{}
 
-.rc-loader{max-width:820px;margin:80px auto;text-align:center;font-family:sans-serif;color:#555;}
-.rc-spinner{width:44px;height:44px;border:4px solid #ddd;border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px;}
+.rc-loader{max-width:480px;margin:60px auto;text-align:center;font-family:sans-serif;color:#555;
+  background:white;border-radius:14px;padding:36px 28px 28px;box-shadow:0 4px 24px rgba(0,0,0,.10);}
+.rc-loader #loadMsg{font-size:14px;font-weight:600;color:#2d3748;margin:0 0 4px;}
+.rc-spinner{width:44px;height:44px;border:4px solid #e8ecf4;border-top-color:var(--primary);
+  border-radius:50%;animation:spin .9s linear infinite;margin:0 auto 18px;}
 @keyframes spin{to{transform:rotate(360deg)}}
-.rc-loader-steps{margin-top:12px;font-size:12px;color:#888;line-height:1.8;}
+.rc-loader-steps{margin-top:14px;font-size:11.5px;color:#aaa;line-height:1.9;
+  background:#f8f9fc;border-radius:8px;padding:8px 12px;text-align:left;max-width:300px;margin-left:auto;margin-right:auto;}
 .step-done{color:#16a34a;} .step-active{color:var(--primary);font-weight:600;} .step-wait{color:#ccc;}
 
 .err-box{max-width:820px;margin:50px auto;padding:32px 28px;background:white;border-radius:8px;
@@ -742,9 +746,32 @@ table.gs tr td:first-child{background:var(--grade-row);}
     <div class="rc-spinner"></div>
     <p id="loadMsg">Connecting to database…</p>
     <div class="rc-loader-steps" id="loadSteps"></div>
+    <p id="loadHint" style="font-size:11px;color:#bbb;margin-top:10px;font-family:sans-serif;display:none">
+      Taking longer than expected — check your internet connection.
+    </p>
   </div>
 </div>
 
+<script>
+// Detect going offline mid-load and show a warning banner
+window.addEventListener('offline', () => {
+  const existing = document.getElementById('offlineBanner');
+  if(existing) return;
+  const b = document.createElement('div');
+  b.id = 'offlineBanner';
+  b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#ef4444;color:white;' +
+    'text-align:center;padding:10px 16px;font-family:sans-serif;font-size:13px;font-weight:600;';
+  b.innerHTML = '📶 You are offline. Report cards cannot load without an internet connection.';
+  document.body.insertAdjacentElement('afterbegin', b);
+});
+window.addEventListener('online', () => {
+  const b = document.getElementById('offlineBanner');
+  if(b) b.remove();
+  // If we're still on the loading screen, auto-retry
+  const msg = document.getElementById('loadMsg');
+  if(msg){ location.reload(); }
+});
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
 <script src="../../js/config.js"></script>
 <script src="../../js/supabase.js"></script>
@@ -789,9 +816,11 @@ function renderSteps(){
 }
 function setMsg(m){const el=document.getElementById('loadMsg');if(el)el.textContent=m;}
 
-async function sq(label, queryPromise, timeoutMs=20000){
+async function sq(label, queryPromise, timeoutMs=12000){
   const si=addStep(label);
-  const timer=new Promise((_,rej)=>setTimeout(()=>{rej(new Error(`Timed out after ${timeoutMs/1000}s`));},timeoutMs));
+  const timer=new Promise((_,rej)=>setTimeout(()=>{
+    rej(new Error(`Step "${label}" timed out after ${timeoutMs/1000}s. Check your internet connection and try again.`));
+  },timeoutMs));
   try{
     const result=await Promise.race([queryPromise,timer]);
     if(result?.error && result.error.message){
@@ -800,21 +829,27 @@ async function sq(label, queryPromise, timeoutMs=20000){
     doneStep(si);
     return result?.data!==undefined ? result.data : result;
   }catch(e){
-    showErr(`Failed at step: "${label}"`, e.message||String(e));
+    showErr(`Loading failed: "${label}"`, e.message||String(e));
     throw e;
   }
 }
 
 function showErr(msg,detail=''){
+  const isOffline = !navigator.onLine;
+  const offlineNote = isOffline
+    ? '<div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:6px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#92400e">📶 <strong>No internet connection detected.</strong> Please reconnect and retry.</div>'
+    : '';
   document.getElementById('mainContent').innerHTML=`
     <div class="err-box">
       <h2>⚠️ ${msg}</h2>
+      ${offlineNote}
       <p>The report card could not load. Check the details below and try again.</p>
-      ${detail?`<code>${detail}</code>`:''}
-      <br>
-      <button class="err-retry" onclick="location.reload()">↺ Retry</button>
-      &nbsp;
-      <button class="err-retry" style="background:#6b7280" onclick="history.back()">← Go Back</button>
+      ${detail?`<code style="font-size:11px;word-break:break-word">${detail}</code>`:''}
+      <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+        <button class="err-retry" onclick="location.reload()">↺ Retry</button>
+        <button class="err-retry" style="background:#6b7280" onclick="history.back()">← Go Back</button>
+        <button class="err-retry" style="background:#059669" onclick="window.location.href='/login.html'">🔑 Re-login</button>
+      </div>
     </div>`;
 }
 
@@ -1502,4 +1537,628 @@ async function buildCard(student, termId, extraClass=''){
   });
 
   const ws2=subRows.filter(s=>s.total!==null);
-  const avg=ws2.length?Math.round(ws2.reduce((s,r)=>s+r.total,0)/ws
+  const avg=ws2.length?Math.round(ws2.reduce((s,r)=>s+r.total,0)/ws2.length*10)/10:null;
+  const raw=studentResults?.reduce((s,r)=>s+(r.score||0),0)??null;
+  const og=gradeFromScale(avg,_scale||[]);
+  const days=new Set((attData||[]).map(a=>a.date)).size;
+  const pres=(attData||[]).filter(a=>a.status==='P'||a.status==='L').length;
+  const att=days>0?Math.round(pres/days*100):null;
+
+  const parts=[
+    _school?.affiliation_no?`Affiliation No.: ${_school.affiliation_no}`:null,
+    _school?.phone?`Ph: ${_school.phone}`:null,
+    _school?.email?`Email: ${_school.email}`:null,
+  ].filter(Boolean);
+  const meta=parts.length?parts.join(' &nbsp;|&nbsp; '):
+    [_school?.address,_school?.lga,_school?.state].filter(Boolean).join(', ')||'&nbsp;';
+  const sessLabel=(_term?.academic_years?.label||_term?.name)
+    ?`Academic Session — ${_term?.academic_years?.label||_term?.name}`:'Academic Session';
+
+  const logoH=_school?.logo_url
+    ?`<img src="${_school.logo_url}" alt="Logo" onerror="this.outerHTML='<div class=logo-fb>SCHOOL<br>CREST</div>'">`
+    :`<div class="logo-fb">SCHOOL<br>CREST</div>`;
+
+  const pp=student.photo_url||student.passport_url||student.avatar_url||'';
+
+  const eHdrs=examList.map(e=>
+    `<th>${e.name}<br><span style="font-weight:400;font-size:7.5px">/${e.max_score}</span></th>`
+  ).join('');
+  
+  const sRows=subRows.map(sub=>{
+    const cells=examList.map(e=>{
+      const r=sub.rows.find(r=>r.exam_id===e.id);
+      return`<td>${r!==undefined?r.score:'—'}</td>`;
+    }).join('');
+    return`<tr><td class="sn">${sub.name}</td>${cells}
+      <td><strong style="color:var(--primary)">${sub.total??'—'}</strong></td>
+      <td>${gradeBadge(sub.grade)}</td>
+      <td style="font-size:10px;color:#555;text-align:left">${sub.remark||'—'}</td></tr>`;
+  }).join('')||`<tr><td colspan="99" style="text-align:center;padding:18px;color:#999;font-family:sans-serif;font-size:12px">No results recorded for this term.</td></tr>`;
+
+  const coF=[['work_education','Work Education'],['art_education','Art Education'],
+    ['physical_education','Health &amp; Physical Education'],['social_skills','Social Skills'],['sports','Sports']];
+  const diF=[['punctuality','Regularity &amp; Punctuality'],['sincerity','Sincerity'],
+    ['conduct','Behaviour &amp; Values'],['respect','Respectfulness for Rules &amp; Reg.'],
+    ['attitude_teachers','Attitude Towards Teachers'],['attitude_society','Attitude Towards Society']];
+
+  const scH=(_scale||[]).length
+    ?`<thead><tr><th>Grade</th>${(_scale||[]).map(g=>`<th>${g.grade}</th>`).join('')}</thead>
+      <tbody><tr><th>Marks</th>${(_scale||[]).map(g=>`<td>${g.min_score}–${g.max_score}</td>`).join('')}</tr>
+      <tr><th>Remark</th>${(_scale||[]).map(g=>`<td style="font-size:8.5px">${g.remark||'—'}</td>`).join('')}</tr></tbody>`
+    :`<thead><tr><th>91–100</th><th>81–90</th><th>71–80</th><th>61–70</th><th>51–60</th><th>41–50</th><th>32–40</th></thead>
+     <tbody><tr><td>A+</td><td>A</td><td>B+</td><td>B</td><td>C+</td><td>C</td><td>D</td></tr></tbody>`;
+
+  const sid=student.id.replace(/-/g,'_');
+
+  // Deduplicate exams — prevents duplicate score columns
+  const examDeduped = [];
+  const examSeen = new Set();
+  (_exams || []).forEach(e => { if (e && !examSeen.has(e.id)) { examSeen.add(e.id); examDeduped.push(e); } });
+  if (examDeduped.length) _exams = examDeduped;
+
+  // Deduplicate class subjects — prevents duplicate subject rows
+  if (_classSubjects?.length) {
+    const csSeen = new Map();
+    _classSubjects.forEach(cs => {
+      if (!csSeen.has(cs.subject_id)) csSeen.set(cs.subject_id, cs);
+    });
+    _classSubjects = [...csSeen.values()];
+  }
+
+  // Also deduplicate studentResults per (subject_id, exam_id) pair
+  const resultKey = r => `${r.subject_id}||${r.exam_id}`;
+  const resultSeen = new Set();
+  studentResults = studentResults.filter(r => {
+    const k = resultKey(r);
+    if (resultSeen.has(k)) return false;
+    resultSeen.add(k);
+    return true;
+  });
+
+  // Store current student for certificate/testimonial generation
+  _currentStudent={student,results:studentResults,attData,affective};
+
+  // Route to section-specific card builder — driven by institution theme engine
+  const sType = getCardTheme(_classRow);
+  if(sType==='nursery')    return buildNurseryCard(student,studentResults,attData,affective);
+  if(sType==='primary')    return buildPrimaryCard(student,studentResults,attData,affective);
+  if(sType==='vocational') return buildVocationalCard(student,studentResults,attData,affective);
+  if(sType==='tertiary')   return buildTertiaryCard(student,studentResults,attData,affective);
+  // 'secondary' is the default
+
+  return`
+<div class="card-wrap ${extraClass}">
+<div class="report-card"><div class="deco-border"><div class="card-inner">
+<div class="deco-strip"></div>
+<div class="rc-header">
+  <div class="logo-circle">${logoH}</div>
+  <div class="hc">
+    <div class="school-name">${_school?.name||'School Name'}</div>
+    <div class="school-meta">${meta}</div>
+    <div class="gold-div"></div>
+    <div class="card-title">Student Academic Report</div>
+    <div class="sess-txt">${sessLabel}</div>
+    <div class="sess-txt" style="font-size:10px;color:#777;font-weight:400;font-style:italic;margin-top:1px">Term: ${_term?.name||'—'}</div>
+  </div>
+  <div class="pp-box">
+    <div class="pp-frame" onclick="document.getElementById('ppInput_${sid}').click()">
+      <img id="ppImg_${sid}" src="${pp}" style="${pp?'':'display:none'}" alt="Student Photo">
+      <div class="pp-ph" id="ppPh_${sid}" ${pp?'style="display:none"':''}>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5">
+          <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+        </svg>
+        <span style="font-size:8px">Affix<br>Photo</span>
+      </div>
+    </div>
+    <input type="file" id="ppInput_${sid}" accept="image/*" onchange="loadPP(event,'${sid}')" style="display:none">
+    <div class="pp-lbl">Passport Size</div>
+  </div>
+</div>
+<div class="info-strip">
+  <div class="info-row"><span class="il">Name of Student</span><span class="iv">${student.full_name||'—'}</span></div>
+  <div class="info-row"><span class="il">Admission No.</span><span class="iv">${student.admission_no||student.roll_no||'—'}</span></div>
+  <div class="info-row"><span class="il">Class / Arm</span><span class="iv">${classLabel}</span></div>
+  <div class="info-row"><span class="il">Date of Birth</span><span class="iv">${fmtDate(student.dob||student.date_of_birth)}</span></div>
+  <div class="info-row"><span class="il">Guardian</span><span class="iv">${student.guardian_name||student.father_name||'—'}</span></div>
+  <div class="info-row"><span class="il">Academic Session</span><span class="iv">${(_term?.academic_years?.label||_term?.name)||'—'}</span></div>
+</div>
+<div class="sec-hdr">Scholastic Area — Academic Performance</div>
+<div class="aw"><table class="ac">
+  <thead><tr><th rowspan="2" style="text-align:left;padding-left:10px;min-width:110px">Subjects</th>${eHdrs}<th rowspan="2">Total</th><th rowspan="2">Grade</th><th rowspan="2" style="min-width:60px">Remark</th></tr><tr></tr></thead>
+  <tbody>${sRows}</tbody>
+</table></div>
+<div class="sum-band">
+  <div class="sum-cell"><span class="sl c1">Overall Marks</span><span class="sv" style="color:var(--primary)">${raw??'—'}</span></div>
+  <div class="sum-cell"><span class="sl c2">Percentage</span><span class="sv" style="color:var(--accent)">${avg!==null?avg+'%':'—'}</span></div>
+  <div class="sum-cell"><span class="sl c3">Grade</span><span class="sv" style="color:#16a34a">${og.grade}</span></div>
+  <div class="sum-cell"><span class="sl c4">Attendance</span><span class="sv" style="color:#7c3aed">${att!==null?att+'%':'—'}</span></div>
+</div>
+<div class="two-col">
+  <div class="co-col"><div class="co-h">Co-Scholastic Activities</div><div class="ach"><span>Activity</span><span>Grade</span></div>${actRows(coF,affective)}</div>
+  <div class="di-col"><div class="di-h">Discipline &amp; Character</div><div class="ach"><span>Activity</span><span>Grade</span></div>${actRows(diF,affective)}</div>
+</div>
+${rmHTML("Class Teacher's Remark",affective?.class_teacher_remark,'#f8faff','var(--primary)')}
+${rmHTML("VP Academic's Remark", affective?.vp_academic_remark, '#eff6ff','#1e40af')}
+${rmHTML("Exam Officer's Remark", affective?.exam_officer_remark, '#faf5ff','#6b21a8')}
+${rmHTML("Principal's Remark", affective?.principal_remark, '#f0fdf4','#166534')}
+<div class="promo-band">Promoted to Class &mdash; <span>${affective?.promoted_to||'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</span></div>
+${affective?.next_term_begins?`<div class="nt-row"><strong>Next Term Begins:</strong> ${fmtDate(affective.next_term_begins)}</div>`:''}
+<div class="gs-wrap"><div class="gs-title">Grading Scale for Scholastic Areas</div><table class="gs">${scH}</table></div>
+<div class="sig-ft">
+  ${sigHTML('Class Teacher', _school?.class_teacher_signature_url)}
+  ${sigHTML('VP Academic', _school?.vp_signature_url)}
+  ${sigHTML('Exam Officer', _school?.exam_officer_signature_url)}
+  ${sigHTML('Principal', _school?.principal_signature_url)}
+</div>
+<div class="deco-strip"></div>
+<div class="card-stamp">Generated by EduTrack NG &nbsp;·&nbsp; ${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</div>
+</div></div></div></div>`;
+}
+
+function showNoReportCard(student){
+  document.getElementById('mainContent').innerHTML = `
+    <div class="no-report-card">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <circle cx="12" cy="16" r="0.5" fill="currentColor" stroke="none"/>
+      </svg>
+      <h3>📄 No Results Found</h3>
+      <p><strong>${student.full_name || 'This student'}</strong> has no scores recorded for the selected term.</p>
+      <p>Please ensure that subject scores have been entered for this student in the <strong>Results</strong> section before generating a report card.</p>
+      <button onclick="_loadCard(${JSON.stringify(student).replace(/</g,'\u003c')})">↺ Retry</button>
+      <button onclick="history.back()">← Go Back</button>
+    </div>
+  `;
+}
+
+function loadPP(e,sid){
+  const file=e.target.files[0];if(!file)return;
+  const rd=new FileReader();
+  rd.onload=ev=>{
+    const img=document.getElementById('ppImg_'+sid);
+    const ph =document.getElementById('ppPh_'+sid);
+    if(img){img.src=ev.target.result;img.style.display='block';}
+    if(ph) ph.style.display='none';
+  };
+  rd.readAsDataURL(file);
+}
+
+let _students=[],_ci=0,_tid='';
+
+function switchStudent(id){
+  const i=_students.findIndex(s=>s.id===id);if(i<0)return;
+  _ci=i;_updateNav();_loadCard(_students[i]);
+}
+
+function stepStudent(d){
+  const n=_ci+d;if(n<0||n>=_students.length)return;
+  _ci=n;document.getElementById('ssel').value=_students[_ci].id;
+  _updateNav();_loadCard(_students[_ci]);
+}
+
+function _updateNav(){
+  document.getElementById('btnPrev').disabled=_ci===0;
+  document.getElementById('btnNext').disabled=_ci===_students.length-1;
+  document.getElementById('sCtr').textContent=`${_ci+1} / ${_students.length}`;
+}
+
+async function _loadCard(s){
+  document.getElementById('mainContent').innerHTML=
+    `<div class="rc-loader"><div class="rc-spinner"></div><p id="loadMsg">Loading ${s.full_name||'student'}...</p><div class="rc-loader-steps" id="loadSteps"></div></div>`;
+  steps.length=0;
+  
+  try{
+    const html=await buildCard(s,_tid);
+    if(html===null){
+      showNoReportCard(s);
+    } else {
+      document.getElementById('mainContent').innerHTML=html;
+    }
+  }
+  catch(e){
+    console.error('_loadCard error:', e);
+    showErr('Failed to load report card', e.message||String(e));
+  }
+}
+
+async function switchTerm(newTermId){
+  if(!newTermId||newTermId===_tid) return;
+  const chosen=_allTerms.find(t=>t.id===newTermId);
+  if(!chosen) return;
+  _tid=newTermId; _term=chosen;
+  _bulkResults=null; _bulkAtt=null; _bulkAffective=null; _exams=null; _classSubjects=null;
+  await _initClassCards(_classRow.school_id, _classRow.id);
+}
+
+async function _initClassCards(schoolId, classId){
+  try{
+    setMsg('Loading grade scale, exams and class subjects…');
+    document.getElementById('mainContent').innerHTML=
+      `<div class="rc-loader"><div class="rc-spinner"></div><p id="loadMsg">Loading data for ${_term?.name||'selected term'}…</p><div class="rc-loader-steps" id="loadSteps"></div></div>`;
+    steps.length=0;
+
+    const [scaleData,examsData]=await Promise.all([
+      sq('Grading scale', db.from('grading_scales').select('*').eq('school_id',schoolId).order('min_score',{ascending:false})),
+      sqSafe('Exams list', db.from('exams').select('*').eq('school_id',schoolId).eq('term_id',_tid).order('name')),
+    ]);
+    _scale=scaleData; _exams=examsData||[];
+
+    setMsg('Loading class subjects…');
+    let csData=await sqSafe('Class subjects',
+      db.from('class_subjects')
+        .select('subject_id,subjects(id,name,code)')
+        .eq('class_id',classId)
+        .order('subjects(name)',{ascending:true}));
+    if(!csData?.length){
+      csData=await sqSafe('Class subjects (alt)',
+        db.from('class_subjects')
+          .select('subject_id,subject_name')
+          .eq('class_id',classId));
+    }
+    _classSubjects=csData||[];
+
+    setMsg('Loading student list…');
+    let enrollments=await sq('Enrollments',
+      db.from('enrollments').select('student_id').eq('class_id',classId).eq('term_id',_tid));
+
+    if(!enrollments?.length){
+      const fallback=await sqSafe('Enrollments (class-only fallback)',
+        db.from('enrollments').select('student_id').eq('class_id',classId));
+      if(fallback?.length){
+        enrollments=fallback;
+      }
+    }
+
+    if(!enrollments?.length){
+      document.getElementById('mainContent').innerHTML=`
+        <div class="no-report-card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <circle cx="12" cy="16" r="0.5" fill="currentColor" stroke="none"/>
+          </svg>
+          <h3>No Students Enrolled</h3>
+          <p>No students are enrolled in this class for the selected term.</p>
+          <p>Try selecting a different term, or ensure students are enrolled in this class.</p>
+          <button onclick="history.back()">← Go Back</button>
+        </div>`;
+      return;
+    }
+
+    const studentIds=enrollments.map(e=>e.student_id).filter(Boolean);
+
+    setMsg(`Loading ${studentIds.length} student records…`);
+    const studentsData=await sq('Student records',
+      db.from('students').select('id,full_name,admission_no,roll_no,mother_name,father_name,guardian_name,scholar_no,dob,date_of_birth,photo_url,passport_url,avatar_url,school_id').in('id',studentIds));
+
+    _students=(studentsData||[]).sort((a,b)=>(a.full_name||'').localeCompare(b.full_name||''));
+
+    setMsg('Bulk loading results, attendance and affective data…');
+    const [allResults, allAtt, allAffective]=await Promise.all([
+      sq('All results (bulk)',
+         db.from('results')
+           .select('score,student_id,subject_id,exam_id,subjects(id,name,code),exams(id,name,max_score,weight)')
+           .in('student_id',studentIds).eq('term_id',_tid)),
+      sq('All attendance (bulk)',
+         db.from('attendance')
+           .select('status,date,student_id').in('student_id',studentIds).eq('term_id',_tid)),
+      sq('All affective (bulk)',
+         db.from('affective_domain')
+           .select('*').in('student_id',studentIds).eq('term_id',_tid)),
+    ]);
+    _bulkResults = allResults || [];
+    _bulkAtt = allAtt || [];
+    _bulkAffective = allAffective || [];
+
+    const sel=document.getElementById('ssel');
+    sel.innerHTML=_students.map(s=>
+      `<option value="${s.id}">${s.full_name||'Unknown'}${s.admission_no?' ('+s.admission_no+')':''}</option>`
+    ).join('');
+    document.getElementById('sselWrap').style.display='flex';
+    document.getElementById('dvSel').style.display='block';
+    document.getElementById('btnPrintAll').style.display='flex';
+    document.getElementById('btnCert').style.display='flex';
+    document.getElementById('btnTest').style.display='flex';
+
+    // Update the banner with student count and selected term
+    const cntBadge=document.getElementById('studentCountBadge');
+    if(cntBadge) cntBadge.textContent=`${_students.length} student${_students.length!==1?'s':''}`;
+    const termLabel=document.getElementById('termBadgeLabel');
+    if(termLabel){
+      const tName=_term?.name||'Selected Term';
+      const sessLabel=_term?.academic_years?.label?` — ${_term.academic_years.label}`:'';
+      termLabel.textContent=`Term: ${tName}${sessLabel}`;
+      termLabel.style.color='var(--primary)';
+      termLabel.style.fontWeight='600';
+    }
+
+    _ci=0; _updateNav();
+    await _loadCard(_students[0]);
+
+  }catch(e){
+    if(document.querySelector('.rc-loader')){
+      showErr('Unexpected error loading report cards', e.message||String(e));
+    }
+    console.error('Report card error:',e);
+  }
+}
+
+async function printAll(){
+  const btn=document.getElementById('btnPrintAll');
+  btn.textContent='⏳ Preparing…';btn.disabled=true;
+  document.getElementById('mainContent').innerHTML=
+    `<div class="rc-loader"><div class="rc-spinner"></div><p id="loadMsg">Building all cards…</p><div class="rc-loader-steps" id="loadSteps"></div></div>`;
+  steps.length=0;
+  let html='';
+  let printedCount=0;
+  for(let i=0;i<_students.length;i++){
+    try{
+      const cardHtml=await buildCard(_students[i],_tid);
+      if(cardHtml){
+        html+=cardHtml+(i>0?'<div class="print-page-break"></div>':'');
+        printedCount++;
+      }
+    }catch(e){}
+  }
+  if(printedCount===0){
+    document.getElementById('mainContent').innerHTML='<div class="err-box"><h2>No students with published report cards found.</h2></div>';
+  } else {
+    document.getElementById('mainContent').innerHTML=html;
+    setTimeout(()=>window.print(),500);
+  }
+  btn.textContent='🖨 Print All';btn.disabled=false;
+}
+
+function showTermPicker(schoolId, classId, terms){
+  const opts=terms.map(t=>{
+    const sess=t.academic_years?.label||'';
+    const label=sess?`${t.name} — ${sess}`:t.name;
+    const isCurrent=t.is_current?' ★ Current':'';
+    return `<option value="${t.id}">${label}${isCurrent}</option>`;
+  }).join('');
+  document.getElementById('mainContent').innerHTML=`
+    <div class="term-picker">
+      <h2>📋 Select Term to Generate Report Cards</h2>
+      <p>Choose the academic term for which you want to generate report cards for this class.</p>
+      <div class="term-picker-row">
+        <select id="termPickerSel">${opts}</select>
+        <button class="term-go-btn" onclick="onTermPickerGo('${schoolId}','${classId}')">Generate Reports →</button>
+      </div>
+    </div>`;
+}
+
+async function onTermPickerGo(schoolId, classId){
+  const sel=document.getElementById('termPickerSel');
+  if(!sel||!sel.value) return;
+  const chosen=_allTerms.find(t=>t.id===sel.value);
+  if(!chosen) return;
+  _tid=sel.value; _term=chosen;
+  _populateTermBar();
+  _bulkResults=null; _bulkAtt=null; _bulkAffective=null; _exams=null; _classSubjects=null;
+  await _initClassCards(schoolId, classId);
+}
+
+function _populateTermBar(){
+  const bar=document.getElementById('termSelBar');
+  const tsel=document.getElementById('termSel');
+  if(!bar||!tsel) return;
+  tsel.innerHTML=_allTerms.map(t=>{
+    const sess=t.academic_years?.label||'';
+    const label=sess?`${t.name} — ${sess}`:t.name;
+    return `<option value="${t.id}"${t.id===_tid?' selected':''}>${label}${t.is_current?' ★':''}</option>`;
+  }).join('');
+  bar.style.display='flex';
+}
+
+(async()=>{
+  // ── Show "taking long" hint after 6s ──
+  setTimeout(()=>{
+    const hint = document.getElementById('loadHint');
+    if(hint){
+      const msg = document.getElementById('loadMsg');
+      if(msg && (msg.textContent==='Connecting to database…'||msg.textContent==='Authenticating session…')){
+        hint.style.display='block';
+      }
+    }
+  }, 6000);
+
+  // ── Global watchdog: if still showing "Connecting…" after 15s, show a timeout error ──
+  const _watchdog = setTimeout(()=>{
+    const msg = document.getElementById('loadMsg');
+    if(msg && (msg.textContent === 'Connecting to database…' || msg.textContent === 'Loading…')){
+      showErr(
+        'Connection timed out',
+        'The page took too long to connect. This is usually caused by a slow internet connection, ' +
+        'an expired session, or the server being temporarily unavailable. ' +
+        'Please check your connection and retry.'
+      );
+    }
+  }, 15000);
+
+  // ── Guard: ensure supabase client (db) is available ──
+  if(typeof db === 'undefined'){
+    clearTimeout(_watchdog);
+    showErr(
+      'Database client not initialised',
+      'The Supabase client failed to load. This may be a network issue loading the ' +
+      'configuration scripts. Please refresh the page.'
+    );
+    return;
+  }
+
+  const P=new URLSearchParams(location.search);
+  const classId  =P.get('class');
+  const studentId=P.get('student');
+  let   termId   =P.get('term');
+
+  // ── Announce intent immediately so the UI shows progress ──
+  if(classId)      setMsg('Authenticating session…');
+  else if(studentId) setMsg('Authenticating session…');
+  else             setMsg('Loading your classes…');
+
+  // ── Verify session is alive before firing queries ──
+  let _sessionOk = false;
+  try{
+    const { data:{ session }, error } = await Promise.race([
+      db.auth.getSession(),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('Session check timed out after 10s')),10000))
+    ]);
+    if(error) throw new Error(error.message);
+    _sessionOk = !!session;
+  }catch(e){
+    clearTimeout(_watchdog);
+    showErr('Session check failed', e.message + ' — Please log in again.');
+    return;
+  }
+
+  if(!_sessionOk){
+    clearTimeout(_watchdog);
+    // Not logged in — redirect to login
+    window.location.href = '/login.html';
+    return;
+  }
+
+  if(classId){
+    try{
+      setMsg('Loading class info…');
+      _classRow=await sq('Class info', db.from('classes').select('id,name,level,section,school_id').eq('id',classId).single());
+      if(!_classRow){ clearTimeout(_watchdog); return; }
+
+      const schoolId=_classRow.school_id;
+
+      setMsg('Loading school and terms…');
+      const [schoolData, allTermsData]=await Promise.all([
+        sq('School data', db.from('schools').select('name,logo_url,address,state,lga,phone,email,motto,affiliation_no,school_type,type,vp_signature_url,exam_officer_signature_url,principal_signature_url,class_teacher_signature_url').eq('id',schoolId).single()),
+        sq('All terms', db.from('terms').select('*,academic_years(label)').eq('school_id',schoolId).order('start_date',{ascending:false})),
+      ]);
+      _school=schoolData;
+      _allTerms=allTermsData||[];
+      updateDetectedBadge(_classRow);
+      clearTimeout(_watchdog);
+
+      const sec=(_classRow.section||_classRow.level||'').toUpperCase();
+      const cLabel=sec?`${_classRow.name} — Section ${sec}`:_classRow.name;
+      const bannerDiv=document.createElement('div');
+      bannerDiv.className='class-banner no-print';
+      bannerDiv.id='classBanner';
+      bannerDiv.innerHTML=`<strong>${cLabel}</strong><span class="cbadge" id="studentCountBadge">—</span><span id="termBadgeLabel" style="color:#6b7280">Select a term to load results</span><span style="color:#6b7280">·</span><span style="color:#6b7280">School: ${_school?.name||schoolId}</span>`;
+      document.getElementById('mainContent').insertAdjacentElement('beforebegin', bannerDiv);
+
+      if(termId){
+        const chosen=_allTerms.find(t=>t.id===termId);
+        if(chosen){ _tid=chosen.id; _term=chosen; }
+        else {
+          _tid=termId;
+          const termDetail=await sqSafe('Term detail',db.from('terms').select('*,academic_years(label)').eq('id',termId).maybeSingle());
+          _term=termDetail||{id:termId,name:'Selected Term'};
+        }
+        _populateTermBar();
+        await _initClassCards(schoolId, classId);
+      } else if(_allTerms.length===1){
+        _tid=_allTerms[0].id; _term=_allTerms[0];
+        _populateTermBar();
+        await _initClassCards(schoolId, classId);
+      } else if(_allTerms.length>1){
+        showTermPicker(schoolId, classId, _allTerms);
+      } else {
+        showErr('No terms found for this school.','Please create at least one term in the admin panel.');
+      }
+    }catch(e){
+      clearTimeout(_watchdog);
+      if(document.querySelector('.rc-loader')){
+        showErr('Unexpected error loading report card', e.message||String(e));
+      }
+      console.error('Report card error:',e);
+    }
+    return;
+  }
+
+  if(!studentId){
+    // No class/student param — show a class picker
+    try{
+      const userData = await getCurrentUser();
+      const schoolId = userData?.school_id || userData?.schools?.id;
+      if(!schoolId){ clearTimeout(_watchdog); window.location.href = '/login.html'; return; }
+      document.getElementById('mainContent').innerHTML='<div class="rc-loader"><div class="rc-spinner"></div><p id="loadMsg">Loading classes…</p></div>';
+      const {data:classes,error}=await db.from('classes').select('id,name,level,section').eq('school_id',schoolId).order('name');
+      clearTimeout(_watchdog);
+      if(error||!classes?.length){ showErr('No classes found','Please create classes in the admin panel first.'); return; }
+      const rows=classes.map(c=>{
+        const sec=(c.section||c.level||'').toUpperCase();
+        const label=sec?`${c.name} — Section ${sec}`:c.name;
+        return `<div onclick="location.href='report-cards.html?class=${c.id}'" style="padding:14px 18px;border:1.5px solid #e5e7eb;border-radius:9px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:all .15s;background:white;" onmouseover="this.style.borderColor='var(--primary)';this.style.background='#f0f4ff'" onmouseout="this.style.borderColor='#e5e7eb';this.style.background='white'">
+          <span style="width:38px;height:38px;border-radius:7px;background:var(--primary);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></span>
+          <div><div style="font-weight:700;font-size:14px;color:#1e293b">${label}</div><div style="font-size:11px;color:#6b7280;margin-top:2px">Click to view report cards</div></div>
+          <span style="margin-left:auto;color:#9ca3af">&rsaquo;</span>
+        </div>`;
+      }).join('');
+      document.getElementById('mainContent').innerHTML=`
+        <div style="max-width:680px;margin:30px auto;">
+          <div style="background:white;border-radius:12px;padding:28px;box-shadow:0 1px 4px rgba(0,0,0,.08);">
+            <h2 style="font-family:'Cinzel',serif;color:var(--primary);font-size:18px;margin-bottom:6px">📋 Select a Class</h2>
+            <p style="font-size:13px;color:#6b7280;margin-bottom:22px">Choose the class whose report cards you want to view or print.</p>
+            <div style="display:flex;flex-direction:column;gap:10px">${rows}</div>
+          </div>
+        </div>`;
+    }catch(e){ clearTimeout(_watchdog); showErr('Failed to load classes', e.message||String(e)); }
+    return;
+  }
+
+  // ── Single student path ──
+  try{
+    setMsg('Loading student record…');
+    const student=await sq('Student record',
+      db.from('students').select('id,full_name,admission_no,roll_no,mother_name,father_name,guardian_name,scholar_no,dob,date_of_birth,photo_url,passport_url,avatar_url,school_id').eq('id',studentId).single());
+    if(!student){ clearTimeout(_watchdog); return; }
+
+    const schoolId=student.school_id;
+
+    if(!termId){
+      try{
+        const {data:t}=await db.from('terms').select('*,academic_years(label)').eq('school_id',schoolId).eq('is_current',true).maybeSingle();
+        if(t){_term=t;termId=t.id;}
+        else{
+          const {data:t2}=await db.from('terms').select('*,academic_years(label)').eq('school_id',schoolId).order('start_date',{ascending:false}).limit(1).maybeSingle();
+          _term=t2;termId=t2?.id;
+        }
+      }catch(e){console.error('Term resolution failed:',e);}
+    }
+    _tid=termId;
+    if(!_tid){ clearTimeout(_watchdog); showErr('No active term found for this school.'); return; }
+
+    setMsg('Loading school data…');
+    const [schoolData,scaleData,examsData,termRow]=await Promise.all([
+      sq('School data', db.from('schools').select('name,logo_url,address,state,lga,phone,email,motto,affiliation_no,school_type,type,vp_signature_url,exam_officer_signature_url,principal_signature_url,class_teacher_signature_url').eq('id',schoolId).single()),
+      sq('Grading scale', db.from('grading_scales').select('*').eq('school_id',schoolId).order('min_score',{ascending:false})),
+      sq('Exams list', db.from('exams').select('*').eq('school_id',schoolId).eq('term_id',_tid).order('name')),
+      !_term?sq('Term info', db.from('terms').select('*,academic_years(label)').eq('id',_tid).single()):Promise.resolve(_term),
+    ]);
+    _school=schoolData;_scale=scaleData;_exams=examsData;
+    if(!_term)_term=termRow;
+
+    const {data:enr}=await db.from('enrollments').select('class_id,classes(id,name,level,section)').eq('student_id',studentId).eq('term_id',_tid).maybeSingle();
+    _classRow=enr?.classes||null;
+    updateDetectedBadge(_classRow);
+    clearTimeout(_watchdog);
+
+    steps.length=0;
+    const html=await buildCard(student,_tid);
+    if(html===null){
+      showNoReportCard(student);
+    } else {
+      document.getElementById('mainContent').innerHTML=html;
+    }
+  }catch(e){
+    clearTimeout(_watchdog);
+    if(document.querySelector('.rc-loader')){
+      showErr('Unexpected error loading report card', e.message||String(e));
+    }
+    console.error('Report card error:',e);
+  }
+})();
+</script>
+<script src="/js/pwa-v2.1.js"></script>
+<script src="../../js/assistant.js"></script>
+</body>
+</html>
