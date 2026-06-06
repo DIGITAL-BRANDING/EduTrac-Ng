@@ -6,272 +6,304 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="icon" href="/icons/icon-96.png" type="image/png">
   <meta name="theme-color" content="#0a6e3f">
-  <title>Scratch Cards · MasterWAEC Style | EduTrack NG</title>
+  <title>Scratch Cards · EduVault | Premium ID Cards</title>
   <link rel="stylesheet" href="../assets/css/global.css">
   <style>
-    /* GLOBAL & RESET OVERRIDE FOR MODERN PREMIUM LOOK */
     * {
+      margin: 0;
+      padding: 0;
       box-sizing: border-box;
     }
+
     body {
-      background: #f4f7fc;
-      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      background: #eef2f5;
+      font-family: 'Inter', 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
-    /* custom premium card styling — inspired by WAEC digital scratch card sample */
-    .premium-grid {
+
+    /* ID CARD SIZE — standard CR80 dimensions proportion (85.6mm x 54mm) */
+    .id-card-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 24px;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 28px;
       margin-top: 24px;
-      margin-bottom: 32px;
+      margin-bottom: 40px;
     }
-    /* THE MAIN SCRATCH CARD - Stylish, glassmorphism + metallic borders */
-    .scratch-card-premium {
-      background: linear-gradient(145deg, #ffffff 0%, #fef9e6 100%);
-      border-radius: 28px;
-      padding: 20px 18px 22px 18px;
+
+    /* PROFESSIONAL SCRATCH CARD — like a premium ID card / gift card */
+    .scratch-id-card {
+      background: linear-gradient(145deg, #FFFFFF 0%, #FBF9F4 100%);
+      border-radius: 20px;
+      box-shadow: 0 18px 30px -12px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(212, 175, 55, 0.2);
+      width: 100%;
+      max-width: 360px;
+      margin: 0 auto;
+      transition: transform 0.25s ease, box-shadow 0.3s ease;
       position: relative;
       overflow: hidden;
-      box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      border: 1px solid rgba(255, 215, 120, 0.6);
       backdrop-filter: blur(0px);
     }
-    .scratch-card-premium:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 28px 40px -14px rgba(0, 0, 0, 0.25);
-      border-color: #f3b33d;
+
+    .scratch-id-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 24px 40px -14px rgba(0, 0, 0, 0.25), 0 0 0 1px #d4af37;
     }
-    /* MasterWAEC style ribbon watermark */
-    .scratch-card-premium::before {
-      content: "✓ MASTERWAEC";
+
+    /* holographic strip effect */
+    .scratch-id-card::before {
+      content: "";
       position: absolute;
-      bottom: 12px;
-      right: -25px;
-      background: #eab30820;
-      color: #b8860b;
-      font-size: 0.55rem;
-      font-weight: 800;
-      letter-spacing: 1px;
-      transform: rotate(-35deg);
-      padding: 4px 30px;
+      top: 0;
+      left: -30%;
+      width: 80%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,215,120,0.12), transparent);
+      transform: skewX(-15deg);
       pointer-events: none;
-      font-family: monospace;
-      white-space: nowrap;
-      opacity: 0.5;
     }
-    /* decorative stamp effect */
-    .scratch-card-premium::after {
-      content: "⦿⦿⦿";
-      position: absolute;
-      top: 12px;
-      right: 18px;
-      font-size: 10px;
-      letter-spacing: 2px;
-      color: #d4af37;
-      opacity: 0.4;
-      font-weight: bold;
+
+    /* inner canvas */
+    .card-inner {
+      padding: 16px 18px 18px 18px;
+      position: relative;
+      z-index: 2;
     }
+
+    /* Header region with logo / type */
     .card-header {
       display: flex;
       justify-content: space-between;
-      align-items: baseline;
-      border-bottom: 2px dashed #e2c28b;
-      margin-bottom: 18px;
-      padding-bottom: 6px;
+      align-items: flex-start;
+      margin-bottom: 14px;
+      border-bottom: 2px solid #E9E0CD;
+      padding-bottom: 8px;
     }
-    .badge-digital {
-      background: #2c5f2d;
-      color: #ffefc0;
-      font-size: 0.65rem;
-      font-weight: 700;
-      padding: 4px 12px;
-      border-radius: 40px;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      box-shadow: inset 0 -1px 0 rgba(0,0,0,0.1);
-    }
-    .serial-area {
-      font-family: 'Courier New', 'SF Mono', monospace;
-      font-weight: 700;
-      font-size: 0.75rem;
-      background: #f1e7cf;
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 40px;
-      color: #6b4c1f;
+    .brand {
+      font-weight: 800;
+      font-size: 0.85rem;
       letter-spacing: 1px;
-    }
-    .pin-panel {
-      background: #fff5e6;
-      border-radius: 20px;
-      margin: 16px 0 14px 0;
-      padding: 14px 12px;
-      text-align: center;
-      border: 1px solid #ffdd99;
-      box-shadow: inset 0 0 0 1px #fff, 0 2px 6px rgba(0,0,0,0.02);
-    }
-    .pin-label {
-      font-size: 0.7rem;
+      background: linear-gradient(135deg, #1C6E43, #2B8C5A);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
       text-transform: uppercase;
-      font-weight: 700;
-      letter-spacing: 2px;
-      color: #b87333;
-      margin-bottom: 8px;
     }
-    .pin-digits {
+    .card-badge {
+      background: #F5EFE0;
+      border-radius: 40px;
+      padding: 3px 10px;
+      font-size: 0.6rem;
+      font-weight: 700;
+      color: #A67C2E;
+    }
+
+    /* Serial number segment */
+    .serial-section {
+      background: #F2EDE3;
+      border-radius: 14px;
+      padding: 8px 12px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      font-size: 0.7rem;
+    }
+    .serial-label {
+      font-weight: 600;
+      color: #5A4A2E;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .serial-value {
+      font-family: 'SF Mono', 'Courier New', monospace;
+      font-weight: 700;
+      color: #1F3B2C;
+      letter-spacing: 1.2px;
+      background: white;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+
+    /* PIN PANEL — scannable, elegant */
+    .pin-section {
+      background: #FFFFFF;
+      border-radius: 20px;
+      border: 1px solid #F0E3CE;
+      padding: 12px 10px;
+      margin-bottom: 14px;
+      text-align: center;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.02), 0 4px 6px rgba(0,0,0,0.02);
+    }
+    .scratch-hint {
+      font-size: 0.6rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #BE9B4B;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .scratch-hint span {
+      background: #F9F2E2;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+    .pin-digits-premium {
       font-family: 'SF Mono', 'Fira Code', monospace;
       font-weight: 800;
       font-size: 1.45rem;
       letter-spacing: 5px;
-      color: #1f3b2c;
-      background: #ffffffcc;
+      color: #0B3B2F;
+      background: #FCF9F0;
       padding: 8px 6px;
       border-radius: 18px;
       word-break: break-all;
       display: inline-block;
       width: 100%;
+      border: 1px dashed #E5D5B0;
     }
-    .price-tag {
-      font-size: 0.7rem;
-      background: #eab30810;
-      color: #9b6a2c;
-      font-weight: 700;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      margin-top: 8px;
-    }
-    .status-modern {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(46, 125, 50, 0.1);
+
+    /* purpose chip + status */
+    .purpose-chip {
+      display: inline-block;
+      background: #EFF7F0;
+      padding: 4px 12px;
       border-radius: 40px;
-      padding: 5px 14px;
-      font-size: 0.7rem;
+      font-size: 0.65rem;
       font-weight: 700;
-      text-transform: uppercase;
-      backdrop-filter: blur(2px);
+      color: #2D6A4F;
+      margin-bottom: 12px;
     }
-    .status-modern.used {
-      background: #fce4e4;
-      color: #b91c1c;
-    }
-    .status-modern.available {
-      background: #e0f2e9;
-      color: #2b6e3c;
-    }
-    .waec-whatsapp {
+    .status-container {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 14px;
-      font-size: 0.7rem;
-      border-top: 1px solid #ffefcf;
-      padding-top: 12px;
+      margin: 10px 0 8px;
     }
-    .waec-link {
-      background: #25d36610;
-      border-radius: 30px;
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #E9F5EB;
+      padding: 5px 14px;
+      border-radius: 50px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #1E6F3F;
+    }
+    .status-pill.used {
+      background: #FEF1F0;
+      color: #BA2C1D;
+    }
+    .uses-counter {
+      font-size: 0.65rem;
+      background: #F4EFE4;
       padding: 4px 10px;
-      font-weight: 600;
-      color: #075e54;
-      font-size: 0.7rem;
+      border-radius: 30px;
+      font-weight: 500;
     }
-    .website {
-      font-family: monospace;
-      font-weight: 600;
-      color: #a1621b;
-    }
-    .stats-premium {
+
+    /* minimal footer - no phone / no price */
+    .card-footer {
+      margin-top: 12px;
+      border-top: 1px solid #EFE6D7;
+      padding-top: 10px;
       display: flex;
-      flex-wrap: wrap;
-      gap: 18px;
-      margin-bottom: 28px;
+      justify-content: flex-end;
+      font-size: 0.6rem;
+      color: #B4935A;
+      font-weight: 500;
     }
-    .stat-premium-card {
+
+    /* Stats and toolbars modern */
+    .stats-dashboard {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+    .stat-card {
       background: white;
       border-radius: 24px;
-      padding: 16px 22px;
+      padding: 14px 24px;
       flex: 1;
-      min-width: 140px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-      border: 1px solid #e9e2d0;
-      text-align: center;
+      min-width: 130px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+      border: 1px solid #E7DFCF;
       transition: all 0.2s;
     }
-    .stat-number {
+    .stat-number-big {
       font-size: 2rem;
       font-weight: 800;
       font-family: monospace;
       letter-spacing: -0.5px;
+      color: #1B4D3E;
     }
-    .toolbar-premium {
+
+    .action-toolbar {
       display: flex;
       flex-wrap: wrap;
       gap: 12px;
-      margin-bottom: 24px;
+      margin-bottom: 28px;
       align-items: center;
       justify-content: space-between;
-      background: #fffef7;
-      padding: 12px 18px;
-      border-radius: 48px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-      border: 1px solid #efe3cd;
+      background: #FFFFFFCC;
+      backdrop-filter: blur(4px);
+      padding: 10px 20px;
+      border-radius: 60px;
+      border: 1px solid #E6DBC8;
     }
-    .btn-premium {
+    .btn-outline-premium {
       border-radius: 40px;
       padding: 8px 18px;
       font-weight: 600;
-      transition: all 0.2s;
+      border: 1px solid #CFB87C;
       background: white;
-      border: 1px solid #cfb87c;
-      color: #7a5800;
+      color: #7A5C2E;
+      transition: 0.2s;
     }
-    .btn-premium-primary {
-      background: #0f6e3f;
+    .btn-solid {
+      background: #0F6E3F;
       border: none;
       color: white;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-    .btn-premium-primary:hover {
-      background: #0b5a34;
-      transform: scale(0.97);
+    .search-filter-group {
+      display: flex;
+      gap: 10px;
     }
-    .search-premium {
-      background: white;
+    .modern-input {
       border-radius: 60px;
-      border: 1px solid #e2cfaa;
-      padding: 6px 14px;
-      min-width: 220px;
+      border: 1px solid #E2CFAA;
+      padding: 6px 16px;
+      background: white;
     }
-    /* modal enhancement */
-    .modal__box.premium-modal {
-      border-radius: 32px;
-      background: #fffaf2;
-      border-top: 6px solid #d4af37;
-    }
+
     @media print {
-      .toolbar-premium, .stats-premium, .modal, .btn, button {
+      .action-toolbar, .stats-dashboard, .modal, button, .btn {
         display: none;
       }
-      .scratch-card-premium {
+      .scratch-id-card {
         break-inside: avoid;
         box-shadow: none;
         border: 1px solid #ccc;
+        margin-bottom: 16px;
       }
       body {
         background: white;
       }
     }
-    /* responsive */
-    @media (max-width: 640px) {
-      .premium-grid {
-        gap: 16px;
+
+    /* responsive ID card size */
+    @media (max-width: 480px) {
+      .id-card-grid {
+        gap: 20px;
       }
-      .pin-digits {
-        font-size: 1.1rem;
+      .pin-digits-premium {
+        font-size: 1rem;
         letter-spacing: 3px;
       }
     }
@@ -280,28 +312,27 @@
 <body>
 <div id="app"></div>
 
-<!-- Generate Cards Modal (premium styling) -->
+<!-- Generation Modal (minimal) -->
 <div class="modal" id="genModal">
-  <div class="modal__box premium-modal" style="max-width:450px;">
+  <div class="modal__box" style="max-width:440px; border-radius: 28px;">
     <div class="modal__header">
-      <h2 class="modal__title" style="font-weight:800;">✨ Generate Scratch Cards</h2>
+      <h2 class="modal__title" style="font-weight: 700;">✨ Generate ID Scratch Cards</h2>
       <button class="modal__close" onclick="closeModal('genModal')"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="modal__body">
       <div class="form-group">
-        <label class="form-label">🔢 Number of Cards <span class="required">*</span></label>
-        <input type="number" id="genCount" class="form-control" value="10" min="1" max="200" placeholder="e.g. 50">
-        <div class="form-hint">Max 200 cards per batch</div>
+        <label class="form-label">Number of Cards</label>
+        <input type="number" id="genCount" class="form-control" value="12" min="1" max="200">
       </div>
       <div class="form-group">
-        <label class="form-label">🔐 PIN Length</label>
-        <select id="genPinLen" class="form-control"><option value="8">8 digits</option><option value="10">10 digits</option><option value="12" selected>12 digits (classic)</option></select>
+        <label class="form-label">PIN Length</label>
+        <select id="genPinLen" class="form-control"><option value="8">8 digits</option><option value="10">10 digits</option><option value="12" selected>12 digits</option></select>
       </div>
       <div class="form-group">
-        <label class="form-label">🏷️ Purpose / Label</label>
+        <label class="form-label">Card Label / Purpose</label>
         <input type="text" id="genPurpose" class="form-control" placeholder="e.g. WAEC Result Checker 2025">
       </div>
-      <div id="genErr" class="form-error" style="display:none;margin-top:8px;"></div>
+      <div id="genErr" class="form-error" style="display:none;"></div>
     </div>
     <div class="modal__footer">
       <button class="btn btn--secondary" onclick="closeModal('genModal')">Cancel</button>
@@ -320,36 +351,33 @@ let currentUser, allCards = [], filtered = [];
 (async () => {
   currentUser = await initAdminLayout('scratch-cards', 'Scratch Cards');
   if (!currentUser) return;
-
-  // Replace inner HTML with new premium layout
+  
   document.getElementById('pageBody').innerHTML = `
-    <div style="margin-bottom: 16px;">
-      <h1 style="font-size:1.8rem; font-weight:800; background: linear-gradient(135deg, #1f5e3a, #c49a2b); -webkit-background-clip:text; background-clip:text; color:transparent; margin:0 0 4px;">🎫 Scratch Cards</h1>
-      <p style="color:#6b4e2e;">Generate and manage WAEC-style result checker cards — sleek, digital, and secure</p>
+    <div style="margin-bottom: 8px;">
+      <h1 style="font-size: 1.8rem; font-weight: 800; color: #1C4E3A;">🎴 Scratch Cards</h1>
+      <p style="color: #6F5A3A;">Professional ID-style scratch cards — clean, secure, and ready to distribute</p>
     </div>
-    <div class="stats-premium">
-      <div class="stat-premium-card"><div class="stat-number" id="stTotal">—</div><div style="font-size:0.7rem; font-weight:600; margin-top:6px;">TOTAL CARDS</div></div>
-      <div class="stat-premium-card"><div class="stat-number" style="color:#2b6e3c;" id="stUnused">—</div><div style="font-size:0.7rem; font-weight:600;">AVAILABLE</div></div>
-      <div class="stat-premium-card"><div class="stat-number" style="color:#b91c1c;" id="stUsed">—</div><div style="font-size:0.7rem; font-weight:600;">USED</div></div>
+    <div class="stats-dashboard">
+      <div class="stat-card"><div class="stat-number-big" id="stTotal">0</div><div style="font-size:0.7rem; font-weight:600;">TOTAL CARDS</div></div>
+      <div class="stat-card"><div class="stat-number-big" style="color:#2B8C5A;" id="stUnused">0</div><div style="font-size:0.7rem; font-weight:600;">AVAILABLE</div></div>
+      <div class="stat-card"><div class="stat-number-big" style="color:#C2412C;" id="stUsed">0</div><div style="font-size:0.7rem; font-weight:600;">USED</div></div>
     </div>
-    <div class="toolbar-premium">
-      <div style="display:flex; gap:10px; flex-wrap:wrap;">
-        <button class="btn-premium btn-premium-primary" onclick="openModal('genModal')">+ Generate New Batch</button>
-        <button class="btn-premium" onclick="exportCards()">📎 Export CSV</button>
-        <button class="btn-premium" onclick="printCards()">🖨️ Print Cards</button>
+    <div class="action-toolbar">
+      <div style="display:flex; gap:10px;">
+        <button class="btn-outline-premium btn-solid" onclick="openModal('genModal')">+ Generate Cards</button>
+        <button class="btn-outline-premium" onclick="exportCards()">📎 Export CSV</button>
+        <button class="btn-outline-premium" onclick="printCards()">🖨️ Print Cards</button>
       </div>
-      <div style="display:flex; gap:10px; align-items:center;">
-        <select id="cardStatusFilter" onchange="filterCards()" class="form-control" style="background:white; border-radius:40px; padding:6px 14px; width:auto;">
-          <option value="">All Status</option>
+      <div class="search-filter-group">
+        <select id="cardStatusFilter" onchange="filterCards()" class="modern-input" style="background:white;">
+          <option value="">All status</option>
           <option value="unused">Available</option>
           <option value="used">Used</option>
         </select>
-        <div style="position:relative;">
-          <input type="text" id="cardSearch" placeholder="🔍 Search serial / PIN" class="search-premium" oninput="filterCards()">
-        </div>
+        <input type="text" id="cardSearch" placeholder="Search serial / PIN" class="modern-input" oninput="filterCards()">
       </div>
     </div>
-    <div id="cardsContent"><div style="text-align:center;padding:40px;">🃏 Loading premium cards...</div></div>
+    <div id="cardsContent"><div style="text-align:center; padding: 60px;">Loading premium ID cards...</div></div>
   `;
   loadCards();
 })();
@@ -361,90 +389,93 @@ async function loadCards() {
     .order('created_at', { ascending: false });
   if (error) { showError('#cardsContent', error.message); return; }
   allCards = data || [];
-  const total = allCards.length, used = allCards.filter(c=>c.is_used).length;
+  updateStats();
+  filterCards();
+}
+
+function updateStats() {
+  const total = allCards.length;
+  const used = allCards.filter(c => c.is_used).length;
   document.getElementById('stTotal').textContent = total;
   document.getElementById('stUnused').textContent = total - used;
   document.getElementById('stUsed').textContent = used;
-  filterCards();
 }
 
 function filterCards() {
   const status = document.getElementById('cardStatusFilter').value;
-  const q = (document.getElementById('cardSearch').value||'').toLowerCase();
+  const q = (document.getElementById('cardSearch').value || '').toLowerCase();
   filtered = allCards.filter(c => {
     if (status === 'used' && !c.is_used) return false;
     if (status === 'unused' && c.is_used) return false;
-    if (q && !(c.serial_no||'').toLowerCase().includes(q) && !(c.pin||'').includes(q)) return false;
+    if (q && !(c.serial_no || '').toLowerCase().includes(q) && !(c.pin || '').includes(q)) return false;
     return true;
   });
-  renderPremiumCards();
+  renderIdCards();
 }
 
-// Premium card render: MasterWAEC inspired layout + price, serial, WhatsApp & website style
-function renderPremiumCards() {
-  const wrap = document.getElementById('cardsContent');
+function renderIdCards() {
+  const container = document.getElementById('cardsContent');
   if (!filtered.length) {
-    wrap.innerHTML = `<div style="text-align:center;padding:64px 24px; background:#fef9ec; border-radius:48px; margin-top:16px;">
-      <div style="font-size:4rem;">🎴</div>
-      <p style="font-weight:700; margin-top:12px;">No scratch cards found</p>
-      ${allCards.length === 0 ? `<button onclick="openModal('genModal')" style="background:#0f6e3f; border:none; padding:10px 22px; border-radius:60px; color:white; font-weight:600; margin-top:8px;">✨ Generate your first WAEC-style card</button>` : '<p class="text-muted">Adjust filters</p>'}
+    container.innerHTML = `<div style="text-align:center; padding: 64px 20px; background: #FAF7F0; border-radius: 48px; margin-top:20px;">
+      <div style="font-size: 48px;">🃟</div>
+      <p style="font-weight:600; margin-top:12px;">No scratch cards found</p>
+      ${allCards.length === 0 ? `<button onclick="openModal('genModal')" style="background:#0F6E3F; border:none; padding:8px 24px; border-radius: 40px; color:white; margin-top:12px;">Create your first ID card</button>` : ''}
     </div>`;
     return;
   }
-  wrap.innerHTML = `<div class="premium-grid">${filtered.slice(0,200).map(c => generatePremiumCardHTML(c)).join('')}</div>${
-    filtered.length > 200 ? `<p style="text-align:center; margin:16px; font-size:0.8rem;">✨ Showing 200 of ${filtered.length} cards. Export CSV for full list.</p>` : ''
-  }`;
+  container.innerHTML = `<div class="id-card-grid">${filtered.slice(0, 150).map(card => generateIdCardHTML(card)).join('')}</div>${filtered.length > 150 ? '<p style="text-align:center; margin:16px; font-size:0.75rem;">Showing 150 of ' + filtered.length + ' cards. Export CSV for full list.</p>' : ''}`;
 }
 
-function generatePremiumCardHTML(card) {
-  const serialDisplay = card.serial_no || 'ETN' + Math.floor(Math.random()*10000);
-  const pinFormatted = formatPinPremium(card.pin);
+function generateIdCardHTML(card) {
+  const serialDisplay = card.serial_no || `EDU${Math.floor(Math.random() * 10000)}`;
+  const pinFormatted = formatPinIdStyle(card.pin);
   const isUsed = card.is_used;
-  const purposeText = card.purpose || 'WAEC Result Checker';
-  // simulate price like #4000 Only if result checker
-  const showPrice = purposeText.toLowerCase().includes('result') || purposeText.toLowerCase().includes('waec') ? true : false;
-  const priceTag = showPrice ? '₦4,000 Only' : '₦2,500 Only';
-  const usedAtText = card.used_at ? `Used: ${new Date(card.used_at).toLocaleDateString('en-GB')}` : '';
-  const usageInfo = (!isUsed && (card.uses_count||0) > 0) ? ` (${card.uses_count}/${card.max_uses||1} uses)` : '';
+  const purposeLabel = card.purpose && card.purpose.trim() !== "" ? card.purpose : "Result Checker";
+  const usageText = (!isUsed && (card.uses_count || 0) > 0) ? `${card.uses_count}/${card.max_uses || 1} uses` : "";
+  const usedDate = card.used_at ? `<span style="font-size:0.6rem; opacity:0.6;">used: ${new Date(card.used_at).toLocaleDateString('en-GB')}</span>` : "";
   
   return `
-    <div class="scratch-card-premium">
-      <div class="card-header">
-        <span class="badge-digital">⭐ DIGITAL COPY</span>
-        <span class="serial-area">SERIAL: ${serialDisplay}</span>
-      </div>
-      <div style="text-align: center; margin: 5px 0 2px;">
-        <div style="font-weight:800; font-size:0.85rem; letter-spacing:1px; background: #f1e8d5; display:inline-block; padding:2px 12px; border-radius:20px;">${purposeText}</div>
-      </div>
-      <div class="pin-panel">
-        <div class="pin-label">✦ SCRATCH TO REVEAL PIN ✦</div>
-        <div class="pin-digits">${pinFormatted}</div>
-        ${showPrice ? `<div class="price-tag">💰 ${priceTag}</div>` : `<div class="price-tag" style="visibility:hidden;"> </div>`}
-      </div>
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
-        <span class="status-modern ${isUsed ? 'used' : 'available'}">
-          ${isUsed ? '✕ USED' : '✓ AVAILABLE'}${usageInfo}
-        </span>
-        <div class="waec-link">
-          <span>💬 WhatsApp: 0815-129-7236</span>
+    <div class="scratch-id-card">
+      <div class="card-inner">
+        <div class="card-header">
+          <div class="brand">⚡ EDUVAULT • SCRATCH</div>
+          <div class="card-badge">🔒 SECURE</div>
         </div>
-      </div>
-      <div class="waec-whatsapp">
-        <span class="website">🌐 www.masterwaec.com</span>
-        ${usedAtText ? `<span style="font-size:0.6rem; opacity:0.7;">📅 ${usedAtText}</span>` : '<span style="font-size:0.6rem;">✨ valid till expiry</span>'}
+        <div class="serial-section">
+          <span class="serial-label">SERIAL NUMBER</span>
+          <span class="serial-value">${escapeHtml(serialDisplay)}</span>
+        </div>
+        <div class="pin-section">
+          <div class="scratch-hint">
+            <span>✦ SCRATCH TO REVEAL PIN ✦</span>
+          </div>
+          <div class="pin-digits-premium">${pinFormatted}</div>
+        </div>
+        <div class="purpose-chip">📌 ${escapeHtml(purposeLabel)}</div>
+        <div class="status-container">
+          <div class="status-pill ${isUsed ? 'used' : ''}">
+            ${isUsed ? '✕ USED' : '✓ AVAILABLE'}
+          </div>
+          ${usageText ? `<div class="uses-counter">🔁 ${usageText}</div>` : ''}
+        </div>
+        <div class="card-footer">
+          ${usedDate ? usedDate : '<span>✓ valid for result checking</span>'}
+        </div>
       </div>
     </div>
   `;
 }
 
-function formatPinPremium(pin) {
-  if (!pin) return 'XXXX-XXXX-XXXX';
+function formatPinIdStyle(pin) {
+  if (!pin) return "****-****-****";
   const raw = String(pin).replace(/\s|-/g, '');
   if (raw.length === 12) return `${raw.slice(0,4)}-${raw.slice(4,8)}-${raw.slice(8,12)}`;
-  if (raw.length === 10) return `${raw.slice(0,4)}-${raw.slice(4,7)}-${raw.slice(7,10)}`;
+  if (raw.length === 10) return `${raw.slice(0,4)}-${raw.slice(4,8)}-${raw.slice(8,10)}`;
   if (raw.length === 8) return `${raw.slice(0,4)}-${raw.slice(4,8)}`;
   return raw.match(/.{1,4}/g)?.join('-') || raw;
 }
+
+function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
 
 async function generateCards() {
   const btn = document.getElementById('genBtn');
@@ -452,115 +483,129 @@ async function generateCards() {
   let count = parseInt(document.getElementById('genCount').value);
   const pinLenSelect = document.getElementById('genPinLen').value;
   const targetPinLen = parseInt(pinLenSelect);
-  if (!count || count < 1 || count > 200) { errEl.textContent = 'Enter a count between 1 and 200.'; errEl.style.display = 'block'; return; }
-
-  // school permission check
-  const { data: schoolData } = await db.from('schools')
+  if (!count || count < 1 || count > 200) {
+    errEl.textContent = 'Count must be between 1 and 200.';
+    errEl.style.display = 'block';
+    return;
+  }
+  // Check school permission
+  const { data: schoolData, error: schoolError } = await db.from('schools')
     .select('can_self_generate_cards, self_generate_limit')
     .eq('id', currentUser.school_id).single();
-
-  if (!schoolData?.can_self_generate_cards) {
-    errEl.textContent = '❌ Your school does not have permission to generate scratch cards. Contact EduTrack NG admin.';
+  
+  if (schoolError || !schoolData?.can_self_generate_cards) {
+    errEl.textContent = 'Permission denied: Your school cannot generate cards. Contact administrator.';
     errEl.style.display = 'block';
     return;
   }
   const limit = schoolData.self_generate_limit || 100;
   if (count > limit) {
-    errEl.textContent = `⚠️ Your school can generate a maximum of ${limit} cards per batch.`;
+    errEl.textContent = `Max batch limit is ${limit} cards.`;
     errEl.style.display = 'block';
     return;
   }
-
-  btn.disabled = true; btn.textContent = '⏳ Generating...';
+  btn.disabled = true;
+  btn.textContent = '⏳ Generating...';
   errEl.style.display = 'none';
-
-  const purpose = document.getElementById('genPurpose').value.trim();
-  const finalPurpose = purpose || 'WAEC Result Checker';
+  const purposeRaw = document.getElementById('genPurpose').value.trim();
+  const finalPurpose = purposeRaw || "Result Checker";
   const cardType = finalPurpose.toLowerCase().includes('result') ? 'result' : 'registration';
   const maxUses = cardType === 'result' ? 3 : 1;
   const now = Date.now();
   const usedPins = new Set();
-  const cards = [];
-
+  const cardsBatch = [];
   for (let i = 0; i < count; i++) {
-    let pin;
+    let pinGenerated;
     do {
-      let pinDigits = '';
-      for (let d = 0; d < targetPinLen; d++) {
-        pinDigits += Math.floor(Math.random() * 10);
-      }
-      pin = pinDigits;
-    } while (usedPins.has(pin));
-    usedPins.add(pin);
-    const serialNo = `WRN${String(now).slice(-6)}${String(i+1).padStart(4,'0')}`;
-    cards.push({
+      let pinStr = '';
+      for (let d = 0; d < targetPinLen; d++) pinStr += Math.floor(Math.random() * 10);
+      pinGenerated = pinStr;
+    } while (usedPins.has(pinGenerated));
+    usedPins.add(pinGenerated);
+    const serial = `EDU${String(now).slice(-7)}${String(i+1).padStart(3,'0')}`;
+    cardsBatch.push({
       school_id: currentUser.school_id,
-      serial_no: serialNo,
-      pin: pin,
+      serial_no: serial,
+      pin: pinGenerated,
       is_used: false,
       uses_count: 0,
       max_uses: maxUses,
       card_type: cardType,
       purpose: finalPurpose,
-      batch_id: `BATCH_${finalPurpose.replace(/\s/g,'')}_${String(now).slice(-8)}`,
+      batch_id: `BATCH_${finalPurpose.replace(/\s/g,'')}_${String(now).slice(-6)}`,
     });
   }
-
-  const { error } = await db.from('scratch_cards').insert(cards);
-  btn.disabled = false; btn.textContent = 'Generate';
-  if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+  const { error } = await db.from('scratch_cards').insert(cardsBatch);
+  btn.disabled = false;
+  btn.textContent = 'Generate';
+  if (error) {
+    errEl.textContent = error.message;
+    errEl.style.display = 'block';
+    return;
+  }
   closeModal('genModal');
-  toast(`${count} premium scratch cards generated!`, 'success');
+  showToast(`${count} scratch card(s) generated successfully.`, 'success');
   loadCards();
 }
 
 function exportCards() {
   const rows = filtered.map(c => [c.serial_no, c.pin, c.is_used ? 'Used' : 'Available', c.purpose || '', c.used_at || '']);
-  const csv = [['Serial No','PIN','Status','Purpose','Used At'], ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const csvRows = [['Serial Number','PIN','Status','Purpose','Used At'], ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','));
+  const csvContent = csvRows.join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv' });
   const a = document.createElement('a');
-  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-  a.download = `masterwaec-cards-${new Date().toISOString().slice(0,10)}.csv`;
+  const url = URL.createObjectURL(blob);
+  a.href = url;
+  a.download = `scratchcards_${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
+  URL.revokeObjectURL(url);
 }
 
-function printCards() {
-  window.print();
-}
+function printCards() { window.print(); }
 
-// global helper toasts (simple)
-function toast(msg, type) {
-  let toastDiv = document.getElementById('dynamicToast');
+function showToast(msg, type) {
+  let toastDiv = document.getElementById('dynamicToastMsg');
   if (!toastDiv) {
     toastDiv = document.createElement('div');
-    toastDiv.id = 'dynamicToast';
+    toastDiv.id = 'dynamicToastMsg';
     toastDiv.style.position = 'fixed';
-    toastDiv.style.bottom = '20px';
-    toastDiv.style.right = '20px';
-    toastDiv.style.background = '#1f2b1b';
+    toastDiv.style.bottom = '24px';
+    toastDiv.style.right = '24px';
+    toastDiv.style.backgroundColor = '#1E3A2F';
     toastDiv.style.color = 'white';
-    toastDiv.style.padding = '12px 24px';
-    toastDiv.style.borderRadius = '60px';
+    toastDiv.style.padding = '10px 20px';
+    toastDiv.style.borderRadius = '40px';
     toastDiv.style.fontSize = '0.85rem';
-    toastDiv.style.fontWeight = 'bold';
-    toastDiv.style.zIndex = '9999';
-    toastDiv.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+    toastDiv.style.fontWeight = '500';
+    toastDiv.style.zIndex = '10000';
+    toastDiv.style.boxShadow = '0 8px 20px rgba(0,0,0,0.15)';
     toastDiv.style.backdropFilter = 'blur(8px)';
     document.body.appendChild(toastDiv);
   }
-  toastDiv.style.background = type === 'success' ? '#0f6e3f' : '#b45353';
+  toastDiv.style.backgroundColor = type === 'success' ? '#116B3F' : '#B13E2D';
   toastDiv.textContent = msg;
   toastDiv.style.opacity = '1';
+  toastDiv.style.display = 'block';
   setTimeout(() => {
     toastDiv.style.opacity = '0';
-    setTimeout(() => { if(toastDiv) toastDiv.style.display = 'none'; }, 500);
+    setTimeout(() => { if(toastDiv) toastDiv.style.display = 'none'; }, 400);
   }, 2800);
-  toastDiv.style.display = 'block';
 }
 
+// Global helpers (required by modal close)
+window.closeModal = (id) => {
+  const modal = document.getElementById(id);
+  if(modal) modal.style.display = 'none';
+};
+window.openModal = (id) => {
+  const modal = document.getElementById(id);
+  if(modal) modal.style.display = 'flex';
+};
 window.filterCards = filterCards;
 window.generateCards = generateCards;
 window.exportCards = exportCards;
 window.printCards = printCards;
+window.showToast = showToast;
 
 </script>
 <script src="/js/pwa-v2.1.js"></script>
