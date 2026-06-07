@@ -73,19 +73,26 @@
 .deco-strip{height:11px;background:repeating-linear-gradient(90deg,var(--primary) 0px,var(--primary) 6px,var(--accent-light) 6px,var(--accent-light) 12px);opacity:.82;}
 
 /* ── Card header (secondary) ─────────────────────────────── */
-.rc-header{padding:10px 15px 9px;display:grid;grid-template-columns:76px 1fr 88px;gap:12px;align-items:center;border-bottom:2px solid var(--primary);}
-.logo-circle{width:70px;height:70px;border-radius:50%;border:3px double var(--primary);display:flex;align-items:center;justify-content:center;overflow:hidden;background:#f7f7f7;flex-shrink:0;align-self:center;}
-.logo-circle img{width:100%;height:100%;object-fit:cover;}
+.rc-header{padding:10px 15px 9px;display:grid;grid-template-columns:76px 1fr 80px;gap:12px;align-items:center;border-bottom:2px solid var(--primary);}
+.logo-circle{width:68px;height:68px;border-radius:6px;border:2px solid var(--primary);display:flex;align-items:center;justify-content:center;overflow:hidden;background:#f7f7f7;flex-shrink:0;align-self:center;}
+.logo-circle img{width:100%;height:100%;object-fit:contain;}
 .logo-fb{font-family:'Cinzel',serif;font-size:9px;font-weight:700;color:var(--primary);text-align:center;line-height:1.3;padding:5px;}
 .hc{text-align:center;min-width:0;overflow:hidden;}
-.school-name{font-family:'Cinzel',serif;font-size:clamp(10px,1.6vw,19px);font-weight:900;color:var(--primary);letter-spacing:.5px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-@media print{.school-name{font-size:13px;white-space:nowrap;}}
-.school-meta{font-size:9.5px;color:#555;margin-top:3px;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.school-name{font-family:'Cinzel',serif;font-size:clamp(11px,1.7vw,20px);font-weight:900;color:var(--primary);letter-spacing:.5px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+@media print{.school-name{font-size:14px;white-space:nowrap;}}
+.school-meta{font-size:9.5px;color:#555;margin-top:2px;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.perf-banner{display:inline-block;background:var(--primary);color:var(--accent-light);font-family:'Cinzel',serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:4px 18px;border-radius:2px;margin:6px auto 3px;}
 .gold-div{height:2px;background:linear-gradient(90deg,transparent,var(--accent),var(--accent-light),var(--accent),transparent);margin:5px auto;width:75%;}
 .card-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--primary);}
-.sess-txt{font-size:11.5px;color:var(--accent);font-weight:600;margin-top:2px;}
+.sess-txt{font-size:11px;color:var(--accent);font-weight:600;margin-top:2px;}
 .cls-line{font-size:11.5px;color:#333;margin-top:3px;font-style:italic;}
 .cls-line span{border-bottom:1px dotted #888;min-width:70px;display:inline-block;font-style:normal;font-weight:700;color:var(--primary-dark);}
+/* ── Passport box ────────────────────────────────────────── */
+.pp-box{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.pp-frame{width:72px;height:80px;border:1.5px solid #aaa;border-radius:3px;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;background:#fafafa;cursor:pointer;}
+.pp-frame img{width:100%;height:100%;object-fit:cover;}
+.pp-ph{display:flex;flex-direction:column;align-items:center;justify-content:center;color:#bbb;font-size:9px;font-family:sans-serif;text-align:center;gap:3px;}
+.pp-lbl{font-size:8.5px;color:#aaa;font-family:sans-serif;text-align:center;}
 
 /* ── Passport photo ──────────────────────────────────────── */
 .pp-box{display:flex;flex-direction:column;align-items:center;gap:3px;}
@@ -273,6 +280,7 @@ table.gs tr td:first-child{background:var(--grade-row);}
 .pr-school{font-family:'Quicksand',sans-serif;font-size:clamp(13px,2.5vw,22px);font-weight:700;color:#1a7a4e;letter-spacing:.4px;line-height:1.2;}
 .pr-meta{font-size:10px;color:#555;margin-top:3px;font-style:italic;}
 .pr-divider{height:2px;background:linear-gradient(90deg,transparent,#4ade80,#1a7a4e,#4ade80,transparent);margin:5px auto;width:75%;}
+.pr-perf-banner{display:inline-block;background:#1a7a4e;color:#ffd700;font-family:'Cinzel',serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:4px 18px;border-radius:2px;margin:6px auto 3px;}
 .pr-title{font-family:'Quicksand',sans-serif;font-size:16px;font-weight:700;color:#1a7a4e;}
 .pr-sess{font-size:12px;color:#2d6a4f;font-weight:600;margin-top:2px;}
 .pr-class{font-size:12px;color:#444;margin-top:2px;font-style:italic;}
@@ -337,15 +345,26 @@ let _currentStudent = null;
 /* ═══════════════════════════════════════════════════════════
    UTILITY HELPERS
 ═══════════════════════════════════════════════════════════ */
+const NIGERIAN_DEFAULT_SCALE = [
+  {min_score:90,max_score:100,grade:'A1',remark:'Excellent'},
+  {min_score:80,max_score:89, grade:'B2',remark:'Very Good'},
+  {min_score:70,max_score:79, grade:'B3',remark:'Good'},
+  {min_score:60,max_score:69, grade:'C4',remark:'Credit'},
+  {min_score:50,max_score:59, grade:'C5',remark:'Credit'},
+  {min_score:45,max_score:49, grade:'C6',remark:'Credit'},
+  {min_score:40,max_score:44, grade:'D7',remark:'Pass'},
+  {min_score:30,max_score:39, grade:'E8',remark:'Pass'},
+  {min_score:0, max_score:29, grade:'F9',remark:'Fail'},
+];
+
 function gradeFromScale(score, scale) {
-  if (score === null || score === undefined || !scale?.length) return { grade:'—', remark:'' };
+  if (score === null || score === undefined) return { grade:'—', remark:'' };
   const s = Number(score);
   if (isNaN(s)) return { grade:'—', remark:'' };
-  // Sort descending so highest range is checked first
-  const sorted = [...scale].sort((a,b) => b.min_score - a.min_score);
+  const activeScale = (scale?.length ? scale : NIGERIAN_DEFAULT_SCALE);
+  const sorted = [...activeScale].sort((a,b) => b.min_score - a.min_score);
   const g = sorted.find(row => s >= Number(row.min_score) && s <= Number(row.max_score));
   if (g) return { grade: g.grade, remark: g.remark || '' };
-  // Fallback: if score is below all ranges, return the lowest grade
   const lowest = sorted[sorted.length - 1];
   if (s < Number(lowest.min_score)) return { grade: lowest.grade, remark: lowest.remark || '' };
   return { grade:'—', remark:'' };
@@ -578,27 +597,25 @@ function buildPrimaryCard(student, results, attData, affective) {
   <div class="pr-hc">
     <div class="pr-school">${_school?.name||'School Name'}</div>
     <div class="pr-meta">${meta}</div>
-    <div class="pr-divider"></div>
-    <div class="pr-title">Academic Report Card</div>
-    <div class="pr-sess">${sessLabel}</div>
-    <div class="pr-class">Class: <span>${classLabel}</span></div>
+    <div class="pr-perf-banner">Student Performance Record</div>
+    <div class="pr-sess">${sessLabel}${_term?.name&&_term.name!==(_term?.academic_years?.label||'') ? ' | Term: '+_term.name : ''}</div>
   </div>
   <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
     <div class="pr-pp" onclick="document.getElementById('ppInput_${sid}').click()">
       <img id="ppImg_${sid}" src="${pp}" style="${pp?'':'display:none'}" alt="Student Photo">
-      <div class="pr-pp-ph" id="ppPh_${sid}" ${pp?'style="display:none"':''}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Affix Photo</div>
+      <div class="pr-pp-ph" id="ppPh_${sid}" ${pp?'style="display:none"':''}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Photo</div>
     </div>
     <input type="file" id="ppInput_${sid}" accept="image/*" onchange="loadPP(event,'${sid}')" style="display:none">
-    <div style="font-size:8.5px;color:#999;font-family:sans-serif">Passport Size</div>
+    <div style="font-size:8.5px;color:#aaa;font-family:sans-serif;text-align:center">Passport</div>
   </div>
 </div>
 <div class="pr-info">
-  <div class="pr-info-row"><span class="pr-il">Name of Student</span><span class="pr-iv">${student.full_name||'—'}</span></div>
-  <div class="pr-info-row"><span class="pr-il">Roll No.</span><span class="pr-iv">${student.admission_no||student.roll_no||'—'}</span></div>
-  <div class="pr-info-row"><span class="pr-il">Mother's Name</span><span class="pr-iv">${student.mother_name||'—'}</span></div>
-  <div class="pr-info-row"><span class="pr-il">Scholar No.</span><span class="pr-iv">${student.scholar_no||student.id?.slice(0,8).toUpperCase()||'—'}</span></div>
-  <div class="pr-info-row"><span class="pr-il">Father / Guardian</span><span class="pr-iv">${student.father_name||student.guardian_name||'—'}</span></div>
+  <div class="pr-info-row"><span class="pr-il">Student Name</span><span class="pr-iv">${student.full_name||'—'}</span></div>
+  <div class="pr-info-row"><span class="pr-il">Admission No.</span><span class="pr-iv">${student.admission_no||student.roll_no||'—'}</span></div>
+  <div class="pr-info-row"><span class="pr-il">Programme / Class</span><span class="pr-iv">${classLabel}</span></div>
   <div class="pr-info-row"><span class="pr-il">Date of Birth</span><span class="pr-iv">${fmtDate(student.dob||student.date_of_birth)}</span></div>
+  <div class="pr-info-row"><span class="pr-il">Guardian / Sponsor</span><span class="pr-iv">${student.guardian_name||student.father_name||'—'}</span></div>
+  <div class="pr-info-row"><span class="pr-il">Academic Session</span><span class="pr-iv">${_term?.academic_years?.label||_term?.name||'—'}</span></div>
 </div>
 <div class="pr-sec-hdr">Scholastic Area — Academic Performance</div>
 <div style="overflow-x:auto"><table class="pr-table">
@@ -670,9 +687,8 @@ function buildSecondaryCard(student, results, attData, affective, extraClass='')
   <div class="hc">
     <div class="school-name">${_school?.name||'School Name'}</div>
     <div class="school-meta">${meta}</div>
-    <div class="gold-div"></div>
-    <div class="card-title">Academic Report Card</div>
-    <div class="sess-txt">${sessLabel}</div>
+    <div class="perf-banner">Student Performance Record</div>
+    <div class="sess-txt">${sessLabel}${_term?.name&&_term.name!==(_term?.academic_years?.label||'') ? ' | Term: '+_term.name : ''}</div>
     <div class="cls-line">Class : <span>${classLabel}</span></div>
   </div>
   <div class="pp-box">
@@ -680,11 +696,11 @@ function buildSecondaryCard(student, results, attData, affective, extraClass='')
       <img id="ppImg_${sid}" src="${pp}" style="${pp?'':'display:none'}" alt="Student Photo">
       <div class="pp-ph" id="ppPh_${sid}" ${pp?'style="display:none"':''}>
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-        Affix<br>Student<br>Photo
+        Photo
       </div>
     </div>
     <input type="file" id="ppInput_${sid}" accept="image/*" onchange="loadPP(event,'${sid}')" style="display:none">
-    <div class="pp-lbl">Passport Size</div>
+    <div class="pp-lbl">Passport</div>
   </div>
 </div>
 <div class="info-strip">
