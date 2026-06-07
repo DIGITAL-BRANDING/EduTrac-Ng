@@ -63,22 +63,23 @@
 
 /* ── Decorative border ───────────────────────────────────── */
 .deco-border{border:4px solid var(--primary);padding:5px;position:relative;}
-.deco-border::before{content:'';position:absolute;inset:4px;border:1.5px solid var(--accent-light);pointer-events:none;z-index:0;}
+.deco-border::before{content:'';position:absolute;inset:4px;border:none;pointer-events:none;z-index:0;}
 .deco-border::after{content:'';position:absolute;inset:0;
   background-image:radial-gradient(circle at 0% 0%,var(--accent) 0,transparent 14px),radial-gradient(circle at 100% 0%,var(--accent) 0,transparent 14px),radial-gradient(circle at 0% 100%,var(--accent) 0,transparent 14px),radial-gradient(circle at 100% 100%,var(--accent) 0,transparent 14px);
   pointer-events:none;z-index:1;}
-.card-inner{border:1.5px solid var(--primary);position:relative;z-index:2;background:white;overflow:hidden;}
+.card-inner{border:none;position:relative;z-index:2;background:white;overflow:hidden;}
 .card-inner::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,#bbb 1px,transparent 1px);background-size:22px 22px;opacity:.05;pointer-events:none;z-index:0;}
 .card-inner>*{position:relative;z-index:1;}
 .deco-strip{height:11px;background:repeating-linear-gradient(90deg,var(--primary) 0px,var(--primary) 6px,var(--accent-light) 6px,var(--accent-light) 12px);opacity:.82;}
 
 /* ── Card header (secondary) ─────────────────────────────── */
 .rc-header{padding:13px 15px 9px;display:grid;grid-template-columns:80px 1fr 88px;gap:10px;align-items:center;border-bottom:2px solid var(--primary);}
-.logo-circle{width:70px;height:70px;border-radius:50%;border:3px double var(--primary);display:flex;align-items:center;justify-content:center;overflow:hidden;background:#f7f7f7;}
+.logo-circle{width:70px;height:70px;border-radius:50%;border:3px double var(--primary);display:flex;align-items:center;justify-content:center;overflow:hidden;background:#f7f7f7;flex-shrink:0;}
 .logo-circle img{width:100%;height:100%;object-fit:cover;}
 .logo-fb{font-family:'Cinzel',serif;font-size:9px;font-weight:700;color:var(--primary);text-align:center;line-height:1.3;padding:5px;}
-.hc{text-align:center;}
-.school-name{font-family:'Cinzel',serif;font-size:clamp(13px,2.7vw,23px);font-weight:900;color:var(--primary);letter-spacing:.5px;line-height:1.1;}
+.hc{text-align:center;min-width:0;}
+.school-name{font-family:'Cinzel',serif;font-size:clamp(11px,1.8vw,20px);font-weight:900;color:var(--primary);letter-spacing:.5px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+@media print{.school-name{font-size:14px;white-space:normal;word-break:break-word;}}
 .school-meta{font-size:10px;color:#555;margin-top:3px;font-style:italic;}
 .gold-div{height:2px;background:linear-gradient(90deg,transparent,var(--accent),var(--accent-light),var(--accent),transparent);margin:5px auto;width:75%;}
 .card-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--primary);}
@@ -110,7 +111,8 @@
 table.ac{width:100%;border-collapse:collapse;font-size:11.5px;}
 table.ac th,table.ac td{border:1px solid var(--primary);padding:4px 5px;text-align:center;vertical-align:middle;}
 table.ac th{background:var(--primary);color:white;font-family:'Cinzel',serif;font-size:8.5px;letter-spacing:.4px;font-weight:600;}
-td.sn{text-align:left;font-weight:700;font-size:12px;color:var(--primary-dark);padding-left:11px;background:#fafbff;white-space:nowrap;}
+td.sn{text-align:left!important;font-weight:700;font-size:12px;color:var(--primary-dark);padding-left:11px;background:#fafbff;}
+th.sn-h{text-align:left!important;padding-left:11px;}
 table.ac tr:nth-child(even) td:not(.sn){background:#f5f8ff;}
 .gb{display:inline-block;padding:1px 7px;border-radius:3px;font-size:10px;font-weight:700;}
 .gAp{background:#dcfce7;color:#15803d}.gA{background:#bbf7d0;color:#166534}.gBp{background:#dbeafe;color:#1d4ed8}
@@ -166,8 +168,10 @@ table.gs tr td:first-child{background:var(--grade-row);}
 @media print {
   /* ── Hide all UI chrome ── */
   .no-print { display:none!important; }
-  .rc-header { display:none!important; }
-  .rc-page-header { display:none!important; }
+  .rc-shell-header { display:none!important; }   /* portal nav/header */
+  .rc-page-header  { display:none!important; }   /* legacy portal header class */
+  .card-action-bar { display:none!important; }
+  .usage-banner-ok, .usage-banner-expired { display:none!important; }
   .control-bar { display:none!important; }
   .class-banner { display:none!important; }
   .card-action-bar { display:none!important; }
@@ -590,7 +594,7 @@ function buildPrimaryCard(student, results, attData, affective) {
 </div>
 <div class="pr-sec-hdr">Scholastic Area — Academic Performance</div>
 <div style="overflow-x:auto"><table class="pr-table">
-  <thead><tr><th rowspan="2" style="text-align:left;padding-left:11px;min-width:110px">Subjects</th>${eHdrs}<th rowspan="2">Total</th><th rowspan="2">Grade</th><th rowspan="2" style="min-width:65px">Remark</th></tr><tr></tr></thead>
+  <thead><tr><th class="sn-h" rowspan="2" style="min-width:140px">Subjects</th>${eHdrs}<th rowspan="2">Total</th><th rowspan="2">Grade</th><th rowspan="2" style="min-width:65px">Remark</th></tr><tr></tr></thead>
   <tbody>${sRows}</tbody>
 </table></div>
 <div class="pr-sum">
@@ -685,7 +689,7 @@ function buildSecondaryCard(student, results, attData, affective, extraClass='')
 </div>
 <div class="sec-hdr">Scholastic Area — Academic Performance</div>
 <div class="aw"><table class="ac">
-  <thead><tr><th rowspan="2" style="text-align:left;padding-left:11px;min-width:110px">Subjects</th>${eHdrs}<th rowspan="2">Total</th><th rowspan="2">Grade</th><th rowspan="2" style="min-width:65px">Remark</th></tr><tr></tr></thead>
+  <thead><tr><th class="sn-h" rowspan="2" style="min-width:140px">Subjects</th>${eHdrs}<th rowspan="2">Total</th><th rowspan="2">Grade</th><th rowspan="2" style="min-width:65px">Remark</th></tr><tr></tr></thead>
   <tbody>${sRows}</tbody>
 </table></div>
 <div class="sum-band">
