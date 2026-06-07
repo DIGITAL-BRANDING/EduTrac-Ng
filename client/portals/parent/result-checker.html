@@ -10,7 +10,6 @@
   <title>EduTrack NG — Result Checker</title>
   <link rel="stylesheet" href="../../assets/css/global.css">
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=EB+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Playfair+Display:wght@400;700;900&family=Nunito:wght@400;600;700;800;900&family=Poppins:wght@400;500;600;700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
-<<<<<<< HEAD
   
 <style>
 @media print {
@@ -50,283 +49,6 @@
 .usage-banner-expired{background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#991b1b;}
 </style>
 
-=======
-  <style>
-    @media print {
-      .no-print { display:none!important; }
-      .rc-header { display:none!important; }
-      .rc-shell { background:white!important; padding:0!important; }
-      body { background:white; }
-      .report-card-wrap { box-shadow: none !important; margin: 0 !important; }
-      .deco-border { border: 3px solid #000 !important; }
-    }
-
-    /* ── Page shell ──────────────────────────────────────── */
-    .rc-shell {
-      min-height: 100vh;
-      background: var(--ink);
-      background-image:
-        radial-gradient(circle at 20% 80%, #2563eb18 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, #7c3aed0d 0%, transparent 50%);
-      padding: 32px 16px;
-    }
-
-    /* ── Header branding ─────────────────────────────────── */
-    .rc-header { max-width: 460px; margin: 0 auto 28px; text-align: center; }
-    .rc-header-logo {
-      width: 56px; height: 56px; border-radius: 14px;
-      background: var(--primary);
-      display: inline-flex; align-items: center; justify-content: center;
-      font-size: 26px; margin-bottom: 14px; overflow: hidden;
-    }
-    .rc-header-logo img { width: 56px; height: 56px; object-fit: cover; border-radius: 14px; }
-    .rc-header h1 { color: white; font-size: 22px; font-weight: 800; margin-bottom: 4px; }
-    .rc-header p  { color: #9ca3af; font-size: 13px; }
-
-    /* ── Gate card ────────────────────────────────────────── */
-    .rc-card {
-      max-width: 460px; margin: 0 auto;
-      background: white; border-radius: 16px; padding: 32px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.35);
-    }
-    .rc-card h2    { font-size: 18px; font-weight: 700; margin-bottom: 4px; color: var(--ink); }
-    .rc-card p.sub { font-size: 13px; color: var(--ink-3); margin-bottom: 22px; line-height: 1.5; }
-
-    /* ── Steps ───────────────────────────────────────────── */
-    .step { display: none; }
-    .step.active { display: block; }
-
-    /* ── School search ───────────────────────────────────── */
-    .school-search-wrap { position: relative; }
-    .school-dropdown {
-      position: absolute; top: calc(100% + 4px); left: 0; right: 0;
-      background: white; border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      box-shadow: 0 8px 24px rgba(0,0,0,.12);
-      z-index: 100; max-height: 220px; overflow-y: auto; display: none;
-    }
-    .school-dropdown.open { display: block; }
-    .school-option {
-      padding: 11px 14px; cursor: pointer; font-size: 14px;
-      border-bottom: 1px solid var(--border); transition: background .1s;
-    }
-    .school-option:last-child { border-bottom: none; }
-    .school-option:hover { background: var(--primary-light); }
-    .school-option__name { font-weight: 600; color: var(--ink); }
-    .school-option__sub  { font-size: 11px; color: var(--ink-3); margin-top: 2px; }
-
-    /* ── School badge ─────────────────────────────────────── */
-    .school-badge {
-      display: flex; align-items: center; gap: 10px;
-      background: #f0fdf4; border: 1px solid #86efac;
-      border-radius: 8px; padding: 10px 14px; margin-bottom: 20px;
-    }
-    .school-badge__name   { font-weight: 700; font-size: 14px; color: #166534; }
-    .school-badge__sub    { font-size: 11px; color: #16a34a; }
-    .school-badge__change {
-      font-size: 12px; color: var(--primary); cursor: pointer;
-      text-decoration: underline; background: none; border: none;
-      padding: 0; margin-left: auto; flex-shrink: 0;
-    }
-
-    /* ── PIN input ───────────────────────────────────────── */
-    .pin-display {
-      font-family: var(--mono); font-size: 24px;
-      letter-spacing: 6px; text-align: center;
-    }
-
-    /* ────────────────────────────────────────────────────────
-       REPORT CARD STYLES
-    ──────────────────────────────────────────────────────── */
-    :root {
-      --rc-primary: #1a2e6e; --rc-primary-dark: #111e4a; --rc-accent: #c8860a;
-      --rc-accent-light: #f0c040; --rc-grade-row: #e8f0fc;
-    }
-
-    .report-card-shell {
-      max-width: 820px; margin: 0 auto;
-    }
-
-    /* Action bar above the card */
-    .card-action-bar {
-      display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
-    }
-
-    /* Usage banner */
-    .usage-banner-ok {
-      background:#f0fdf4; border:1px solid #86efac; border-radius:8px;
-      padding:10px 16px; margin-bottom:16px; font-size:13px; color:#166534;
-    }
-    .usage-banner-expired {
-      background:#fef2f2; border:1px solid #fca5a5; border-radius:8px;
-      padding:12px 16px; margin-bottom:16px; font-size:13px; color:#991b1b;
-    }
-
-    /* ── Decorative card wrapper ────────────────────────── */
-    .report-card-wrap {
-      background: white;
-      box-shadow: 0 4px 22px rgba(0,0,0,.18);
-      padding: 10px;
-    }
-    .deco-border {
-      border: 4px solid var(--rc-primary); padding: 5px; position: relative;
-    }
-    .deco-border::before {
-      content:''; position:absolute; inset:4px;
-      border:1.5px solid var(--rc-accent-light); pointer-events:none; z-index:0;
-    }
-    .deco-border::after {
-      content:''; position:absolute; inset:0;
-      background-image:
-        radial-gradient(circle at 0% 0%, var(--rc-accent) 0,transparent 14px),
-        radial-gradient(circle at 100% 0%, var(--rc-accent) 0,transparent 14px),
-        radial-gradient(circle at 0% 100%, var(--rc-accent) 0,transparent 14px),
-        radial-gradient(circle at 100% 100%, var(--rc-accent) 0,transparent 14px);
-      pointer-events:none; z-index:1;
-    }
-    .card-inner {
-      border: 1.5px solid var(--rc-primary); position:relative; z-index:2;
-      background: white; overflow: hidden;
-    }
-    .card-inner::before {
-      content:''; position:absolute; inset:0;
-      background-image: radial-gradient(circle,#bbb 1px,transparent 1px);
-      background-size: 22px 22px; opacity:.05; pointer-events:none; z-index:0;
-    }
-    .card-inner > * { position: relative; z-index:1; }
-    .deco-strip {
-      height: 11px;
-      background: repeating-linear-gradient(90deg,var(--rc-primary) 0,var(--rc-primary) 6px,var(--rc-accent-light) 6px,var(--rc-accent-light) 12px);
-      opacity:.82;
-    }
-
-    /* ── Card header ─────────────────────────────────────── */
-    .rp-header {
-      padding: 13px 15px 9px;
-      display: grid; grid-template-columns: 80px 1fr 88px;
-      gap: 10px; align-items: center;
-      border-bottom: 2px solid var(--rc-primary);
-    }
-    .logo-circle {
-      width:70px; height:70px; border-radius:50%;
-      border:3px double var(--rc-primary);
-      display:flex; align-items:center; justify-content:center;
-      overflow:hidden; background:#f7f7f7;
-    }
-    .logo-circle img { width:100%; height:100%; object-fit:cover; }
-    .logo-fb { font-family:'Cinzel',serif; font-size:9px; font-weight:700;
-      color:var(--rc-primary); text-align:center; line-height:1.3; padding:5px; }
-    .hc { text-align:center; }
-    .school-name {
-      font-family:'Cinzel',serif; font-size:clamp(13px,2.7vw,22px);
-      font-weight:900; color:var(--rc-primary); letter-spacing:.5px; line-height:1.1;
-    }
-    .school-meta { font-size:10px; color:#555; margin-top:3px; font-style:italic; }
-    .gold-div {
-      height:2px;
-      background:linear-gradient(90deg,transparent,var(--rc-accent),var(--rc-accent-light),var(--rc-accent),transparent);
-      margin:5px auto; width:75%;
-    }
-    .card-title { font-family:'Playfair Display',serif; font-size:16px; font-weight:700; color:var(--rc-primary); }
-    .sess-txt  { font-size:12px; color:var(--rc-accent); font-weight:600; margin-top:2px; }
-    .cls-line  { font-size:12px; color:#333; margin-top:3px; font-style:italic; }
-    .cls-line span { border-bottom:1px dotted #888; min-width:70px; display:inline-block;
-      font-style:normal; font-weight:700; color:var(--rc-primary-dark); }
-    .pp-box { display:flex; flex-direction:column; align-items:center; gap:3px; }
-    .pp-frame {
-      width:76px; height:92px; border:2px solid var(--rc-primary);
-      background:#f7f7f7; display:flex; align-items:center; justify-content:center;
-      overflow:hidden;
-    }
-    .pp-frame img { width:100%; height:100%; object-fit:cover; }
-    .pp-ph { text-align:center; font-size:9px; color:#bbb; font-family:sans-serif; line-height:1.4; padding:4px; }
-    .pp-lbl { font-size:9px; color:#999; font-style:italic; }
-
-    /* ── Info strip ──────────────────────────────────────── */
-    .info-strip { display:grid; grid-template-columns:1fr 1fr; border-bottom:2px solid var(--rc-primary); font-size:12px; }
-    .info-row { display:flex; align-items:baseline; padding:5px 13px; border-bottom:1px solid #e4e4e4; gap:5px; }
-    .info-row:nth-child(odd) { border-right:1px solid #ddd; }
-    .info-row:nth-last-child(-n+2) { border-bottom:none; }
-    .il { font-weight:700; color:#333; white-space:nowrap; min-width:106px; }
-    .iv { border-bottom:1px dotted #bbb; flex:1; min-height:14px; color:#111; padding-left:2px; font-style:italic; }
-
-    /* ── Section headers ──────────────────────────────────── */
-    .sec-hdr {
-      background:var(--rc-primary); color:white; font-family:'Cinzel',serif;
-      font-size:9px; letter-spacing:1.5px; padding:4px 13px;
-      text-transform:uppercase; font-weight:600;
-    }
-
-    /* ── Academic table ──────────────────────────────────── */
-    .aw { overflow-x:auto; }
-    table.ac { width:100%; border-collapse:collapse; font-size:11.5px; }
-    table.ac th, table.ac td { border:1px solid var(--rc-primary); padding:4px 5px; text-align:center; vertical-align:middle; }
-    table.ac th { background:var(--rc-primary); color:white; font-family:'Cinzel',serif; font-size:8.5px; letter-spacing:.4px; font-weight:600; }
-    td.sn { text-align:left; font-weight:700; font-size:12px; color:var(--rc-primary-dark); padding-left:11px; background:#fafbff; white-space:nowrap; }
-    table.ac tr:nth-child(even) td:not(.sn) { background:#f5f8ff; }
-    .gb { display:inline-block; padding:1px 7px; border-radius:3px; font-size:10px; font-weight:700; }
-    .gAp{background:#dcfce7;color:#15803d}.gA{background:#bbf7d0;color:#166534}.gBp{background:#dbeafe;color:#1d4ed8}
-    .gB{background:#bfdbfe;color:#1e40af}.gCp{background:#fef9c3;color:#854d0e}.gC{background:#fde68a;color:#92400e}
-    .gD{background:#fed7aa;color:#9a3412}.gF{background:#fee2e2;color:#991b1b}.gDf{background:#f3f4f6;color:#6b7280}
-
-    /* ── Summary band ──────────────────────────────────────── */
-    .sum-band { display:grid; grid-template-columns:repeat(4,1fr); border-top:2px solid var(--rc-primary); border-bottom:2px solid var(--rc-primary); }
-    .sum-cell { text-align:center; padding:7px 4px; border-right:1px solid var(--rc-primary); }
-    .sum-cell:last-child { border-right:none; }
-    .sl { display:inline-block; font-family:'Cinzel',serif; font-size:7.5px; letter-spacing:1px; text-transform:uppercase; color:white; padding:1px 7px; border-radius:2px; margin-bottom:4px; }
-    .sl.c1{background:var(--rc-primary)}.sl.c2{background:var(--rc-accent)}.sl.c3{background:#16a34a}.sl.c4{background:#7c3aed}
-    .sv { display:block; font-family:'Playfair Display',serif; font-size:20px; font-weight:700; line-height:1; }
-
-    /* ── Co-scholastic / discipline ────────────────────────── */
-    .two-col { display:grid; grid-template-columns:1fr 1fr; border-top:1px solid #ddd; }
-    .co-col { border-right:2px solid var(--rc-primary); }
-    .co-h,.di-h { text-align:center; padding:4px 8px; font-family:'Cinzel',serif; font-size:8.5px; letter-spacing:1.5px; text-transform:uppercase; font-weight:600; color:white; }
-    .co-h { background:#c8860a; } .di-h { background:#1a6eaa; }
-    .ach { display:flex; justify-content:space-between; align-items:center; padding:3px 11px; font-weight:700; font-size:10px; text-transform:uppercase; letter-spacing:.4px; }
-    .co-col .ach { background:rgba(200,134,10,.1); color:#7a4f00; }
-    .di-col .ach { background:rgba(26,110,170,.1); color:#0a3d5e; }
-    .ar { display:flex; align-items:center; justify-content:space-between; padding:4px 11px; border-bottom:1px solid rgba(0,0,0,.07); font-size:11px; }
-    .co-col .ar { background:#fff8e6; }
-    .di-col .ar { background:#e6f3fb; }
-    .ar:nth-child(even) { filter:brightness(.97); }
-    .grade-box { min-width:38px; height:18px; border:1px solid #aaa; background:white; display:inline-flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#333; }
-
-    /* ── Remarks ──────────────────────────────────────────── */
-    .rm-row { padding:6px 13px; font-size:11.5px; border-top:1px solid #eee; }
-    .rm-lbl { font-family:'Cinzel',serif; font-size:7.5px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; display:block; margin-bottom:2px; }
-    .promo-band { padding:7px 15px; border-top:1px solid #ddd; background:#fffef0; font-family:'Playfair Display',serif; font-size:13px; font-weight:700; color:var(--rc-primary-dark); }
-    .promo-band span { border-bottom:1.5px dotted var(--rc-accent); min-width:60px; display:inline-block; font-style:italic; }
-    .nt-row { padding:5px 15px; font-size:11px; border-top:1px solid #eee; background:#fffbeb; }
-
-    /* ── Grading scale ──────────────────────────────────────── */
-    .gs-wrap { padding:6px 13px; border-top:1px solid #ddd; background:#f8f8f8; }
-    .gs-title { font-family:'Cinzel',serif; font-size:8px; text-align:center; letter-spacing:1.5px; text-transform:uppercase; color:var(--rc-primary); margin-bottom:4px; font-weight:600; }
-    table.gs { width:100%; border-collapse:collapse; font-size:11px; }
-    table.gs th { background:var(--rc-primary); color:white; padding:4px 5px; text-align:center; font-family:'Cinzel',serif; font-size:8px; letter-spacing:.4px; }
-    table.gs td { border:1px solid #ccc; padding:3px 5px; text-align:center; background:white; font-weight:600; }
-    table.gs tr td:first-child { background:var(--rc-grade-row); }
-
-    /* ── Signature footer ──────────────────────────────────── */
-    .sig-ft { display:grid; grid-template-columns:repeat(3,1fr); padding:9px 15px 7px; border-top:2px solid var(--rc-primary); background:#fafafa; gap:5px; }
-    .sig-bl { text-align:center; }
-    .sig-ln { border-top:1px solid #666; margin:24px auto 4px; width:76%; min-height:42px; display:flex; align-items:flex-end; justify-content:center; }
-    .sig-ln img { max-height:40px; max-width:90%; object-fit:contain; }
-    .sig-la { font-family:'Cinzel',serif; font-size:9px; color:#333; letter-spacing:.4px; }
-    .sig-sl { font-size:8px; color:#999; margin-top:1px; }
-
-    /* ── Card stamp / footer ────────────────────────────────── */
-    .card-stamp {
-      text-align:center; font-size:9px; color:#aaa; font-style:italic;
-      padding:5px; border-top:1px solid #eee; background:white;
-    }
-
-    /* ── Position badge ─────────────────────────────────────── */
-    .pos-highlight {
-      display:inline-block; padding:2px 10px; border-radius:3px;
-      background:#e0f2fe; color:#0369a1; font-weight:700; font-size:12px;
-    }
-  </style>
->>>>>>> f7a148538c3446667e21cbdb12a01c21e4ea60f9
 </head>
 <body>
 <div class="rc-shell">
@@ -383,7 +105,7 @@
       <button class="btn btn--primary btn--full" onclick="goToPin()">Continue →</button>
     </div>
 
-    <!-- STEP 3: Admission no + PIN -->
+    <!-- STEP 3: Admission no + Serial + PIN -->
     <div class="step" id="stepPin">
       <div class="school-badge">
         <span id="badgeLogo" style="font-size:20px;">🏫</span>
@@ -402,15 +124,22 @@
         <button onclick="goBackToTerm()" style="font-size:11px;color:#0a6e3f;background:none;border:none;cursor:pointer;font-weight:600;">Change</button>
       </div>
       <h2>Check Results</h2>
-      <p class="sub">Enter the student's admission number and scratch card PIN to generate the report card.</p>
+      <p class="sub">Enter your admission number, scratch card serial and PIN to generate your report card.</p>
       <div class="form-group">
         <label class="form-label">Admission Number <span class="required">*</span></label>
         <input type="text" id="admNo" class="form-control" placeholder="e.g. ADM/2025/001" style="text-transform:uppercase;">
       </div>
       <div class="form-group">
+        <label class="form-label">Serial Number <span class="required">*</span></label>
+        <input type="text" id="serialInput" class="form-control" placeholder="e.g. ETN12345670001" maxlength="20"
+          style="font-family:monospace;font-size:14px;letter-spacing:2px;text-transform:uppercase;"
+          oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')">
+        <div class="form-hint">Found on the top of your scratch card.</div>
+      </div>
+      <div class="form-group">
         <label class="form-label">Scratch Card PIN <span class="required">*</span></label>
-        <input type="text" id="pinInput" class="form-control pin-display" placeholder="XXXX-XXXX-XX" maxlength="12">
-        <div class="form-hint">Format: XXXX-XXXX-XX. Card is locked to 1 student &amp; 1 term only.</div>
+        <input type="text" id="pinInput" class="form-control pin-display" placeholder="0000 – 0000 – 0000" maxlength="16">
+        <div class="form-hint">Scratch the silver panel to reveal your 12-digit PIN. Card is locked to 1 student &amp; 1 term only.</div>
       </div>
       <div id="gateErr" class="form-error" style="display:none;margin-bottom:12px;"></div>
       <button class="btn btn--primary btn--full" id="checkBtn" onclick="checkResult()">
@@ -418,7 +147,7 @@
       </button>
       <div style="margin-top:16px;text-align:center;font-size:12px;color:var(--ink-4);line-height:1.8;">
         Scratch cards are available from your school's admin office.<br>
-        Each PIN is valid for <strong>5 checks</strong> for one student &amp; one term only.
+        Each PIN is valid for <strong>3 checks</strong> for one student &amp; one term only.
       </div>
     </div>
   </div>
@@ -546,16 +275,18 @@ function goToPin() {
 
 function goBackToTerm() {
   selectedTermId = null;
-  document.getElementById('admNo').value    = '';
-  document.getElementById('pinInput').value = '';
+  document.getElementById('admNo').value       = '';
+  document.getElementById('serialInput').value = '';
+  document.getElementById('pinInput').value    = '';
   document.getElementById('gateErr').style.display = 'none';
   showStep('stepTerm');
 }
 
 function changeSchool() {
   currentSchoolId = null; selectedTermId = null; schoolTerms = [];
-  document.getElementById('admNo').value    = '';
-  document.getElementById('pinInput').value = '';
+  document.getElementById('admNo').value        = '';
+  document.getElementById('serialInput').value  = '';
+  document.getElementById('pinInput').value     = '';
   document.getElementById('gateErr').style.display  = 'none';
   document.getElementById('termErr').style.display  = 'none';
   document.getElementById('schoolSearch').value     = '';
@@ -569,13 +300,16 @@ document.addEventListener('click', e => {
     document.getElementById('schoolDropdown')?.classList.remove('open');
 });
 
-// ── PIN auto-format ──────────────────────────────────────────
+// ── PIN auto-format (12 digits, groups of 4) ────────────────
 document.addEventListener('input', e => {
   if (e.target.id !== 'pinInput') return;
-  let v = e.target.value.replace(/[^0-9]/g, '');
-  if (v.length > 4) v = v.slice(0,4) + '-' + v.slice(4);
-  if (v.length > 9) v = v.slice(0,9) + '-' + v.slice(9);
-  e.target.value = v;
+  let v = e.target.value.replace(/[^0-9]/g, '').slice(0, 12);
+  let fmt = '';
+  for (let i = 0; i < v.length; i++) {
+    if (i === 4 || i === 8) fmt += ' – ';
+    fmt += v[i];
+  }
+  e.target.value = fmt;
 });
 
 document.addEventListener('keydown', e => {
@@ -585,21 +319,28 @@ document.addEventListener('keydown', e => {
 
 // ── Check result & generate report card ─────────────────────
 async function checkResult() {
-  const admNo  = document.getElementById('admNo').value.trim().toUpperCase();
-  const rawPin = document.getElementById('pinInput').value.replace(/-/g,'').trim();
-  const errEl  = document.getElementById('gateErr');
-  const btn    = document.getElementById('checkBtn');
+  const admNo    = document.getElementById('admNo').value.trim().toUpperCase();
+  const serialNo = document.getElementById('serialInput').value.trim().toUpperCase();
+  const rawPin   = document.getElementById('pinInput').value.replace(/[^0-9]/g, '').trim();
+  const errEl    = document.getElementById('gateErr');
+  const btn      = document.getElementById('checkBtn');
   errEl.style.display = 'none';
 
   if (!currentSchoolId) { errEl.textContent = 'School not selected.'; errEl.style.display = 'block'; return; }
-  if (!admNo || !rawPin) { errEl.textContent = 'Please enter both admission number and PIN.'; errEl.style.display = 'block'; return; }
-  if (rawPin.length !== 10) { errEl.textContent = 'PIN must be 10 digits (XXXX-XXXX-XX format).'; errEl.style.display = 'block'; return; }
-  if (!selectedTermId) { errEl.textContent = 'No term selected. Please go back and choose a term.'; errEl.style.display = 'block'; return; }
+  if (!admNo)           { errEl.textContent = 'Please enter your admission number.'; errEl.style.display = 'block'; return; }
+  if (!serialNo)        { errEl.textContent = 'Please enter the serial number from your scratch card.'; errEl.style.display = 'block'; return; }
+  if (!rawPin)          { errEl.textContent = 'Please enter your scratch card PIN.'; errEl.style.display = 'block'; return; }
+  if (rawPin.length !== 12) { errEl.textContent = `PIN must be exactly 12 digits (${rawPin.length} entered). Check your card carefully.`; errEl.style.display = 'block'; return; }
+  if (!selectedTermId)  { errEl.textContent = 'No term selected. Please go back and choose a term.'; errEl.style.display = 'block'; return; }
 
   btn.disabled = true; btn.textContent = '⏳ Generating Report Card…';
 
   try {
-    const { data: useResult, error: useErr } = await db.rpc('use_scratch_card', {
+    let useResult = null;
+
+    // ── 1. Try updated use_scratch_card RPC (serial + pin) ──
+    const { data: rpcData, error: rpcErr } = await db.rpc('use_scratch_card', {
+      p_serial_no:    serialNo,
       p_pin:          rawPin,
       p_school_id:    currentSchoolId,
       p_card_type:    'result',
@@ -607,8 +348,35 @@ async function checkResult() {
       p_student_id:   null,
       p_term_id:      selectedTermId
     });
-    if (useErr) throw new Error(useErr.message);
-    if (useResult?.error) throw new Error(useResult.error);
+
+    if (!rpcErr && rpcData && !rpcData.error) {
+      useResult = rpcData;
+    } else {
+      // ── 2. Fallback: old RPC signature (pin only, no serial) ──
+      const { data: rpcData2, error: rpcErr2 } = await db.rpc('use_scratch_card', {
+        p_pin:          rawPin,
+        p_school_id:    currentSchoolId,
+        p_card_type:    'result',
+        p_admission_no: admNo,
+        p_student_id:   null,
+        p_term_id:      selectedTermId
+      });
+
+      if (!rpcErr2 && rpcData2 && !rpcData2.error) {
+        // Old RPC worked — verify serial matches if card has one set
+        const { data: cardRow } = await db.from('scratch_cards')
+          .select('serial_no').eq('school_id', currentSchoolId).eq('pin', rawPin).maybeSingle();
+        if (cardRow?.serial_no && cardRow.serial_no.toUpperCase() !== serialNo) {
+          throw new Error('Serial Number does not match this PIN. Please check your card carefully.');
+        }
+        useResult = rpcData2;
+      } else {
+        // Both RPCs failed — surface the most meaningful error
+        const msg = rpcData?.error || rpcData2?.error || rpcErr?.message || rpcErr2?.message
+          || 'Scratch card not found. Check your Serial Number and PIN.';
+        throw new Error(msg);
+      }
+    }
 
     const maxUses    = useResult.max_uses;
     const usesLeft   = useResult.uses_left;
@@ -684,7 +452,6 @@ async function checkResult() {
   }
 }
 
-<<<<<<< HEAD
 // ── Report Card Renderer → delegates to js/report-card-engine.js ──────────
 function renderReportCard({ student, term, school, grading, results, affective,
                             attendance, classRow, positionStr, usesLeft, maxUses, nowExpired }) {
@@ -698,21 +465,13 @@ function renderReportCard({ student, term, school, grading, results, affective,
   _bulkResults   = null;
   _bulkAtt       = null;
   _bulkAffective = null;
-=======
-// ── Report Card Renderer ─────────────────────────────────────
-function renderReportCard({ student, term, school, grading, results, affective, attendance, classRow, positionStr, usesLeft, maxUses, nowExpired }) {
->>>>>>> f7a148538c3446667e21cbdb12a01c21e4ea60f9
 
   // Usage banner
   const bannerEl = document.getElementById('usageBanner');
   if (nowExpired) {
     bannerEl.innerHTML = `<div class="usage-banner-expired no-print">
       ⚠️ <strong>This scratch card has now expired.</strong> All ${maxUses} permitted checks have been used.
-<<<<<<< HEAD
       Please obtain a new card from your school admin office.
-=======
-      Please obtain a new card from your school's admin office.
->>>>>>> f7a148538c3446667e21cbdb12a01c21e4ea60f9
     </div>`;
   } else {
     bannerEl.innerHTML = `<div class="usage-banner-ok no-print">
@@ -722,7 +481,6 @@ function renderReportCard({ student, term, school, grading, results, affective, 
     </div>`;
   }
 
-<<<<<<< HEAD
   // Build card via shared engine, then swap Attendance → Position in summary band
   const sType = getSectionType(classRow);
   let html;
@@ -746,223 +504,6 @@ function renderReportCard({ student, term, school, grading, results, affective, 
   }
 
   document.getElementById('reportCardContent').innerHTML = html;
-=======
-  // Build subject rows
-  const examMap = new Map();
-  (results || []).forEach(r => { if (r.exams && !examMap.has(r.exam_id)) examMap.set(r.exam_id, r.exams); });
-  const examList = [...examMap.values()];
-
-  const subjectMap = new Map();
-  (results || []).forEach(r => {
-    const sname = r.subjects?.name || subjectLookup?.[r.subject_id]?.name || '—';
-    if (!subjectMap.has(r.subject_id)) subjectMap.set(r.subject_id, { name: sname, rows: [] });
-    subjectMap.get(r.subject_id).rows.push(r);
-  });
-
-  const subRows = [...subjectMap.values()].sort((a,b) => a.name.localeCompare(b.name)).map(sub => {
-    const tw = sub.rows.reduce((s,r) => s + (r.exams?.weight||1), 0);
-    const ws = sub.rows.reduce((s,r) => s + (r.score / (r.exams?.max_score||100)) * 100 * (r.exams?.weight||1), 0);
-    const total = tw > 0 ? Math.round(ws / tw * 10) / 10 : null;
-    const g = gradeFromScale(total, grading);
-    return { name: sub.name, rows: sub.rows, total, grade: g.grade, remark: g.remark };
-  });
-
-  const validRows = subRows.filter(s => s.total !== null);
-  const avg = validRows.length ? Math.round(validRows.reduce((s,r) => s+r.total, 0) / validRows.length * 10) / 10 : null;
-  const rawTotal = results.reduce((s,r) => s + (r.score||0), 0);
-  const og = gradeFromScale(avg, grading);
-
-  // Attendance
-  const attDays = new Set((attendance || []).map(a => a.date)).size;
-  const attPres = (attendance || []).filter(a => a.status==='P' || a.status==='L').length;
-  const attPct  = attDays > 0 ? Math.round(attPres / attDays * 100) : null;
-
-  // School meta
-  const metaParts = [
-    school?.affiliation_no ? `Affiliation No.: ${school.affiliation_no}` : null,
-    school?.phone ? `Ph: ${school.phone}` : null,
-    school?.email ? `Email: ${school.email}` : null,
-  ].filter(Boolean);
-  const meta = metaParts.length ? metaParts.join('  |  ') : [school?.address, school?.lga, school?.state].filter(Boolean).join(', ') || '';
-  const sessLabel = term?.name ? `Academic Session — ${term.name}` : 'Academic Session';
-
-  // Logo
-  const logoH = school?.logo_url
-    ? `<img src="${school.logo_url}" alt="Logo" onerror="this.outerHTML='<div class=logo-fb>SCHOOL<br>CREST</div>'">`
-    : `<div class="logo-fb">SCHOOL<br>CREST</div>`;
-
-  // Passport photo
-  const pp = student.photo_url || student.passport_url || student.avatar_url || '';
-
-  // Class
-  const cn = classRow?.name || useResult?.class_name || '—';
-  const sec = (classRow?.section || classRow?.level || '').toUpperCase();
-  const classLabel = sec ? `${cn} — ${sec}` : cn;
-
-  // Exam headers
-  const eHdrs = examList.map(e => `<th>${e.name}<br><span style="font-weight:400;font-size:7.5px">/${e.max_score}</span></th>`).join('');
-
-  // Subject rows
-  const sRows = subRows.map(sub => {
-    const cells = examList.map(e => {
-      const r = sub.rows.find(r => r.exam_id === e.id);
-      return `<td>${r !== undefined ? r.score : '—'}</td>`;
-    }).join('');
-    const color = sub.total >= 70 ? '#16a34a' : sub.total >= 50 ? '#d97706' : '#dc2626';
-    return `<tr>
-      <td class="sn">${sub.name}</td>${cells}
-      <td><strong style="color:${color}">${sub.total ?? '—'}</strong></td>
-      <td>${gradeBadge(sub.grade)}</td>
-      <td style="font-size:10px;color:#555;text-align:left">${sub.remark || '—'}</td>
-    </tr>`;
-  }).join('') || `<tr><td colspan="99" style="text-align:center;padding:18px;color:#999;font-size:12px">No results recorded for this term.</td></tr>`;
-
-  // Co-scholastic fields
-  const coF = [['work_education','Work Education'],['art_education','Art Education'],['physical_education','Health & Physical Ed.'],['social_skills','Social Skills'],['sports','Sports']];
-  const diF = [['punctuality','Regularity & Punctuality'],['sincerity','Sincerity'],['conduct','Behaviour & Values'],['respect','Respectfulness'],['attitude_teachers','Attitude to Teachers'],['attitude_society','Attitude to Society']];
-  const actRows = (fields, data) => fields.map(([k,l]) => `<div class="ar"><span>${l}</span><span class="grade-box">${data?.[k]||''}</span></div>`).join('');
-
-  // Grading scale table
-  const scH = grading.length
-    ? `<thead><tr><th>Grade</th>${grading.map(g=>`<th>${g.grade}</th>`).join('')}</tr></thead>
-       <tbody><tr><td>Marks</td>${grading.map(g=>`<td>${g.min_score}–${g.max_score}</td>`).join('')}</tr>
-       <tr><td>Remark</td>${grading.map(g=>`<td style="font-size:8px">${g.remark||'—'}</td>`).join('')}</tr></tbody>`
-    : `<thead><tr><th>91–100</th><th>81–90</th><th>71–80</th><th>61–70</th><th>51–60</th><th>41–50</th><th>Below 40</th></tr></thead>
-       <tbody><tr><td>A+</td><td>A</td><td>B+</td><td>B</td><td>C+</td><td>C</td><td>F</td></tr></tbody>`;
-
-  const overallColor = avg >= 70 ? '#16a34a' : avg >= 50 ? '#d97706' : '#dc2626';
-
-  document.getElementById('reportCardContent').innerHTML = `
-<div class="report-card-wrap">
-  <div class="deco-border"><div class="card-inner">
-  <div class="deco-strip"></div>
-
-  <!-- HEADER -->
-  <div class="rp-header">
-    <div class="logo-circle">${logoH}</div>
-    <div class="hc">
-      <div class="school-name">${school?.name || 'School Name'}</div>
-      <div class="school-meta">${meta}</div>
-      <div class="gold-div"></div>
-      <div class="card-title">Academic Report Card</div>
-      <div class="sess-txt">${sessLabel}</div>
-      <div class="cls-line">Class: <span>${classLabel}</span></div>
-    </div>
-    <div class="pp-box">
-      <div class="pp-frame">
-        ${pp ? `<img src="${pp}" alt="Student Photo">` : `<div class="pp-ph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Passport<br>Photo</div>`}
-      </div>
-      <div class="pp-lbl">Passport Size</div>
-    </div>
-  </div>
-
-  <!-- STUDENT INFO -->
-  <div class="info-strip">
-    <div class="info-row"><span class="il">Name of Student</span><span class="iv">${student.full_name || '—'}</span></div>
-    <div class="info-row"><span class="il">Admission No.</span><span class="iv">${student.admission_no || '—'}</span></div>
-    <div class="info-row"><span class="il">Mother's Name</span><span class="iv">${student.mother_name || '—'}</span></div>
-    <div class="info-row"><span class="il">Date of Birth</span><span class="iv">${fmtDate(student.dob || student.date_of_birth)}</span></div>
-    <div class="info-row"><span class="il">Father / Guardian</span><span class="iv">${student.father_name || student.guardian_name || '—'}</span></div>
-    <div class="info-row"><span class="il">Gender</span><span class="iv">${student.gender === 'M' ? 'Male' : student.gender === 'F' ? 'Female' : '—'}</span></div>
-  </div>
-
-  <!-- ACADEMIC PERFORMANCE -->
-  <div class="sec-hdr">Scholastic Area — Academic Performance</div>
-  <div class="aw"><table class="ac">
-    <thead>
-      <tr>
-        <th rowspan="2" style="text-align:left;padding-left:11px;min-width:120px">Subjects</th>
-        ${eHdrs}
-        <th rowspan="2">Total</th>
-        <th rowspan="2">Grade</th>
-        <th rowspan="2" style="min-width:65px">Remark</th>
-      </tr>
-      <tr></tr>
-    </thead>
-    <tbody>${sRows}</tbody>
-  </table></div>
-
-  <!-- SUMMARY BAND -->
-  <div class="sum-band">
-    <div class="sum-cell">
-      <span class="sl c1">Overall Marks</span>
-      <span class="sv" style="color:var(--rc-primary)">${rawTotal}</span>
-    </div>
-    <div class="sum-cell">
-      <span class="sl c2">Average %</span>
-      <span class="sv" style="color:${overallColor}">${avg !== null ? avg + '%' : '—'}</span>
-    </div>
-    <div class="sum-cell">
-      <span class="sl c3">Grade</span>
-      <span class="sv" style="color:#16a34a">${og.grade}</span>
-    </div>
-    <div class="sum-cell">
-      <span class="sl c4">Position</span>
-      <span class="sv" style="color:#7c3aed;font-size:16px">${positionStr}</span>
-    </div>
-  </div>
-
-  <!-- CO-SCHOLASTIC & DISCIPLINE -->
-  ${affective ? `
-  <div class="two-col">
-    <div class="co-col">
-      <div class="co-h">Co-Scholastic Activities</div>
-      <div class="ach"><span>Activity</span><span>Grade</span></div>
-      ${actRows(coF, affective)}
-    </div>
-    <div class="di-col">
-      <div class="di-h">Discipline & Values</div>
-      <div class="ach"><span>Activity</span><span>Grade</span></div>
-      ${actRows(diF, affective)}
-    </div>
-  </div>` : ''}
-
-  <!-- ATTENDANCE -->
-  ${attPct !== null ? `
-  <div style="padding:6px 15px;background:#f0fdf4;border-top:1px solid #d1fae5;font-size:12px;">
-    <strong>Attendance:</strong> ${attPres} of ${attDays} school days attended
-    &nbsp;—&nbsp; <strong style="color:${attPct >= 75 ? '#16a34a' : '#dc2626'}">${attPct}%</strong>
-  </div>` : ''}
-
-  <!-- REMARKS -->
-  ${affective?.class_teacher_remark ? `<div class="rm-row" style="background:#f8faff"><span class="rm-lbl" style="color:var(--rc-primary)">Class Teacher's Remark</span>${affective.class_teacher_remark}</div>` : ''}
-  ${affective?.vp_academic_remark   ? `<div class="rm-row" style="background:#eff6ff"><span class="rm-lbl" style="color:#1e40af">VP Academic's Remark</span>${affective.vp_academic_remark}</div>` : ''}
-  ${affective?.principal_remark     ? `<div class="rm-row" style="background:#f0fdf4"><span class="rm-lbl" style="color:#166534">Principal's Remark</span>${affective.principal_remark}</div>` : ''}
-
-  <!-- PROMOTION & NEXT TERM -->
-  <div class="promo-band">Promoted to Class — <span>${affective?.promoted_to || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</span></div>
-  ${affective?.next_term_begins ? `<div class="nt-row"><strong>Next Term Begins:</strong> ${fmtDate(affective.next_term_begins)}</div>` : ''}
-
-  <!-- GRADING SCALE -->
-  <div class="gs-wrap">
-    <div class="gs-title">Grading Scale</div>
-    <table class="gs">${scH}</table>
-  </div>
-
-  <!-- SIGNATURES -->
-  <div class="sig-ft">
-    <div class="sig-bl">
-      <div class="sig-ln">${school?.class_teacher_signature_url ? `<img src="${school.class_teacher_signature_url}" alt="Class Teacher">` : ''}</div>
-      <div class="sig-la">Class Teacher</div>
-      <div class="sig-sl">Signature &amp; Stamp</div>
-    </div>
-    <div class="sig-bl">
-      <div class="sig-ln">${school?.exam_officer_signature_url ? `<img src="${school.exam_officer_signature_url}" alt="Exam Officer">` : ''}</div>
-      <div class="sig-la">Exam Officer</div>
-      <div class="sig-sl">Signature &amp; Stamp</div>
-    </div>
-    <div class="sig-bl">
-      <div class="sig-ln">${school?.principal_signature_url ? `<img src="${school.principal_signature_url}" alt="Principal">` : ''}</div>
-      <div class="sig-la">Principal</div>
-      <div class="sig-sl">Signature &amp; Stamp</div>
-    </div>
-  </div>
-
-  <div class="deco-strip"></div>
-  <div class="card-stamp">Generated by EduTrack NG · ${new Date().toLocaleDateString('en-NG', {day:'numeric',month:'long',year:'numeric'})}</div>
-  </div></div>
-</div>`;
->>>>>>> f7a148538c3446667e21cbdb12a01c21e4ea60f9
 }
 
 
