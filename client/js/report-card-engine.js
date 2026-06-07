@@ -73,18 +73,18 @@
 .deco-strip{height:11px;background:repeating-linear-gradient(90deg,var(--primary) 0px,var(--primary) 6px,var(--accent-light) 6px,var(--accent-light) 12px);opacity:.82;}
 
 /* ── Card header (secondary) ─────────────────────────────── */
-.rc-header{padding:13px 15px 9px;display:grid;grid-template-columns:80px 1fr 88px;gap:10px;align-items:center;border-bottom:2px solid var(--primary);}
-.logo-circle{width:70px;height:70px;border-radius:50%;border:3px double var(--primary);display:flex;align-items:center;justify-content:center;overflow:hidden;background:#f7f7f7;flex-shrink:0;}
+.rc-header{padding:10px 15px 9px;display:grid;grid-template-columns:76px 1fr 88px;gap:12px;align-items:center;border-bottom:2px solid var(--primary);}
+.logo-circle{width:70px;height:70px;border-radius:50%;border:3px double var(--primary);display:flex;align-items:center;justify-content:center;overflow:hidden;background:#f7f7f7;flex-shrink:0;align-self:center;}
 .logo-circle img{width:100%;height:100%;object-fit:cover;}
 .logo-fb{font-family:'Cinzel',serif;font-size:9px;font-weight:700;color:var(--primary);text-align:center;line-height:1.3;padding:5px;}
-.hc{text-align:center;min-width:0;}
-.school-name{font-family:'Cinzel',serif;font-size:clamp(11px,1.8vw,20px);font-weight:900;color:var(--primary);letter-spacing:.5px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-@media print{.school-name{font-size:14px;white-space:normal;word-break:break-word;}}
-.school-meta{font-size:10px;color:#555;margin-top:3px;font-style:italic;}
+.hc{text-align:center;min-width:0;overflow:hidden;}
+.school-name{font-family:'Cinzel',serif;font-size:clamp(10px,1.6vw,19px);font-weight:900;color:var(--primary);letter-spacing:.5px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+@media print{.school-name{font-size:13px;white-space:nowrap;}}
+.school-meta{font-size:9.5px;color:#555;margin-top:3px;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .gold-div{height:2px;background:linear-gradient(90deg,transparent,var(--accent),var(--accent-light),var(--accent),transparent);margin:5px auto;width:75%;}
-.card-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--primary);}
-.sess-txt{font-size:12px;color:var(--accent);font-weight:600;margin-top:2px;}
-.cls-line{font-size:12px;color:#333;margin-top:3px;font-style:italic;}
+.card-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--primary);}
+.sess-txt{font-size:11.5px;color:var(--accent);font-weight:600;margin-top:2px;}
+.cls-line{font-size:11.5px;color:#333;margin-top:3px;font-style:italic;}
 .cls-line span{border-bottom:1px dotted #888;min-width:70px;display:inline-block;font-style:normal;font-weight:700;color:var(--primary-dark);}
 
 /* ── Passport photo ──────────────────────────────────────── */
@@ -339,8 +339,16 @@ let _currentStudent = null;
 ═══════════════════════════════════════════════════════════ */
 function gradeFromScale(score, scale) {
   if (score === null || score === undefined || !scale?.length) return { grade:'—', remark:'' };
-  const g = scale.find(s => score >= s.min_score && score <= s.max_score);
-  return g ? { grade: g.grade, remark: g.remark || '' } : { grade:'—', remark:'' };
+  const s = Number(score);
+  if (isNaN(s)) return { grade:'—', remark:'' };
+  // Sort descending so highest range is checked first
+  const sorted = [...scale].sort((a,b) => b.min_score - a.min_score);
+  const g = sorted.find(row => s >= Number(row.min_score) && s <= Number(row.max_score));
+  if (g) return { grade: g.grade, remark: g.remark || '' };
+  // Fallback: if score is below all ranges, return the lowest grade
+  const lowest = sorted[sorted.length - 1];
+  if (s < Number(lowest.min_score)) return { grade: lowest.grade, remark: lowest.remark || '' };
+  return { grade:'—', remark:'' };
 }
 
 function gradeBadge(g) {
@@ -681,11 +689,9 @@ function buildSecondaryCard(student, results, attData, affective, extraClass='')
 </div>
 <div class="info-strip">
   <div class="info-row"><span class="il">Name of Student</span><span class="iv">${student.full_name||'—'}</span></div>
-  <div class="info-row"><span class="il">Roll No.</span><span class="iv">${student.admission_no||student.roll_no||'—'}</span></div>
-  <div class="info-row"><span class="il">Mother's Name</span><span class="iv">${student.mother_name||'—'}</span></div>
-  <div class="info-row"><span class="il">Scholar No.</span><span class="iv">${student.scholar_no||student.id?.slice(0,8).toUpperCase()||'—'}</span></div>
-  <div class="info-row"><span class="il">Father's Name</span><span class="iv">${student.father_name||student.guardian_name||'—'}</span></div>
+  <div class="info-row"><span class="il">Adm. No.</span><span class="iv">${student.admission_no||student.roll_no||'—'}</span></div>
   <div class="info-row"><span class="il">Date of Birth</span><span class="iv">${fmtDate(student.dob||student.date_of_birth)}</span></div>
+  <div class="info-row"><span class="il">Class</span><span class="iv">${classLabel}</span></div>
 </div>
 <div class="sec-hdr">Scholastic Area — Academic Performance</div>
 <div class="aw"><table class="ac">
