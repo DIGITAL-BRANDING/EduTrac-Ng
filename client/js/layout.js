@@ -108,8 +108,9 @@ const _ADMIN_GROUPS = [
   // ─ Finance ─
   { type:'group', id:'grp-finance', icon:_SVG.money, label:'Finance',
     children:[
-      { id:'fees',     icon:_SVG.money,   label:'Fee Management', href:'fees.html' },
-      { id:'payments', icon:_SVG.payment, label:'Payments',       href:'payments.html' },
+      { id:'fees',         icon:_SVG.money,   label:'Fee Management', href:'fees.html' },
+      { id:'payments',     icon:_SVG.payment, label:'Payments',       href:'payments.html' },
+      { id:'scratch-cards',icon:_SVG.scratch, label:'Scratch Cards',  href:'scratch-cards.html' },
     ]
   },
 
@@ -125,9 +126,8 @@ const _ADMIN_GROUPS = [
   // ─ Operations ─
   { type:'group', id:'grp-ops', icon:_SVG.gear, label:'Operations',
     children:[
-      { id:'import',        icon:_SVG.import,   label:'Import Data',    href:'import.html' },
-      { id:'scratch-cards', icon:_SVG.scratch,  label:'Scratch Cards',  href:'scratch-cards.html' },
-      { id:'settings',      icon:_SVG.settings, label:'Settings',       href:'settings.html' },
+      { id:'import',    icon:_SVG.import,   label:'Import Data', href:'import.html' },
+      { id:'settings',  icon:_SVG.settings, label:'Settings',    href:'settings.html' },
     ]
   },
 
