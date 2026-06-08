@@ -41,6 +41,27 @@
     .class-group-body.open { display: block; }
     .unassigned-group .class-group-header { background: #fef9c3; }
     .unassigned-group .class-group-count { background: #ca8a04; }
+
+    /* ── Application Cards (Pending) ─────────────────────────── */
+    .app-cards { display:flex;flex-direction:column;gap:12px; }
+    .app-card { background:white;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05); }
+    .app-card-top { display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border); }
+    .app-card-avatar { width:42px;height:42px;border-radius:50%;background:var(--primary,#0a6e3f);color:white;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:17px;flex-shrink:0; }
+    .app-card-name { font-weight:800;font-size:15px;color:var(--ink-1); }
+    .app-card-ref { font-size:11px;color:var(--ink-3);margin-top:2px; }
+    .app-card-body { padding:12px 16px;display:grid;grid-template-columns:1fr 1fr;gap:6px 16px; }
+    .app-card-field { font-size:13px; }
+    .app-card-lbl { font-size:10px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:1px; }
+    .app-card-val { font-weight:600;color:var(--ink-1); }
+    .app-card-pin { font-family:var(--mono,monospace);font-size:12px;letter-spacing:1px; }
+    .app-card-footer { padding:10px 16px;background:var(--surface,#f8fafc);border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end; }
+    /* ── Scrollable table wrapper ─────────────────────────────── */
+    .tbl-wrap { overflow-x:auto;-webkit-overflow-scrolling:touch; }
+    .tbl-wrap table { min-width:520px; }
+    /* ── Hide less-critical columns on very small screens ──────── */
+    @media(max-width:480px){
+      .app-card-body { grid-template-columns:1fr; }
+    }
   </style>
 </head>
 <body>
@@ -240,18 +261,41 @@ function showApplications() {
     el.innerHTML = '<div class="card" style="padding:34px;text-align:center;color:var(--ink-3);"><h3 style="margin-bottom:6px;color:var(--ink-2);">No pending applications</h3><p>Submitted student applications will appear here for registrar approval.</p></div>';
     return;
   }
-  el.innerHTML = '<div class="card" style="padding:0;overflow:hidden;"><table><thead><tr><th>Applicant</th><th>Requested Class</th><th>Guardian</th><th>Scratch Card</th><th>Submitted</th><th>Actions</th></tr></thead><tbody>' +
+  el.innerHTML = '<div class="app-cards">' +
     pendingApplications.map(function(a) {
       var id = String(a.id).replace(/'/g, "\\'");
-      return '<tr>' +
-        '<td><div class="student-cell"><div class="avatar avatar--sm">' + escapeText((a.full_name||'?').charAt(0)) + '</div><div class="info"><div class="name">' + escapeText(a.full_name) + '</div><div class="sub">Ref: ' + escapeText(a.ref_id || 'Pending') + '</div></div></div></td>' +
-        '<td>' + escapeText(a.classes?.name || 'Registrar to assign') + '</td>' +
-        '<td><strong>' + escapeText(a.parent_name || '-') + '</strong><div style="font-size:12px;color:var(--ink-3);">' + escapeText(a.parent_phone || '') + '</div></td>' +
-        '<td><span style="font-family:var(--mono,monospace);font-size:12px;">' + escapeText(a.scratch_card_pin || a.scratch_pin || '-') + '</span></td>' +
-        '<td style="font-size:12px;color:var(--ink-3);">' + formatDate(a.submitted_at || a.created_at) + '</td>' +
-        '<td><div class="td-action"><button class="btn btn--secondary btn--sm" onclick="viewApplication(\'' + id + '\')">Review</button><button class="btn btn--primary btn--sm" onclick="openApproveApplication(\'' + id + '\')">Approve</button></div></td>' +
-      '</tr>';
-    }).join('') + '</tbody></table></div>';
+      var initials = escapeText((a.full_name||'?').charAt(0).toUpperCase());
+      var name     = escapeText(a.full_name || '—');
+      var ref      = escapeText(a.ref_id || 'Pending');
+      var cls      = escapeText(a.classes?.name || 'Registrar to assign');
+      var guardian = escapeText(a.parent_name || '—');
+      var phone    = escapeText(a.parent_phone || '');
+      var pin      = escapeText(a.scratch_card_pin || a.scratch_pin || '—');
+      var date     = formatDate(a.submitted_at || a.created_at);
+      var level    = escapeText(a.intended_level || '—');
+      return '<div class="app-card">' +
+        '<div class="app-card-top">' +
+          '<div class="app-card-avatar">' + initials + '</div>' +
+          '<div style="flex:1;min-width:0;">' +
+            '<div class="app-card-name">' + name + '</div>' +
+            '<div class="app-card-ref">Ref: ' + ref + ' &nbsp;·&nbsp; ' + date + '</div>' +
+          '</div>' +
+          '<span class="badge badge--yellow" style="flex-shrink:0;">Pending</span>' +
+        '</div>' +
+        '<div class="app-card-body">' +
+          '<div class="app-card-field"><span class="app-card-lbl">Requested Level</span><span class="app-card-val">' + level + '</span></div>' +
+          '<div class="app-card-field"><span class="app-card-lbl">Class</span><span class="app-card-val">' + cls + '</span></div>' +
+          '<div class="app-card-field"><span class="app-card-lbl">Guardian</span><span class="app-card-val">' + guardian + '</span>' +
+            (phone ? '<div style="font-size:12px;color:var(--ink-3);">' + phone + '</div>' : '') +
+          '</div>' +
+          '<div class="app-card-field"><span class="app-card-lbl">Scratch Card PIN</span><span class="app-card-val app-card-pin">' + pin + '</span></div>' +
+        '</div>' +
+        '<div class="app-card-footer">' +
+          '<button class="btn btn--secondary btn--sm" onclick="viewApplication(\'' + id + '\')">&#128065; Review</button>' +
+          '<button class="btn btn--primary btn--sm" onclick="openApproveApplication(\'' + id + '\')">&#10003; Approve</button>' +
+        '</div>' +
+      '</div>';
+    }).join('') + '</div>';
 }
 
 function showStudentDirectory() {
@@ -542,8 +586,8 @@ function filter() {
         '</div>'+admitBtn+
       '</div>' +
       '<div class="class-group-body '+(isOpen?'open':'')+'" id="gb-'+gid+'">' +
-        '<table><thead><tr><th>Student</th><th>Family</th><th>Status</th><th>Admitted</th><th>Actions</th></tr></thead>' +
-        '<tbody>'+group.students.map(rowHtml).join('')+'</tbody></table>' +
+        '<div class="tbl-wrap"><table><thead><tr><th>Student</th><th>Family</th><th>Status</th><th>Admitted</th><th>Actions</th></tr></thead>' +
+        '<tbody>'+group.students.map(rowHtml).join('')+'</tbody></table></div>' +
       '</div></div>';
   }
 
@@ -832,7 +876,7 @@ function filterHistory() {
   if (!list.length) { el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--ink-3)">No applications found.</div>'; return; }
   const statusColor = { pending:'#92400e', approved:'#14532d', rejected:'#991b1b', enrolled:'#14532d' };
   const statusBg    = { pending:'#fef3c7', approved:'#dcfce7', rejected:'#fee2e2', enrolled:'#dcfce7' };
-  el.innerHTML = '<table><thead><tr><th>Applicant</th><th>Ref</th><th>Status</th><th>Adm No</th><th>Guardian</th><th>Submitted</th></tr></thead><tbody>' +
+  el.innerHTML = '<div class="tbl-wrap"><table><thead><tr><th>Applicant</th><th>Ref</th><th>Status</th><th>Adm No</th><th>Guardian</th><th>Submitted</th></tr></thead><tbody>' +
     list.map(a => '<tr>' +
       '<td><strong>'+escapeText(a.full_name||'—')+'</strong><div style="font-size:11px;color:var(--ink-3);">'+escapeText(a.classes?.name||'—')+'</div></td>' +
       '<td><span style="font-family:monospace;font-size:12px;">'+escapeText(a.ref_id||'—')+'</span></td>' +
@@ -842,7 +886,7 @@ function filterHistory() {
       '<td>'+escapeText(a.parent_name||'—')+'<div style="font-size:11px;color:var(--ink-3);">'+escapeText(a.parent_phone||'')+'</div></td>' +
       '<td style="font-size:12px;color:var(--ink-3);">'+formatDate(a.submitted_at)+'</td>' +
     '</tr>').join('') +
-    '</tbody></table>';
+    '</tbody></table></div>';
 }
 
 async function editStudent(id) {
@@ -918,10 +962,10 @@ async function toggleActive(id, current) {
       </div>
       <div id="appErr" class="form-error" style="display:none;"></div>
     </div>
-    <div class="modal__footer">
+    <div class="modal__footer" style="flex-wrap:wrap;gap:8px;">
       <button class="btn btn--secondary" onclick="rejectApplicationPrompt()">&#10007; Reject</button>
       <button class="btn btn--secondary" onclick="closeModal('approveModal')">Cancel</button>
-      <button class="btn btn--primary" id="approveBtn" onclick="approveApplication()">&#10003; Approve &amp; Admit</button>
+      <button class="btn btn--primary" id="approveBtn" onclick="approveApplication()" style="flex:1;min-width:140px;">&#10003; Approve &amp; Admit</button>
     </div>
   </div>
 </div>
