@@ -82,6 +82,19 @@
         </div>
       </div>
       <div id="schoolPickErr" class="form-error" style="display:none;margin-bottom:12px;"></div>
+      <!-- Shown only after a school is selected from dropdown -->
+      <div id="schoolConfirmBar" style="display:none;margin-top:12px;">
+        <div style="display:flex;align-items:center;gap:10px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px 14px;margin-bottom:14px;">
+          <span style="font-size:20px;" id="confirmSchoolLogo">🏫</span>
+          <div style="flex:1;">
+            <div style="font-weight:700;font-size:14px;color:#166534;" id="confirmSchoolName"></div>
+            <div style="font-size:11px;color:#16a34a;" id="confirmSchoolSub"></div>
+          </div>
+        </div>
+        <button class="btn btn--primary btn--full" onclick="confirmSchoolAndProceed()">
+          Continue with this school →
+        </button>
+      </div>
     </div>
 
     <!-- STEP 2: Select Term -->
@@ -94,14 +107,14 @@
         </div>
         <button class="school-badge__change" onclick="changeSchool()">Change</button>
       </div>
-      <h2>Select Term</h2>
-      <p class="sub">Choose the academic term. Your scratch card will be locked to this term once used.</p>
+      <h2 id="termStepTitle">Select Term</h2>
+      <p class="sub" id="termStepSub">Choose the academic term. Your scratch card will be locked to this period once used.</p>
       <div class="form-group">
-        <label class="form-label">Academic Term <span class="required">*</span></label>
+        <label class="form-label" id="termSelectLabel">Academic Term <span class="required">*</span></label>
         <select id="termSelect" class="form-control" style="font-size:15px;font-weight:600;">
-          <option value="">— Select a term —</option>
+          <option value="">— Loading… —</option>
         </select>
-        <div class="form-hint" style="margin-top:6px;">⚠️ PIN is locked to 1 student &amp; 1 term only.</div>
+        <div class="form-hint" style="margin-top:6px;">⚠️ PIN is locked to 1 student &amp; 1 period only.</div>
       </div>
       <div id="termErr" class="form-error" style="display:none;margin-bottom:12px;"></div>
       <button class="btn btn--primary btn--full" onclick="goToPin()">Continue →</button>
@@ -120,7 +133,7 @@
       <div id="pinTermBadge" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#e6f4ed;border:1px solid #0a6e3f;border-radius:10px;margin-bottom:16px;">
         <span style="font-size:16px;">📅</span>
         <div style="flex:1;">
-          <div style="font-size:11px;color:#0a6e3f;font-weight:700;text-transform:uppercase;letter-spacing:.5px;">Checking Results For</div>
+          <div style="font-size:11px;color:#0a6e3f;font-weight:700;text-transform:uppercase;letter-spacing:.5px;" id="pinPeriodLabel">Checking Results For</div>
           <div id="pinTermBadgeName" style="font-size:14px;font-weight:800;color:#111;"></div>
         </div>
         <button onclick="goBackToTerm()" style="font-size:11px;color:#0a6e3f;background:none;border:none;cursor:pointer;font-weight:600;">Change</button>
@@ -142,7 +155,7 @@
       </button>
       <div style="margin-top:16px;text-align:center;font-size:12px;color:var(--ink-4);line-height:1.8;">
         Scratch cards are available from your school's admin office.<br>
-        Each PIN is valid for <strong>5 checks</strong> for one student &amp; one term only.
+        Each PIN is valid for <strong>5 checks</strong> for one student &amp; one period only.
       </div>
     </div>
   </div>
@@ -170,11 +183,41 @@
 <script src="../../api/calculations.js"></script>
 <script src="../../js/report-card-engine.js"></script>
 <script>
-let currentSchoolId = null;
-let allSchools      = [];
-let searchTimeout   = null;
-let schoolTerms     = [];
-let selectedTermId  = null;
+let currentSchoolId   = null;
+let currentSchoolObj  = null;
+let allSchools        = [];
+let searchTimeout     = null;
+let schoolTerms       = [];
+let selectedTermId    = null;
+let periodLabel       = 'Term'; // 'Term', 'Semester', 'Quarter', etc.
+
+// ── Detect what a school calls their periods ──────────────────
+function detectPeriodLabel(terms) {
+  if (!terms || !terms.length) return 'Term';
+  const names = terms.map(t => (t.name || '').toLowerCase()).join(' ');
+  if (/semester/i.test(names))  return 'Semester';
+  if (/quarter/i.test(names))   return 'Quarter';
+  if (/session/i.test(names))   return 'Session';
+  if (/module/i.test(names))    return 'Module';
+  if (/period/i.test(names))    return 'Period';
+  return 'Term';
+}
+
+function applyPeriodLabel(label) {
+  periodLabel = label;
+  const els = {
+    termStepTitle:   `Select ${label}`,
+    termStepSub:     `Choose the academic ${label.toLowerCase()}. Your scratch card will be locked to this ${label.toLowerCase()} once used.`,
+    termSelectLabel: `Academic ${label}`,
+  };
+  Object.entries(els).forEach(([id, text]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text + (id === 'termSelectLabel' ? ' *' : '');
+  });
+  // Update the hint text in stepTerm
+  const hint = document.querySelector('#stepTerm .form-hint');
+  if (hint) hint.textContent = `⚠️ PIN is locked to 1 student & 1 ${label.toLowerCase()} only.`;
+}
 
 // ── Init ────────────────────────────────────────────────────
 (async () => {
@@ -183,12 +226,12 @@ let selectedTermId  = null;
     const { data: school } = await db.from('schools')
       .select('id,name,logo_url,is_active,state,lga')
       .eq('id', schoolId).maybeSingle();
-    if (school && school.is_active) { selectSchool(school); return; }
+    if (school && school.is_active) { await selectSchool(school); return; }
   }
   const { data: schools } = await db.from('schools')
     .select('id,name,state,lga,logo_url').eq('is_active', true).order('name');
   allSchools = schools || [];
-  if (allSchools.length === 1) { selectSchool(allSchools[0]); return; }
+  if (allSchools.length === 1) { await selectSchool(allSchools[0]); return; }
   showStep('stepSchool');
 })();
 
@@ -196,6 +239,9 @@ let selectedTermId  = null;
 function searchSchools(q) {
   clearTimeout(searchTimeout);
   const dd = document.getElementById('schoolDropdown');
+  // Hide confirm bar when user starts typing again
+  document.getElementById('schoolConfirmBar').style.display = 'none';
+  currentSchoolObj = null;
   if (!q.trim()) { dd.classList.remove('open'); return; }
   searchTimeout = setTimeout(() => {
     const matches = allSchools.filter(s =>
@@ -215,21 +261,48 @@ function searchSchools(q) {
 }
 
 function pickSchool(school) {
+  // Close dropdown, fill input, show confirm bar — don't auto-proceed yet
   document.getElementById('schoolDropdown').classList.remove('open');
   document.getElementById('schoolSearch').value = school.name;
-  selectSchool(school);
+  currentSchoolObj = school;
+  document.getElementById('confirmSchoolName').textContent = school.name;
+  document.getElementById('confirmSchoolSub').textContent  =
+    [school.state, school.lga].filter(Boolean).join(', ') || 'Location not set';
+  if (school.logo_url) {
+    document.getElementById('confirmSchoolLogo').innerHTML =
+      `<img src="${school.logo_url}" style="width:28px;height:28px;border-radius:6px;object-fit:cover;" onerror="this.outerHTML='🏫'">`;
+  } else {
+    document.getElementById('confirmSchoolLogo').textContent = '🏫';
+  }
+  document.getElementById('schoolConfirmBar').style.display = 'block';
+  document.getElementById('schoolPickErr').style.display = 'none';
+}
+
+async function confirmSchoolAndProceed() {
+  if (!currentSchoolObj) {
+    document.getElementById('schoolPickErr').textContent = 'Please select a school from the list first.';
+    document.getElementById('schoolPickErr').style.display = 'block';
+    return;
+  }
+  await selectSchool(currentSchoolObj);
 }
 
 async function selectSchool(school) {
-  currentSchoolId = school.id;
+  currentSchoolId  = school.id;
+  currentSchoolObj = school;
+  // Update header
   document.getElementById('headerTitle').textContent = school.name;
   document.getElementById('headerSub').textContent   = 'Report Card Portal';
   document.title = school.name + ' — Report Card';
-  if (school.logo_url) {
-    document.getElementById('headerLogo').innerHTML = `<img src="${school.logo_url}" onerror="this.parentElement.innerHTML='🏫'" style="width:56px;height:56px;object-fit:cover;border-radius:14px;">`;
-    document.getElementById('badgeLogo').innerHTML  = `<img src="${school.logo_url}" style="width:24px;height:24px;border-radius:4px;object-fit:cover;" onerror="this.parentElement.innerHTML='🏫'">`;
-  }
-  document.getElementById('badgeName').textContent    = school.name;
+  const logoHTML = school.logo_url
+    ? `<img src="${school.logo_url}" onerror="this.parentElement.innerHTML='🏫'" style="width:56px;height:56px;object-fit:cover;border-radius:14px;">`
+    : `<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>`;
+  document.getElementById('headerLogo').innerHTML = logoHTML;
+  const badgeLogoHTML = school.logo_url
+    ? `<img src="${school.logo_url}" style="width:24px;height:24px;border-radius:4px;object-fit:cover;" onerror="this.outerHTML='🏫'">`
+    : '🏫';
+  document.getElementById('badgeLogo').innerHTML   = badgeLogoHTML;
+  document.getElementById('badgeName').textContent = school.name;
   const url = new URL(location.href);
   url.searchParams.set('school', school.id);
   history.replaceState(null, '', url.toString());
@@ -239,16 +312,27 @@ async function selectSchool(school) {
 async function loadSchoolTerms(schoolId, schoolName) {
   document.getElementById('termBadgeName').textContent = schoolName;
   const termSel = document.getElementById('termSelect');
-  termSel.innerHTML = '<option value="">Loading terms…</option>';
+  termSel.innerHTML = '<option value="">Loading…</option>';
   showStep('stepTerm');
+
   const { data: terms } = await db.from('terms')
     .select('id,name,is_current,results_published')
     .eq('school_id', schoolId)
     .order('created_at', { ascending: false });
   schoolTerms = terms || [];
-  termSel.innerHTML = '<option value="">— Select a term —</option>'
+
+  // Detect and apply period label (Term/Semester/Quarter…)
+  const label = detectPeriodLabel(schoolTerms);
+  applyPeriodLabel(label);
+
+  if (!schoolTerms.length) {
+    termSel.innerHTML = `<option value="">— No ${label.toLowerCase()}s found —</option>`;
+    return;
+  }
+
+  termSel.innerHTML = `<option value="">— Select a ${label.toLowerCase()} —</option>`
     + schoolTerms.map(t =>
-        `<option value="${t.id}" ${t.is_current ? 'selected' : ''}>${t.name}${t.is_current ? ' (Current)' : ''}</option>`
+        `<option value="${t.id}" ${t.is_current ? 'selected' : ''}>${t.name}${t.is_current ? ' ★ Current' : ''}</option>`
       ).join('');
   const cur = schoolTerms.find(t => t.is_current);
   if (cur) termSel.value = cur.id;
@@ -259,11 +343,14 @@ function goToPin() {
   const errEl   = document.getElementById('termErr');
   errEl.style.display = 'none';
   if (!termSel.value) {
-    errEl.textContent = 'Please select a term to continue.';
+    errEl.textContent = `Please select a ${periodLabel.toLowerCase()} to continue.`;
     errEl.style.display = 'block'; return;
   }
   selectedTermId = termSel.value;
   document.getElementById('pinTermBadgeName').textContent = termSel.options[termSel.selectedIndex].text;
+  // Update the "Checking Results For" label dynamically
+  const lbl = document.getElementById('pinPeriodLabel');
+  if (lbl) lbl.textContent = `Checking Results For ${periodLabel}`;
   showStep('stepPin');
   setTimeout(() => document.getElementById('admNo')?.focus(), 100);
 }
@@ -319,7 +406,7 @@ async function checkResult() {
   if (!currentSchoolId) { errEl.textContent = 'School not selected.'; errEl.style.display = 'block'; return; }
   if (!admNo || !rawPin) { errEl.textContent = 'Please enter both admission number and PIN.'; errEl.style.display = 'block'; return; }
   if (rawPin.length !== 12) { errEl.textContent = 'PIN must be 12 digits (XXXX-XXXX-XXXX format).'; errEl.style.display = 'block'; return; }
-  if (!selectedTermId) { errEl.textContent = 'No term selected. Please go back and choose a term.'; errEl.style.display = 'block'; return; }
+  if (!selectedTermId) { errEl.textContent = `No ${periodLabel.toLowerCase()} selected. Please go back.`; errEl.style.display = 'block'; return; }
 
   btn.disabled = true; btn.textContent = '⏳ Generating Report Card…';
 
