@@ -170,13 +170,13 @@
           <div class="grid">
             <div class="full field" data-field="schoolId"><label>School *</label><select id="schoolId"><option value="">Loading schools...</option></select><div class="err">Select your school</div></div>
             <div class="full field" data-field="serialNo"><label>Serial Number *</label><input id="serialNo" placeholder="e.g. ETN12345670001" maxlength="20" style="font-family:monospace;font-size:14px;letter-spacing:2px;text-transform:uppercase;" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')"><div class="hint">Found on the top of your scratch card (e.g. ETN12345670001).</div><div class="err">Enter the serial number printed on your card</div></div>
-            <div class="field" data-field="scratchPin"><label>Scratch Card PIN *</label><input id="scratchPin" placeholder="0000 – 0000 – 0000" maxlength="16" style="font-family:monospace;font-size:18px;letter-spacing:3px;text-align:center;" oninput="
+            <div class="field" data-field="scratchPin"><label>Scratch Card PIN *</label><input id="scratchPin" placeholder="0000 – 0000 – 0000" maxlength="18" style="font-family:monospace;font-size:18px;letter-spacing:3px;text-align:center;" oninput="
   let v=this.value.replace(/[^0-9]/g,'').slice(0,12);
   let fmt='';
   for(let i=0;i<v.length;i++){if(i===4||i===8)fmt+=' – ';fmt+=v[i];}
   this.value=fmt;
 "><div class="hint">Enter the 12-digit PIN exactly as shown on your card (e.g. 5638 – 5281 – 5469).</div><div class="err">Enter the full 12-digit card PIN</div></div>
-            <div class="field" data-field="intendedClass"><label>Class Applying For</label><select id="intendedClass"><option value="">Select after school loads</option></select><div class="hint">Registrar may change this during approval.</div></div>
+            <div class="full field" data-field="intendedLevel"><label>Level / Section *</label><select id="intendedLevel"><option value="">Select school first</option></select><div class="hint">Registrar will assign a specific class during approval.</div><div class="err">Please select the level or section you are applying for</div></div>
           </div>
         </div>
         <div class="panel" id="p2">
@@ -201,6 +201,15 @@
                   </button>
                   <div class="hint" style="margin-top:6px">Clear recent passport photo (JPG/PNG, max 2 MB). Will appear on your ID card.</div>
                   <div id="passportErr" style="display:none;color:#dc2626;font-size:12px;font-weight:700;margin-top:5px"></div>
+                </div>
+              </div>
+            </div>
+            <div class="full" id="docUploadsSection">
+              <div style="border-top:1px solid #e2e8f0;padding-top:16px;margin-top:6px">
+                <p style="font-size:13px;font-weight:800;color:#0f172a;margin:0 0 3px">&#128196; Required Documents</p>
+                <p style="font-size:12px;color:#64748b;margin:0 0 14px">Upload documents for your selected level. Images or PDF accepted (max 5 MB each).</p>
+                <div class="grid" id="docUploads">
+                  <p class="full" style="font-size:13px;color:#94a3b8;font-style:italic">Select a level in Step 1 to see required documents.</p>
                 </div>
               </div>
             </div>
@@ -250,43 +259,202 @@
 <script src="js/config.js"></script>
 <script src="js/supabase.js"></script>
 <script>
-let step=1, schools=[], classes=[], lastRef='', lastAppData=null, passportDataUrl=null;
+let step=1, schools=[], lastRef='', lastAppData=null, passportDataUrl=null, uploadedDocs={};
 const total=4;
-const requiredByStep={1:['schoolId','serialNo','scratchPin'],2:['fullName','gender','dob','address'],3:['parentName','parentPhone']};
+const requiredByStep={1:['schoolId','serialNo','scratchPin','intendedLevel'],2:['fullName','gender','dob','address'],3:['parentName','parentPhone']};
 const val=id=>(document.getElementById(id)?.value||'').trim();
 const pinVal=()=>val('scratchPin').replace(/[^0-9]/g,''); // strips ' – ' formatting for DB queries
 const selectedSchool=()=>schools.find(s=>s.id===val('schoolId'));
-const selectedClass=()=>classes.find(c=>c.id===val('intendedClass'));
+const selectedLevel=()=>val('intendedLevel');
 
 (async function init(){await loadSchools();await applyPrefillFromQuery();updateStep();})();
 
 async function loadSchools(){
   const sel=document.getElementById('schoolId');
   try{
-    const{data,error}=await db.from('schools').select('id,name,address,lga,state,phone,email,logo_url,is_active').eq('is_active',true).order('name');
+    const{data,error}=await db.from('schools').select('id,name,address,lga,state,phone,email,logo_url,school_type,is_active').eq('is_active',true).order('name');
     if(error)throw error;
     schools=data||[];
     sel.innerHTML='<option value="">Select school</option>'+schools.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('');
   }catch(e){sel.innerHTML='<option value="">Unable to load schools</option>';console.warn(e);}
 }
 
-document.getElementById('schoolId').addEventListener('change',loadClassesForSchool);
+document.getElementById('schoolId').addEventListener('change',async()=>{await loadLevelsForSchool();renderDocUploads();});
+document.addEventListener('DOMContentLoaded',()=>document.getElementById('intendedLevel')?.addEventListener('change',renderDocUploads));
 
-async function loadClassesForSchool(){
-  const schoolId=val('schoolId'),cls=document.getElementById('intendedClass');
-  classes=[];cls.innerHTML='<option value="">Registrar should assign</option>';
-  if(!schoolId)return;
+async function loadLevelsForSchool(){
+  const school=selectedSchool();
+  const sel=document.getElementById('intendedLevel');
+  if(!sel)return;
+  sel.innerHTML='<option value="">Loading levels…</option>';
+  uploadedDocs={};
+  renderDocUploads();
+  if(!school){sel.innerHTML='<option value="">Select school first</option>';return;}
   try{
-    const{data}=await db.from('classes').select('id,name,level').eq('school_id',schoolId).order('name');
-    classes=data||[];
-    cls.innerHTML='<option value="">Registrar should assign</option>'+classes.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
-  }catch(e){console.warn(e);}
+    // ── Primary: pull distinct levels straight from this school's classes ──
+    const{data:rows,error}=await db.from('classes')
+      .select('level')
+      .eq('school_id',school.id)
+      .not('level','is',null)
+      .order('level');
+    // Deduplicate while preserving order
+    const seen=new Set();
+    const dbLevels=(rows||[]).map(r=>r.level).filter(l=>l&&!seen.has(l)&&seen.add(l));
+    if(dbLevels.length){
+      sel.innerHTML='<option value="">Select a level / section…</option>'+
+        dbLevels.map(l=>`<option value="${esc(l)}">${esc(l)}</option>`).join('');
+      return;
+    }
+    // ── Fallback: derive from school_type when no class levels configured ──
+    const fallback=getLevelsForSchool(school);
+    sel.innerHTML='<option value="">Select a level / section…</option>'+
+      fallback.map(l=>`<option value="${esc(l.v)}">${esc(l.l)}</option>`).join('');
+  }catch(e){
+    console.warn('loadLevelsForSchool:',e);
+    const fallback=getLevelsForSchool(school);
+    sel.innerHTML='<option value="">Select a level / section…</option>'+
+      fallback.map(l=>`<option value="${esc(l.v)}">${esc(l.l)}</option>`).join('');
+  }
+}
+
+function getLevelsForSchool(school){
+  const t=(school?.school_type||'').toLowerCase();
+  if(t.includes('university')||t.includes('college_of_tech'))return[
+    {v:'Foundation / Remedial',l:'Foundation / Remedial'},
+    {v:'100 Level (Year 1)',l:'100 Level (Year 1)'},
+    {v:'200 Level (Year 2)',l:'200 Level (Year 2)'},
+    {v:'300 Level (Year 3)',l:'300 Level (Year 3)'},
+    {v:'400 Level (Year 4)',l:'400 Level (Year 4)'},
+    {v:'Postgraduate',l:'Postgraduate'},
+  ];
+  if(t.includes('institute')||t.includes('vocational')||t.includes('technical')||t.includes('polytechnic'))return[
+    {v:'Diploma',l:'Diploma'},
+    {v:'Certificate',l:'Certificate'},
+    {v:'Professional Diploma',l:'Professional Diploma'},
+    {v:'HND',l:'Higher National Diploma (HND)'},
+  ];
+  // O-level / Regular school
+  const levels=[];
+  if(!t||t.includes('nursery')||t.includes('creche')||t.includes('comprehensive')||t.includes('all'))
+    levels.push({v:'Nursery / Kindergarten',l:'Nursery / Kindergarten'});
+  if(!t||t.includes('primary')||t.includes('comprehensive')||t.includes('all')||t.includes('nursery'))
+    levels.push({v:'Primary',l:'Primary'});
+  if(!t||t.includes('secondary')||t.includes('comprehensive')||t.includes('all')||t.includes('junior')){
+    levels.push({v:'Junior Secondary (JSS)',l:'Junior Secondary (JSS)'});
+    levels.push({v:'Senior Secondary (SSS)',l:'Senior Secondary (SSS)'});
+  }
+  return levels.length?levels:[
+    {v:'Nursery / Kindergarten',l:'Nursery / Kindergarten'},
+    {v:'Primary',l:'Primary'},
+    {v:'Junior Secondary (JSS)',l:'Junior Secondary (JSS)'},
+    {v:'Senior Secondary (SSS)',l:'Senior Secondary (SSS)'},
+  ];
+}
+
+function getDocsForLevel(level){
+  const l=(level||'').toLowerCase();
+  if(l.includes('nursery')||l.includes('kindergarten')||l.includes('creche'))return[
+    {id:'doc_birth',label:'Birth Certificate',required:true,hint:'Official birth or baptism certificate'},
+    {id:'doc_immunization',label:'Immunization / Health Card',required:false},
+    {id:'doc_parentid',label:'Parent / Guardian Valid ID',required:false},
+  ];
+  if(l.includes('primary'))return[
+    {id:'doc_birth',label:'Birth Certificate',required:true},
+    {id:'doc_report',label:'Previous School Report Card',required:false,hint:'Last term result from previous school'},
+    {id:'doc_transfer',label:'Transfer Certificate',required:false},
+    {id:'doc_parentid',label:'Parent / Guardian Valid ID',required:false},
+  ];
+  if(l.includes('junior')||l.includes('jss'))return[
+    {id:'doc_birth',label:'Birth Certificate',required:true},
+    {id:'doc_fslc',label:'Primary School Leaving Certificate (FSLC)',required:true},
+    {id:'doc_report',label:'Last Term Report Card',required:false},
+    {id:'doc_transfer',label:'Transfer Certificate',required:false},
+  ];
+  if(l.includes('senior')||l.includes('sss'))return[
+    {id:'doc_birth',label:'Birth Certificate',required:true},
+    {id:'doc_bece',label:'BECE / JSS3 Result or Certificate',required:true},
+    {id:'doc_report',label:'Last Term Report Card',required:false},
+    {id:'doc_transfer',label:'Transfer Certificate',required:false},
+  ];
+  if(l.includes('professional diploma'))return[
+    {id:'doc_olevel',label:'WAEC / NECO O-Level Result',required:true},
+    {id:'doc_birth',label:'Birth Certificate or Government-Issued ID',required:true},
+    {id:'doc_prior',label:'Previous Diploma / Degree Certificate (if any)',required:false},
+    {id:'doc_nysc',label:'NYSC Certificate or Exemption Letter',required:false},
+    {id:'doc_lga',label:'LGA Certificate of Origin',required:false},
+  ];
+  if(l.includes('diploma')||l.includes('certificate')||l.includes('hnd'))return[
+    {id:'doc_olevel',label:'WAEC / NECO O-Level Result',required:true},
+    {id:'doc_birth',label:'Birth Certificate or Government-Issued ID',required:true},
+    {id:'doc_lga',label:'LGA Certificate of Origin',required:false},
+  ];
+  if(l.includes('postgraduate'))return[
+    {id:'doc_olevel',label:'WAEC / NECO O-Level Result',required:true},
+    {id:'doc_degree',label:'First Degree Certificate & Transcript',required:true},
+    {id:'doc_birth',label:'Birth Certificate or NIN Slip',required:true},
+    {id:'doc_nysc',label:'NYSC Certificate or Exemption Letter',required:true},
+    {id:'doc_lga',label:'LGA Certificate of Origin',required:false},
+  ];
+  if(l.includes('level')||l.includes('foundation'))return[
+    {id:'doc_olevel',label:'WAEC / NECO / NABTEB O-Level Result',required:true},
+    {id:'doc_jamb',label:'JAMB Result Slip / Admission Letter',required:true},
+    {id:'doc_birth',label:'Birth Certificate or NIN Slip',required:true},
+    {id:'doc_lga',label:'LGA Certificate of Origin',required:false},
+  ];
+  return[
+    {id:'doc_birth',label:'Birth Certificate or Valid ID',required:true},
+    {id:'doc_report',label:'Previous School Certificate / Report',required:false},
+  ];
+}
+
+function renderDocUploads(){
+  const container=document.getElementById('docUploads');
+  if(!container)return;
+  const level=val('intendedLevel');
+  if(!level){
+    container.innerHTML='<p class="full" style="font-size:13px;color:#94a3b8;font-style:italic">Select a level in Step 1 to see required documents.</p>';
+    return;
+  }
+  const docs=getDocsForLevel(level);
+  if(!docs.length){container.innerHTML='';return;}
+  container.innerHTML=docs.map(d=>{
+    const up=uploadedDocs[d.id];
+    const border=up?'#86efac':'#cbd5e1';
+    const bg=up?'#f0fdf4':'#f8fafc';
+    const btnColor=up?'#166534':'#334155';
+    const thumb=up&&up.type.startsWith('image/')?`<img src="${up.url}" style="width:100%;height:100%;object-fit:cover">`:'&#128196;';
+    const btnLabel=up?`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>\u00a0${esc(up.name.length>24?up.name.slice(0,24)+'\u2026':up.name)}`:`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>\u00a0Upload`;
+    return `<div class="full field doc-slot" data-doc="${d.id}">
+      <label>${esc(d.label)}${d.required?' <span style="color:#dc2626">*</span>':' <span style="color:#94a3b8;font-weight:400">(optional)</span>'}</label>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:2px">
+        <div style="width:42px;height:42px;border:1.5px dashed ${border};border-radius:6px;background:${bg};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;overflow:hidden">${thumb}</div>
+        <div style="flex:1">
+          <input type="file" id="file_${d.id}" accept="image/*,.pdf" style="display:none" onchange="handleDocUpload('${d.id}','${esc(d.label)}',this)">
+          <button type="button" onclick="document.getElementById('file_${d.id}').click()" style="background:${bg};color:${btnColor};border:1px solid ${border};border-radius:6px;padding:8px 14px;font:600 12px Inter,system-ui,sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:5px">${btnLabel}</button>
+          ${d.hint?`<div class="hint">${esc(d.hint)}</div>`:''}
+        </div>
+      </div>
+      <div class="err">This document is required — please upload a file.</div>
+    </div>`;
+  }).join('');
+}
+
+function handleDocUpload(docId,label,input){
+  const file=input.files[0];
+  if(!file)return;
+  if(file.size>5*1024*1024){alert('File must be under 5 MB');input.value='';return;}
+  const reader=new FileReader();
+  reader.onload=e=>{
+    uploadedDocs[docId]={name:file.name,url:e.target.result,type:file.type,label};
+    renderDocUploads();
+  };
+  reader.readAsDataURL(file);
 }
 
 async function applyPrefillFromQuery(){
   const p=new URLSearchParams(location.search);
   const school=p.get('school'),pin=p.get('pin'),serial=p.get('serial');
-  if(school){document.getElementById('schoolId').value=school;await loadClassesForSchool();}
+  if(school){document.getElementById('schoolId').value=school;await loadLevelsForSchool();}
   if(serial)document.getElementById('serialNo').value=serial.toUpperCase();
   if(pin)document.getElementById('scratchPin').value=pin;
 }
@@ -307,6 +475,19 @@ function validateStep(n){
       if(pinWrap)pinWrap.classList.add('bad');
       if(pinErr){pinErr.textContent='PIN must be exactly 12 digits ('+digits.length+' entered).';pinErr.style.display='block';}
       ok=false;
+    }
+  }
+  // Validate required documents in step 2
+  if(n===2){
+    const level=val('intendedLevel');
+    if(level){
+      getDocsForLevel(level).filter(d=>d.required).forEach(d=>{
+        if(!uploadedDocs[d.id]){
+          const slot=document.querySelector('[data-doc="'+d.id+'"]');
+          if(slot)slot.classList.add('bad');
+          ok=false;
+        }
+      });
     }
   }
   return ok;
@@ -343,7 +524,8 @@ function updateStep(){
 function buildReview(){
   const rows=[
     ['School',selectedSchool()?.name||''],['Serial No.',val('serialNo')],['Scratch Card PIN',val('scratchPin')],
-    ['Class Applying For',selectedClass()?.name||'Registrar should assign'],
+    ['Level / Section',selectedLevel()||'Not selected'],
+    ['Documents Uploaded',Object.values(uploadedDocs).map(d=>d.label||d.name).join(', ')||'None uploaded'],
     ['Student',val('fullName')],['Gender',val('gender')==='M'?'Male':val('gender')==='F'?'Female':''],
     ['Date of Birth',val('dob')],['Address',val('address')],
     ['Guardian',val('parentName')],['Phone',val('parentPhone')],
@@ -394,7 +576,7 @@ async function submitApplication(){
       p_parent_phone:val('parentPhone'),
       p_parent_email:val('parentEmail')||null,
       p_medical_notes:val('medicalNotes')||null,
-      p_requested_class_id:val('intendedClass')||null,
+      p_requested_class_id:null,
       p_photo_url:null
     });
 
@@ -405,7 +587,7 @@ async function submitApplication(){
       // Fallback: direct insert for legacy cards (serial_no null / RPC not yet deployed)
       const payload={
         school_id:val('schoolId'),scratch_card_id:card.id,scratch_card_pin:pinVal(),
-        intended_class_id:val('intendedClass')||null,full_name:val('fullName'),gender:val('gender'),
+        intended_class_id:null,full_name:val('fullName'),gender:val('gender'),
         date_of_birth:val('dob')||null,address:val('address'),parent_name:val('parentName'),
         parent_phone:val('parentPhone'),parent_email:val('parentEmail')||null,
         blood_group:val('bloodGroup')||null,medical_notes:val('medicalNotes')||null,
@@ -416,11 +598,21 @@ async function submitApplication(){
       appId=ins?.id;
       // Mark card used manually in fallback path
       await db.from('scratch_cards').update({is_used:true,used_at:new Date().toISOString(),uses_count:Number(card.uses_count||0)+1}).eq('id',card.id);
+      // Non-critical: store level on fallback path
+      if(appId&&val('intendedLevel')){try{await db.from('student_applications').update({intended_level:val('intendedLevel')}).eq('id',appId);}catch(_){}}
     }
 
-    // Patch ref_id if RPC path was used (RPC doesn't store ref_id)
-    if(appId&&!rpcErr&&result&&!result.error){
-      await db.from('student_applications').update({ref_id:ref}).eq('id',appId);
+    // ── Always persist ref_id (critical) — isolated so a missing column never silently kills it ──
+    if(appId){
+      try{
+        const{error:refErr}=await db.from('student_applications').update({ref_id:ref}).eq('id',appId);
+        if(refErr)console.warn('ref_id save failed:',refErr.message);
+      }catch(e){console.warn('ref_id patch exception:',e);}
+    }
+    // ── Non-critical: persist intended_level in a separate call so errors are fully isolated ──
+    if(appId&&val('intendedLevel')){
+      try{await db.from('student_applications').update({intended_level:val('intendedLevel')}).eq('id',appId);}
+      catch(_){}
     }
 
     document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
