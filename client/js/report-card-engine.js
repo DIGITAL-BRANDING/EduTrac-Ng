@@ -749,12 +749,12 @@ function actRows(fields,data){
 function openCertPage(){
   if(!_currentStudent){alert('Please load a student report card first.');return;}
   const {student}=_currentStudent;
-  window.open(`/report-card/certificate.html?student_id=${encodeURIComponent(student.id)}&term_id=${encodeURIComponent(_tid)}`,'_blank');
+  window.open(`/report-card/certificate.html?student_id=${encodeURIComponent(student.id)}&term_id=${encodeURIComponent((typeof _tid !== "undefined" ? _tid : ""))}`,'_blank');
 }
 function openTestPage(){
   if(!_currentStudent){alert('Please load a student report card first.');return;}
   const {student}=_currentStudent;
-  window.open(`/report-card/testimonial.html?student_id=${encodeURIComponent(student.id)}&term_id=${encodeURIComponent(_tid)}`,'_blank');
+  window.open(`/report-card/testimonial.html?student_id=${encodeURIComponent(student.id)}&term_id=${encodeURIComponent((typeof _tid !== "undefined" ? _tid : ""))}`,'_blank');
 }
 
 /* ═══ INSTITUTION THEME ENGINE ═══
@@ -857,7 +857,7 @@ function getCardTheme(classRow) {
 function onInstThemeChange(val) {
   _cardThemeOverride = val === 'auto' ? null : val;
   updateDetectedBadge(_classRow);
-  if (_students.length) _loadCard(_students[_ci]);
+  if (typeof _students !== "undefined" && _students.length && typeof _loadCard === "function") _loadCard(_students[_ci]);
 }
 
 /**
@@ -928,6 +928,8 @@ function prepCardData(student,results,attData,affective){
   return{cn,classLabel,examList:examListDeduped,subRows,avg,raw,og,att,meta,sessLabel,logoH,pp,sid,days,pres};
 }
 
+// sqSafe alias for backward compat
+const sq = (...a) => sqSafe(...a);
 async function sqSafe(label, queryPromise, timeoutMs=8000){
   const timer=new Promise((_,rej)=>setTimeout(()=>rej(new Error('Timed out')),timeoutMs));
   try{
@@ -1346,7 +1348,7 @@ async function buildCard(student, termId, extraClass=''){
       return null;
     }
     
-    studentResults = await sq(`Results for ${student.full_name||student.id}`,
+    studentResults = await sqSafe(`Results for ${student.full_name||student.id}`,
       db.from('results')
         .select('score,student_id,subject_id,exam_id,subjects(id,name,code),exams(id,name,max_score,weight)')
         .eq('student_id', student.id).eq('term_id', termId));
@@ -1568,7 +1570,7 @@ function showNoReportCard(student){
       <h3>📄 No Results Found</h3>
       <p><strong>${student.full_name || 'This student'}</strong> has no scores recorded for the selected term.</p>
       <p>Please ensure that subject scores have been entered for this student in the <strong>Results</strong> section before generating a report card.</p>
-      <button onclick="_loadCard(${JSON.stringify(student).replace(/</g,'\u003c')})">↺ Retry</button>
+      <button onclick="(typeof _loadCard === 'function') && _loadCard(${JSON.stringify(student).replace(/</g,'\u003c')})">↺ Retry</button>
       <button onclick="history.back()">← Go Back</button>
     </div>
   `;
