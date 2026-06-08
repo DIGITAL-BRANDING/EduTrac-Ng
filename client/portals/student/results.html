@@ -244,6 +244,13 @@ function buildPageHTML(currentTerm) {
       </p>
 
       <div class="form-group" style="text-align:left;">
+        <label class="form-label">Serial Number</label>
+        <input type="text" id="serialNo" class="form-control"
+          placeholder="e.g. SN-001234" autocomplete="off"
+          style="text-transform:uppercase;">
+        <div class="form-hint">Printed on your scratch card envelope.</div>
+      </div>
+      <div class="form-group" style="text-align:left;">
         <label class="form-label">Scratch Card PIN</label>
         <input type="text" id="pinInput" class="form-control pin-input"
           maxlength="15" placeholder="0000-0000-0000"
@@ -356,8 +363,10 @@ async function viewReportCard() {
 
   try {
     /* 1 ── Validate scratch card via RPC */
+    const serialNo = (document.getElementById('serialNo')?.value || '').trim().toUpperCase();
     const { data: useResult, error: useErr } = await db.rpc('use_scratch_card', {
       p_pin:        rawPin,
+      p_serial_no:  serialNo || null,
       p_school_id:  ctx.session.school_id,
       p_card_type:  'result',
       p_student_id: ctx.session.id,
