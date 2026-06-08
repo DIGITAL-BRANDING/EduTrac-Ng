@@ -654,6 +654,21 @@ window.addEventListener('online', () => {
 <script src="../../js/supabase.js"></script>
 <script src="../../js/report-card-engine.js"></script>
 <script>
+// ── sqSafe ───────────────────────────────────────────────────────────────────
+// Silent version of sq(): logs warnings but never throws and never calls showErr.
+// Defined here as a fallback; report-card-engine.js overwrites this if it loads.
+async function sqSafe(label, queryPromise, timeoutMs=8000){
+  const timer=new Promise((_,rej)=>setTimeout(()=>rej(new Error('Timed out')),timeoutMs));
+  try{
+    const result=await Promise.race([queryPromise,timer]);
+    if(result?.error){ console.warn(`sqSafe "${label}":`,result.error.message); return null; }
+    return result?.data!==undefined ? result.data : result;
+  }catch(e){
+    console.warn(`sqSafe "${label}" failed:`,e.message||e);
+    return null;
+  }
+}
+
 // ── updateDetectedBadge ──────────────────────────────────────────────────────
 // Defined here as a safe fallback in case report-card-engine.js does not
 // export it to global scope. If the engine defines it, this is overwritten.
@@ -1006,6 +1021,16 @@ function _populateTermBar(){
 }
 
 (async()=>{
+  // ── Guard: ensure report-card-engine.js loaded (buildCard defined there) ──
+  if(typeof buildCard === 'undefined'){
+    showErr(
+      'Report card engine failed to load',
+      'The file js/report-card-engine.js could not be loaded. This is usually caused by a ' +
+      'network error or missing file. Please ensure the file exists at ../../js/report-card-engine.js and refresh.'
+    );
+    return;
+  }
+
   // ── Show "taking long" hint after 6s ──
   setTimeout(()=>{
     const hint = document.getElementById('loadHint');
