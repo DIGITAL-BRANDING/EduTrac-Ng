@@ -389,7 +389,7 @@
           <div class="db-tabs">
             <button class="db-tab active" onclick="switchTrend('weekly',this)">Weekly</button>
             <button class="db-tab" onclick="switchTrend('monthly',this)">Monthly</button>
-            <button class="db-tab" onclick="switchTrend('termly',this)">Termly</button>
+            <button class="db-tab" onclick="switchTrend('termly',this)">By Term/Semester</button>
           </div>
         </div>
         <div class="db-card-body"><div class="db-chart-wrap" style="height:220px"><canvas id="trendChart"></canvas></div></div>
@@ -641,11 +641,11 @@
 
   /* Term / session labels */
   if (currentTerm) {
-    document.getElementById('termLabel').textContent = currentTerm.name || 'Current Term';
+    document.getElementById('termLabel').textContent = currentTerm.name || 'Current Period';
     document.getElementById('sessionPill').textContent = currentTerm.session || currentTerm.name || '—';
   } else {
-    document.getElementById('termLabel').textContent = 'No active term set';
-    document.getElementById('sessionPill').textContent = 'No active term';
+    document.getElementById('termLabel').textContent = 'No active term/semester set';
+    document.getElementById('sessionPill').textContent = 'No active session';
   }
 
   /* Active enrollments for current term */
@@ -716,7 +716,7 @@
       </div>
       <div class="db-kpi-val">${totalStudents.toLocaleString()}</div>
       <div class="db-kpi-lbl">Students</div>
-      <div class="db-kpi-sub">${totalEnrolled} enrolled this term</div>
+      <div class="db-kpi-sub">${totalEnrolled} enrolled this period</div>
     </a>
     <a class="db-kpi" href="attendance.html" style="--kc:${attRate>=90?'#16a34a':attRate>=70?'#f59e0b':'#ef4444'}">
       <div class="db-kpi-top">
