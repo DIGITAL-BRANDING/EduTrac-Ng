@@ -654,6 +654,38 @@ window.addEventListener('online', () => {
 <script src="../../js/supabase.js"></script>
 <script src="../../js/report-card-engine.js"></script>
 <script>
+// ── updateDetectedBadge ──────────────────────────────────────────────────────
+// Defined here as a safe fallback in case report-card-engine.js does not
+// export it to global scope. If the engine defines it, this is overwritten.
+// It reads the class row's level/name to show a detected-theme badge.
+function updateDetectedBadge(classRow){
+  const badge = document.getElementById('detectedBadge');
+  const themeSel = document.getElementById('instThemeSel');
+  if(!badge) return;
+
+  // Only show badge when layout is "auto-detect"
+  const isAuto = !themeSel || themeSel.value === 'auto';
+  if(!isAuto){ badge.style.display='none'; return; }
+
+  if(!classRow){ badge.style.display='none'; return; }
+
+  // Detect school type from the class row or school data
+  const level = (classRow.level||classRow.name||'').toLowerCase();
+  const schoolType = (window._school?.school_type||'').toLowerCase();
+  const combined = level + ' ' + schoolType;
+
+  let detected = '';
+  if(/nursery|kg|kindergarten|creche|pre.?school/i.test(combined))      detected = 'Nursery / KG';
+  else if(/primary|basic|elementary/i.test(combined))                    detected = 'Primary';
+  else if(/tertiary|university|polytechnic|college|higher/i.test(combined)) detected = 'Tertiary';
+  else if(/vocational|technical|vocation|tech/i.test(combined))          detected = 'Vocational';
+  else if(/secondary|high|jss|sss|junior|senior/i.test(combined))        detected = 'Secondary';
+  else                                                                    detected = 'Secondary'; // default
+
+  badge.textContent = 'Detected: ' + detected;
+  badge.style.display = 'inline-flex';
+}
+
 function applyPreset(el,p,pd,pl,a,al,coBg,coH,discBg,discH,grRow){
   document.querySelectorAll('.preset-swatch').forEach(s=>s.classList.remove('active'));
   el.classList.add('active'); _sv(p,pd,pl,a,al,coBg,coH,discBg,discH,grRow);
