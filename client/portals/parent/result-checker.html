@@ -145,6 +145,11 @@
         <input type="text" id="admNo" class="form-control" placeholder="e.g. ADM/2025/001" style="text-transform:uppercase;">
       </div>
       <div class="form-group">
+        <label class="form-label">Serial Number <span class="required">*</span></label>
+        <input type="text" id="serialNo" class="form-control" placeholder="e.g. SN-001234" style="text-transform:uppercase;" autocomplete="off">
+        <div class="form-hint">The serial number is printed on your scratch card.</div>
+      </div>
+      <div class="form-group">
         <label class="form-label">Scratch Card PIN <span class="required">*</span></label>
         <input type="text" id="pinInput" class="form-control pin-display" placeholder="XXXX-XXXX-XXXX" maxlength="15">
         <div class="form-hint">Format: XXXX-XXXX-XXXX. Card is locked to 1 student &amp; 1 term only.</div>
@@ -183,6 +188,21 @@
 <script src="../../api/calculations.js"></script>
 <script src="../../js/report-card-engine.js"></script>
 <script>
+
+// ── Step helper ──────────────────────────────────────────────
+function showStep(id) {
+  ['stepSchool','stepTerm','stepPin'].forEach(s => {
+    const el = document.getElementById(s);
+    if (el) el.className = 'step' + (s === id ? ' active' : '');
+  });
+}
+
+// ── Ordinal suffix helper ─────────────────────────────────────
+function getOrdinalSuffix(n) {
+  const s = ['th','st','nd','rd'], v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
 let currentSchoolId   = null;
 let currentSchoolObj  = null;
 let allSchools        = [];
@@ -301,8 +321,9 @@ async function selectSchool(school) {
   const badgeLogoHTML = school.logo_url
     ? `<img src="${school.logo_url}" style="width:24px;height:24px;border-radius:4px;object-fit:cover;" onerror="this.outerHTML='🏫'">`
     : '🏫';
-  document.getElementById('badgeLogo').innerHTML   = badgeLogoHTML;
-  document.getElementById('badgeName').textContent = school.name;
+  document.getElementById('badgeLogo').innerHTML    = badgeLogoHTML;
+  document.getElementById('termBadgeLogo').innerHTML = badgeLogoHTML;
+  document.getElementById('badgeName').textContent  = school.name;
   const url = new URL(location.href);
   url.searchParams.set('school', school.id);
   history.replaceState(null, '', url.toString());
@@ -411,8 +432,10 @@ async function checkResult() {
   btn.disabled = true; btn.textContent = '⏳ Generating Report Card…';
 
   try {
+    const serialNo = (document.getElementById('serialNo')?.value || '').trim().toUpperCase();
     const { data: useResult, error: useErr } = await db.rpc('use_scratch_card', {
       p_pin:          rawPin,
+      p_serial_no:    serialNo || null,
       p_school_id:    currentSchoolId,
       p_card_type:    'result',
       p_admission_no: admNo,
