@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <link rel="icon" href="/icons/icon-96.png" type="image/png">
-  <meta charset="UTF-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#1a2e6e">
@@ -12,64 +12,611 @@
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=EB+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Playfair+Display:wght@400;700;900&family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&family=Poppins:wght@400;500;600;700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../../assets/css/global.css">
 <!-- Styles injected by js/report-card-engine.js -->
+<style>
+/* ══════════════════════════════════════════════
+   EDUTRACK NG — REPORT CARD CONTROL BAR v2
+   Refined educational UI — no emojis
+   ══════════════════════════════════════════════ */
+
+:root {
+  --cb-bg: #ffffff;
+  --cb-border: #e2e8f0;
+  --cb-text: #1e293b;
+  --cb-muted: #64748b;
+  --cb-accent: #1a2e6e;
+  --cb-accent-light: #eef2ff;
+  --cb-radius: 8px;
+  --cb-shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06);
+  --cb-h: 56px;
+}
+
+/* ── Control Bar Shell ── */
+#controlBar {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  background: var(--cb-bg);
+  border-bottom: 1.5px solid var(--cb-border);
+  box-shadow: var(--cb-shadow);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0;
+  padding: 0;
+  min-height: var(--cb-h);
+  font-family: 'Poppins', sans-serif;
+}
+
+/* ── Logo / Brand strip on left ── */
+#controlBar::before {
+  content: '';
+  display: block;
+  width: 4px;
+  align-self: stretch;
+  background: linear-gradient(180deg, #1a2e6e 0%, #2a44a0 50%, #c8860a 100%);
+  flex-shrink: 0;
+}
+
+/* ── Segment wrapper — each logical group ── */
+.cb-seg {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  height: var(--cb-h);
+  border-right: 1px solid var(--cb-border);
+  flex-shrink: 0;
+}
+.cb-seg:last-child { border-right: none; }
+
+/* segment that pushes actions to far right */
+.cb-spacer { flex: 1; border-right: none; }
+
+/* ── Labels ── */
+.cb-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--cb-muted);
+  white-space: nowrap;
+  user-select: none;
+}
+
+/* ── Selects ── */
+.cb-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: #f8fafc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 10px center;
+  border: 1.5px solid var(--cb-border);
+  border-radius: 6px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--cb-text);
+  padding: 6px 30px 6px 10px;
+  cursor: pointer;
+  min-width: 140px;
+  transition: border-color .15s, box-shadow .15s;
+  outline: none;
+}
+.cb-select:hover { border-color: #94a3b8; }
+.cb-select:focus { border-color: var(--cb-accent); box-shadow: 0 0 0 3px rgba(26,46,110,.1); }
+
+/* student select wider */
+#ssel.cb-select { min-width: 180px; max-width: 240px; }
+
+/* ── Nav buttons (prev/next student) ── */
+.cb-nav-btn {
+  width: 30px; height: 30px;
+  border: 1.5px solid var(--cb-border);
+  border-radius: 6px;
+  background: #f8fafc;
+  color: var(--cb-text);
+  font-size: 15px;
+  line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all .15s;
+  flex-shrink: 0;
+}
+.cb-nav-btn:hover:not(:disabled) { border-color: var(--cb-accent); color: var(--cb-accent); background: var(--cb-accent-light); }
+.cb-nav-btn:disabled { opacity: .35; cursor: not-allowed; }
+
+/* ── Student counter pill ── */
+.cb-counter {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--cb-muted);
+  background: #f1f5f9;
+  border-radius: 20px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+
+/* ── Auto-detect badge ── */
+.theme-auto-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: #065f46;
+  background: #d1fae5;
+  border: 1px solid #6ee7b7;
+  border-radius: 20px;
+  padding: 2px 9px;
+  white-space: nowrap;
+}
+
+/* ── Colour swatches ── */
+.cb-palette {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.preset-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform .15s, border-color .15s, box-shadow .15s;
+  flex-shrink: 0;
+}
+.preset-swatch:hover { transform: scale(1.2); box-shadow: 0 2px 6px rgba(0,0,0,.25); }
+.preset-swatch.active {
+  border-color: #fff;
+  box-shadow: 0 0 0 2.5px currentColor, 0 2px 8px rgba(0,0,0,.3);
+  transform: scale(1.15);
+}
+
+/* ── Custom colour picker ── */
+.cb-color-wrap {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+#customColor {
+  width: 28px; height: 28px;
+  border: 1.5px solid var(--cb-border);
+  border-radius: 6px;
+  padding: 1px;
+  cursor: pointer;
+  background: none;
+  outline: none;
+}
+#customColor:hover { border-color: #94a3b8; }
+
+/* ── Action buttons ── */
+.cb-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  height: var(--cb-h);
+  flex-shrink: 0;
+}
+
+.cb-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 7px;
+  border: none;
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+  letter-spacing: .01em;
+}
+.cb-btn svg { flex-shrink: 0; }
+
+/* Back */
+.cb-btn-back {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1.5px solid var(--cb-border);
+}
+.cb-btn-back:hover { background: #e2e8f0; color: #1e293b; }
+
+/* Print All */
+.cb-btn-print-all {
+  background: #f8fafc;
+  color: #1e293b;
+  border: 1.5px solid var(--cb-border);
+}
+.cb-btn-print-all:hover { background: var(--cb-accent-light); border-color: var(--cb-accent); color: var(--cb-accent); }
+
+/* Certificate */
+.cb-btn-cert {
+  background: linear-gradient(135deg, #92400e, #b45309);
+  color: #fff;
+  border: none;
+}
+.cb-btn-cert:hover { opacity: .88; transform: translateY(-1px); box-shadow: 0 3px 10px rgba(146,64,14,.3); }
+
+/* Testimonial */
+.cb-btn-test {
+  background: linear-gradient(135deg, #1a2e6e, #2a44a0);
+  color: #fff;
+  border: none;
+}
+.cb-btn-test:hover { opacity: .88; transform: translateY(-1px); box-shadow: 0 3px 10px rgba(26,46,110,.3); }
+
+/* Print / PDF — primary CTA */
+.cb-btn-print {
+  background: var(--cb-accent);
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+}
+.cb-btn-print:hover { background: #111e4a; transform: translateY(-1px); box-shadow: 0 3px 12px rgba(26,46,110,.35); }
+
+/* ══════════════════════════════════════════════
+   LOADER
+   ══════════════════════════════════════════════ */
+.rc-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 14px;
+  font-family: 'Poppins', sans-serif;
+}
+.rc-spinner {
+  width: 42px; height: 42px;
+  border: 3px solid #e2e8f0;
+  border-top-color: var(--primary, #1a2e6e);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+#loadMsg {
+  font-size: 13px;
+  font-weight: 500;
+  color: #475569;
+  margin: 0;
+}
+.rc-loader-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 240px;
+}
+.step-done, .step-active, .step-wait {
+  font-size: 11.5px;
+  padding: 4px 10px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.step-done  { color: #065f46; background: #d1fae5; }
+.step-active{ color: #1e40af; background: #dbeafe; font-weight: 600; }
+.step-wait  { color: #94a3b8; background: #f8fafc; }
+
+/* ══════════════════════════════════════════════
+   ERROR BOX
+   ══════════════════════════════════════════════ */
+.err-box {
+  max-width: 520px;
+  margin: 48px auto;
+  background: #fff;
+  border: 1.5px solid #fecaca;
+  border-radius: 12px;
+  padding: 32px 36px;
+  box-shadow: 0 4px 20px rgba(0,0,0,.07);
+  font-family: 'Poppins', sans-serif;
+}
+.err-box-icon {
+  width: 48px; height: 48px;
+  background: #fef2f2;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 16px;
+}
+.err-box h2 {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 8px;
+  line-height: 1.3;
+}
+.err-box p {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0 0 12px;
+  line-height: 1.6;
+}
+.err-box code {
+  display: block;
+  font-size: 11px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: #dc2626;
+  word-break: break-word;
+  margin-bottom: 18px;
+  font-family: 'Courier New', monospace;
+}
+.err-offline-note {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: #fffbeb;
+  border: 1px solid #fbbf24;
+  border-radius: 7px;
+  padding: 9px 13px;
+  margin-bottom: 14px;
+  font-size: 12px;
+  color: #92400e;
+  font-weight: 500;
+}
+.err-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.err-retry {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 7px;
+  border: none;
+  cursor: pointer;
+  transition: all .15s;
+}
+.err-retry-primary { background: #1a2e6e; color: #fff; }
+.err-retry-primary:hover { background: #111e4a; }
+.err-retry-secondary { background: #f1f5f9; color: #475569; border: 1.5px solid #e2e8f0; }
+.err-retry-secondary:hover { background: #e2e8f0; }
+.err-retry-green { background: #059669; color: #fff; }
+.err-retry-green:hover { background: #047857; }
+
+/* ══════════════════════════════════════════════
+   CLASS BANNER
+   ══════════════════════════════════════════════ */
+.class-banner {
+  background: linear-gradient(90deg, #f0f4ff 0%, #f8fafc 100%);
+  border-bottom: 1px solid #e2e8f0;
+  padding: 10px 22px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+.class-banner strong {
+  font-weight: 700;
+  color: #1e293b;
+}
+.cbadge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #1a2e6e;
+  background: #dbeafe;
+  border-radius: 20px;
+  padding: 2px 10px;
+}
+
+/* ══════════════════════════════════════════════
+   TERM PICKER
+   ══════════════════════════════════════════════ */
+.term-picker {
+  max-width: 560px;
+  margin: 48px auto;
+  background: #fff;
+  border-radius: 12px;
+  padding: 36px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.08);
+  font-family: 'Poppins', sans-serif;
+}
+.term-picker h2 {
+  font-family: 'Cinzel', serif;
+  font-size: 17px;
+  color: var(--primary, #1a2e6e);
+  margin: 0 0 8px;
+}
+.term-picker p {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0 0 22px;
+}
+.term-picker-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.term-picker-row select {
+  flex: 1;
+  min-width: 200px;
+}
+.term-go-btn {
+  background: var(--primary, #1a2e6e);
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 20px;
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.term-go-btn:hover { background: #111e4a; transform: translateY(-1px); }
+
+/* ══════════════════════════════════════════════
+   NO REPORT CARD STATE
+   ══════════════════════════════════════════════ */
+.no-report-card {
+  max-width: 440px;
+  margin: 64px auto;
+  text-align: center;
+  font-family: 'Poppins', sans-serif;
+}
+.no-report-card svg {
+  width: 56px; height: 56px;
+  color: #94a3b8;
+  margin-bottom: 16px;
+}
+.no-report-card h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 8px;
+}
+.no-report-card p {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0 0 6px;
+  line-height: 1.6;
+}
+.no-report-card button {
+  margin-top: 18px;
+  background: #1a2e6e;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 22px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.no-report-card button:hover { background: #111e4a; }
+
+/* ══════════════════════════════════════════════
+   OFFLINE BANNER (replaces emoji version)
+   ══════════════════════════════════════════════ */
+#offlineBanner {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 9999;
+  background: #dc2626;
+  color: #fff;
+  text-align: center;
+  padding: 10px 16px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* ══════════════════════════════════════════════
+   PRINT SUPPRESSION
+   ══════════════════════════════════════════════ */
+@media print {
+  #controlBar, .class-banner, .no-print { display: none !important; }
+}
+</style>
 </head>
 <body>
 
+<!-- ══════════════════════════════════════════════
+     CONTROL BAR
+     ══════════════════════════════════════════════ -->
 <div class="control-bar no-print" id="controlBar">
-  <div class="ssel-wrap" id="sselWrap" style="display:none">
-    <label for="ssel">👤 Student:</label>
-    <select id="ssel" onchange="switchStudent(this.value)"></select>
-    <div class="snav">
-      <button class="nav-btn" id="btnPrev" onclick="stepStudent(-1)" disabled>‹</button>
-      <button class="nav-btn" id="btnNext" onclick="stepStudent(1)">›</button>
+
+  <!-- Student selector (hidden until class loaded) -->
+  <div class="cb-seg" id="sselWrap" style="display:none">
+    <svg class="cb-label-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <span class="cb-label">Student</span>
+    <select id="ssel" class="cb-select" onchange="switchStudent(this.value)"></select>
+    <div style="display:flex;gap:4px">
+      <button class="cb-nav-btn" id="btnPrev" onclick="stepStudent(-1)" disabled title="Previous student">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <button class="cb-nav-btn" id="btnNext" onclick="stepStudent(1)" title="Next student">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
     </div>
-    <span class="s-counter" id="sCtr"></span>
+    <span class="cb-counter" id="sCtr"></span>
   </div>
   <div class="dv" id="dvSel" style="display:none"></div>
 
-  <div class="inst-theme-bar" id="instThemeBar">
-    <label>🏫 Layout:</label>
-    <select class="inst-theme-sel" id="instThemeSel" onchange="onInstThemeChange(this.value)">
-      <option value="auto">⚡ Auto-detect</option>
-      <option value="secondary">🏛️ Secondary / High School</option>
-      <option value="primary">📗 Primary / Elementary</option>
-      <option value="nursery">🎨 Nursery / Kindergarten</option>
-      <option value="vocational">🔧 Vocational / Technical</option>
-      <option value="tertiary">🎓 Tertiary / Institution</option>
+  <!-- Layout / Institution type -->
+  <div class="cb-seg" id="instThemeBar">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    <span class="cb-label">Layout</span>
+    <select class="cb-select" id="instThemeSel" onchange="onInstThemeChange(this.value)">
+      <option value="auto">Auto-detect</option>
+      <option value="secondary">Secondary / High School</option>
+      <option value="primary">Primary / Elementary</option>
+      <option value="nursery">Nursery / Kindergarten</option>
+      <option value="vocational">Vocational / Technical</option>
+      <option value="tertiary">Tertiary / Institution</option>
     </select>
     <span class="theme-auto-badge" id="detectedBadge" style="display:none"></span>
   </div>
-  <div class="dv"></div>
-  <h3 style="font-size:12px;font-weight:700;color:#333;white-space:nowrap">🎨 Colour:</h3>
-  <div class="color-presets">
-    <div class="preset-swatch active" title="Royal Blue" style="background:#1a2e6e" onclick="applyPreset(this,'#1a2e6e','#111e4a','#2a44a0','#c8860a','#f0c040','#fff8e6','#c8860a','#e6f3fb','#1a6eaa','#e8f0fc')"></div>
-    <div class="preset-swatch" title="Forest Green" style="background:#1a5c2e" onclick="applyPreset(this,'#1a5c2e','#103a1c','#267a3c','#8a6a00','#e0b830','#fffde7','#a07020','#d4edda','#1a5c2e','#e8f5e9')"></div>
-    <div class="preset-swatch" title="Crimson" style="background:#8b1a1a" onclick="applyPreset(this,'#8b1a1a','#5a0f0f','#b02020','#8a5a00','#e8c040','#fff8f0','#b06020','#fde8e8','#8b1a1a','#fff0f0')"></div>
-    <div class="preset-swatch" title="Purple" style="background:#4a1a8b" onclick="applyPreset(this,'#4a1a8b','#2e0f5a','#6020b0','#8a5a00','#e0b830','#f8f0ff','#7030a0','#e8d4f0','#4a1a8b','#f0e8ff')"></div>
-    <div class="preset-swatch" title="Teal" style="background:#0d5e6b" onclick="applyPreset(this,'#0d5e6b','#073e47','#127888','#7a6200','#e0c030','#f0fff8','#0d6b5e','#d0f0f4','#0d5e6b','#e0f7fa')"></div>
-    <div class="preset-swatch" title="Maroon" style="background:#6b0f2e" onclick="applyPreset(this,'#6b0f2e','#45091e','#8b1a44','#7a4500','#dba030','#fff8f0','#9a5010','#fce8ee','#6b0f2e','#fdf0f4')"></div>
-    <div class="preset-swatch" title="Slate" style="background:#374151" onclick="applyPreset(this,'#374151','#1f2937','#4b5563','#8a5a00','#e0c030','#fffde7','#8a6a00','#e4e8ed','#374151','#f1f3f5')"></div>
+
+  <!-- Colour palette -->
+  <div class="cb-seg">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="#64748b"/><circle cx="17.5" cy="10.5" r=".5" fill="#64748b"/><circle cx="8.5" cy="7.5" r=".5" fill="#64748b"/><circle cx="6.5" cy="12.5" r=".5" fill="#64748b"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+    <span class="cb-label">Colour</span>
+    <div class="cb-palette">
+      <div class="preset-swatch active" title="Royal Blue"   style="background:#1a2e6e" onclick="applyPreset(this,'#1a2e6e','#111e4a','#2a44a0','#c8860a','#f0c040','#fff8e6','#c8860a','#e6f3fb','#1a6eaa','#e8f0fc')"></div>
+      <div class="preset-swatch"        title="Forest Green" style="background:#1a5c2e" onclick="applyPreset(this,'#1a5c2e','#103a1c','#267a3c','#8a6a00','#e0b830','#fffde7','#a07020','#d4edda','#1a5c2e','#e8f5e9')"></div>
+      <div class="preset-swatch"        title="Crimson"      style="background:#8b1a1a" onclick="applyPreset(this,'#8b1a1a','#5a0f0f','#b02020','#8a5a00','#e8c040','#fff8f0','#b06020','#fde8e8','#8b1a1a','#fff0f0')"></div>
+      <div class="preset-swatch"        title="Purple"       style="background:#4a1a8b" onclick="applyPreset(this,'#4a1a8b','#2e0f5a','#6020b0','#8a5a00','#e0b830','#f8f0ff','#7030a0','#e8d4f0','#4a1a8b','#f0e8ff')"></div>
+      <div class="preset-swatch"        title="Teal"         style="background:#0d5e6b" onclick="applyPreset(this,'#0d5e6b','#073e47','#127888','#7a6200','#e0c030','#f0fff8','#0d6b5e','#d0f0f4','#0d5e6b','#e0f7fa')"></div>
+      <div class="preset-swatch"        title="Maroon"       style="background:#6b0f2e" onclick="applyPreset(this,'#6b0f2e','#45091e','#8b1a44','#7a4500','#dba030','#fff8f0','#9a5010','#fce8ee','#6b0f2e','#fdf0f4')"></div>
+      <div class="preset-swatch"        title="Slate"        style="background:#374151" onclick="applyPreset(this,'#374151','#1f2937','#4b5563','#8a5a00','#e0c030','#fffde7','#8a6a00','#e4e8ed','#374151','#f1f3f5')"></div>
+    </div>
+    <div class="cb-color-wrap" style="margin-left:4px">
+      <span class="cb-label">Custom</span>
+      <input type="color" id="customColor" value="#1a2e6e" onchange="applyCustom(this.value)" title="Pick a custom colour">
+    </div>
   </div>
-  <div class="dv"></div>
-  <div class="custom-cw">
-    <label for="customColor">Custom:</label>
-    <input type="color" id="customColor" value="#1a2e6e" onchange="applyCustom(this.value)">
+
+  <!-- Term selector (hidden until populated) -->
+  <div class="cb-seg" id="termSelBar" style="display:none">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <span class="cb-label">Term</span>
+    <select id="termSel" class="cb-select" onchange="switchTerm(this.value)"></select>
   </div>
-  <div class="term-sel-bar" id="termSelBar" style="display:none">
-    <div class="dv"></div>
-    <label for="termSel">📅 Term:</label>
-    <select id="termSel" onchange="switchTerm(this.value)"></select>
-  </div>
-  <div class="ctrl-actions">
-    <button class="ctrl-btn btn-pa" id="btnPrintAll" style="display:none" onclick="printAll()">🖨 Print All</button>
-    <button class="ctrl-btn btn-cert" id="btnCert" style="display:none" onclick="openCertPage()">🏆 Certificate</button>
-    <button class="ctrl-btn btn-cert" id="btnTest" style="display:none;background:linear-gradient(135deg,#1a2e6e,#2a44a0);color:white;" onclick="openTestPage()">📜 Testimonial</button>
-    <button class="ctrl-btn btn-bk" onclick="history.back()">← Back</button>
-    <button class="ctrl-btn btn-pr" onclick="window.print()">
+
+  <!-- Spacer pushes action buttons right -->
+  <div class="cb-spacer"></div>
+
+  <!-- Action buttons -->
+  <div class="cb-actions">
+    <button class="cb-btn cb-btn-print-all" id="btnPrintAll" style="display:none" onclick="printAll()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Print All
+    </button>
+    <button class="cb-btn cb-btn-cert" id="btnCert" style="display:none" onclick="openCertPage()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+      Certificate
+    </button>
+    <button class="cb-btn cb-btn-test" id="btnTest" style="display:none" onclick="openTestPage()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      Testimonial
+    </button>
+    <button class="cb-btn cb-btn-back" onclick="history.back()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Back
+    </button>
+    <button class="cb-btn cb-btn-print" onclick="window.print()">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
       Print / PDF
     </button>
   </div>
+
 </div>
 
 <div id="mainContent">
@@ -77,7 +624,7 @@
     <div class="rc-spinner"></div>
     <p id="loadMsg">Connecting to database…</p>
     <div class="rc-loader-steps" id="loadSteps"></div>
-    <p id="loadHint" style="font-size:11px;color:#bbb;margin-top:10px;font-family:sans-serif;display:none">
+    <p id="loadHint" style="font-size:11px;color:#94a3b8;margin-top:4px;font-family:'Poppins',sans-serif;display:none">
       Taking longer than expected — check your internet connection.
     </p>
   </div>
@@ -90,9 +637,8 @@ window.addEventListener('offline', () => {
   if(existing) return;
   const b = document.createElement('div');
   b.id = 'offlineBanner';
-  b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#ef4444;color:white;' +
-    'text-align:center;padding:10px 16px;font-family:sans-serif;font-size:13px;font-weight:600;';
-  b.innerHTML = '📶 You are offline. Report cards cannot load without an internet connection.';
+  b.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.56 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+  No internet connection. Report cards cannot load without a connection.`;
   document.body.insertAdjacentElement('afterbegin', b);
 });
 window.addEventListener('online', () => {
@@ -169,18 +715,33 @@ async function sq(label, queryPromise, timeoutMs=12000){
 function showErr(msg,detail=''){
   const isOffline = !navigator.onLine;
   const offlineNote = isOffline
-    ? '<div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:6px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#92400e">📶 <strong>No internet connection detected.</strong> Please reconnect and retry.</div>'
+    ? `<div class="err-offline-note">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+        <span><strong>No internet connection detected.</strong> Please reconnect and retry.</span>
+       </div>`
     : '';
   document.getElementById('mainContent').innerHTML=`
     <div class="err-box">
-      <h2>⚠️ ${msg}</h2>
+      <div class="err-box-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <h2>${msg}</h2>
       ${offlineNote}
       <p>The report card could not load. Check the details below and try again.</p>
-      ${detail?`<code style="font-size:11px;word-break:break-word">${detail}</code>`:''}
-      <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
-        <button class="err-retry" onclick="location.reload()">↺ Retry</button>
-        <button class="err-retry" style="background:#6b7280" onclick="history.back()">← Go Back</button>
-        <button class="err-retry" style="background:#059669" onclick="window.location.href='/login.html'">🔑 Re-login</button>
+      ${detail?`<code>${detail}</code>`:''}
+      <div class="err-actions">
+        <button class="err-retry err-retry-primary" onclick="location.reload()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Retry
+        </button>
+        <button class="err-retry err-retry-secondary" onclick="history.back()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          Go Back
+        </button>
+        <button class="err-retry err-retry-green" onclick="window.location.href='/login.html'">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Re-login
+        </button>
       </div>
     </div>`;
 }
