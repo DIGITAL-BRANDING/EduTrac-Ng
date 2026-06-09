@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0a6e3f">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="EduTrack NG">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <title>EduTrack NG — Settings</title>
+  <link rel="stylesheet" href="../css/global.css">
+  <style>
+    /* ── Shared ── */
+    .combo-card{border:2px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:var(--transition);margin-bottom:10px;}
+    .combo-card:hover{border-color:var(--primary);}
+    .combo-card.selected{background:var(--primary-light);}
+    .combo-dot{width:12px;height:12px;border-radius:50%;display:inline-block;margin-right:6px;flex-shrink:0;}
+    .subject-chip{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:100px;font-size:12px;font-weight:600;margin:3px;border:1.5px solid var(--border);cursor:pointer;transition:var(--transition);user-select:none;}
+    .subject-chip.core{background:var(--primary-light);border-color:var(--primary);color:var(--primary);}
+    .subject-chip.elective{background:var(--info-light);border-color:var(--info);color:var(--info);}
+    .subject-chip.unassigned{background:var(--surface-3);color:var(--ink-3);border-color:var(--border);}
+    .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);}
+    .toggle-row:last-child{border-bottom:none;}
+    .toggle{position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0;}
+    .toggle input{opacity:0;width:0;height:0;}
+    .slider{position:absolute;cursor:pointer;inset:0;background:var(--border-2);border-radius:24px;transition:.3s;}
+    .slider:before{content:'';position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;}
+    .toggle input:checked+.slider{background:var(--primary);}
+    .toggle input:checked+.slider:before{transform:translateX(20px);}
+    .upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:24px;text-align:center;cursor:pointer;transition:var(--transition);}
+    .upload-zone:hover{border-color:var(--primary);background:var(--primary-light);}
+    .no-term-banner{background:var(--warning-light,#fffbeb);border:1.5px solid var(--warning,#f59e0b);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--warning-dark,#92400e);}
+    .no-term-banner strong{font-weight:700;}
+    .no-term-banner a{color:var(--primary);font-weight:600;cursor:pointer;text-decoration:underline;}
+    /* ── Program / Level hierarchy ── */
+    .prog-card{border:1.5px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;}
+    .prog-card__head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--surface-3);cursor:pointer;gap:8px;}
+    .prog-card__head:hover{background:var(--primary-light);}
+    .prog-card__body{padding:12px 14px;border-top:1px solid var(--border);display:none;}
+    .prog-card__body.open{display:block;}
+    .level-row{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:6px;margin-bottom:4px;background:var(--surface-3);}
+    .level-row:hover{background:var(--primary-light);}
+    .class-tag{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:100px;font-size:11px;font-weight:600;background:var(--primary-light);color:var(--primary);border:1px solid var(--primary);margin:2px;}
+    /* ── Edit modal ── */
+    .edit-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;display:none;align-items:center;justify-content:center;}
+    .edit-overlay.active{display:flex;}
+    .edit-box{background:var(--surface,#fff);border-radius:14px;padding:24px;width:min(480px,94vw);max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);}
+    .edit-box h3{margin:0 0 16px;font-size:16px;}
+  </style>
+</head>
+<body>
+<div id="app"></div>
+<!-- Edit modal (shared) -->
+<div class="edit-overlay" id="editOverlay" onclick="if(event.target===this)closeEdit()">
+  <div class="edit-box" id="editBox"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
+<script src="../js/config.js"></script>
+<script src="../js/supabase.js"></script>
+<script src="../js/layout.js"></script>
+<script>
+// ── State ─────────────────────────────────────────────────────
+let currentUser, classes=[], subjects=[], terms=[], gradingScale=[], combinations=[], dashSettings={};
+let programs=[], levels=[];   // NEW: program / level hierarchy
+
+// ── BOOT ──────────────────────────────────────────────────────
+(async()=>{
+  currentUser = await initAdminLayout('settings','Settings');
+  if(!currentUser) return;
+  await loadAll();
+  renderPage();
+})();
+
+// ── School-type helpers ────────────────────────────────────────
+function getSchoolType(){ return currentUser?.schools?.school_type || window._schoolType || 'o_level'; }
+function getPeriodLabel(){ const t=getSchoolType(); return (t==='tertiary'||t==='vocational')?'Semester':'Term'; }
+function getSessionLabel(){ const t=getSchoolType(); return t==='tertiary'?'Academic Year':'Academic Session'; }
+
+// Levels available per school type (used to build dynamic dropdowns)
+const LEVEL_PRESETS = {
+  o_level:    ['Pre-Primary','Primary 1','Primary 2','Primary 3','Primary 4','Primary 5','Primary 6','JSS 1','JSS 2','JSS 3','SS 1','SS 2','SS 3'],
+  vocational: ['Basic Tech 1','Basic Tech 2','Vocational Level 1','Vocational Level 2','Vocational Level 3'],
+  islamic:    ['Nursery','Primary 1','Primary 2','Primary 3','JSS 1','JSS 2','JSS 3','SS 1','SS 2','SS 3','Tahfiz Year 1','Tahfiz Year 2','Tahfiz Year 3'],
+  tertiary:   ['Pre-ND','ND I','ND II','HND I','HND II','Year 1','Year 2','Year 3','Year 4','Year 5','Postgraduate'],
+};
+
+function getLevelsForType(){ return LEVEL_PRESETS[getSchoolType()] || LEVEL_PRESETS.o_level; }
+
+// ── RENDER PAGE ───────────────────────────────────────────────
+function renderPage(){
+  const pl = getPeriodLabel(); const sl = getSessionLabel();
+  document.getElementById('pageBody').innerHTML=`
+    <div class="page-header"><h1>Settings</h1><p>School setup, programs, academic sessions, subjects, combinations and portal controls</p></div>
+    <div class="tabs" style="overflow-x:auto;white-space:nowrap;">
+      <button class="tab active" onclick="showTab('school',this)">${tabIcon('school')}School &amp; Logo</button>
+      <button class="tab" onclick="showTab('programs',this)">${tabIcon('programs')}Programs &amp; Levels</button>
+      <button class="tab" onclick="showTab('classes',this)">${tabIcon('classes')}Classes</button>
+      <button class="tab" onclick="showTab('subjects',this)">${tabIcon('subjects')}Subjects</button>
+      <button class="tab" onclick="showTab('combinations',this)">${tabIcon('combinations')}Combinations</button>
+      <button class="tab" onclick="showTab('terms',this)">${tabIcon('terms')}${sl}</button>
+      <button class="tab" onclick="showTab('grading',this)">${tabIcon('grading')}Grading</button>
+      <button class="tab" onclick="showTab('exams',this)">${tabIcon('exams')}Exam Components</button>
+      <button class="tab" onclick="showTab('portals',this)">${tabIcon('portals')}Portal Controls</button>
+      <button class="tab" onclick="showTab('stuaccounts',this)">${tabIcon('students')}Student Logins</button>
+    </div>
+    <div id="settingsContent"></div>`;
+  renderSchool();
+}
+
+function tabIcon(id){
+  const icons={
+    school: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:-2px;"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>`,
+    programs:`<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:-2px;"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>`,
+    classes:`<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:-2px;"><rect x="2" y="2" width="20" height="20" rx="2"/><rect x="7" y="7" width="3" height="3"/><rect x="14" y="7" width="3" height="3"/><rect x="7" y="14" width="3" height="3"/><rect x="14" y="14" width="3" height="3"/></svg>`,
+    subjects:`<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:-2px;"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`,
+    combinations:`<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:-2px;"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><line x1="6" y1="9" x2="6" y2="21"/></svg>`,
+    terms:`<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:-2px;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
+    grading:`<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:-2px;"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>`,
+    exams:`<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:-2px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`,
+    portals:`<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:-2px;"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`,
+    students:`<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:-2px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+  };
+  return icons[id]||'';
+}
+
+function trashIcon(){ return `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>`; }
+function editIcon(){ return `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`; }
+
+async function showTab(tab, btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  document.getElementById('settingsContent').innerHTML='<div style="padding:24px;text-align:center;color:var(--ink-3);">Loading…</div>';
+  await ({school:renderSchool,programs:renderPrograms,terms:renderTerms,classes:renderClasses,
+    subjects:renderSubjects,combinations:renderCombinations,grading:renderGrading,
+    exams:renderExams,portals:renderPortalControls,stuaccounts:renderStudentAccounts})[tab]?.();
+}
+
+async function loadAll(){
+  const[{data:cls},{data:sub},{data:trm},{data:scale},{data:combos},{data:dash},{data:progs},{data:lvls}]=await Promise.all([
+    db.from('classes').select('id,name,level,level_id,program_id,combination_id').eq('school_id',currentUser.school_id).order('name'),
+    db.from('subjects').select('id,name,code').eq('school_id',currentUser.school_id).order('name'),
+    db.from('terms').select('*').eq('school_id',currentUser.school_id).order('created_at',{ascending:false}),
+    db.from('grading_scales').select('*').eq('school_id',currentUser.school_id).order('min_score',{ascending:false}),
+    db.from('subject_combinations').select('*').eq('school_id',currentUser.school_id).order('name'),
+    db.from('dashboard_settings').select('*').eq('school_id',currentUser.school_id).maybeSingle(),
+    db.from('programs').select('*').eq('school_id',currentUser.school_id).order('name'),
+    db.from('levels').select('*').eq('school_id',currentUser.school_id).order('sort_order,name'),
+  ]);
+  classes=cls||[]; subjects=sub||[]; terms=trm||[]; gradingScale=scale||[];
+  combinations=combos||[]; dashSettings=dash||{}; programs=progs||[]; levels=lvls||[];
+}
+
+// ── TERM HELPERS ──────────────────────────────────────────────
+function getCurrentTerm(){ return terms.find(t=>t.is_current)||null; }
+function noTermBanner(msg=''){
+  const label=getPeriodLabel().toLowerCase();
+  const base=msg||`No active ${label} is set. You must <a onclick="showTab('terms',document.querySelectorAll('.tab')[5])">activate a ${label}</a> before proceeding.`;
+  return `<div class="no-term-banner"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> <span>${base}</span></div>`;
+}
+function requireCurrentTerm(actionLabel='this action'){
+  if(getCurrentTerm()) return true;
+  toast(`Activate a ${getPeriodLabel().toLowerCase()} first before ${actionLabel}.`,'warning');
+  return false;
+}
+
+// ── EDIT MODAL ────────────────────────────────────────────────
+function openEdit(html){ document.getElementById('editBox').innerHTML=html; document.getElementById('editOverlay').classList.add('active'); }
+function closeEdit(){ document.getElementById('editOverlay').classList.remove('active'); }
+
+// ═══════════════════════════════════════════════════════════════
+//  TAB 1 — SCHOOL & LOGO
+// ═══════════════════════════════════════════════════════════════
+function renderSchool(){
+  const s=currentUser.schools||{};
+  document.getElementById('settingsContent').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:860px;">
+      <div class="card">
+        <div class="card__header"><span class="card__title">School Logo</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:14px;">
+          <div id="logoPreview" style="width:100px;height:100px;border-radius:14px;overflow:hidden;border:2px solid var(--border);background:var(--surface-3);display:flex;align-items:center;justify-content:center;">
+            ${s.logo_url?`<img src="${s.logo_url}" style="width:100%;height:100%;object-fit:cover;">`:'<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>'}
+          </div>
+          <div class="upload-zone" style="width:100%;" onclick="document.getElementById('logoFile').click()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <div style="font-size:14px;font-weight:600;margin-top:6px;">Upload Logo</div>
+            <div style="font-size:12px;color:var(--ink-3);">PNG, JPG up to 2MB</div>
+          </div>
+          <input type="file" id="logoFile" accept="image/*" style="display:none;" onchange="handleLogoUpload(this)">
+          ${s.logo_url?`<button class="btn btn--ghost btn--sm btn--full" onclick="removeLogo()">Remove Logo</button>`:''}
+        </div>
+        <div id="logoProgress" style="display:none;margin-top:12px;">
+          <div class="progress-bar"><div class="progress-bar__fill" id="logoBar" style="width:0%;"></div></div>
+          <p id="logoStatus" style="font-size:12px;color:var(--ink-3);text-align:center;margin-top:4px;"></p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card__header"><span class="card__title">School Profile</span></div>
+        <div class="form-group"><label class="form-label">School Name</label><input id="scName" class="form-control" value="${s.name||''}"></div>
+        <div class="form-group"><label class="form-label">Phone</label><input id="scPhone" class="form-control" value="${s.phone||''}"></div>
+        <div class="form-group"><label class="form-label">Email</label><input id="scEmail" type="email" class="form-control" value="${s.email||''}"></div>
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">State</label><input id="scState" class="form-control" value="${s.state||''}"></div>
+          <div class="form-group"><label class="form-label">LGA</label><input id="scLga" class="form-control" value="${s.lga||''}"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Address</label><input id="scAddress" class="form-control" value="${s.address||''}"></div>
+        <div class="form-group"><label class="form-label">Motto</label><input id="scMotto" class="form-control" value="${s.motto||''}"></div>
+        <div class="form-group">
+          <label class="form-label">School Type <span class="required">*</span></label>
+          <select id="scType" class="form-control" onchange="onSchoolTypeChange(this.value)">
+            <option value="o_level"   ${(s.school_type||'o_level')==='o_level'  ?'selected':''}>O-Level — Primary / Secondary School</option>
+            <option value="vocational"${s.school_type==='vocational'?'selected':''}>Vocational / Technical School</option>
+            <option value="islamic"   ${s.school_type==='islamic'   ?'selected':''}>Islamic Institute / Madrasa</option>
+            <option value="tertiary"  ${s.school_type==='tertiary'  ?'selected':''}>Tertiary — College / Polytechnic / University</option>
+          </select>
+          <p style="font-size:11px;color:var(--ink-3);margin-top:5px;">Determines whether the system uses <strong>Terms</strong> or <strong>Semesters</strong>, and which level options appear throughout.</p>
+        </div>
+        <button class="btn btn--primary btn--full" onclick="saveSchool()">Save Profile</button>
+      </div>
+    </div>`;
+}
+
+function onSchoolTypeChange(val){
+  window._schoolType = val;
+  // Refresh tab label for Academic Session
+  const sl = getSessionLabel();
+  const tabsEl = document.querySelectorAll('.tab');
+  if(tabsEl[5]) tabsEl[5].innerHTML = tabIcon('terms') + sl;
+}
+
+async function handleLogoUpload(input){
+  const file=input.files[0]; if(!file) return;
+  if(!file.type.startsWith('image/')){ toast('Select an image file.','error'); return; }
+  if(file.size>2097152){ toast('Image must be under 2MB.','error'); return; }
+  document.getElementById('logoProgress').style.display='block';
+  document.getElementById('logoBar').style.width='30%';
+  document.getElementById('logoStatus').textContent='Uploading…';
+  try{
+    const ext=file.name.split('.').pop();
+    const path=`logos/school-${currentUser.school_id}.${ext}`;
+    const{error:upErr}=await db.storage.from('school-assets').upload(path,file,{upsert:true});
+    if(upErr) throw upErr;
+    document.getElementById('logoBar').style.width='70%';
+    const{data:urlData}=db.storage.from('school-assets').getPublicUrl(path);
+    const logoUrl=urlData.publicUrl+'?t='+Date.now();
+    await db.from('schools').update({logo_url:urlData.publicUrl}).eq('id',currentUser.school_id);
+    document.getElementById('logoBar').style.width='100%';
+    document.getElementById('logoStatus').textContent='Uploaded!';
+    document.getElementById('logoPreview').innerHTML=`<img src="${logoUrl}" style="width:100%;height:100%;object-fit:cover;">`;
+    const icon=document.querySelector('.sidebar__logo-icon');
+    if(icon) icon.innerHTML=`<img src="${logoUrl}" style="width:36px;height:36px;border-radius:7px;object-fit:cover;">`;
+    toast('Logo uploaded!','success');
+    setTimeout(()=>document.getElementById('logoProgress').style.display='none',2000);
+  }catch(err){
+    document.getElementById('logoStatus').textContent='Failed: '+err.message;
+    toast('Upload failed. Ensure a "school-assets" storage bucket exists in Supabase.','error');
+  }
+}
+async function removeLogo(){
+  if(!confirm('Remove logo?')) return;
+  await db.from('schools').update({logo_url:null}).eq('id',currentUser.school_id);
+  toast('Logo removed.','success'); renderSchool();
+}
+async function saveSchool(){
+  const{error}=await db.from('schools').update({
+    name:document.getElementById('scName').value,
+    phone:document.getElementById('scPhone').value,
+    email:document.getElementById('scEmail').value,
+    state:document.getElementById('scState').value,
+    lga:document.getElementById('scLga').value,
+    address:document.getElementById('scAddress').value,
+    motto:document.getElementById('scMotto').value,
+    school_type:document.getElementById('scType').value,
+  }).eq('id',currentUser.school_id);
+  if(error){toast(error.message,'error');return;}
+  // Update local cache so other tabs see the new type immediately
+  if(currentUser.schools) currentUser.schools.school_type = document.getElementById('scType').value;
+  window._schoolType = document.getElementById('scType').value;
+  toast('School profile saved!','success');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  TAB 2 — PROGRAMS & LEVELS
+// ═══════════════════════════════════════════════════════════════
+// A "Program" is a named track/programme (e.g. "Science Programme", "ND Electrical").
+// Each program has one or more "Levels" (e.g. Year 1, Year 2).
+// Classes are then assigned to a Level (and optionally a Program).
+// All are fully editable and deletable.
+
+async function renderPrograms(){
+  const[{data:progs},{data:lvls}]=await Promise.all([
+    db.from('programs').select('*').eq('school_id',currentUser.school_id).order('name'),
+    db.from('levels').select('*').eq('school_id',currentUser.school_id).order('sort_order,name'),
+  ]);
+  programs=progs||[]; levels=lvls||[];
+
+  const schoolType = getSchoolType();
+  const presetLevels = getLevelsForType();
+
+  document.getElementById('settingsContent').innerHTML=`
+    <div style="max-width:980px;">
+      <!-- Info banner -->
+      <div style="background:var(--info-light,#eff6ff);border:1.5px solid var(--info,#3b82f6);border-radius:var(--radius);padding:13px 16px;margin-bottom:20px;font-size:13px;color:var(--info-dark,#1e3a5f);">
+        <strong>How this works:</strong> Create <strong>Programs</strong> (e.g. "Science Track", "ND Electrical Engineering"), then add <strong>Levels</strong> to each program (e.g. Year 1, ND I). Finally, go to the <strong>Classes</strong> tab to assign each class to a Level. The Level dropdown there will only show levels you define here.
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+
+        <!-- LEFT: Programs list -->
+        <div>
+          <div class="card">
+            <div class="card__header">
+              <span class="card__title">Programs (${programs.length})</span>
+              <button class="btn btn--primary btn--sm" onclick="openAddProgram()">+ New Program</button>
+            </div>
+            ${programs.length===0
+              ? `<div style="padding:20px;text-align:center;color:var(--ink-3);">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:.4;margin-bottom:8px;"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                  <p style="font-size:13px;">No programs yet.<br>Click <strong>+ New Program</strong> to get started.</p>
+                </div>`
+              : programs.map(p=>{
+                  const pLevels=levels.filter(l=>l.program_id===p.id);
+                  const pClasses=classes.filter(c=>c.program_id===p.id);
+                  return `
+                  <div class="prog-card">
+                    <div class="prog-card__head" onclick="toggleProgCard('pc-${p.id}')">
+                      <div>
+                        <div style="font-weight:700;font-size:14px;">${p.name}</div>
+                        <div style="font-size:11px;color:var(--ink-3);">${p.description||''} &nbsp;·&nbsp; ${pLevels.length} level${pLevels.length!==1?'s':''} · ${pClasses.length} class${pClasses.length!==1?'es':''}</div>
+                      </div>
+                      <div style="display:flex;gap:4px;flex-shrink:0;">
+                        <button class="btn btn--ghost btn--sm" onclick="event.stopPropagation();editProgram('${p.id}')" title="Edit">${editIcon()}</button>
+                        <button class="btn btn--ghost btn--sm" onclick="event.stopPropagation();deleteProgram('${p.id}')" title="Delete">${trashIcon()}</button>
+                      </div>
+                    </div>
+                    <div class="prog-card__body" id="pc-${p.id}">
+                      ${pLevels.length===0
+                        ? `<p style="font-size:12px;color:var(--ink-3);">No levels yet for this program.</p>`
+                        : pLevels.map(l=>{
+                            const lClasses=classes.filter(c=>c.level_id===l.id);
+                            return `<div class="level-row">
+                              <div>
+                                <div style="font-weight:600;font-size:13px;">${l.name}</div>
+                                <div style="margin-top:3px;">${lClasses.map(c=>`<span class="class-tag">${c.name}</span>`).join('')||'<span style="font-size:11px;color:var(--ink-3);">No classes assigned</span>'}</div>
+                              </div>
+                              <div style="display:flex;gap:4px;flex-shrink:0;">
+                                <button class="btn btn--ghost btn--sm" onclick="editLevel('${l.id}')" title="Edit">${editIcon()}</button>
+                                <button class="btn btn--ghost btn--sm" onclick="deleteLevel('${l.id}')" title="Delete">${trashIcon()}</button>
+                              </div>
+                            </div>`;
+                          }).join('')}
+                      <button class="btn btn--secondary btn--sm" style="margin-top:8px;" onclick="openAddLevel('${p.id}')">+ Add Level to ${p.name}</button>
+                    </div>
+                  </div>`}).join('')}
+          </div>
+        </div>
+
+        <!-- RIGHT: Levels without a program + Quick add -->
+        <div>
+          <div class="card" style="margin-bottom:16px;">
+            <div class="card__header">
+              <span class="card__title">All Levels (${levels.length})</span>
+              <button class="btn btn--primary btn--sm" onclick="openAddLevel(null)">+ New Level</button>
+            </div>
+            <p style="font-size:12px;color:var(--ink-3);margin-bottom:10px;">Levels can belong to a program or stand alone. Classes are assigned to levels.</p>
+            ${levels.length===0
+              ? `<p style="font-size:13px;color:var(--ink-3);">No levels yet.</p>`
+              : `<div style="max-height:260px;overflow-y:auto;">
+                  ${levels.map(l=>{
+                    const prog=programs.find(p=>p.id===l.program_id);
+                    const lClasses=classes.filter(c=>c.level_id===l.id);
+                    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+                      <div>
+                        <span style="font-weight:600;font-size:13px;">${l.name}</span>
+                        ${prog?`<span style="font-size:11px;padding:1px 6px;border-radius:3px;background:var(--primary-light);color:var(--primary);margin-left:6px;">${prog.name}</span>`:''}
+                        <span style="font-size:11px;color:var(--ink-3);margin-left:6px;">${lClasses.length} class${lClasses.length!==1?'es':''}</span>
+                      </div>
+                      <div style="display:flex;gap:4px;">
+                        <button class="btn btn--ghost btn--sm" onclick="editLevel('${l.id}')">${editIcon()}</button>
+                        <button class="btn btn--ghost btn--sm" onclick="deleteLevel('${l.id}')">${trashIcon()}</button>
+                      </div>
+                    </div>`}).join('')}
+                </div>`}
+          </div>
+
+          <!-- Quick-load preset levels for this school type -->
+          <div class="card" style="background:var(--surface-3);">
+            <div class="card__header"><span class="card__title">Quick Load Levels</span></div>
+            <p style="font-size:12px;color:var(--ink-3);margin-bottom:10px;">Load the standard levels for your school type (<strong>${getSchoolType().replace('_',' ')}</strong>) in one click.</p>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
+              ${presetLevels.map(n=>`<span style="padding:3px 10px;border-radius:100px;font-size:12px;background:var(--primary-light);color:var(--primary);border:1px solid var(--primary);">${n}</span>`).join('')}
+            </div>
+            <button class="btn btn--secondary btn--sm" onclick="loadPresetLevels()">Load These Levels</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function toggleProgCard(id){
+  const el=document.getElementById(id);
+  if(el) el.classList.toggle('open');
+}
+
+// ── Program CRUD ───────────────────────────────────────────────
+function openAddProgram(){
+  openEdit(`
+    <h3>New Program</h3>
+    <div class="form-group"><label class="form-label">Program Name <span class="required">*</span></label>
+      <input id="ep-name" class="form-control" placeholder="e.g. Science Track, ND Electrical Engineering"></div>
+    <div class="form-group"><label class="form-label">Description</label>
+      <input id="ep-desc" class="form-control" placeholder="Optional short description"></div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn btn--primary" onclick="saveProgram(null)">Save Program</button>
+      <button class="btn btn--ghost" onclick="closeEdit()">Cancel</button>
+    </div>`);
+}
+function editProgram(id){
+  const p=programs.find(x=>x.id===id); if(!p) return;
+  openEdit(`
+    <h3>Edit Program</h3>
+    <div class="form-group"><label class="form-label">Program Name <span class="required">*</span></label>
+      <input id="ep-name" class="form-control" value="${p.name}"></div>
+    <div class="form-group"><label class="form-label">Description</label>
+      <input id="ep-desc" class="form-control" value="${p.description||''}"></div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn btn--primary" onclick="saveProgram('${id}')">Update</button>
+      <button class="btn btn--ghost" onclick="closeEdit()">Cancel</button>
+    </div>`);
+}
+async function saveProgram(id){
+  const name=document.getElementById('ep-name').value.trim();
+  if(!name){toast('Enter a program name.','error');return;}
+  const desc=document.getElementById('ep-desc').value.trim()||null;
+  if(id){
+    const{error}=await db.from('programs').update({name,description:desc}).eq('id',id);
+    if(error){toast(error.message,'error');return;}
+  } else {
+    const{error}=await db.from('programs').insert({school_id:currentUser.school_id,name,description:desc});
+    if(error){toast(error.message,'error');return;}
+  }
+  closeEdit(); await loadAll(); renderPrograms(); toast(id?'Program updated!':'Program added!','success');
+}
+async function deleteProgram(id){
+  if(!confirm('Delete this program? Levels inside it will become standalone.')) return;
+  await db.from('programs').delete().eq('id',id);
+  await loadAll(); renderPrograms(); toast('Program deleted.','success');
+}
+
+// ── Level CRUD ─────────────────────────────────────────────────
+function openAddLevel(programId){
+  const progOpts=programs.map(p=>`<option value="${p.id}" ${p.id===programId?'selected':''}>${p.name}</option>`).join('');
+  openEdit(`
+    <h3>New Level</h3>
+    <div class="form-group"><label class="form-label">Level Name <span class="required">*</span></label>
+      <input id="el-name" class="form-control" placeholder="e.g. Year 1, JSS 1, ND I"></div>
+    <div class="form-group"><label class="form-label">Program (optional)</label>
+      <select id="el-prog" class="form-control">
+        <option value="">— No program —</option>${progOpts}
+      </select></div>
+    <div class="form-group"><label class="form-label">Sort Order</label>
+      <input type="number" id="el-sort" class="form-control" value="${levels.length+1}" placeholder="1"></div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn btn--primary" onclick="saveLevel(null)">Save Level</button>
+      <button class="btn btn--ghost" onclick="closeEdit()">Cancel</button>
+    </div>`);
+}
+function editLevel(id){
+  const l=levels.find(x=>x.id===id); if(!l) return;
+  const progOpts=programs.map(p=>`<option value="${p.id}" ${p.id===l.program_id?'selected':''}>${p.name}</option>`).join('');
+  openEdit(`
+    <h3>Edit Level</h3>
+    <div class="form-group"><label class="form-label">Level Name <span class="required">*</span></label>
+      <input id="el-name" class="form-control" value="${l.name}"></div>
+    <div class="form-group"><label class="form-label">Program</label>
+      <select id="el-prog" class="form-control">
+        <option value="">— No program —</option>${progOpts}
+      </select></div>
+    <div class="form-group"><label class="form-label">Sort Order</label>
+      <input type="number" id="el-sort" class="form-control" value="${l.sort_order||1}"></div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn btn--primary" onclick="saveLevel('${id}')">Update</button>
+      <button class="btn btn--ghost" onclick="closeEdit()">Cancel</button>
+    </div>`);
+}
+async function saveLevel(id){
+  const name=document.getElementById('el-name').value.trim();
+  if(!name){toast('Enter a level name.','error');return;}
+  const prog=document.getElementById('el-prog').value||null;
+  const sort=parseInt(document.getElementById('el-sort').value)||1;
+  if(id){
+    const{error}=await db.from('levels').update({name,program_id:prog,sort_order:sort}).eq('id',id);
+    if(error){toast(error.message,'error');return;}
+  } else {
+    const{error}=await db.from('levels').insert({school_id:currentUser.school_id,name,program_id:prog,sort_order:sort});
+    if(error){toast(error.message,'error');return;}
+  }
+  closeEdit(); await loadAll(); renderPrograms(); toast(id?'Level updated!':'Level added!','success');
+}
+async function deleteLevel(id){
+  if(!confirm('Delete level? Classes assigned to it will lose their level.')) return;
+  await db.from('levels').delete().eq('id',id);
+  await loadAll(); renderPrograms(); toast('Level deleted.','success');
+}
+async function loadPresetLevels(){
+  const names=getLevelsForType();
+  if(!confirm(`Load ${names.length} preset levels for your school type? Duplicates will be skipped.`)) return;
+  const rows=names.map((name,i)=>({school_id:currentUser.school_id,name,sort_order:i+1}));
+  await db.from('levels').upsert(rows,{onConflict:'school_id,name'});
+  await loadAll(); renderPrograms(); toast(`${names.length} levels loaded!`,'success');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  TAB 3 — CLASSES (now level-aware)
+// ═══════════════════════════════════════════════════════════════
+async function renderClasses(){
+  const[{data:cls},{data:combos}]=await Promise.all([
+    db.from('classes').select('id,name,level,level_id,program_id,combination_id').eq('school_id',currentUser.school_id).order('name'),
+    db.from('subject_combinations').select('id,name,color').eq('school_id',currentUser.school_id).order('name'),
+  ]);
+  classes=cls||[]; combinations=combos||[];
+
+  // Build level options (from DB levels + fallback to type presets)
+  const levelOpts = levels.length
+    ? levels.map(l=>{
+        const prog=programs.find(p=>p.id===l.program_id);
+        return `<option value="${l.id}" data-name="${l.name}">${l.name}${prog?' ('+prog.name+')':''}</option>`;
+      }).join('')
+    : getLevelsForType().map(n=>`<option value="" data-name="${n}">${n}</option>`).join('');
+
+  document.getElementById('settingsContent').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:900px;">
+      <div class="card">
+        <div class="card__header"><span class="card__title">Classes (${classes.length})</span></div>
+        <div style="max-height:440px;overflow-y:auto;">
+          ${classes.length===0?'<p style="color:var(--ink-3);">No classes yet. Add your first class →</p>':
+            classes.map(c=>{
+              const combo=combinations.find(cb=>cb.id===c.combination_id);
+              const lvl=levels.find(l=>l.id===c.level_id);
+              return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+                <div>
+                  <span style="font-weight:600;">${c.name}</span>
+                  ${lvl?`<span class="chip" style="margin-left:6px;">${lvl.name}</span>`:c.level?`<span class="chip" style="margin-left:6px;">${c.level}</span>`:''}
+                  ${combo?`<span style="font-size:11px;margin-left:6px;padding:2px 6px;border-radius:3px;background:${combo.color}22;color:${combo.color};font-weight:700;">${combo.name}</span>`:''}
+                </div>
+                <div style="display:flex;gap:4px;">
+                  <button class="btn btn--ghost btn--sm" onclick="editClassModal('${c.id}')">${editIcon()}</button>
+                  <button class="btn btn--ghost btn--sm" onclick="deleteClass('${c.id}')">${trashIcon()}</button>
+                </div>
+              </div>`;
+            }).join('')}
+        </div>
+      </div>
+      <div class="card">
+        <div class="card__header"><span class="card__title">Add Class</span></div>
+        <div class="form-group"><label class="form-label">Class Name <span class="required">*</span></label>
+          <input id="newClassName" class="form-control" placeholder="e.g. JSS 1A, Year 1 Science"></div>
+        <div class="form-group">
+          <label class="form-label">Level</label>
+          <select id="newClassLevel" class="form-control">
+            <option value="">— Select Level —</option>
+            ${levelOpts}
+            <option value="__custom__">+ Type custom level…</option>
+          </select>
+        </div>
+        <div class="form-group" id="customLevelGroup" style="display:none;">
+          <label class="form-label">Custom Level Name</label>
+          <input id="newClassLevelCustom" class="form-control" placeholder="Enter level name">
+        </div>
+        <div class="form-group"><label class="form-label">Combination</label>
+          <select id="newClassCombo" class="form-control">
+            <option value="">— None —</option>
+            ${combinations.map(c=>`<option value="${c.id}">${c.name}</option>`).join('')}
+          </select>
+        </div>
+        <button class="btn btn--primary" onclick="addClass()">+ Add Class</button>
+        <hr style="margin:16px 0;border-color:var(--border);">
+        <div class="form-group"><label class="form-label">Bulk Add (comma-separated)</label>
+          <input id="bulkClasses" class="form-control" placeholder="JSS 1A, JSS 1B, SS 1A"></div>
+        <button class="btn btn--secondary" onclick="bulkAddClasses()">Bulk Add</button>
+      </div>
+    </div>`;
+
+  document.getElementById('newClassLevel').addEventListener('change',function(){
+    document.getElementById('customLevelGroup').style.display=this.value==='__custom__'?'block':'none';
+  });
+}
+
+function editClassModal(id){
+  const c=classes.find(x=>x.id===id); if(!c) return;
+  const levelOpts=levels.map(l=>`<option value="${l.id}" ${l.id===c.level_id?'selected':''}>${l.name}</option>`).join('');
+  const comboOpts=combinations.map(x=>`<option value="${x.id}" ${x.id===c.combination_id?'selected':''}>${x.name}</option>`).join('');
+  openEdit(`
+    <h3>Edit Class</h3>
+    <div class="form-group"><label class="form-label">Class Name <span class="required">*</span></label>
+      <input id="ec-name" class="form-control" value="${c.name}"></div>
+    <div class="form-group"><label class="form-label">Level</label>
+      <select id="ec-level" class="form-control">
+        <option value="">— None —</option>${levelOpts}
+      </select></div>
+    <div class="form-group"><label class="form-label">Combination</label>
+      <select id="ec-combo" class="form-control">
+        <option value="">— None —</option>${comboOpts}
+      </select></div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn btn--primary" onclick="updateClass('${id}')">Update</button>
+      <button class="btn btn--ghost" onclick="closeEdit()">Cancel</button>
+    </div>`);
+}
+async function updateClass(id){
+  const name=document.getElementById('ec-name').value.trim();
+  if(!name){toast('Enter a class name.','error');return;}
+  const{error}=await db.from('classes').update({
+    name,
+    level_id:document.getElementById('ec-level').value||null,
+    combination_id:document.getElementById('ec-combo').value||null,
+  }).eq('id',id);
+  if(error){toast(error.message,'error');return;}
+  closeEdit(); await loadAll(); renderClasses(); toast('Class updated!','success');
+}
+async function addClass(){
+  const name=document.getElementById('newClassName').value.trim();
+  if(!name){toast('Enter a class name.','error');return;}
+  const levelSel=document.getElementById('newClassLevel');
+  let levelId=levelSel.value||null, levelName=null;
+  if(levelId==='__custom__'){ levelId=null; levelName=document.getElementById('newClassLevelCustom').value.trim()||null; }
+  else if(levelId){ levelName=levels.find(l=>l.id===levelId)?.name||null; }
+  const{error}=await db.from('classes').insert({
+    school_id:currentUser.school_id, name,
+    level_id:levelId,
+    level:levelName,
+    combination_id:document.getElementById('newClassCombo').value||null,
+  });
+  if(error){toast('Error: '+error.message,'error');return;}
+  document.getElementById('newClassName').value='';
+  document.getElementById('newClassLevel').value='';
+  document.getElementById('newClassCombo').value='';
+  await loadAll(); renderClasses(); toast('Class added!','success');
+}
+async function bulkAddClasses(){
+  const names=document.getElementById('bulkClasses').value.split(',').map(n=>n.trim()).filter(Boolean);
+  if(!names.length) return;
+  const{error}=await db.from('classes').insert(names.map(name=>({school_id:currentUser.school_id,name})));
+  if(error){toast('Error: '+error.message,'error');return;}
+  document.getElementById('bulkClasses').value='';
+  await loadAll(); renderClasses(); toast(`${names.length} classes added!`,'success');
+}
+async function deleteClass(id){
+  if(!confirm('Delete class?')) return;
+  await db.from('classes').delete().eq('id',id);
+  await loadAll(); renderClasses(); toast('Class deleted.','success');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  TAB 4 — SUBJECTS
+// ═══════════════════════════════════════════════════════════════
+function renderSubjects(){
+  document.getElementById('settingsContent').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:860px;">
+      <div class="card">
+        <div class="card__header"><span class="card__title">Subjects (${subjects.length})</span></div>
+        <div style="max-height:420px;overflow-y:auto;">
+          ${subjects.map(s=>`
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+              <div>
+                <span style="font-weight:600;">${s.name}</span>
+                ${s.code?`<span style="background:var(--primary-light);color:var(--primary);font-size:11px;font-weight:700;padding:2px 6px;border-radius:3px;margin-left:6px;">${s.code}</span>`:''}
+              </div>
+              <div style="display:flex;gap:4px;">
+                <button class="btn btn--ghost btn--sm" onclick="editSubjectModal('${s.id}')">${editIcon()}</button>
+                <button class="btn btn--ghost btn--sm" onclick="deleteSubject('${s.id}')">${trashIcon()}</button>
+              </div>
+            </div>`).join('')||'<p style="color:var(--ink-3);">No subjects yet.</p>'}
+        </div>
+        <button class="btn btn--secondary btn--sm btn--full" style="margin-top:12px;" onclick="addDefaultSubjects()">Load 30 Nigerian Standard Subjects</button>
+      </div>
+      <div class="card">
+        <div class="card__header"><span class="card__title">Add Subject</span></div>
+        <div class="form-group"><label class="form-label">Name <span class="required">*</span></label>
+          <input id="newSubName" class="form-control" placeholder="Mathematics"></div>
+        <div class="form-group"><label class="form-label">Code</label>
+          <input id="newSubCode" class="form-control" placeholder="MTH"></div>
+        <button class="btn btn--primary" onclick="addSubject()">+ Add</button>
+        <hr style="margin:16px 0;border-color:var(--border);">
+        <div class="form-group"><label class="form-label">Bulk Add (comma-separated)</label>
+          <textarea id="bulkSubs" class="form-control" rows="3" placeholder="Physics, Chemistry, Biology"></textarea></div>
+        <button class="btn btn--secondary" onclick="bulkAddSubjects()">Bulk Add</button>
+      </div>
+    </div>`;
+}
+function editSubjectModal(id){
+  const s=subjects.find(x=>x.id===id); if(!s) return;
+  openEdit(`
+    <h3>Edit Subject</h3>
+    <div class="form-group"><label class="form-label">Name <span class="required">*</span></label>
+      <input id="es-name" class="form-control" value="${s.name}"></div>
+    <div class="form-group"><label class="form-label">Code</label>
+      <input id="es-code" class="form-control" value="${s.code||''}"></div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn btn--primary" onclick="updateSubject('${id}')">Update</button>
+      <button class="btn btn--ghost" onclick="closeEdit()">Cancel</button>
+    </div>`);
+}
+async function updateSubject(id){
+  const name=document.getElementById('es-name').value.trim();
+  if(!name){toast('Enter a name.','error');return;}
+  const{error}=await db.from('subjects').update({name,code:document.getElementById('es-code').value.trim()||null}).eq('id',id);
+  if(error){toast(error.message,'error');return;}
+  closeEdit(); await loadAll(); renderSubjects(); toast('Subject updated!','success');
+}
+async function addSubject(){
+  const name=document.getElementById('newSubName').value.trim();
+  if(!name){toast('Enter name.','error');return;}
+  const{error}=await db.from('subjects').insert({school_id:currentUser.school_id,name,code:document.getElementById('newSubCode').value.trim()||null});
+  if(error){toast(error.message,'error');return;}
+  await loadAll(); renderSubjects(); toast('Subject added!','success');
+}
+async function bulkAddSubjects(){
+  const names=document.getElementById('bulkSubs').value.split(',').map(n=>n.trim()).filter(Boolean);
+  if(!names.length) return;
+  await db.from('subjects').upsert(names.map(name=>({school_id:currentUser.school_id,name})),{onConflict:'school_id,name'});
+  await loadAll(); renderSubjects(); toast(`${names.length} subjects added!`,'success');
+}
+async function addDefaultSubjects(){
+  const defaults=[
+    {name:'English Language',code:'ENG'},{name:'Mathematics',code:'MTH'},{name:'Civic Education',code:'CVE'},
+    {name:'Basic Science',code:'BSC'},{name:'Social Studies',code:'SST'},{name:'Agricultural Science',code:'AGR'},
+    {name:'Computer Studies',code:'CMP'},{name:'Christian Religious Studies',code:'CRS'},{name:'Islamic Studies',code:'ISL'},
+    {name:'Yoruba',code:'YRB'},{name:'Igbo',code:'IGB'},{name:'Hausa',code:'HAS'},
+    {name:'Physics',code:'PHY'},{name:'Chemistry',code:'CHM'},{name:'Biology',code:'BIO'},
+    {name:'Further Mathematics',code:'FMT'},{name:'Literature in English',code:'LIT'},{name:'Government',code:'GOV'},
+    {name:'History',code:'HIS'},{name:'Geography',code:'GEO'},{name:'Economics',code:'ECO'},
+    {name:'Commerce',code:'COM'},{name:'Accounting',code:'ACC'},{name:'Fine Arts',code:'FNA'},
+    {name:'Music',code:'MUS'},{name:'Physical & Health Education',code:'PHE'},{name:'French',code:'FRE'},
+    {name:'Technical Drawing',code:'TDD'},{name:'Food & Nutrition',code:'FDN'},{name:'Home Economics',code:'HEC'},
+  ];
+  await db.from('subjects').upsert(defaults.map(s=>({school_id:currentUser.school_id,...s})),{onConflict:'school_id,name'});
+  await loadAll(); renderSubjects(); toast('30 standard subjects loaded!','success');
+}
+async function deleteSubject(id){
+  if(!confirm('Delete subject?')) return;
+  await db.from('subjects').delete().eq('id',id);
+  await loadAll(); renderSubjects();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  TAB 5 — COMBINATIONS
+// ═══════════════════════════════════════════════════════════════
+let activeComboId=null;
+async function renderCombinations(){
+  document.getElementById('settingsContent').innerHTML='<div style="padding:24px;text-align:center;color:var(--ink-3);">Loading…</div>';
+  const{data:combos}=await db.from('subject_combinations').select('*').eq('school_id',currentUser.school_id).order('name');
+  combinations=combos||[]; activeComboId=null;
+  document.getElementById('settingsContent').innerHTML=`
+    <div style="max-width:980px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+        <div>
+          <h3 style="font-size:16px;font-weight:700;">Subject Combinations</h3>
+          <p style="font-size:13px;color:var(--ink-3);">Group subjects into Science, Art, Commercial tracks. Assign to classes.</p>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn--secondary btn--sm" onclick="loadNigerianCombinations()">Load Nigerian Standard</button>
+          <button class="btn btn--primary btn--sm" onclick="toggleAddCombo()">+ New Combination</button>
+        </div>
+      </div>
+      <div class="card" id="addComboCard" style="display:none;margin-bottom:16px;max-width:500px;">
+        <div class="card__header"><span class="card__title">New Combination</span>
+          <button class="btn btn--ghost btn--sm" onclick="toggleAddCombo()">✕</button></div>
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Name <span class="required">*</span></label>
+            <input id="comboName" class="form-control" placeholder="Science"></div>
+          <div class="form-group"><label class="form-label">Color</label>
+            <input type="color" id="comboColor" class="form-control" value="#2563eb" style="height:42px;padding:4px;"></div>
+          <div class="form-group col-full"><label class="form-label">Description</label>
+            <input id="comboDesc" class="form-control" placeholder="Physics, Chemistry, Biology…"></div>
+        </div>
+        <button class="btn btn--primary" onclick="saveNewCombo()">Save</button>
+      </div>
+      ${combinations.length===0
+        ? `<div class="card" style="text-align:center;padding:32px;color:var(--ink-3);">
+            <p>No combinations yet.<br>Click "Load Nigerian Standard" to get started.</p></div>`
+        : `<div style="display:grid;grid-template-columns:260px 1fr;gap:20px;" id="comboGrid">
+            <div id="comboList">
+              ${combinations.map(c=>`
+                <div class="combo-card ${activeComboId===c.id?'selected':''}" onclick="selectCombo('${c.id}')" style="border-color:${activeComboId===c.id?c.color:'var(--border)'};">
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                    <span class="combo-dot" style="background:${c.color||'#374151'};"></span>
+                    <strong>${c.name}</strong>
+                  </div>
+                  <div style="font-size:12px;color:var(--ink-3);margin-bottom:8px;">${c.description||''}</div>
+                  <div style="display:flex;gap:4px;">
+                    <button class="btn btn--ghost btn--sm" onclick="event.stopPropagation();editComboModal('${c.id}')">${editIcon()}</button>
+                    <button class="btn btn--ghost btn--sm" onclick="event.stopPropagation();deleteCombo('${c.id}')">${trashIcon()} Delete</button>
+                  </div>
+                </div>`).join('')}
+            </div>
+            <div class="card" id="comboSubjects">
+              <div style="text-align:center;padding:32px;color:var(--ink-3);">
+                <p>Select a combination to assign subjects.</p>
+              </div>
+            </div>
+          </div>`}
+    </div>`;
+}
+function toggleAddCombo(){ const c=document.getElementById('addComboCard'); c.style.display=c.style.display==='none'?'':'none'; }
+async function saveNewCombo(){
+  const name=document.getElementById('comboName').value.trim();
+  if(!name){toast('Enter name.','error');return;}
+  const{error}=await db.from('subject_combinations').insert({school_id:currentUser.school_id,name,color:document.getElementById('comboColor').value,description:document.getElementById('comboDesc').value||null});
+  if(error){toast('Error: '+error.message,'error');return;}
+  toggleAddCombo(); toast('Combination added!','success'); await renderCombinations();
+}
+function editComboModal(id){
+  const c=combinations.find(x=>x.id===id); if(!c) return;
+  openEdit(`
+    <h3>Edit Combination</h3>
+    <div class="form-group"><label class="form-label">Name <span class="required">*</span></label>
+      <input id="ec2-name" class="form-control" value="${c.name}"></div>
+    <div class="form-group"><label class="form-label">Color</label>
+      <input type="color" id="ec2-color" class="form-control" value="${c.color||'#2563eb'}" style="height:42px;padding:4px;"></div>
+    <div class="form-group"><label class="form-label">Description</label>
+      <input id="ec2-desc" class="form-control" value="${c.description||''}"></div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn btn--primary" onclick="updateCombo('${id}')">Update</button>
+      <button class="btn btn--ghost" onclick="closeEdit()">Cancel</button>
+    </div>`);
+}
+async function updateCombo(id){
+  const name=document.getElementById('ec2-name').value.trim();
+  if(!name){toast('Enter name.','error');return;}
+  const{error}=await db.from('subject_combinations').update({name,color:document.getElementById('ec2-color').value,description:document.getElementById('ec2-desc').value||null}).eq('id',id);
+  if(error){toast(error.message,'error');return;}
+  closeEdit(); await renderCombinations(); toast('Combination updated!','success');
+}
+async function selectCombo(id){
+  activeComboId=id;
+  const combo=combinations.find(c=>c.id===id); if(!combo) return;
+  const{data:assigned}=await db.from('combination_subjects').select('subject_id,is_compulsory').eq('combination_id',id);
+  const aMap={}; (assigned||[]).forEach(a=>aMap[a.subject_id]=a.is_compulsory);
+  document.getElementById('comboSubjects').innerHTML=`
+    <div class="card__header">
+      <div>
+        <span class="card__title"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${combo.color};margin-right:6px;"></span>${combo.name} Subjects</span>
+        <div style="font-size:12px;color:var(--ink-3);">${combo.description||''}</div>
+      </div>
+      <button class="btn btn--primary btn--sm" onclick="saveComboSubjects('${id}')">Save</button>
+    </div>
+    <div style="margin-bottom:10px;font-size:13px;color:var(--ink-3);">
+      Tap once = <span style="background:var(--primary-light);color:var(--primary);padding:1px 6px;border-radius:3px;font-weight:700;">Core</span> &nbsp;
+      Tap again = <span style="background:var(--info-light);color:var(--info);padding:1px 6px;border-radius:3px;font-weight:700;">Elective</span> &nbsp;
+      Tap again = Remove
+    </div>
+    <div id="chipArea" style="display:flex;flex-wrap:wrap;">
+      ${subjects.map(s=>{ const state=s.id in aMap?(aMap[s.id]?'core':'elective'):'unassigned';
+        return`<div class="subject-chip ${state}" id="chip-${s.id}" data-state="${state}" onclick="cycleChip('${s.id}','${s.name}','${s.code||''}')">
+          ${s.code||s.name.substring(0,4)}
+          <span style="font-size:10px;">${state==='core'?'★':state==='elective'?'◆':''}</span>
+        </div>`}).join('')}
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:var(--ink-3);">
+      <span id="coreCount">${Object.values(aMap).filter(v=>v).length}</span> core ·
+      <span id="electiveCount">${Object.values(aMap).filter(v=>!v).length}</span> elective
+    </div>`;
+  document.querySelectorAll('.combo-card').forEach(c=>{
+    const isActive=c.onclick?.toString().includes(`'${id}'`);
+    c.classList.toggle('selected',isActive);
+    c.style.borderColor=isActive?combo.color:'var(--border)';
+  });
+}
+function cycleChip(subjectId,name,code){
+  const chip=document.getElementById(`chip-${subjectId}`);
+  const state=chip.dataset.state; const display=code||name.substring(0,4);
+  if(state==='unassigned'){ chip.dataset.state='core'; chip.className='subject-chip core'; chip.innerHTML=`${display} <span style="font-size:10px;">★</span>`; }
+  else if(state==='core'){ chip.dataset.state='elective'; chip.className='subject-chip elective'; chip.innerHTML=`${display} <span style="font-size:10px;">◆</span>`; }
+  else{ chip.dataset.state='unassigned'; chip.className='subject-chip unassigned'; chip.innerHTML=`${display} <span style="font-size:10px;"></span>`; }
+  const chips=[...document.querySelectorAll('#chipArea .subject-chip')];
+  const cc=document.getElementById('coreCount'); if(cc) cc.textContent=chips.filter(c=>c.dataset.state==='core').length;
+  const ec=document.getElementById('electiveCount'); if(ec) ec.textContent=chips.filter(c=>c.dataset.state==='elective').length;
+}
+async function saveComboSubjects(comboId){
+  const chips=[...document.querySelectorAll('#chipArea .subject-chip')];
+  const rows=chips.filter(c=>c.dataset.state!=='unassigned').map(c=>({combination_id:comboId,subject_id:c.id.replace('chip-',''),school_id:currentUser.school_id,is_compulsory:c.dataset.state==='core'}));
+  await db.from('combination_subjects').delete().eq('combination_id',comboId);
+  if(rows.length){ const{error}=await db.from('combination_subjects').insert(rows); if(error){toast('Save failed: '+error.message,'error');return;} }
+  toast(`${rows.length} subjects saved!`,'success');
+}
+async function deleteCombo(id){
+  if(!confirm('Delete this combination?')) return;
+  if(activeComboId===id) activeComboId=null;
+  await db.from('subject_combinations').delete().eq('id',id);
+  await loadAll(); await renderCombinations();
+}
+async function loadNigerianCombinations(){
+  if(!subjects.length){toast('Load subjects first (Subjects tab → Load Nigerian Standard Subjects)','info');return;}
+  if(!confirm('Add Science, Art, Commercial, General combinations?')) return;
+  const{data:inserted}=await db.from('subject_combinations').upsert([
+    {school_id:currentUser.school_id,name:'Core Subjects',description:'Compulsory for ALL students',color:'#374151'},
+    {school_id:currentUser.school_id,name:'Science',description:'Physics, Chemistry, Biology, Further Maths',color:'#2563eb'},
+    {school_id:currentUser.school_id,name:'Art',description:'Literature, Government, History, CRS/IRS',color:'#7c3aed'},
+    {school_id:currentUser.school_id,name:'Commercial',description:'Economics, Accounting, Commerce',color:'#d97706'},
+    {school_id:currentUser.school_id,name:'General',description:'Mixed subjects for JSS level',color:'#16a34a'},
+  ],{onConflict:'school_id,name'}).select();
+  const subMap={}; subjects.forEach(s=>subMap[s.name]=s.id);
+  const combMap={}; (inserted||[]).forEach(c=>combMap[c.name]=c.id);
+  const rows=[]; const assign=(combo,names,core)=>names.forEach(n=>{if(subMap[n]&&combMap[combo]) rows.push({combination_id:combMap[combo],subject_id:subMap[n],school_id:currentUser.school_id,is_compulsory:core});});
+  assign('Core Subjects',['English Language','Mathematics','Civic Education','Physical & Health Education'],true);
+  assign('Science',['Physics','Chemistry','Biology','Further Mathematics','Agricultural Science','Computer Studies'],false);
+  assign('Art',['Literature in English','Government','History','Christian Religious Studies','Islamic Studies','Yoruba','Igbo','Hausa','Fine Arts','Music','French'],false);
+  assign('Commercial',['Economics','Commerce','Accounting','Geography'],false);
+  assign('General',['Basic Science','Social Studies','Computer Studies','Agricultural Science','Home Economics'],false);
+  if(rows.length) await db.from('combination_subjects').upsert(rows,{onConflict:'combination_id,subject_id'});
+  await renderCombinations(); toast('Nigerian combinations loaded!','success');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  TAB 6 — ACADEMIC SESSION (Terms / Semesters)
+// ═══════════════════════════════════════════════════════════════
+function renderTerms(){
+  const currentTerm=getCurrentTerm(); const periodLabel=getPeriodLabel(); const sessionLabel=getSessionLabel();
+  const sessionMap={};
+  terms.forEach(t=>{ const sess=t.session||'(No Session)'; if(!sessionMap[sess]) sessionMap[sess]=[]; sessionMap[sess].push(t); });
+
+  document.getElementById('settingsContent').innerHTML=`
+    <div style="max-width:900px;">
+      <!-- Active status -->
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:var(--radius);margin-bottom:20px;background:${currentTerm?'var(--success-light,#f0fdf4)':'var(--warning-light,#fffbeb)'};border:1.5px solid ${currentTerm?'var(--success,#16a34a)':'var(--warning,#f59e0b)'};">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${currentTerm?'#16a34a':'#f59e0b'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span style="font-size:13px;color:${currentTerm?'var(--success-dark,#14532d)':'var(--warning-dark,#92400e)'};">
+          ${currentTerm?`Active ${periodLabel}: <strong>${currentTerm.name}</strong> &nbsp;|&nbsp; ${sessionLabel}: <strong>${currentTerm.session||'Not set'}</strong>`:`No active ${periodLabel.toLowerCase()} set — please activate one below.`}
+        </span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <!-- Left: Sessions & Periods list -->
+        <div>
+          <div class="card">
+            <div class="card__header">
+              <span class="card__title">${sessionLabel}s &amp; ${periodLabel}s</span>
+              <button class="btn btn--primary btn--sm" onclick="openAddSession()">+ New ${sessionLabel}</button>
+            </div>
+            ${Object.keys(sessionMap).length===0
+              ? `<p style="color:var(--ink-3);font-size:13px;">No sessions yet. Create your first ${sessionLabel} then add ${periodLabel}s.</p>`
+              : Object.keys(sessionMap).sort().reverse().map(sess=>`
+                <div style="margin-bottom:12px;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                    <div style="font-size:11px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.5px;">${sess}</div>
+                  </div>
+                  ${sessionMap[sess].map(t=>`
+                    <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-radius:8px;margin-bottom:4px;background:${t.is_current?'var(--primary-light)':'var(--surface-3)'};border:1.5px solid ${t.is_current?'var(--primary)':'transparent'};">
+                      <div>
+                        <div style="font-weight:600;font-size:13px;">${t.name}</div>
+                        <div style="font-size:11px;color:var(--ink-3);">${t.start_date?formatDate(t.start_date)+' – '+formatDate(t.end_date):'No dates'}</div>
+                      </div>
+                      <div style="display:flex;gap:5px;align-items:center;flex-shrink:0;">
+                        ${t.is_current?'<span class="badge badge--green" style="font-size:11px;">Active</span>'
+                          :`<button class="btn btn--secondary btn--sm" style="font-size:11px;padding:3px 8px;" onclick="setCurrentTerm('${t.id}')">Activate</button>`}
+                        <button class="btn btn--ghost btn--sm" style="padding:4px 6px;" onclick="editTermModal('${t.id}')" title="Edit">${editIcon()}</button>
+                        <button class="btn btn--ghost btn--sm" style="padding:4px 6px;" onclick="deleteTerm('${t.id}')" title="Delete">${trashIcon()}</button>
+                      </div>
+                    </div>`).join('')}
+                </div>`).join('')}
+          </div>
+        </div>
+
+        <!-- Right: Add period -->
+        <div class="card">
+          <div class="card__header"><span class="card__title">Add ${periodLabel}</span></div>
+          ${!currentTerm&&terms.length>0?noTermBanner(`You have ${periodLabel.toLowerCase()}s but none is active.`):''}
+          <div class="form-group"><label class="form-label">${periodLabel} Name <span class="required">*</span></label>
+            <input id="newTermName" class="form-control" placeholder="${periodLabel==='Semester'?'First Semester':'First Term'}"></div>
+          <div class="form-group">
+            <label class="form-label">${sessionLabel}</label>
+            <select id="newTermSession" class="form-control">
+              <option value="">— Select ${sessionLabel} —</option>
+              ${[...new Set(terms.map(t=>t.session).filter(Boolean))].sort().reverse().map(s=>`<option value="${s}">${s}</option>`).join('')}
+              <option value="__new__">+ Type a new ${sessionLabel}…</option>
+            </select>
+          </div>
+          <div class="form-group" id="customSessionGroup" style="display:none;">
+            <label class="form-label">New ${sessionLabel} Name</label>
+            <input id="newTermSessionCustom" class="form-control" placeholder="${sessionLabel==='Academic Year'?'2024/2025':'2024/2025 Session'}">
+          </div>
+          <div class="form-group"><label class="form-label">Start Date</label><input type="date" id="newTermStart" class="form-control"></div>
+          <div class="form-group"><label class="form-label">End Date</label><input type="date" id="newTermEnd" class="form-control"></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn--primary" onclick="addTerm(false)">Add ${periodLabel}</button>
+            <button class="btn btn--secondary" onclick="addTerm(true)">Add &amp; Activate</button>
+          </div>
+          <p style="font-size:12px;color:var(--ink-3);margin-top:10px;"><strong>Add &amp; Activate</strong> adds the ${periodLabel.toLowerCase()} and makes it the active one immediately.</p>
+        </div>
+      </div>
+    </div>`;
+
+  document.getElementById('newTermSession')?.addEventListener('change',function(){
+    document.getElementById('customSessionGroup').style.display=this.value==='__new__'?'block':'none';
+  });
+}
+
+function openAddSession(){
+  const sl=getSessionLabel();
+  openEdit(`
+    <h3>New ${sl}</h3>
+    <div class="form-group"><label class="form-label">${sl} Name <span class="required">*</span></label>
+      <input id="as-name" class="form-control" placeholder="${sl==='Academic Year'?'2024/2025':'2024/2025 Session'}"></div>
+    <p style="font-size:12px;color:var(--ink-3);">After creating the session, add ${getPeriodLabel()}s to it using the form on the right.</p>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn btn--primary" onclick="saveSession()">Save</button>
+      <button class="btn btn--ghost" onclick="closeEdit()">Cancel</button>
+    </div>`);
+}
+async function saveSession(){
+  const name=document.getElementById('as-name').value.trim();
+  if(!name){toast('Enter a session name.','error');return;}
+  closeEdit();
+  // Pre-fill the session dropdown and rerender
+  if(!terms.find(t=>t.session===name)){
+    // Create a lightweight placeholder term just to register the session
+    // (only if DB has academic_sessions table — otherwise harmless)
+    try{ await db.from('academic_sessions').insert({school_id:currentUser.school_id,name}); }catch{}
+  }
+  toast(`${getSessionLabel()} "${name}" ready — now add ${getPeriodLabel()}s to it.`,'success');
+  await loadAll(); renderTerms();
+  // Auto-select new session in dropdown
+  setTimeout(()=>{ const sel=document.getElementById('newTermSession'); if(sel){ const opt=[...sel.options].find(o=>o.value===name); if(!opt){ const o=new Option(name,name); sel.add(o); } sel.value=name; } },200);
+}
+
+function editTermModal(id){
+  const t=terms.find(x=>x.id===id); if(!t) return;
+  const pl=getPeriodLabel(); const sl=getSessionLabel();
+  const sessions=[...new Set(terms.map(x=>x.session).filter(Boolean))];
+  openEdit(`
+    <h3>Edit ${pl}</h3>
+    <div class="form-group"><label class="form-label">${pl} Name <span class="required">*</span></label>
+      <input id="et-name" class="form-control" value="${t.name}"></div>
+    <div class="form-group"><label class="form-label">${sl}</label>
+      <input id="et-session" class="form-control" list="et-sessions" value="${t.session||''}">
+      <datalist id="et-sessions">${sessions.map(s=>`<option value="${s}">`).join('')}</datalist>
+    </div>
+    <div class="form-group"><label class="form-label">Start Date</label>
+      <input type="date" id="et-start" class="form-control" value="${t.start_date||''}"></div>
+    <div class="form-group"><label class="form-label">End Date</label>
+      <input type="date" id="et-end" class="form-control" value="${t.end_date||''}"></div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn btn--primary" onclick="updateTerm('${id}')">Update</button>
+      <button class="btn btn--ghost" onclick="closeEdit()">Cancel</button>
+    </div>`);
+}
+async function updateTerm(id){
+  const name=document.getElementById('et-name').value.trim();
+  if(!name){toast('Enter a name.','error');return;}
+  const{error}=await db.from('terms').update({name,session:document.getElementById('et-session').value.trim()||null,start_date:document.getElementById('et-start').value||null,end_date:document.getElementById('et-end').value||null}).eq('id',id);
+  if(error){toast(error.message,'error');return;}
+  closeEdit(); await loadAll(); renderTerms(); toast(`${getPeriodLabel()} updated!`,'success');
+}
+async function addTerm(setAsCurrent=false){
+  const name=document.getElementById('newTermName').value.trim();
+  if(!name){toast(`Enter a ${getPeriodLabel()} name.`,'error');return;}
+  const start=document.getElementById('newTermStart').value||null;
+  const end=document.getElementById('newTermEnd').value||null;
+  const sessionSel=document.getElementById('newTermSession');
+  let session=sessionSel?.value||null;
+  if(session==='__new__') session=document.getElementById('newTermSessionCustom')?.value?.trim()||null;
+  const{data:newTerm,error}=await db.from('terms').insert({school_id:currentUser.school_id,name,start_date:start,end_date:end,session:session||null}).select().single();
+  if(error){toast('Error: '+error.message,'error');return;}
+  if(setAsCurrent||terms.length===0){
+    await db.from('terms').update({is_current:false}).eq('school_id',currentUser.school_id);
+    await db.from('terms').update({is_current:true}).eq('id',newTerm.id);
+  }
+  await loadAll(); renderTerms();
+  const label=getPeriodLabel();
+  toast(setAsCurrent||terms.length===0?`${label} added and activated!`:`${label} added!`,'success');
+}
+async function setCurrentTerm(id){
+  await db.from('terms').update({is_current:false}).eq('school_id',currentUser.school_id);
+  await db.from('terms').update({is_current:true}).eq('id',id);
+  await loadAll(); renderTerms(); toast('Active period updated!','success');
+}
+async function deleteTerm(id){
+  const t=terms.find(x=>x.id===id);
+  if(t?.is_current&&!confirm('This is the active period. Deleting it means no period will be active. Continue?')) return;
+  if(!t?.is_current&&!confirm(`Delete this ${getPeriodLabel().toLowerCase()}?`)) return;
+  await db.from('terms').delete().eq('id',id);
+  await loadAll(); renderTerms();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  TAB 7 — GRADING
+// ═══════════════════════════════════════════════════════════════
+function renderGrading(){
+  document.getElementById('settingsContent').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:700px;">
+      <div class="card">
+        <div class="card__header"><span class="card__title">Grading Scale</span></div>
+        ${gradingScale.length?`
+          <div class="table-wrap" style="border:none;">
+            <table><thead><tr><th>Grade</th><th>Min</th><th>Max</th><th>Remark</th><th></th></tr></thead>
+            <tbody>${gradingScale.map(g=>`<tr>
+              <td><strong>${g.grade}</strong></td><td>${g.min_score}</td><td>${g.max_score}</td>
+              <td style="color:var(--ink-3);">${g.remark||'—'}</td>
+              <td style="display:flex;gap:4px;">
+                <button class="btn btn--ghost btn--sm" onclick="editGradeModal('${g.id}')">${editIcon()}</button>
+                <button class="btn btn--ghost btn--sm" onclick="deleteGrade('${g.id}')">${trashIcon()}</button>
+              </td>
+            </tr>`).join('')}</tbody></table>
+          </div>`:'<p style="color:var(--ink-3);">No grading scale yet.</p>'}
+        <button class="btn btn--secondary btn--sm btn--full" style="margin-top:12px;" onclick="addNigerianGrading()">Load Nigerian A1–F9</button>
+      </div>
+      <div class="card">
+        <div class="card__header"><span class="card__title">Add Grade Band</span></div>
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Grade</label><input id="gGrade" class="form-control" placeholder="A1"></div>
+          <div class="form-group"><label class="form-label">Remark</label><input id="gRemark" class="form-control" placeholder="Excellent"></div>
+          <div class="form-group"><label class="form-label">Min</label><input type="number" id="gMin" class="form-control" placeholder="75"></div>
+          <div class="form-group"><label class="form-label">Max</label><input type="number" id="gMax" class="form-control" placeholder="100"></div>
+        </div>
+        <button class="btn btn--primary" onclick="addGrade()">+ Add</button>
+      </div>
+    </div>`;
+}
+function editGradeModal(id){
+  const g=gradingScale.find(x=>x.id===id); if(!g) return;
+  openEdit(`
+    <h3>Edit Grade Band</h3>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Grade</label><input id="eg-grade" class="form-control" value="${g.grade}"></div>
+      <div class="form-group"><label class="form-label">Remark</label><input id="eg-remark" class="form-control" value="${g.remark||''}"></div>
+      <div class="form-group"><label class="form-label">Min</label><input type="number" id="eg-min" class="form-control" value="${g.min_score}"></div>
+      <div class="form-group"><label class="form-label">Max</label><input type="number" id="eg-max" class="form-control" value="${g.max_score}"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn btn--primary" onclick="updateGrade('${id}')">Update</button>
+      <button class="btn btn--ghost" onclick="closeEdit()">Cancel</button>
+    </div>`);
+}
+async function updateGrade(id){
+  const{error}=await db.from('grading_scales').update({grade:document.getElementById('eg-grade').value.trim(),remark:document.getElementById('eg-remark').value.trim()||null,min_score:Number(document.getElementById('eg-min').value),max_score:Number(document.getElementById('eg-max').value)}).eq('id',id);
+  if(error){toast(error.message,'error');return;}
+  closeEdit(); await loadAll(); renderGrading(); toast('Grade updated!','success');
+}
+async function addNigerianGrading(){
+  await db.from('grading_scales').delete().eq('school_id',currentUser.school_id);
+  await db.from('grading_scales').insert([
+    {grade:'A1',min_score:75,max_score:100,remark:'Excellent'},{grade:'B2',min_score:70,max_score:74,remark:'Very Good'},
+    {grade:'B3',min_score:65,max_score:69,remark:'Good'},{grade:'C4',min_score:60,max_score:64,remark:'Credit'},
+    {grade:'C5',min_score:55,max_score:59,remark:'Credit'},{grade:'C6',min_score:50,max_score:54,remark:'Credit'},
+    {grade:'D7',min_score:45,max_score:49,remark:'Pass'},{grade:'E8',min_score:40,max_score:44,remark:'Pass'},
+    {grade:'F9',min_score:0,max_score:39,remark:'Fail'},
+  ].map(s=>({school_id:currentUser.school_id,...s})));
+  await loadAll(); renderGrading(); toast('Nigerian A1–F9 grading loaded!','success');
+}
+async function addGrade(){
+  const grade=document.getElementById('gGrade').value.trim();
+  const min=Number(document.getElementById('gMin').value); const max=Number(document.getElementById('gMax').value);
+  if(!grade){toast('Fill all fields.','error');return;}
+  await db.from('grading_scales').insert({school_id:currentUser.school_id,grade,min_score:min,max_score:max,remark:document.getElementById('gRemark').value||null});
+  await loadAll(); renderGrading();
+}
+async function deleteGrade(id){ await db.from('grading_scales').delete().eq('id',id); await loadAll(); renderGrading(); }
+
+// ═══════════════════════════════════════════════════════════════
+//  TAB 8 — EXAM COMPONENTS
+// ═══════════════════════════════════════════════════════════════
+function renderExams(){
+  const currentTerm=getCurrentTerm(); const pl=getPeriodLabel();
+  document.getElementById('settingsContent').innerHTML=`
+    <div style="max-width:640px;">
+      ${!currentTerm?noTermBanner(`You must activate a ${pl.toLowerCase()} before adding exam components. Components are linked to the active ${pl.toLowerCase()}.`):`
+      <div class="card" style="margin-bottom:12px;background:var(--success-light,#f0fdf4);border-color:var(--success,#16a34a);">
+        <p style="font-size:13px;color:var(--success-dark,#14532d);">Active ${pl}: <strong>${currentTerm.name}</strong>. New components will be linked to this ${pl.toLowerCase()}.</p>
+      </div>`}
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card__header"><span class="card__title">Exam Components</span></div>
+        <div id="examList"><div style="padding:16px;color:var(--ink-3);">Loading…</div></div>
+      </div>
+      <div class="card">
+        <div class="card__header"><span class="card__title">Add Component</span></div>
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Name</label><input id="exName" class="form-control" placeholder="CA1"></div>
+          <div class="form-group"><label class="form-label">Max Score</label><input type="number" id="exMax" class="form-control" placeholder="100"></div>
+          <div class="form-group"><label class="form-label">Weight</label><input type="number" id="exWeight" class="form-control" value="1"></div>
+        </div>
+        <button class="btn btn--primary" onclick="addExam()" ${!currentTerm?'disabled':''}>+ Add</button>
+        <button class="btn btn--secondary" style="margin-left:8px;" onclick="addDefaultExams()" ${!currentTerm?'disabled':''}>Load CA1+CA2+Exam</button>
+      </div>
+    </div>`;
+  loadExams();
+}
+async function loadExams(){
+  const{data}=await db.from('exams').select('*').eq('school_id',currentUser.school_id).order('name');
+  const el=document.getElementById('examList'); if(!el) return;
+  el.innerHTML=data?.length?`
+    <table style="width:100%;font-size:14px;border-collapse:collapse;">
+      <thead><tr style="background:var(--surface-3);">
+        <th style="padding:8px 12px;text-align:left;">Name</th><th style="padding:8px 12px;">Max</th><th style="padding:8px 12px;">Weight</th><th></th>
+      </tr></thead>
+      <tbody>${data.map(e=>`<tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:8px 12px;font-weight:600;">${e.name}</td>
+        <td style="padding:8px 12px;">${e.max_score}</td>
+        <td style="padding:8px 12px;">${e.weight}</td>
+        <td style="padding:8px 12px;display:flex;gap:4px;">
+          <button class="btn btn--ghost btn--sm" onclick="editExamModal('${e.id}','${e.name}',${e.max_score},${e.weight})">${editIcon()}</button>
+          <button class="btn btn--ghost btn--sm" onclick="deleteExam('${e.id}')">${trashIcon()}</button>
+        </td>
+      </tr>`).join('')}</tbody>
+    </table>`:'<p style="color:var(--ink-3);padding:8px;">No exam components yet.</p>';
+}
+function editExamModal(id,name,max,weight){
+  openEdit(`
+    <h3>Edit Exam Component</h3>
+    <div class="form-group"><label class="form-label">Name</label><input id="ee-name" class="form-control" value="${name}"></div>
+    <div class="form-group"><label class="form-label">Max Score</label><input type="number" id="ee-max" class="form-control" value="${max}"></div>
+    <div class="form-group"><label class="form-label">Weight</label><input type="number" id="ee-weight" class="form-control" value="${weight}"></div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn btn--primary" onclick="updateExam('${id}')">Update</button>
+      <button class="btn btn--ghost" onclick="closeEdit()">Cancel</button>
+    </div>`);
+}
+async function updateExam(id){
+  const{error}=await db.from('exams').update({name:document.getElementById('ee-name').value.trim(),max_score:Number(document.getElementById('ee-max').value),weight:Number(document.getElementById('ee-weight').value)}).eq('id',id);
+  if(error){toast(error.message,'error');return;}
+  closeEdit(); loadExams(); toast('Component updated!','success');
+}
+async function addExam(){
+  if(!requireCurrentTerm('adding an exam component')) return;
+  const name=document.getElementById('exName').value.trim(); const max=Number(document.getElementById('exMax').value);
+  if(!name||!max){toast('Fill name and max score.','error');return;}
+  const termId=getCurrentTerm().id;
+  await db.from('exams').insert({school_id:currentUser.school_id,name,max_score:max,weight:Number(document.getElementById('exWeight').value)||1,term_id:termId});
+  renderExams(); toast('Added!','success');
+}
+async function addDefaultExams(){
+  if(!requireCurrentTerm('loading default components')) return;
+  const termId=getCurrentTerm().id;
+  await db.from('exams').upsert([
+    {school_id:currentUser.school_id,name:'CA 1',max_score:20,weight:1,term_id:termId},
+    {school_id:currentUser.school_id,name:'CA 2',max_score:20,weight:1,term_id:termId},
+    {school_id:currentUser.school_id,name:'Exam',max_score:60,weight:1,term_id:termId},
+  ],{onConflict:'school_id,name'});
+  renderExams(); toast('Standard components added!','success');
+}
+async function deleteExam(id){ if(!confirm('Delete?')) return; await db.from('exams').delete().eq('id',id); loadExams(); }
+
+// ═══════════════════════════════════════════════════════════════
+//  TAB 9 — PORTAL CONTROLS
+// ═══════════════════════════════════════════════════════════════
+async function renderPortalControls(){
+  let{data:ds}=await db.from('dashboard_settings').select('*').eq('school_id',currentUser.school_id).maybeSingle();
+  if(!ds){ const{data:c}=await db.from('dashboard_settings').insert({school_id:currentUser.school_id}).select().single(); ds=c||{}; }
+  dashSettings=ds;
+  const tog=(key,label,desc)=>`
+    <div class="toggle-row">
+      <div><div style="font-size:14px;font-weight:500;">${label}</div>
+        <div style="font-size:12px;color:var(--ink-3);">${desc}</div></div>
+      <label class="toggle"><input type="checkbox" ${ds[key]!==false?'checked':''} onchange="saveDash('${key}',this.checked)"><span class="slider"></span></label>
+    </div>`;
+  document.getElementById('settingsContent').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;max-width:960px;">
+      <div class="card">
+        <div class="card__header"><span class="card__title"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:-2px;"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> Teacher Portal</span></div>
+        ${tog('teacher_see_attendance','Attendance','Can take & view attendance')}
+        ${tog('teacher_see_scores','Score Entry','Can enter student scores')}
+        ${tog('teacher_see_students','Student List','Can view their students')}
+      </div>
+      <div class="card">
+        <div class="card__header"><span class="card__title"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:-2px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Student Portal</span></div>
+        ${tog('student_see_results','Results','Can view own results')}
+        ${tog('student_see_attendance','Attendance','Can view attendance record')}
+        ${tog('student_see_fees','Fee Status','Can view fee balance')}
+      </div>
+      <div class="card">
+        <div class="card__header"><span class="card__title"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:-2px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Parent Portal</span></div>
+        ${tog('parent_see_results','Results','Can view child results')}
+        ${tog('parent_see_attendance','Attendance','Can view child attendance')}
+        ${tog('parent_see_fees','Fees','Can view fee status')}
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px;max-width:440px;background:var(--primary-light);border-color:var(--primary);">
+      <p style="font-size:13px;color:var(--primary);">Changes apply immediately on next page load.</p>
+    </div>`;
+}
+async function saveDash(key,value){
+  const{error}=await db.from('dashboard_settings').update({[key]:value,updated_at:new Date().toISOString()}).eq('school_id',currentUser.school_id);
+  if(error){toast(error.message,'error');return;}
+  dashSettings[key]=value; toast('Setting saved!','success');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  TAB 10 — STUDENT LOGINS
+// ═══════════════════════════════════════════════════════════════
+async function renderStudentAccounts(){
+  const{data:students}=await db.from('students').select('id,full_name,admission_no,can_login,pin,enrollments(classes(name))').eq('school_id',currentUser.school_id).eq('is_active',true).order('full_name');
+  window._stuList=students||[];
+  document.getElementById('settingsContent').innerHTML=`
+    <div style="max-width:860px;">
+      <div class="card" style="margin-bottom:16px;background:var(--info-light);border-color:var(--info);">
+        <p style="font-size:13px;color:var(--info);">
+          <strong>How Student Login Works:</strong><br>
+          Students log in at <strong>student/index.html</strong> using their <strong>Admission Number</strong> as username and a <strong>PIN</strong> you set here.
+        </p>
+      </div>
+      <div class="filter-bar">
+        <div class="search-box" style="flex:1;max-width:280px;">
+          <input class="form-control" id="stuSearch" placeholder="Search…" oninput="filterStu()">
+        </div>
+        <button class="btn btn--secondary btn--sm" onclick="enableAll()">Enable All</button>
+        <button class="btn btn--ghost btn--sm" onclick="disableAll()">Disable All</button>
+      </div>
+      <div class="card" style="padding:0;"><div class="table-wrap" id="stuTable" style="border:none;"></div></div>
+    </div>`;
+  filterStu();
+}
+function filterStu(){
+  const q=(document.getElementById('stuSearch')?.value||'').toLowerCase();
+  const f=(window._stuList||[]).filter(s=>s.full_name.toLowerCase().includes(q)||s.admission_no?.toLowerCase().includes(q));
+  renderStuTable(f);
+}
+function renderStuTable(students){
+  if(!students.length){document.getElementById('stuTable').innerHTML='<p style="padding:16px;color:var(--ink-3);">No students found.</p>';return;}
+  document.getElementById('stuTable').innerHTML=`
+    <table><thead><tr><th>Student</th><th>Class</th><th>Adm. No.</th><th>PIN</th><th>Login</th><th></th></tr></thead>
+    <tbody>${students.map(s=>`
+      <tr>
+        <td><div class="student-cell"><div class="avatar avatar--sm">${s.full_name.charAt(0)}</div><div class="info"><div class="name">${s.full_name}</div></div></div></td>
+        <td><span class="chip">${s.enrollments?.[0]?.classes?.name||'—'}</span></td>
+        <td style="font-family:var(--mono);font-size:13px;">${s.admission_no||'—'}</td>
+        <td><input type="text" id="pin-${s.id}" maxlength="8" style="width:80px;padding:5px 8px;border:1.5px solid var(--border);border-radius:5px;font-family:var(--mono);font-size:13px;" value="${s.pin||''}" placeholder="Set PIN"></td>
+        <td><label class="toggle"><input type="checkbox" ${s.can_login?'checked':''} onchange="toggleStu('${s.id}',this.checked)"><span class="slider"></span></label></td>
+        <td><button class="btn btn--primary btn--sm" onclick="saveStuPin('${s.id}')">Save</button></td>
+      </tr>`).join('')}
+    </tbody></table>`;
+}
+async function toggleStu(id,val){ await db.from('students').update({can_login:val}).eq('id',id); const s=window._stuList?.find(s=>s.id===id); if(s) s.can_login=val; toast(`Login ${val?'enabled':'disabled'}.`,'success'); }
+async function saveStuPin(id){
+  const pin=document.getElementById(`pin-${id}`)?.value?.trim();
+  if(!pin||pin.length<4){toast('PIN must be 4+ characters.','error');return;}
+  await db.from('students').update({pin,can_login:true}).eq('id',id);
+  const s=window._stuList?.find(s=>s.id===id); if(s){s.pin=pin;s.can_login=true;}
+  toast('PIN saved! Login enabled.','success');
+}
+async function enableAll(){ if(!confirm('Enable login for all students?')) return; await db.from('students').update({can_login:true}).eq('school_id',currentUser.school_id).eq('is_active',true); toast('All enabled!','success'); renderStudentAccounts(); }
+async function disableAll(){ if(!confirm('Disable all student logins?')) return; await db.from('students').update({can_login:false}).eq('school_id',currentUser.school_id); toast('All disabled.','success'); renderStudentAccounts(); }
+</script>
+<script src="../js/pwa-v2.1.js"></script>
+<script src="../js/assistant.js"></script>
+</body>
+</html>

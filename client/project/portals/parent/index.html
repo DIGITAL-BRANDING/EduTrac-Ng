@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/icons/icon-96.png" type="image/png">
+  <meta name="theme-color" content="#0a6e3f">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Parent Portal · EduTrack NG</title>
+  <link rel="stylesheet" href="../../assets/css/global.css">
+  <style>
+    .parent-layout{display:grid;grid-template-columns:260px 1fr;min-height:100vh;}
+    .parent-sidebar{background:var(--ink);color:white;padding:0;display:flex;flex-direction:column;}
+    .parent-sidebar-head{padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,.1);}
+    .parent-sidebar-head h2{font-size:.95rem;font-weight:800;margin:0;color:white;}
+    .parent-sidebar-head p{font-size:.75rem;color:rgba(255,255,255,.5);margin:3px 0 0;}
+    .parent-nav a{display:flex;align-items:center;gap:10px;padding:11px 20px;color:rgba(255,255,255,.7);text-decoration:none;font-size:.875rem;font-weight:500;transition:all .14s;}
+    .parent-nav a:hover{background:rgba(255,255,255,.07);color:white;}
+    .parent-nav a.active{background:rgba(255,255,255,.12);color:white;font-weight:700;}
+    .parent-main{background:var(--surface-2);padding:24px;overflow:auto;}
+    .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px;}
+    .kpi-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;}
+    .kpi-box-val{font-size:1.55rem;font-weight:900;line-height:1;}
+    .kpi-box-lbl{font-size:.7rem;color:var(--ink-3);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-top:4px;}
+    .stu-tab{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+    .stu-tab-btn{padding:7px 16px;border-radius:8px;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:.845rem;font-weight:600;color:var(--ink-3);}
+    .stu-tab-btn.active{background:var(--primary);color:white;border-color:var(--primary);}
+    @media(max-width:768px){.parent-layout{grid-template-columns:1fr;} .parent-sidebar{display:none;}}
+  </style>
+</head>
+<body>
+<div class="parent-layout">
+  <aside class="parent-sidebar">
+    <div class="parent-sidebar-head">
+      <h2>Parent Portal</h2>
+      <p id="parentName">Loading…</p>
+    </div>
+    <nav class="parent-nav" style="margin-top:8px;flex:1;">
+      <a href="index.html" class="active">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Dashboard
+      </a>
+      <a href="results.html">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
+        Results
+      </a>
+      <a href="attendance.html">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+        Attendance
+      </a>
+      <a href="fees.html">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        Fees
+      </a>
+      <a href="activities.html">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/></svg>
+        Activities
+      </a>
+      <a href="complaints.html">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Complaints
+      </a>
+    </nav>
+    <div style="padding:16px 20px;border-top:1px solid rgba(255,255,255,.1);">
+      <button onclick="doLogout()" style="background:none;border:none;color:rgba(255,255,255,.5);font-size:.8rem;cursor:pointer;display:flex;align-items:center;gap:6px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <main class="parent-main">
+    <div id="parentDash">
+      <div style="text-align:center;padding:60px;color:var(--ink-3);">
+        <div style="display:inline-block;width:36px;height:36px;border:3px solid var(--primary);border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;margin-bottom:12px;"></div>
+        <p>Loading…</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
+<script src="/js/config.js"></script>
+<script src="/js/supabase.js"></script>
+<script>
+let parentUser, children = [], currentTerm;
+
+(async () => {
+  const session = await getSession();
+  if (!session) { window.location.href = '/login.html'; return; }
+  parentUser = await getCurrentUser();
+  if (!parentUser || parentUser.role !== 'parent') { window.location.href = '/login.html'; return; }
+
+  document.getElementById('parentName').textContent = parentUser.full_name || 'Parent';
+  const sid = parentUser.school_id;
+
+  const [{ data: trm }, { data: studs }] = await Promise.all([
+    db.from('terms').select('*').eq('school_id', sid).eq('is_current', true).maybeSingle(),
+    db.from('students').select('id,full_name,admission_no,gender,photo_url,enrollments(class_id,term_id,classes(name))').eq('school_id', sid).eq('parent_email', parentUser.email),
+  ]);
+  currentTerm = trm;
+  children = (studs || []).map(s => ({
+    ...s,
+    currentClass: currentTerm
+      ? s.enrollments?.find(e => e.term_id === currentTerm.id)?.classes?.name
+      : s.enrollments?.[s.enrollments.length-1]?.classes?.name,
+  }));
+
+  renderDash();
+})();
+
+function renderDash() {
+  const dash = document.getElementById('parentDash');
+  if (!children.length) {
+    dash.innerHTML = `
+      <div style="margin-bottom:22px;"><h1 style="font-size:1.45rem;font-weight:800;margin:0;">Welcome, ${parentUser.full_name?.split(' ')[0]||'Parent'}</h1></div>
+      <div style="text-align:center;padding:48px;background:var(--surface);border:1px solid var(--border);border-radius:12px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:.3;display:block;margin:0 auto 12px;"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/></svg>
+        <p style="font-weight:600;color:var(--ink-2);">No children linked to your account</p>
+        <p style="font-size:.845rem;color:var(--ink-3);margin-top:4px;">Ask the school administrator to link your child(ren) using your email: <strong>${parentUser.email}</strong></p>
+      </div>`;
+    return;
+  }
+
+  dash.innerHTML = `
+    <div style="margin-bottom:22px;">
+      <h1 style="font-size:1.45rem;font-weight:800;margin:0;">Welcome, ${parentUser.full_name?.split(' ')[0]||'Parent'}</h1>
+      <p style="color:var(--ink-3);font-size:.875rem;margin:4px 0 0;">${currentTerm ? currentTerm.name + (currentTerm.academic_year?' · '+currentTerm.academic_year:'') : 'No active term'}</p>
+    </div>
+    <div class="stu-tab" id="childTabs">
+      ${children.map((c,i)=>`<button class="stu-tab-btn ${i===0?'active':''}" onclick="showChild(${i},this)">${c.full_name.split(' ')[0]}</button>`).join('')}
+    </div>
+    <div id="childContent"></div>
+  `;
+  showChild(0, document.querySelector('.stu-tab-btn'));
+}
+
+async function showChild(idx, btn) {
+  document.querySelectorAll('.stu-tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const s = children[idx];
+  const sid = parentUser.school_id;
+
+  // Fetch summary data for this child
+  const [{ data: pmt }, { data: att }, { data: results }] = await Promise.all([
+    db.from('payments').select('amount_paid').eq('school_id', sid).eq('student_id', s.id),
+    db.from('attendance').select('status').eq('school_id', sid).eq('student_id', s.id),
+    currentTerm
+      ? db.from('results').select('total_score').eq('school_id', sid).eq('student_id', s.id).eq('term_id', currentTerm.id)
+      : { data: [] },
+  ]);
+
+  const totalPaid = (pmt||[]).reduce((sum,p)=>sum+Number(p.amount_paid||0),0);
+  const attRecords = att||[];
+  const present = attRecords.filter(a=>a.status==='P'||a.status==='L').length;
+  const attRate = attRecords.length ? Math.round(present/attRecords.length*100) : null;
+  const scores = (results||[]).map(r=>Number(r.total_score||0)).filter(s=>s>0);
+  const avgScore = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : null;
+
+  document.getElementById('childContent').innerHTML = `
+    <div style="display:flex;align-items:center;gap:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:18px;">
+      ${s.photo_url ? `<img src="${s.photo_url}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid var(--border);">` : `<div style="width:60px;height:60px;border-radius:50%;background:var(--primary-light);color:var(--primary);font-size:22px;font-weight:800;display:flex;align-items:center;justify-content:center;">${(s.full_name||'?').charAt(0)}</div>`}
+      <div>
+        <div style="font-size:1.05rem;font-weight:800;">${s.full_name}</div>
+        <div style="color:var(--ink-3);font-size:.845rem;">${s.admission_no||'—'} · ${s.currentClass||'Not enrolled'}</div>
+      </div>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi-box">
+        <div class="kpi-box-val" style="color:#2563eb;">${attRate !== null ? attRate+'%' : '—'}</div>
+        <div class="kpi-box-lbl">Attendance Rate</div>
+      </div>
+      <div class="kpi-box">
+        <div class="kpi-box-val" style="color:#16a34a;">₦${totalPaid.toLocaleString('en-NG')}</div>
+        <div class="kpi-box-lbl">Fees Paid</div>
+      </div>
+      <div class="kpi-box">
+        <div class="kpi-box-val" style="color:#9333ea;">${avgScore !== null ? avgScore+'%' : '—'}</div>
+        <div class="kpi-box-lbl">Avg Score (this term)</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;">
+      <a href="results.html" class="btn btn--secondary" style="text-align:center;">View Results</a>
+      <a href="attendance.html" class="btn btn--secondary" style="text-align:center;">Attendance</a>
+      <a href="fees.html" class="btn btn--secondary" style="text-align:center;">Fee Statement</a>
+    </div>
+  `;
+}
+
+async function doLogout() { await db.auth.signOut(); window.location.href = '/login.html'; }
+</script>
+<script src="/js/pwa-v2.1.js"></script>
+<script src="../../js/assistant.js"></script>
+</body>
+</html>

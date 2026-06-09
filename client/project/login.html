@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" href="/icons/icon-96.png" type="image/png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0a6e3f">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>EduTrack NG — Sign In</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --G:#0a6e3f;--G2:#07512e;--G3:#12a05a;--GL:#e6f4ed;--GL2:#c8e8d6;
+      --AU:#f0a500;--AUL:#fff8e6;
+      --INK:#080c10;--INK2:#0f1820;
+      --T2:#3a5245;--T3:#7a9488;--BD:#dde4e8;--S:#f4f7f5;
+      --H:'Plus Jakarta Sans',system-ui,sans-serif;
+      --B:'DM Sans',system-ui,sans-serif;
+      --radius:14px;--radius-sm:10px;--transition:all .18s ease;
+    }
+    html,body{height:100%;font-family:var(--B);-webkit-font-smoothing:antialiased;}
+    body{display:flex;min-height:100vh;background:var(--INK2);}
+
+    /* Left pane */
+    .l-pane{flex:1;display:flex;flex-direction:column;padding:48px 56px;position:relative;overflow:hidden;background-image: linear-gradient(rgba(5,10,8,0.62), rgba(7,20,14,0.72)), url('icons/student_2.jpg');background-size: cover;background-position: center top;}
+    .l-pane::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 70% at 20% 80%,rgba(10,110,63,.22) 0%,transparent 60%),radial-gradient(ellipse 60% 50% at 80% 20%,rgba(2,30,16,.15) 0%,transparent 70%);pointer-events:none;}
+    .l-dots{position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle,rgba(255,255,255,.05) 1px,transparent 1px);background-size:28px 28px;mask-image:radial-gradient(ellipse at center,black 0%,transparent 80%);}
+    .l-top{position:relative;z-index:1;display:flex;align-items:center;gap:11px;}
+    .l-logo{width:42px;height:42px;border-radius:11px;background:white;padding:3px;overflow:hidden;flex-shrink:0;}
+    .l-logo img{width:100%;height:100%;object-fit:cover;border-radius:8px;}
+    .l-brand{font-family:var(--H);font-size:19px;font-weight:800;color:white;}
+    .l-brand em{color:var(--AU);font-style:normal;}
+    .l-body{flex:1;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:1;max-width:400px;}
+    .l-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(10,110,63,.15);border:1px solid rgba(10,110,63,.4);padding:5px 14px 5px 10px;border-radius:100px;font-size:12px;font-weight:500;color:rgba(255,255,255,.7);}
+    .l-dot{width:8px;height:8px;border-radius:50%;background:#4ade80;animation:pulse 2.2s ease-in-out infinite;}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.5)}}
+    .l-h{font-family:var(--H);font-size:clamp(26px,3.2vw,42px);font-weight:900;color:white;line-height:1.08;letter-spacing:-1.5px;margin-bottom:16px;}
+    .l-h .au{color:var(--AU);}
+    .l-p{font-size:14px;color:rgba(255,255,255,.42);line-height:1.75;margin-bottom:32px;}
+    .portals-list{display:flex;flex-direction:column;gap:9px;}
+    .portal-item{display:flex;align-items:center;gap:12px;padding:11px 15px;border-radius:12px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.025);transition:var(--transition);}
+    .portal-item:hover{background:rgba(255,255,255,.04);border-color:rgba(10,110,63,.3);}
+    .pi-ico{width:34px;height:34px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;}
+    .pi-ico.admin{background:rgba(10,110,63,.2);}
+    .pi-ico.teacher{background:rgba(59,130,246,.15);}
+    .pi-ico.parent{background:rgba(240,165,0,.15);}
+    .pi-ico.exam{background:rgba(168,85,247,.15);}
+    .pi-text h4{font-family:var(--H);font-size:12px;font-weight:700;color:white;margin-bottom:1px;}
+    .pi-text p{font-size:10px;color:rgba(255,255,255,.32);}
+    .l-bottom{position:relative;z-index:1;font-size:12px;color:rgba(255,255,255,.2);margin-top:32px;}
+    .l-bottom a{color:rgba(255,255,255,.38);text-decoration:none;transition:color .15s;}
+    .l-bottom a:hover{color:white;}
+    .flag-stripe{position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--G) 33.33%,rgba(255,255,255,.6) 33.33%,rgba(255,255,255,.6) 66.66%,var(--G) 66.66%);}
+
+    /* Right pane */
+    .r-pane{width:480px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px;background:var(--S);}
+    .r-inner{width:100%;max-width:380px;max-height:80vh;overflow-y:auto;}
+    .r-title{font-family:var(--H);font-size:26px;font-weight:800;color:var(--INK);letter-spacing:-.5px;margin-bottom:6px;}
+    .r-sub{font-size:14px;color:var(--T3);margin-bottom:28px;line-height:1.6;}
+    .form-grp{margin-bottom:16px;}
+    .form-lbl{display:block;font-size:13px;font-weight:600;color:var(--T2);margin-bottom:6px;}
+    .form-lbl .req{color:#ef4444;margin-left:2px;}
+    .form-ctrl{width:100%;padding:11px 14px;border:1.5px solid var(--BD);border-radius:var(--radius-sm);background:white;font-family:var(--B);font-size:14px;color:var(--INK);transition:var(--transition);}
+    .form-ctrl::placeholder{color:var(--T3);}
+    .form-ctrl:focus{border-color:var(--G);box-shadow:0 0 0 3px rgba(10,110,63,.1);}
+    .pwd-wrap{position:relative;}
+    .pwd-toggle{position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--T3);font-size:14px;padding:4px;transition:color .15s;}
+    .pwd-toggle:hover{color:var(--G);}
+    .form-err{background:#fef2f2;border:1px solid #fecaca;border-radius:var(--radius-sm);color:#b91c1c;font-size:13px;padding:10px 14px;margin-bottom:14px;display:none;line-height:1.5;}
+    .form-success{background:#f0fdf4;border:1px solid #86efac;border-radius:var(--radius-sm);color:#166534;font-size:13px;padding:10px 14px;margin-bottom:14px;display:none;line-height:1.5;}
+    .btn-sign-in{width:100%;padding:13px;border-radius:var(--radius-sm);background:var(--G);color:white;font-family:var(--H);font-size:15px;font-weight:700;border:none;cursor:pointer;position:relative;overflow:hidden;}
+    .btn-sign-in::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.15),transparent);pointer-events:none;}
+    .btn-sign-in:hover:not(:disabled){background:var(--G3);transform:translateY(-1px);box-shadow:0 8px 24px rgba(10,110,63,.35);}
+    .btn-sign-in:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+    .btn-secondary{width:100%;padding:10px;border-radius:var(--radius-sm);background:white;border:1.5px solid var(--BD);color:var(--T3);font-family:var(--H);font-size:13px;font-weight:600;cursor:pointer;transition:var(--transition);}
+    .btn-secondary:hover:not(:disabled){background:var(--GL);border-color:var(--G);}
+    .demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+    .demo-btn{padding:9px 12px;background:white;border:1.5px solid var(--BD);border-radius:var(--radius-sm);cursor:pointer;text-align:left;font-family:var(--B);transition:var(--transition);}
+    .demo-btn:hover{background:var(--GL);border-color:var(--G);}
+    .demo-btn strong{display:block;font-size:12px;font-weight:700;color:var(--G);}
+    .demo-btn span{font-size:10px;color:var(--T3);}
+    .student-link{margin-top:16px;padding:13px 15px;border-radius:var(--radius-sm);background:var(--AUL);border:1px solid #fde68a;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+    .student-link p{font-size:12px;color:#78350f;line-height:1.5;}
+    .student-link p strong{font-weight:700;display:block;font-size:13px;}
+    .student-link a{flex-shrink:0;padding:8px 13px;border-radius:8px;background:var(--AU);color:white;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;transition:var(--transition);}
+    .student-link a:hover{background:#d97706;}
+    .result-link{margin-top:10px;padding:13px 15px;border-radius:var(--radius-sm);background:#eff6ff;border:1px solid #bfdbfe;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+    .result-link p{font-size:12px;color:#1e3a5f;line-height:1.5;}
+    .result-link p strong{font-weight:700;display:block;font-size:13px;}
+    .result-link a{flex-shrink:0;padding:8px 13px;border-radius:8px;background:#2563eb;color:white;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;transition:var(--transition);}
+    .result-link a:hover{background:#1d4ed8;}
+    .r-footer{margin-top:24px;font-size:12px;color:var(--T3);text-align:center;}
+    .r-footer a{color:var(--G);font-weight:600;text-decoration:none;}
+    .r-footer a:hover{text-decoration:underline;}
+    .tab-nav{display:flex;gap:0;margin-bottom:24px;border-bottom:2px solid var(--BD);}
+    .tab-btn{flex:1;padding:10px;background:none;border:none;cursor:pointer;font-family:var(--H);font-size:13px;font-weight:600;color:var(--T3);border-bottom:2px solid transparent;margin-bottom:-2px;transition:var(--transition);}
+    .tab-btn.active{font-weight:700;color:var(--G);border-bottom-color:var(--G);}
+    .reset-type-toggle{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+    .reset-type-btn{padding:12px;border:1.5px solid var(--BD);border-radius:var(--radius-sm);background:white;cursor:pointer;text-align:center;font-family:var(--H);font-size:12px;font-weight:600;transition:var(--transition);}
+    .reset-type-btn.active{background:var(--GL);border-color:var(--G);color:var(--G);}
+    .reset-type-btn:hover{border-color:var(--G);}
+
+    /* Floating demo button */
+    .demo-float-btn{position:fixed;top:22px;right:24px;z-index:1000;display:flex;align-items:center;gap:9px;background:var(--G);color:white;padding:11px 20px;border-radius:50px;box-shadow:0 4px 20px rgba(10,110,63,.25);cursor:pointer;border:none;font-family:var(--H);font-size:14px;font-weight:600;transition:var(--transition);}
+    .demo-float-btn:hover{background:var(--G3);transform:translateY(-2px);box-shadow:0 8px 28px rgba(10,110,63,.38);}
+    .demo-float-btn svg{width:16px;height:16px;}
+    /* Demo modal overlay */
+    .demo-modal-overlay{display:none;position:fixed;inset:0;z-index:2000;background:rgba(8,12,16,.42);align-items:center;justify-content:center;}
+    .demo-modal-overlay.open{display:flex;}
+    .demo-modal-box{background:white;width:90vw;max-width:340px;padding:26px 22px 20px;border-radius:18px;box-shadow:0 12px 40px rgba(0,0,0,.18);position:relative;}
+    .demo-modal-title{font-size:11px;font-weight:800;color:var(--T3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+    .demo-modal-close{position:absolute;top:12px;right:14px;background:none;border:none;font-size:22px;color:var(--T3);cursor:pointer;line-height:1;padding:2px 6px;border-radius:6px;transition:background .15s;}
+    .demo-modal-close:hover{background:var(--GL);color:var(--G);}
+    @media(max-width:860px){.demo-float-btn{top:14px;right:14px;padding:9px 15px;font-size:13px;}}
+
+    @media(max-width:860px){.l-pane{display:none;}.r-pane{width:100%;padding:36px 24px;background:white;}body{background:white;}}
+    @media(max-width:480px){.demo-grid{grid-template-columns:1fr;}}
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
+  <script src="js/config.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="api/auth.js"></script>
+</head>
+<body>
+  <!-- Left Pane -->
+  <div class="l-pane">
+    <div class="l-dots"></div>
+    <div class="l-top">
+      <div class="l-logo">
+        <img src="images/logo.jpg" alt="EduTrack NG" onerror="this.parentElement.style.background='#0a6e3f';">
+      </div>
+      <div class="l-brand">EduTrack <em>NG</em></div>
+    </div>
+    <div class="l-body">
+      <div class="l-eyebrow"><span class="l-dot"></span>Nigerian School Management</div>
+      <h1 class="l-h">School admin,<br>simplified<br>for <span class="au">Nigeria</span></h1>
+      <p class="l-p">One platform, four powerful portals. Every user sees exactly what they need — with full Nigerian grading (A1–F9) and Naira fee tracking.</p>
+      <div class="portals-list">
+        <div class="portal-item"><div class="pi-ico admin" title="Admin">👨‍💼</div><div class="pi-text"><h4>Admin</h4><p>Full system access</p></div></div>
+        <div class="portal-item"><div class="pi-ico teacher" title="Teacher">👨‍🏫</div><div class="pi-text"><h4>Teacher</h4><p>Grade & attendance</p></div></div>
+        <div class="portal-item"><div class="pi-ico parent" title="Parent">👨‍👩‍👧</div><div class="pi-text"><h4>Parent</h4><p>Monitor progress</p></div></div>
+        <div class="portal-item"><div class="pi-ico exam" title="Exam">📋</div><div class="pi-text"><h4>Exam</h4><p>Results & testing</p></div></div>
+      </div>
+    </div>
+    <div class="l-bottom">
+      <p>© 2025 EduTrack NG &nbsp;·&nbsp;<a href="index.html">Home</a> &nbsp;·&nbsp;<a href="index.html#pricing">Pricing</a></p>
+    </div>
+    <div class="flag-stripe"></div>
+  </div>
+
+  <!-- Right Pane (Form) -->
+  <div class="r-pane">
+    <div class="r-inner">
+      <!-- Tabs -->
+      <div class="tab-nav">
+        <button class="tab-btn active" id="tabLogin" onclick="switchTab('login')">Sign In</button>
+        <button class="tab-btn" id="tabReset" onclick="switchTab('reset')">Forgot Password</button>
+        <button class="tab-btn" id="tabReg" onclick="window.location.href='register.html'">Register School</button>
+      </div>
+
+      <!-- LOGIN PANEL -->
+      <form id="loginPanel" onsubmit="doLogin(event)">
+        <h2 class="r-title">Welcome back</h2>
+        <p class="r-sub">Sign in to your school portal. Students use the student portal link below.</p>
+        <div class="form-err" id="loginError"></div>
+
+        <div class="form-grp">
+          <label class="form-lbl">Email Address <span class="req">*</span></label>
+          <input type="email" id="email" class="form-ctrl" placeholder="you@school.edu.ng" required autocomplete="username">
+        </div>
+        <div class="form-grp">
+          <label class="form-lbl">Password <span class="req">*</span></label>
+          <div class="pwd-wrap">
+            <input type="password" id="password" class="form-ctrl" placeholder="Enter your password" required autocomplete="current-password">
+            <button type="button" class="pwd-toggle" id="pwdToggle" title="Toggle password">👁️</button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-sign-in" id="loginBtn">Sign In to Portal →</button>
+
+        <div class="student-link">
+          <p><strong>Are you a student?</strong>Use your Admission No. + PIN to log in at the student portal.</p>
+          <a href="portals/student/login.html">Student Login →</a>
+        </div>
+
+        <div style="margin-top:10px;padding:14px 15px;border-radius:var(--radius-sm);background:linear-gradient(135deg,#052e16,#14532d);border:1px solid rgba(74,222,128,.2);display:flex;align-items:center;justify-content:space-between;gap:10px;">
+          <div>
+            <div style="font-size:13px;font-weight:800;color:#4ade80;margin-bottom:2px;">📝 New Student?</div>
+            <p style="font-size:11px;color:rgba(255,255,255,.55);line-height:1.5;margin:0;">Register with your school-issued scratch card PIN.</p>
+          </div>
+          <button type="button" onclick="window.location.href='student-application.html'" style="flex-shrink:0;padding:9px 15px;border-radius:8px;background:#16a34a;color:white;font-size:12px;font-weight:800;border:none;cursor:pointer;white-space:nowrap;transition:background .15s;" onmouseover="this.style.background='#15803d'" onmouseout="this.style.background='#16a34a'">Apply Now →</button>
+        </div>
+
+        <div class="result-link">
+          <p><strong>Check Result</strong><br>Access your examination results and performance analytics.</p>
+          <a href="portals/parent/result-checker.html">Check Result →</a>
+        </div>
+      </form><!-- /loginPanel -->
+
+      <!-- PASSWORD RESET PANEL -->
+      <form id="resetPanel" style="display:none;" onsubmit="event.preventDefault();">
+        <h2 class="r-title">Reset Password</h2>
+        <p class="r-sub">Select your account type and we'll help you reset your password.</p>
+        <div class="form-err" id="resetError"></div>
+        <div class="form-success" id="resetSuccess"></div>
+
+        <!-- Reset Type Toggle -->
+        <div class="reset-type-toggle">
+          <button type="button" class="reset-type-btn active" onclick="setResetType('staff')" id="resetTypeStaff">
+            <div style="font-size:16px;margin-bottom:4px;">👤</div>
+            Staff/Admin
+          </button>
+          <button type="button" class="reset-type-btn" onclick="setResetType('student')" id="resetTypeStudent">
+            <div style="font-size:16px;margin-bottom:4px;">📚</div>
+            Student
+          </button>
+        </div>
+
+        <!-- STAFF RESET FLOW -->
+        <div id="staffResetFlow">
+          <div id="staffStep1">
+            <div class="form-grp">
+              <label class="form-lbl">Email Address <span class="req">*</span></label>
+              <input type="email" id="staffEmail" class="form-ctrl" placeholder="you@school.edu.ng" autocomplete="username">
+            </div>
+            <button type="button" class="btn-sign-in" onclick="requestStaffReset()">Send Reset Link →</button>
+          </div>
+
+          <div id="staffStep2" style="display:none;">
+            <div style="background:#e6f4ed;border:1px solid #86efac;border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;color:#166534;line-height:1.6;">
+              <strong>✓ Check your email</strong><br>We've sent a password reset link to <strong id="confirmEmail"></strong>. Click the link in the email to set a new password. The link expires in 1 hour.
+            </div>
+            <button type="button" class="btn-secondary" style="margin-top:8px;" onclick="staffStep1Retry()">← Back</button>
+          </div>
+        </div>
+
+        <!-- STUDENT RESET FLOW -->
+        <div id="studentResetFlow" style="display:none;">
+          <div id="studentStep1">
+            <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;color:#92400e;line-height:1.6;">
+              <strong>ℹ️ Student Portal Access</strong><br>Use your admission number and date of birth to verify your identity.
+            </div>
+            <div class="form-grp">
+              <label class="form-lbl">School <span class="req">*</span></label>
+              <select id="studentSchool" class="form-ctrl"><option value="">Loading schools…</option></select>
+            </div>
+            <div class="form-grp">
+              <label class="form-lbl">Admission Number <span class="req">*</span></label>
+              <input type="text" id="studentAdmNo" class="form-ctrl" placeholder="e.g., 2025/001">
+            </div>
+            <div class="form-grp">
+              <label class="form-lbl">Date of Birth <span class="req">*</span></label>
+              <input type="date" id="studentDOB" class="form-ctrl">
+              <div style="font-size:11px;color:var(--T3);margin-top:4px;">For verification purposes</div>
+            </div>
+            <button type="button" class="btn-sign-in" onclick="verifyStudentIdentity()">Verify Identity →</button>
+          </div>
+
+          <div id="studentStep2" style="display:none;">
+            <div style="background:#e6f4ed;border:1px solid #86efac;border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;color:#166534;line-height:1.6;">
+              <strong>✓ Verification Successful</strong><br>Now set your new PIN. Use at least 4 digits.
+            </div>
+            <div class="form-grp">
+              <label class="form-lbl">New PIN <span class="req">*</span></label>
+              <div class="pwd-wrap">
+                <input type="password" id="studentNewPwd" class="form-ctrl" placeholder="Min. 4 digits" autocomplete="new-password" inputmode="numeric">
+                <button type="button" class="pwd-toggle" onclick="togglePwdVisibility('studentNewPwd')" style="margin:0;">👁️</button>
+              </div>
+              <div style="font-size:11px;color:var(--T3);margin-top:4px;">Numbers only recommended</div>
+            </div>
+            <div class="form-grp">
+              <label class="form-lbl">Confirm PIN <span class="req">*</span></label>
+              <div class="pwd-wrap">
+                <input type="password" id="studentConfirmPwd" class="form-ctrl" placeholder="Repeat PIN" autocomplete="new-password" inputmode="numeric">
+                <button type="button" class="pwd-toggle" onclick="togglePwdVisibility('studentConfirmPwd')" style="margin:0;">👁️</button>
+              </div>
+            </div>
+            <button type="button" class="btn-sign-in" onclick="submitStudentReset()">Save New PIN →</button>
+            <button type="button" class="btn-secondary" style="margin-top:8px;" onclick="studentStep1Retry()">← Back</button>
+          </div>
+        </div>
+
+        <button type="button" class="btn-secondary" style="margin-top:16px;" onclick="switchTab('login')">← Back to Login</button>
+      </form><!-- /resetPanel -->
+
+      <!-- REGISTRATION PANEL -->
+      <form id="regPanel" style="display:none;" onsubmit="event.preventDefault();">
+        <h2 class="r-title">Student Registration</h2>
+        <p class="r-sub">Enter your school-issued scratch card PIN to begin enrollment.</p>
+        <div class="form-err" id="regError"></div>
+
+        <div id="regStep1">
+          <div class="form-grp">
+            <label class="form-lbl">School <span class="req">*</span></label>
+            <select id="regSchool" class="form-ctrl"><option value="">Loading schools…</option></select>
+          </div>
+          <div class="form-grp">
+            <label class="form-lbl">Serial Number <span class="req">*</span></label>
+            <input type="text" id="regSerial" class="form-ctrl" placeholder="e.g. ETN12345670001" maxlength="20"
+              style="font-family:monospace;font-size:14px;letter-spacing:2px;text-transform:uppercase;"
+              oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')">
+            <div style="font-size:11px;color:var(--T3);margin-top:4px;">Found on the top of your scratch card (e.g. ETN12345670001)</div>
+          </div>
+          <div class="form-grp">
+            <label class="form-lbl">Scratch Card PIN <span class="req">*</span></label>
+            <input type="text" id="regPin" class="form-ctrl" placeholder="Enter 12-digit PIN" maxlength="12"
+              style="font-family:monospace;font-size:18px;letter-spacing:4px;text-align:center;"
+              oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+            <div style="font-size:11px;color:var(--T3);margin-top:4px;">Scratch the silver panel to reveal your PIN.</div>
+          </div>
+          <button type="button" class="btn-sign-in" onclick="verifyRegPin()">Verify Serial & PIN →</button>
+        </div>
+
+        <div id="regStep2" style="display:none;">
+          <div style="background:#e6f4ed;border:1px solid #86efac;border-radius:8px;padding:10px 14px;font-size:13px;color:#166534;margin-bottom:14px;">
+            <strong>✓ PIN Verified</strong> - Now complete your registration details
+          </div>
+
+          <!-- Passport — COMPULSORY -->
+          <div class="form-grp">
+            <label class="form-lbl">Passport Photo <span class="req">*</span></label>
+            <div id="photoPreviewWrap" onclick="document.getElementById('regPassport').click()" style="width:90px;height:110px;border:2px dashed var(--BD);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;margin-bottom:8px;background:#f9fafb;">
+              <span id="photoPlaceholder" style="font-size:32px;">📷</span>
+            </div>
+            <input type="file" id="regPassport" accept="image/*" style="display:none;" onchange="previewPassport()">
+            <div style="font-size:11px;color:var(--T3);">Photo appears on ID card &amp; report card. Max 2MB.</div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="form-grp"><label class="form-lbl">Full Name <span class="req">*</span></label><input type="text" id="regName" class="form-ctrl" placeholder="Surname First"></div>
+            <div class="form-grp"><label class="form-lbl">Admission No. <span class="req">*</span></label><input type="text" id="regAdmNo" class="form-ctrl" placeholder="2025/001"></div>
+            <div class="form-grp"><label class="form-lbl">Gender <span class="req">*</span></label>
+              <select id="regGender" class="form-ctrl"><option value="">Select…</option><option value="M">Male</option><option value="F">Female</option></select>
+            </div>
+            <div class="form-grp"><label class="form-lbl">Date of Birth</label><input type="date" id="regDOB" class="form-ctrl"></div>
+          </div>
+          <div class="form-grp"><label class="form-lbl">Parent Phone <span class="req">*</span></label><input type="tel" id="regParentPhone" class="form-ctrl" placeholder="08012345678"></div>
+          <div class="form-grp"><label class="form-lbl">Parent Name</label><input type="text" id="regParentName" class="form-ctrl" placeholder="Parent full name"></div>
+          <div class="form-grp"><label class="form-lbl">Class</label>
+            <select id="regClass" class="form-ctrl"><option value="">Select class…</option></select>
+          </div>
+          <input type="hidden" id="regVerifiedPin">
+          <input type="hidden" id="regVerifiedSerial">
+          <input type="hidden" id="regSchoolId">
+          <button type="button" class="btn-sign-in" style="margin-top:6px;" onclick="submitRegistration()">Complete Registration →</button>
+          <button type="button" onclick="document.getElementById('regStep2').style.display='none';document.getElementById('regStep1').style.display='';" style="width:100%;margin-top:8px;padding:10px;border:1.5px solid var(--BD);border-radius:var(--radius-sm);background:white;cursor:pointer;font-size:13px;font-weight:600;color:var(--T3);transition:var(--transition);">← Back</button>
+        </div>
+      </form><!-- /regPanel -->
+
+      <div class="r-footer">
+        <a href="index.html">← Back to homepage</a> &nbsp;·&nbsp; <a href="saas-console/login.html">Platform Admin</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (async () => {
+      const session = await getSession();
+      if (session) { const user = await getCurrentUser(); if (user) redirectByRole(user.role); }
+    })();
+
+    function redirectByRole(role) {
+      const routes = {
+        admin:        'admin/index.html',
+        teacher:      'portals/staff/index.html',
+        parent:       'portals/parent/index.html',
+        exam_officer: 'portals/academic-office/index.html',
+        vp_academic:  'portals/academic-office/index.html',
+        vp_admin:     'portals/admin-office/student-admission.html',
+        registrar:    'portals/admin-office/student-admission.html',
+        accountant:   'portals/bursary/fee-tracker.html',
+        saas_owner:   'saas-console/index.html'
+      };
+      window.location.href = routes[role] || 'index.html';
+    }
+
+    function fillDemo(email, pwd) {
+      document.getElementById('email').value = email;
+      document.getElementById('password').value = pwd;
+    }
+
+    document.getElementById('pwdToggle').addEventListener('click', () => {
+      const p = document.getElementById('password'), b = document.getElementById('pwdToggle');
+      p.type = p.type === 'password' ? 'text' : 'password';
+      b.textContent = p.type === 'password' ? '👁️' : '🙈';
+    });
+
+    document.getElementById('password').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+    // ── Rate limiting (client-side brute-force protection) ───────
+    const _loginAttempts = new Map();
+    const _MAX_ATTEMPTS  = 5;
+    const _BASE_DELAY_MS = 1000;
+
+    function _getLoginDelay(email) {
+      const attempts = _loginAttempts.get(email) || 0;
+      if (attempts < _MAX_ATTEMPTS) return 0;
+      const delay = _BASE_DELAY_MS * Math.pow(2, attempts - _MAX_ATTEMPTS);
+      return Math.min(delay, 300000); // cap at 5 minutes
+    }
+
+    async function doLogin(event) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      
+      const btn = document.getElementById('loginBtn');
+      const errEl = document.getElementById('loginError');
+      const email = document.getElementById('email').value.trim();
+      const pwd = document.getElementById('password').value;
+      errEl.style.display = 'none';
+      if (!email || !pwd) { errEl.textContent = 'Please enter your email and password.'; errEl.style.display = 'block'; return; }
+
+      // Rate limit check
+      const delay = _getLoginDelay(email);
+      if (delay > 0) {
+        const secs = Math.ceil(delay / 1000);
+        errEl.textContent = `Too many failed attempts. Please wait ${secs} second${secs !== 1 ? 's' : ''} before trying again.`;
+        errEl.style.display = 'block';
+        return;
+      }
+
+      btn.textContent = 'Signing in…'; btn.disabled = true;
+      try {
+        const { error } = await db.auth.signInWithPassword({ email, password: pwd });
+        if (error) {
+          _loginAttempts.set(email, (_loginAttempts.get(email) || 0) + 1);
+          throw new Error('Invalid email or password.');
+        }
+        const user = await getCurrentUser();
+        if (!user) throw new Error('Account not found. Contact your school admin.');
+        if (!user.is_active) throw new Error('Your account is deactivated. Contact your school admin.');
+        _loginAttempts.delete(email);
+        if (user.must_change_password) {
+          showChangePasswordScreen(user);
+          return;
+        }
+        redirectByRole(user.role);
+      } catch (err) {
+        errEl.textContent = err.message || 'Login failed. Check your credentials.';
+        errEl.style.display = 'block';
+        btn.textContent = 'Sign In to Portal →'; btn.disabled = false;
+      }
+    }
+
+    function showChangePasswordScreen(user) {
+      document.querySelector('.r-inner').innerHTML = `
+        <div style="text-align:center;margin-bottom:24px;">
+          <div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#0a6e3f,#12a05a);margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:28px;">🔐</div>
+          <h2 style="font-family:var(--H);font-size:22px;font-weight:800;color:var(--INK);margin-bottom:6px;">Set Your Password</h2>
+          <p style="font-size:13px;color:var(--T3);line-height:1.65;">Welcome, <strong>${user.full_name}</strong>!<br>Please set a new password before continuing.</p>
+        </div>
+        <div id="pwChangeErr" style="display:none;background:#fee2e2;color:#991b1b;padding:10px 14px;border-radius:9px;font-size:13px;margin-bottom:16px;border:1px solid #fca5a5;"></div>
+        <div class="form-grp">
+          <label class="form-lbl">New Password <span class="req">*</span></label>
+          <input type="password" id="newPwd" class="form-ctrl" placeholder="Min. 8 characters" autocomplete="new-password">
+          <div style="font-size:11px;color:var(--T3);margin-top:4px;">At least 8 characters — mix of letters and numbers recommended</div>
+        </div>
+        <div class="form-grp">
+          <label class="form-lbl">Confirm New Password <span class="req">*</span></label>
+          <input type="password" id="newPwd2" class="form-ctrl" placeholder="Repeat new password" autocomplete="new-password">
+        </div>
+        <button class="btn-sign-in" id="pwChangeBtn" onclick="doChangePassword('${user.role}','${user.id}')">
+          Save Password &amp; Continue →
+        </button>
+      `;
+    }
+
+    async function doChangePassword(role, userId) {
+      const btn = document.getElementById('pwChangeBtn');
+      const errEl = document.getElementById('pwChangeErr');
+      const pwd1 = (document.getElementById('newPwd')?.value || '');
+      const pwd2 = (document.getElementById('newPwd2')?.value || '');
+      errEl.style.display = 'none';
+
+      if (pwd1.length < 8) {
+        errEl.textContent = 'Password must be at least 8 characters.';
+        errEl.style.display = 'block'; return;
+      }
+      if (pwd1 !== pwd2) {
+        errEl.textContent = 'Passwords do not match. Please try again.';
+        errEl.style.display = 'block'; return;
+      }
+      btn.textContent = 'Saving…'; btn.disabled = true;
+      try {
+        const { error } = await db.auth.updateUser({ password: pwd1 });
+        if (error) throw new Error(error.message);
+        await db.from('users').update({ must_change_password: false }).eq('id', userId);
+        redirectByRole(role);
+      } catch (err) {
+        errEl.textContent = err.message || 'Failed to update password. Please try again.';
+        errEl.style.display = 'block';
+        btn.textContent = 'Save Password & Continue →'; btn.disabled = false;
+      }
+    }
+  </script>
+  <script src="js/pwa-v2.1.js"></script>
+
+<script>
+// ── Tab switching ────────────────────────────────────────────
+function switchTab(tab) {
+  document.getElementById('loginPanel').style.display = 'none';
+  document.getElementById('resetPanel').style.display = 'none';
+  document.getElementById('regPanel').style.display = 'none';
+
+  document.getElementById('tabLogin').classList.remove('active');
+  document.getElementById('tabReset').classList.remove('active');
+  document.getElementById('tabReg').classList.remove('active');
+
+  if (tab === 'login') {
+    document.getElementById('loginPanel').style.display = '';
+    document.getElementById('tabLogin').classList.add('active');
+  } else if (tab === 'reset') {
+    document.getElementById('resetPanel').style.display = '';
+    document.getElementById('tabReset').classList.add('active');
+    loadResetSchools();
+  } else if (tab === 'register') {
+    document.getElementById('regPanel').style.display = '';
+    document.getElementById('tabReg').classList.add('active');
+    loadRegSchools();
+  }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  document.getElementById('tabLogin').classList.add('active');
+  
+  // Redirect already-logged-in users to their portal
+  await redirectIfLoggedIn();
+});
+
+// ── PASSWORD RESET FUNCTIONALITY ────────────────────────────
+let currentResetType = 'staff';
+let resetRateLimits = new Map();
+
+function setResetType(type) {
+  currentResetType = type;
+  const staffBtn = document.getElementById('resetTypeStaff');
+  const studentBtn = document.getElementById('resetTypeStudent');
+  const staffFlow = document.getElementById('staffResetFlow');
+  const studentFlow = document.getElementById('studentResetFlow');
+
+  if (type === 'staff') {
+    staffBtn.classList.add('active');
+    studentBtn.classList.remove('active');
+    staffFlow.style.display = '';
+    studentFlow.style.display = 'none';
+    resetError('');
+  } else {
+    staffBtn.classList.remove('active');
+    studentBtn.classList.add('active');
+    staffFlow.style.display = 'none';
+    studentFlow.style.display = '';
+    resetError('');
+  }
+}
+
+function resetError(msg = '') {
+  const errEl = document.getElementById('resetError');
+  if (msg) {
+    errEl.textContent = msg;
+    errEl.style.display = 'block';
+  } else {
+    errEl.style.display = 'none';
+  }
+}
+
+function resetSuccess(msg = '') {
+  const successEl = document.getElementById('resetSuccess');
+  if (msg) {
+    successEl.textContent = msg;
+    successEl.style.display = 'block';
+  } else {
+    successEl.style.display = 'none';
+  }
+}
+
+// ── STAFF PASSWORD RESET ────────────────────────────────────
+async function requestStaffReset() {
+  const email = document.getElementById('staffEmail').value.trim().toLowerCase();
+  resetError('');
+  resetSuccess('');
+
+  if (!email) {
+    resetError('Please enter your email address.');
+    return;
+  }
+
+  const key = `staff_${email}`;
+  const now = Date.now();
+  const attempts = resetRateLimits.get(key) || [];
+  const recentAttempts = attempts.filter(t => now - t < 60000);
+
+  if (recentAttempts.length >= 3) {
+    resetError('Too many requests. Please try again in a few minutes.');
+    return;
+  }
+
+  const btn = event.target;
+  btn.textContent = 'Sending…'; btn.disabled = true;
+
+  try {
+    // Use Supabase's built-in password reset email (no custom RPC needed)
+    const redirectTo = window.location.origin + '/login.html';
+    const { error } = await db.auth.resetPasswordForEmail(email, { redirectTo });
+
+    // Supabase returns success even for unknown emails (prevents user enumeration).
+    // We show a success message regardless.
+    if (error) throw new Error(error.message || 'Unable to process request. Please try again.');
+
+    recentAttempts.push(now);
+    resetRateLimits.set(key, recentAttempts);
+
+    document.getElementById('staffStep1').style.display = 'none';
+    document.getElementById('staffStep2').style.display = '';
+    document.getElementById('confirmEmail').textContent = email;
+    resetSuccess(`Reset link sent! Check your inbox and spam folder.`);
+    btn.textContent = 'Send Reset Link →'; btn.disabled = false;
+
+  } catch (err) {
+    resetError(err.message || 'Failed to send reset email. Please try again.');
+    btn.textContent = 'Send Reset Link →'; btn.disabled = false;
+  }
+}
+
+async function submitStaffReset() {
+  const email = document.getElementById('staffEmail').value.trim().toLowerCase();
+  const code = document.getElementById('staffResetCode').value.trim();
+  const pwd1 = document.getElementById('staffNewPwd').value;
+  const pwd2 = document.getElementById('staffConfirmPwd').value;
+  resetError('');
+
+  if (!code || code.length !== 6) {
+    resetError('Please enter a valid 6-digit code.');
+    return;
+  }
+  if (pwd1.length < 8) {
+    resetError('Password must be at least 8 characters.');
+    return;
+  }
+  if (pwd1 !== pwd2) {
+    resetError('Passwords do not match.');
+    return;
+  }
+
+  const btn = event.target;
+  btn.textContent = 'Resetting…'; btn.disabled = true;
+
+  try {
+    const { data, error: rpcErr } = await db.rpc('reset_password_with_code', {
+      p_email: email,
+      p_code: code,
+      p_new_password: pwd1
+    });
+
+    if (rpcErr) throw new Error('Unable to reset password. Please try again.');
+    if (!data?.success) throw new Error(data?.error || 'Invalid code or code expired.');
+
+    resetSuccess('Password reset successfully! Redirecting to login...');
+    setTimeout(() => {
+      switchTab('login');
+      document.getElementById('email').value = email;
+      document.getElementById('password').value = '';
+      document.getElementById('staffStep1').style.display = '';
+      document.getElementById('staffStep2').style.display = 'none';
+      document.getElementById('staffEmail').value = '';
+    }, 2000);
+
+  } catch (err) {
+    resetError(err.message || 'Reset failed. Please try again.');
+    btn.textContent = 'Reset Password →'; btn.disabled = false;
+  }
+}
+
+function staffStep1Retry() {
+  document.getElementById('staffStep1').style.display = '';
+  document.getElementById('staffStep2').style.display = 'none';
+  document.getElementById('staffEmail').value = '';
+  document.getElementById('staffResetCode').value = '';
+  document.getElementById('staffNewPwd').value = '';
+  document.getElementById('staffConfirmPwd').value = '';
+  resetError('');
+  resetSuccess('');
+}
+
+// ── STUDENT PASSWORD RESET ────────────────────────────────────
+async function loadResetSchools() {
+  const sel = document.getElementById('studentSchool');
+  if (sel.options.length > 1) return;
+  try {
+    const { data } = await db.from('schools').select('id,name').eq('is_active', true).order('name');
+    sel.innerHTML = '<option value="">Select your school…</option>' +
+      (data || []).map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+  } catch(e) {
+    sel.innerHTML = '<option value="">Failed to load schools</option>';
+  }
+}
+
+async function verifyStudentIdentity() {
+  const schoolId = document.getElementById('studentSchool').value;
+  const admNo = document.getElementById('studentAdmNo').value.trim().toUpperCase();
+  const dob = document.getElementById('studentDOB').value;
+  resetError('');
+
+  if (!schoolId) { resetError('Please select your school.'); return; }
+  if (!admNo) { resetError('Please enter your admission number.'); return; }
+  if (!dob) { resetError('Please enter your date of birth.'); return; }
+
+  const key = `student_${schoolId}_${admNo}`;
+  const now = Date.now();
+  const attempts = resetRateLimits.get(key) || [];
+  const recentAttempts = attempts.filter(t => now - t < 60000);
+
+  if (recentAttempts.length >= 3) {
+    resetError('Too many verification attempts. Please try again later.');
+    return;
+  }
+
+  const btn = event.target;
+  btn.textContent = 'Verifying…'; btn.disabled = true;
+
+  try {
+    // Query students table — match admission_no case-insensitively + school
+    const { data, error: qErr } = await db
+      .from('students')
+      .select('id, admission_no, date_of_birth, school_id')
+      .eq('school_id', schoolId)
+      .ilike('admission_no', admNo)
+      .maybeSingle();
+
+    if (qErr) throw new Error('Verification failed. Please try again.');
+    if (!data) throw new Error('Admission number and date of birth do not match our records.');
+
+    // Compare date of birth — stored as YYYY-MM-DD string, input may be MM/DD/YYYY
+    const storedDOB = (data.date_of_birth || '').substring(0, 10);
+    let normalizedDOB = dob;
+    if (dob.includes('/')) {
+      const [mm, dd, yyyy] = dob.split('/');
+      normalizedDOB = `${yyyy}-${mm.padStart(2,'0')}-${dd.padStart(2,'0')}`;
+    }
+    if (storedDOB !== normalizedDOB) {
+      throw new Error('Admission number and date of birth do not match our records.');
+    }
+
+    // Store student row id for step 2 PIN reset
+    window._studentResetId = data.id;
+    window._studentResetSchool = schoolId;
+    window._studentResetAdmNo = admNo;
+
+    recentAttempts.push(now);
+    resetRateLimits.set(key, recentAttempts);
+
+    document.getElementById('studentStep1').style.display = 'none';
+    document.getElementById('studentStep2').style.display = '';
+    resetSuccess('Identity verified! Now set your new PIN.');
+
+  } catch (err) {
+    resetError(err.message || 'Identity verification failed. Please try again.');
+    btn.textContent = 'Verify Identity →'; btn.disabled = false;
+  }
+}
+
+async function submitStudentReset() {
+  const pwd1 = document.getElementById('studentNewPwd').value;
+  const pwd2 = document.getElementById('studentConfirmPwd').value;
+  resetError('');
+
+  if (pwd1.length < 4) {
+    resetError('PIN must be at least 4 digits.');
+    return;
+  }
+  if (pwd1 !== pwd2) {
+    resetError('PINs do not match.');
+    return;
+  }
+
+  const studentId = window._studentResetId;
+  if (!studentId) {
+    resetError('Verification expired. Please go back and verify again.');
+    return;
+  }
+
+  const btn = event.target;
+  btn.textContent = 'Saving…'; btn.disabled = true;
+
+  try {
+    // Students use a PIN stored in the students table, not Supabase auth
+    const { error } = await db
+      .from('students')
+      .update({ pin: pwd1 })
+      .eq('id', studentId);
+
+    if (error) throw new Error(error.message || 'Failed to update PIN. Please try again.');
+
+    window._studentResetId = null;
+    window._studentResetSchool = null;
+    window._studentResetAdmNo = null;
+
+    resetSuccess('PIN reset successfully! Redirecting to student login...');
+    setTimeout(() => {
+      window.location.href = 'portals/student/login.html';
+    }, 2000);
+
+  } catch (err) {
+    resetError(err.message || 'Reset failed. Please try again.');
+    btn.textContent = 'Save New PIN →'; btn.disabled = false;
+  }
+}
+
+function studentStep1Retry() {
+  document.getElementById('studentStep1').style.display = '';
+  document.getElementById('studentStep2').style.display = 'none';
+  document.getElementById('studentSchool').value = '';
+  document.getElementById('studentAdmNo').value = '';
+  document.getElementById('studentDOB').value = '';
+  document.getElementById('studentNewPwd').value = '';
+  document.getElementById('studentConfirmPwd').value = '';
+  resetError('');
+  resetSuccess('');
+}
+
+// ── UTILITY FUNCTION ────────────────────────────────────────
+function togglePwdVisibility(inputId) {
+  const input = document.getElementById(inputId);
+  input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+// Load schools for registration dropdown
+async function loadRegSchools() {
+  const sel = document.getElementById('regSchool');
+  if (sel.options.length > 1) return;
+  try {
+    const { data } = await db.from('schools').select('id,name').eq('is_active', true).order('name');
+    sel.innerHTML = '<option value="">Select your school…</option>' +
+      (data || []).map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+  } catch(e) { sel.innerHTML = '<option value="">Failed to load schools</option>'; }
+}
+
+// Verify scratch card Serial Number + PIN
+async function verifyRegPin() {
+  const errEl    = document.getElementById('regError');
+  errEl.style.display = 'none';
+  const schoolId = document.getElementById('regSchool').value;
+  const serial   = document.getElementById('regSerial').value.trim().toUpperCase();
+  const pin      = document.getElementById('regPin').value.trim();
+
+  if (!schoolId) { errEl.textContent = 'Please select your school.'; errEl.style.display = 'block'; return; }
+  if (!serial)   { errEl.textContent = 'Please enter your card Serial Number.'; errEl.style.display = 'block'; return; }
+  if (!pin || pin.length < 6) { errEl.textContent = 'Please enter your scratch card PIN (min 6 digits).'; errEl.style.display = 'block'; return; }
+
+  const btn = document.querySelector('#regStep1 button[onclick="verifyRegPin()"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Verifying…'; }
+
+  try {
+    let verified = false;
+
+    // ── Primary path: RPC (serial + pin) ─────────────────────────
+    try {
+      const { data: result, error: rpcErr } = await db.rpc('verify_scratch_pin', {
+        p_school_id: schoolId,
+        p_serial_no: serial,
+        p_pin:       pin,
+      });
+      if (!rpcErr && result?.valid) verified = true;
+      else if (!rpcErr && result?.error) throw new Error(result.error);
+    } catch (rpcEx) {
+      if (rpcEx.message && !rpcEx.message.includes('function')) throw rpcEx;
+      // RPC not updated yet — fall through to direct query
+    }
+
+    // ── Fallback: direct query (for legacy cards / old RPC signature) ─
+    if (!verified) {
+      const { data: card, error: cardErr } = await db
+        .from('scratch_cards')
+        .select('id,is_used,uses_count,max_uses,card_type,expires_at')
+        .eq('school_id', schoolId)
+        .ilike('serial_no', serial)
+        .eq('pin', pin)
+        .maybeSingle();
+
+      if (cardErr) throw new Error('Unable to verify. Please try again.');
+      if (!card)   throw new Error('Scratch card not found. Check your Serial Number and PIN, and make sure you selected the correct school.');
+
+      if (card.is_used || (card.uses_count ?? 0) >= (card.max_uses ?? 1))
+        throw new Error('This scratch card has already been used. Please request a new card from the school office.');
+      if (card.expires_at && new Date(card.expires_at) < new Date())
+        throw new Error('This scratch card has expired. Please request a new card from the school office.');
+      if (card.card_type && card.card_type !== 'registration')
+        throw new Error('This is not a registration card. Please use a registration scratch card.');
+
+      verified = true;
+    }
+
+    if (!verified) throw new Error('Verification failed. Check your Serial Number and PIN.');
+
+    // Load classes for this school
+    const { data: cls } = await db.from('classes').select('id,name').eq('school_id', schoolId).order('name');
+    document.getElementById('regClass').innerHTML = '<option value="">Select class…</option>' +
+      (cls || []).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+    // Carry serial + pin + school forward to step 2
+    document.getElementById('regVerifiedPin').value    = pin;
+    document.getElementById('regVerifiedSerial').value = serial;
+    document.getElementById('regSchoolId').value        = schoolId;
+
+    document.getElementById('regStep1').style.display = 'none';
+    document.getElementById('regStep2').style.display = '';
+
+    // Update the verified badge
+    const badge = document.querySelector('#regStep2 [style*="e6f4ed"]');
+    if (badge) badge.innerHTML = `<strong>✓ Card Verified</strong> — Serial: <code>${serial}</code> · Now complete your details`;
+
+  } catch(e) {
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Verify Serial & PIN →'; }
+  }
+}
+
+function previewPassport() {
+  const file = document.getElementById('regPassport').files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    alert('Please select an image file (JPG, PNG, etc.).');
+    document.getElementById('regPassport').value = '';
+    return;
+  }
+  if (file.size > 2 * 1024 * 1024) {
+    alert('Image must be under 2 MB.');
+    document.getElementById('regPassport').value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const wrap = document.getElementById('photoPreviewWrap');
+    document.getElementById('photoPlaceholder').style.display = 'none';
+    const existing = wrap.querySelector('img');
+    if (existing) existing.remove();
+    const img = document.createElement('img');
+    img.src = e.target.result;
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+    wrap.appendChild(img);
+  };
+  reader.readAsDataURL(file);
+}
+
+async function submitRegistration() {
+  const errEl = document.getElementById('regError');
+  errEl.style.display = 'none';
+  const name = document.getElementById('regName').value.trim();
+  const admNo = document.getElementById('regAdmNo').value.trim();
+  const gender = document.getElementById('regGender').value;
+  const dob = document.getElementById('regDOB').value || null;
+  const parentPhone = document.getElementById('regParentPhone').value.trim();
+  const parentName = document.getElementById('regParentName').value.trim();
+  const classId = document.getElementById('regClass').value || null;
+  const pin      = document.getElementById('regVerifiedPin').value;
+  const serial   = document.getElementById('regVerifiedSerial').value;
+  const schoolId = document.getElementById('regSchoolId').value;
+  const passportFile = document.getElementById('regPassport').files[0];
+
+  if (!name) { errEl.textContent = 'Full name is required.'; errEl.style.display = 'block'; return; }
+  if (!admNo) { errEl.textContent = 'Admission number is required.'; errEl.style.display = 'block'; return; }
+  if (!gender) { errEl.textContent = 'Please select gender.'; errEl.style.display = 'block'; return; }
+  if (!parentPhone) { errEl.textContent = 'Parent phone is required.'; errEl.style.display = 'block'; return; }
+  if (!passportFile) { errEl.textContent = 'Passport photo is compulsory. Please upload a photo.'; errEl.style.display = 'block'; return; }
+
+  const btn = document.querySelector('#regStep2 .btn-sign-in');
+  btn.disabled = true; btn.textContent = 'Submitting…';
+  try {
+    let photoUrl = null;
+    if (passportFile) {
+      try {
+        const ext      = passportFile.name.split('.').pop().toLowerCase();
+        const fileName = `students/${schoolId}/${admNo.replace(/\//g,'_')}_${Date.now()}.${ext}`;
+        const { error: uploadErr } = await db.storage.from('passports').upload(fileName, passportFile, { upsert: true });
+        if (!uploadErr) {
+          const { data: urlData } = db.storage.from('passports').getPublicUrl(fileName);
+          photoUrl = urlData?.publicUrl || null;
+        }
+      } catch (_) { }
+    }
+
+    const { data: result, error: rpcErr } = await db.rpc('register_student_public', {
+      p_school_id:     schoolId,
+      p_serial_no:     serial,
+      p_pin:           pin,
+      p_full_name:     name,
+      p_admission_no:  admNo,
+      p_gender:        gender,
+      p_date_of_birth: dob || null,
+      p_parent_phone:  parentPhone,
+      p_parent_name:   parentName || null,
+      p_class_id:      classId || null,
+      p_photo_url:     photoUrl
+    });
+
+    if (rpcErr) throw new Error(rpcErr.message);
+    if (result?.error) throw new Error(result.error);
+
+    document.getElementById('regStep2').innerHTML = `
+      <div style="text-align:center;padding:24px 0;">
+        <div style="font-size:56px;margin-bottom:12px;">✅</div>
+        <h3 style="font-family:var(--H);font-size:20px;font-weight:800;margin-bottom:8px;">Registration Successful!</h3>
+        <p style="color:var(--T3);font-size:14px;margin-bottom:8px;">Welcome, <strong>${name}</strong>.</p>
+        <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:14px;margin:12px 0;text-align:left;">
+          <div style="font-size:12px;color:#166534;font-weight:700;margin-bottom:6px;">Your Registration Details</div>
+          <div style="font-size:13px;color:#14532d;">Admission No: <strong>${admNo}</strong></div>
+          <div style="font-size:13px;color:#14532d;margin-top:4px;">Scratch Card PIN saved to your account.</div>
+        </div>
+        <p style="font-size:12px;color:var(--T3);margin-top:12px;">Please visit your school office to collect your student ID and complete enrollment.</p>
+      </div>`;
+  } catch(e) {
+    errEl.textContent = e.message || 'Registration failed. Please try again.';
+    errEl.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Complete Registration →';
+  }
+}
+</script>
+
+  <!-- Floating Demo Login Button -->
+  <button class="demo-float-btn" onclick="document.getElementById('demoModalOverlay').classList.add('open')" title="Demo logins">
+     Demo Login
+  </button>
+
+  <!-- Demo Modal -->
+  <div class="demo-modal-overlay" id="demoModalOverlay" onclick="if(event.target===this)this.classList.remove('open')">
+    <div class="demo-modal-box">
+      <button class="demo-modal-close" onclick="document.getElementById('demoModalOverlay').classList.remove('open')">&times;</button>
+      <div class="demo-modal-title">
+        Demo accounts — click to fill
+      </div>
+      <div class="demo-grid">
+        <button class="demo-btn" onclick="fillDemoAndClose('admin@demo.school.ng','demo1234')"><strong>Admin</strong><span>admin@demo.school.ng</span></button>
+        <button class="demo-btn" onclick="fillDemoAndClose('teacher@demo.school.ng','demo1234')"><strong>Teacher</strong><span>teacher@demo.school.ng</span></button>
+        <button class="demo-btn" onclick="fillDemoAndClose('examofficer@demo.school.ng','demo1234')"><strong>Exam Officer</strong><span>examofficer@demo.school.ng</span></button>
+        <button class="demo-btn" onclick="fillDemoAndClose('parent@demo.school.ng','demo1234')"><strong>Parent</strong><span>parent@demo.school.ng</span></button>
+      </div>
+    </div>
+  </div>
+  <script>
+    function fillDemoAndClose(email, pwd) {
+      document.getElementById('email').value = email;
+      document.getElementById('password').value = pwd;
+      document.getElementById('demoModalOverlay').classList.remove('open');
+      if (document.getElementById('loginPanel').style.display === 'none') switchTab('login');
+    }
+  </script>
+
+<script src="/js/assistant.js"></script>
+</body>
+</html>

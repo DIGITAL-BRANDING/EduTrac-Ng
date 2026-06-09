@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" href="/icons/icon-96.png" type="image/png">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="/manifest.json"><meta name="theme-color" content="#0a6e3f">
+  <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="EduTrack NG">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <title>EduTrack NG — My Fees</title>
+  <link rel="stylesheet" href="../../assets/css/global.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
+<script src="../../js/config.js"></script>
+<script src="../../js/supabase.js"></script>
+<script src="layout.js"></script>
+<script>
+function formatMoney(n) { return '₦' + Number(n||0).toLocaleString('en-NG'); }
+function formatDate(d) { if(!d) return '—'; try { return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); } catch { return d; } }
+
+(async () => {
+  const ctx = await initStudentLayout('fees', 'My Fees');
+  if (!ctx) return;
+  const { session, term } = ctx;
+
+  try {
+    const [termsRes, feeTypesRes, paymentsRes] = await Promise.all([
+      db.from('terms').select('id,name,is_current,academic_year').eq('school_id', session.school_id).order('created_at', { ascending: false }),
+      db.from('fee_types').select('id,name,amount,term_id,class_id,terms(name)').eq('school_id', session.school_id),
+      db.from('payments').select('id,amount_paid,payment_method,paid_at,term_id,fee_type_id,fee_types(name)').eq('student_id', session.id).eq('school_id', session.school_id).order('paid_at', { ascending: false }),
+    ]);
+
+    const terms    = termsRes.data    || [];
+    const allFees  = feeTypesRes.data || [];
+    const payments = paymentsRes.data || [];
+
+    const currentTerm = term || terms.find(t => t.is_current) || terms[0] || {};
+    let selectedTermId = currentTerm.id;
+
+    function render(termId) {
+      const termFees = allFees.filter(f => !f.term_id || f.term_id === termId);
+      const termPays = payments.filter(p => !p.term_id || p.term_id === termId);
+      const totalExpected = termFees.reduce((s, f) => s + Number(f.amount || 0), 0);
+      const totalPaid     = termPays.reduce((s, p) => s + Number(p.amount_paid || 0), 0);
+      const balance       = Math.max(0, totalExpected - totalPaid);
+      const pct           = totalExpected > 0 ? Math.min(100, Math.round(totalPaid / totalExpected * 100)) : 0;
+
+      document.getElementById('feeContent').innerHTML = `
+        <div class="card" style="margin-bottom:16px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
+            <div style="text-align:center;padding:14px 8px;background:var(--surface-2);border-radius:10px;">
+              <div style="font-size:11px;color:var(--ink-3);margin-bottom:4px;font-weight:700;text-transform:uppercase;">Expected</div>
+              <div style="font-size:1.1rem;font-weight:800;">${formatMoney(totalExpected)}</div>
+            </div>
+            <div style="text-align:center;padding:14px 8px;background:var(--success-light,#dcfce7);border-radius:10px;">
+              <div style="font-size:11px;color:var(--success,#16a34a);margin-bottom:4px;font-weight:700;text-transform:uppercase;">Paid</div>
+              <div style="font-size:1.1rem;font-weight:800;color:var(--success,#16a34a);">${formatMoney(totalPaid)}</div>
+            </div>
+            <div style="text-align:center;padding:14px 8px;background:${balance>0?'var(--danger-light,#fee2e2)':'var(--success-light,#dcfce7)'};border-radius:10px;">
+              <div style="font-size:11px;color:${balance>0?'var(--danger,#dc2626)':'var(--success,#16a34a)'};margin-bottom:4px;font-weight:700;text-transform:uppercase;">Balance</div>
+              <div style="font-size:1.1rem;font-weight:800;color:${balance>0?'var(--danger,#dc2626)':'var(--success,#16a34a)'};">${formatMoney(balance)}</div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-size:13px;font-weight:600;">Payment Progress</span>
+            <strong>${pct}%</strong>
+          </div>
+          <div style="height:10px;background:var(--surface-3);border-radius:100px;overflow:hidden;">
+            <div style="height:100%;width:${pct}%;background:${pct<50?'#ef4444':pct<100?'#f59e0b':'#22c55e'};border-radius:100px;transition:width .4s;"></div>
+          </div>
+          ${balance<=0&&totalExpected>0?'<div style="margin-top:10px;text-align:center;color:var(--success,#16a34a);font-weight:700;font-size:.875rem;">✓ All fees paid for this term!</div>':''}
+        </div>
+
+        ${termFees.length ? `
+        <div class="card" style="margin-bottom:16px;padding:0;">
+          <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-weight:700;font-size:.875rem;">Fee Breakdown</div>
+          <table style="width:100%;border-collapse:collapse;font-size:.845rem;">
+            <thead><tr>
+              ${['Fee','Amount','Status'].map(h=>`<th style="padding:8px 14px;text-align:left;font-size:.68rem;font-weight:700;text-transform:uppercase;color:var(--ink-3);background:var(--surface-2);border-bottom:1px solid var(--border);">${h}</th>`).join('')}
+            </tr></thead>
+            <tbody>
+              ${termFees.map(f => {
+                const paid = termPays.filter(p => p.fee_type_id === f.id).reduce((s, p) => s + Number(p.amount_paid), 0);
+                const isPaid = paid >= Number(f.amount);
+                const isPartial = paid > 0 && !isPaid;
+                return `<tr style="border-bottom:1px solid var(--border);">
+                  <td style="padding:10px 14px;font-weight:500;">${f.name}</td>
+                  <td style="padding:10px 14px;font-weight:700;">${formatMoney(f.amount)}</td>
+                  <td style="padding:10px 14px;">
+                    ${isPaid
+                      ? '<span style="background:#dcfce7;color:#16a34a;padding:2px 8px;border-radius:100px;font-size:.72rem;font-weight:700;">✓ Paid</span>'
+                      : isPartial
+                        ? `<span style="background:#fef3c7;color:#b45309;padding:2px 8px;border-radius:100px;font-size:.72rem;font-weight:700;">Partial — ${formatMoney(paid)}</span>`
+                        : '<span style="background:#fee2e2;color:#dc2626;padding:2px 8px;border-radius:100px;font-size:.72rem;font-weight:700;">Unpaid</span>'}
+                  </td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>` : '<div class="card" style="margin-bottom:16px;padding:20px;text-align:center;color:var(--ink-3);">No fee types set for this term.</div>'}
+
+        <div class="card" style="padding:0;">
+          <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-weight:700;font-size:.875rem;">Payment History</div>
+          ${termPays.length ? `
+          <table style="width:100%;border-collapse:collapse;font-size:.845rem;">
+            <thead><tr>
+              ${['Fee','Amount','Method','Date'].map(h=>`<th style="padding:8px 14px;text-align:left;font-size:.68rem;font-weight:700;text-transform:uppercase;color:var(--ink-3);background:var(--surface-2);border-bottom:1px solid var(--border);">${h}</th>`).join('')}
+            </tr></thead>
+            <tbody>
+              ${termPays.map(p => `<tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:10px 14px;color:var(--ink-3);">${p.fee_types?.name || '—'}</td>
+                <td style="padding:10px 14px;font-weight:700;color:#16a34a;">${formatMoney(p.amount_paid)}</td>
+                <td style="padding:10px 14px;"><span style="background:var(--surface-3);padding:2px 8px;border-radius:4px;font-size:.72rem;font-weight:600;">${p.payment_method || '—'}</span></td>
+                <td style="padding:10px 14px;font-size:.78rem;color:var(--ink-3);">${formatDate(p.paid_at)}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>` : '<div style="padding:20px;text-align:center;color:var(--ink-3);">No payments recorded for this term.</div>'}
+        </div>`;
+    }
+
+    document.getElementById('pageBody').innerHTML = `
+      <div class="page-header"><h1>Fee Status</h1></div>
+      <div style="margin-bottom:16px;">
+        <select class="form-control" style="max-width:240px;" onchange="selectedTermId=this.value;render(this.value)">
+          ${terms.map(t => `<option value="${t.id}" ${t.id===selectedTermId?'selected':''}>${t.name}${t.is_current?' (Current)':''}</option>`).join('')}
+        </select>
+      </div>
+      <div id="feeContent"></div>`;
+
+    window.selectedTermId = selectedTermId;
+    window.render = render;
+    render(selectedTermId);
+
+  } catch (err) {
+    document.getElementById('pageBody').innerHTML =
+      '<div style="padding:2rem;color:red;"><strong>Error:</strong> ' + (err?.message || err) + '</div>';
+  }
+})();
+</script>
+<script src="../../js/assistant.js"></script>
+</body>
+</html>

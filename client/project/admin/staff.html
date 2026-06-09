@@ -1,0 +1,1536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" href="/icons/icon-96.png" type="image/png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0a6e3f">
+  <title>EduTrack NG — Staff Management</title>
+  <link rel="stylesheet" href="../assets/css/global.css">
+  <style>
+    /* ── View toggle ──────────────────────────────────────── */
+    .view-toggle { display:flex; gap:4px; background:var(--surface-3); border-radius:var(--radius); padding:4px; }
+    .vt-btn { padding:7px 16px; border:none; border-radius:calc(var(--radius) - 2px); background:transparent; color:var(--ink-3); font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; transition:all .15s; }
+    .vt-btn.active { background:var(--surface); color:var(--primary); box-shadow:var(--shadow-sm); }
+
+    /* ── Role-group view ──────────────────────────────────── */
+    .role-group { margin-bottom:28px; }
+    .role-group-header {
+      display:flex; align-items:center; gap:12px; padding:12px 16px;
+      background:var(--surface-2); border:1px solid var(--border);
+      border-radius:var(--radius) var(--radius) 0 0; border-bottom:none;
+    }
+    .role-group-icon { font-size:20px; }
+    .role-group-title { font-size:15px; font-weight:800; color:var(--ink); }
+    .role-group-count { background:var(--primary-light); color:var(--primary); padding:2px 10px; border-radius:30px; font-size:12px; font-weight:700; margin-left:auto; }
+    .role-group-body { border:1px solid var(--border); border-radius:0 0 var(--radius) var(--radius); overflow:hidden; }
+
+    /* ── Staff card grid (used in section view) ───────────── */
+    .staff-card-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:12px; padding:16px; background:var(--surface-2); border:1px solid var(--border); border-radius:0 0 var(--radius) var(--radius); }
+    .staff-card {
+      background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+      padding:14px 16px; display:flex; flex-direction:column; gap:10px;
+      transition:box-shadow .2s, border-color .2s;
+    }
+    .staff-card:hover { box-shadow:var(--shadow); border-color:var(--primary); }
+    .staff-card-top { display:flex; align-items:center; gap:10px; }
+    .staff-avatar { width:42px; height:42px; border-radius:50%; background:var(--primary-light); color:var(--primary); font-weight:800; font-size:16px; display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden; }
+    .staff-avatar img { width:100%; height:100%; object-fit:cover; }
+    .staff-card-name { font-weight:700; font-size:14px; line-height:1.3; }
+    .staff-card-email { font-size:11px; color:var(--ink-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .staff-card-meta { display:flex; flex-wrap:wrap; gap:6px; font-size:12px; }
+    .staff-card-phone { color:var(--ink-2); font-size:12px; }
+    .staff-card-actions { display:flex; gap:6px; flex-wrap:wrap; }
+
+    /* ── Section view ─────────────────────────────────────── */
+    .section-tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
+    .section-tab { padding:7px 16px; border-radius:30px; border:1px solid var(--border); background:var(--surface); color:var(--ink-2); font-size:13px; font-weight:600; cursor:pointer; transition:all .15s; }
+    .section-tab.active { background:var(--primary); color:white; border-color:var(--primary); }
+
+    /* ── Form masters panel ───────────────────────────────── */
+    .fm-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; }
+    .fm-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px 14px; }
+    .fm-class { font-weight:800; font-size:14px; color:var(--primary); margin-bottom:4px; }
+    .fm-teacher { font-size:13px; color:var(--ink-2); }
+    .fm-teacher-none { font-size:12px; color:var(--danger); font-style:italic; }
+    .fm-badge { font-size:11px; color:var(--ink-3); margin-top:4px; }
+
+    /* ══ NYSC-STYLE STAFF ID CARD ══ */
+    .idc-wrap{display:flex;flex-direction:column;align-items:center;gap:20px;padding:24px 16px;background:#e8ecf0;}
+    .idc-label{font-size:11px;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;align-self:flex-start;padding-left:4px;}
+    .idc{width:340px;border-radius:10px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.25);font-family:Arial,Helvetica,sans-serif;position:relative;}
+    .idc-hdr{background:#0a6e3f;padding:0;position:relative;overflow:hidden;min-height:80px;}
+    .idc-hdr::before{content:'';position:absolute;top:-20px;right:-30px;width:130px;height:160px;background:#f0c040;transform:rotate(-25deg);z-index:0;}
+    .idc-hdr-inner{position:relative;z-index:1;padding:12px 14px 10px;display:flex;align-items:center;gap:10px;}
+    .idc-logo-circle{width:52px;height:52px;border-radius:50%;background:white;border:3px solid #f0c040;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;font-size:26px;}
+    .idc-logo-circle img{width:100%;height:100%;object-fit:cover;}
+    .idc-hdr-text{flex:1;}
+    .idc-school-name{font-size:12px;font-weight:900;color:white;text-transform:uppercase;letter-spacing:.4px;line-height:1.2;}
+    .idc-school-addr{font-size:9px;color:rgba(255,255,255,.8);margin-top:2px;}
+    .idc-title-bar{background:linear-gradient(90deg,#c8860a,#f0c040,#c8860a);text-align:center;padding:5px;font-size:9.5px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:#1a1a00;border-top:1px solid #a0680a;border-bottom:1px solid #a0680a;}
+    .idc-body{background:white;display:flex;gap:10px;padding:10px 12px 8px;position:relative;min-height:130px;}
+    .idc-watermark{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:72px;opacity:.05;pointer-events:none;z-index:0;user-select:none;}
+    .idc-photo{width:72px;height:90px;border:2px solid #0a6e3f;border-radius:3px;background:#e8ecf0;display:flex;align-items:center;justify-content:center;font-size:36px;flex-shrink:0;overflow:hidden;z-index:1;}
+    .idc-photo img{width:100%;height:100%;object-fit:cover;}
+    .idc-fields-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 8px;z-index:1;flex:1;}
+    .idc-field{margin-bottom:3px;}
+    .idc-fl{font-size:8px;font-weight:700;color:#0a6e3f;text-transform:uppercase;letter-spacing:.05em;display:block;line-height:1;}
+    .idc-fv{font-size:11px;font-weight:700;color:#111;line-height:1.3;}
+    .idc-footer{background:white;border-top:1px solid #e5e7eb;padding:6px 12px 8px;display:flex;align-items:flex-end;justify-content:space-between;}
+    .idc-sig-block{text-align:center;}
+    .idc-sig-line{width:90px;height:1px;background:#333;margin-bottom:2px;margin-top:26px;}
+    .idc-sig-label{font-size:7.5px;font-weight:700;color:#666;}
+    .idc-validity{font-size:8px;font-weight:700;color:#0a6e3f;text-align:right;}
+    .idc-holo{height:5px;background:linear-gradient(90deg,#ff0080,#ff8c00,#ffed00,#00ff80,#00c8ff,#a855f7,#ff0080);}
+    /* Back */
+    .idc-back{width:340px;border-radius:10px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.25);font-family:Arial,Helvetica,sans-serif;}
+    .idc-back-hdr{background:#0a6e3f;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden;}
+    .idc-back-hdr::before{content:'';position:absolute;top:-20px;right:-30px;width:100px;height:120px;background:#f0c040;transform:rotate(-25deg);z-index:0;}
+    .idc-back-school{font-size:13px;font-weight:900;color:white;text-transform:uppercase;z-index:1;}
+    .idc-back-logo{width:44px;height:44px;border-radius:50%;background:white;border:2px solid #f0c040;display:flex;align-items:center;justify-content:center;overflow:hidden;z-index:1;font-size:22px;}
+    .idc-back-logo img{width:100%;height:100%;object-fit:cover;}
+    .idc-back-body{background:white;padding:12px 14px;font-size:11px;color:#333;line-height:1.6;}
+    .idc-back-nok{font-weight:700;color:#0a6e3f;font-size:12px;margin-bottom:8px;}
+    .idc-back-disclaimer{font-size:10px;color:#555;line-height:1.5;margin-bottom:10px;}
+    .idc-back-return{font-size:10px;color:#333;border-top:1px solid #e5e7eb;padding-top:8px;margin-top:4px;}
+    .idc-back-return strong{color:#0a6e3f;}
+    .idc-back-bottom{display:flex;justify-content:space-between;align-items:flex-end;padding:8px 14px 10px;background:white;border-top:1px solid #e5e7eb;}
+    .idc-back-emergency{font-size:9px;color:#555;}
+    /* Appointment letter */
+    .letter-wrap{padding:24px;background:#f8f8f4;min-height:500px;}
+    .letter-doc{background:white;max-width:640px;margin:0 auto;padding:40px 48px;border:1px solid #ddd;box-shadow:0 4px 16px rgba(0,0,0,.08);font-family:Georgia,serif;font-size:13px;line-height:1.7;color:#222;}
+    .letter-header{text-align:center;border-bottom:3px double #0a6e3f;padding-bottom:16px;margin-bottom:20px;}
+    .letter-school{font-size:18px;font-weight:700;color:#0a6e3f;font-family:Arial,sans-serif;text-transform:uppercase;letter-spacing:.5px;}
+    .letter-address{font-size:12px;color:#666;font-family:Arial,sans-serif;margin-top:4px;}
+    .letter-ref{display:flex;justify-content:space-between;font-size:12px;font-family:Arial,sans-serif;color:#555;margin-bottom:20px;}
+    .letter-title{text-align:center;font-size:16px;font-weight:700;text-decoration:underline;font-family:Arial,sans-serif;margin:16px 0;color:#0a6e3f;text-transform:uppercase;}
+    .letter-body p{margin-bottom:12px;}
+    .letter-sig{margin-top:32px;display:grid;grid-template-columns:1fr 1fr;gap:40px;}
+    .letter-sig-box{text-align:center;}
+    .letter-sig-line{border-top:1px solid #333;margin-bottom:4px;margin-top:40px;}
+    .letter-sig-name{font-size:12px;font-weight:700;font-family:Arial,sans-serif;}
+    .letter-sig-title{font-size:11px;color:#666;font-family:Arial,sans-serif;}
+    .letter-stamp{width:80px;height:80px;border:2px dashed #0a6e3f;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#0a6e3f;font-weight:700;text-align:center;margin:0 auto;}
+    .letter-table{width:100%;border-collapse:collapse;margin:12px 0;font-family:Arial,sans-serif;font-size:13px;}
+    .letter-table td{padding:8px 10px;border:1px solid #ddd;}
+    .letter-table td:first-child{font-weight:700;background:#f5f5f0;width:40%;}
+  
+    /* ── Assign subjects accordion ──────────────────────── */
+    #assignList [data-subject-count] { display:inline-block; }
+    #assignModal .modal__body { padding:0; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<!-- ═══════════════ ADD/EDIT STAFF MODAL ═══════════════ -->
+<div class="modal" id="staffModal">
+  <div class="modal__box">
+    <div class="modal__header">
+      <h2 class="modal__title" id="staffModalTitle">Add Staff Member</h2>
+      <button class="modal__close" onclick="closeModal('staffModal')">✕</button>
+    </div>
+    <div class="modal__body">
+      <div class="form-grid">
+        <div class="form-group col-full" id="staffPhotoGroup">
+          <label class="form-label">Passport Photo</label>
+          <div style="display:flex;align-items:flex-start;gap:14px;">
+            <div id="staffPhotoPreview" onclick="document.getElementById('staffPhotoFile').click()"
+              style="width:80px;height:96px;border:2px dashed var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:var(--surface-2);flex-shrink:0;">
+              <span id="staffPhotoIcon" style="font-size:28px;">📷</span>
+            </div>
+            <div style="flex:1;">
+              <input type="file" id="staffPhotoFile" accept="image/*" style="display:none;" onchange="previewStaffPhoto()">
+              <button type="button" class="btn btn--secondary btn--sm" onclick="document.getElementById('staffPhotoFile').click()">📷 Choose Photo</button>
+              <div class="form-hint" style="margin-top:6px;">Appears on Staff ID card. Max 2MB.</div>
+            </div>
+          </div>
+        </div>
+        <div class="form-group col-full">
+          <label class="form-label">Full Name <span class="required">*</span></label>
+          <input type="text" id="staffName" class="form-control" placeholder="e.g. Mrs. Ngozi Adeyemi" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email <span class="required">*</span></label>
+          <input type="email" id="staffEmail" class="form-control" placeholder="staff@school.ng" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          <input type="tel" id="staffPhone" class="form-control" placeholder="08012345678">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Role <span class="required">*</span></label>
+          <select id="staffRole" class="form-control" required onchange="toggleFormClassField()">
+            <optgroup label="Academic">
+              <option value="teacher">Teacher</option>
+              <option value="exam_officer">Exam Officer</option>
+              <option value="vp_academic">VP Academic</option>
+            </optgroup>
+            <optgroup label="Administration">
+              <option value="admin">Administrator / Principal</option>
+              <option value="vp_admin">VP Admin</option>
+              <option value="registrar">Registrar</option>
+            </optgroup>
+            <optgroup label="Finance">
+              <option value="accountant">Accountant</option>
+              <option value="bursary">Bursary Officer</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="form-group" id="formClassGroup">
+          <label class="form-label">Form Class (Form Master assignment)</label>
+          <select id="formClass" class="form-control">
+            <option value="">— None —</option>
+          </select>
+          <div class="form-hint">Assigns this teacher as form master for the selected class.</div>
+        </div>
+        <div class="form-group" id="sectionGroup">
+          <label class="form-label">Branch / Section</label>
+          <select id="staffSection" class="form-control">
+            <option value="">— None —</option>
+          </select>
+        </div>
+        <div class="form-group col-full" id="passwordGroup">
+          <label class="form-label">Temporary Password <span class="required">*</span></label>
+          <input type="text" id="staffPassword" class="form-control" placeholder="Min 8 characters" value="School@123">
+          <div class="form-hint">Staff will use this to log in. Advise them to change it.</div>
+        </div>
+      </div>
+      <div id="staffFormError" class="form-error" style="display:none;"></div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--secondary" onclick="closeModal('staffModal')">Cancel</button>
+      <button class="btn btn--primary" id="saveStaffBtn" onclick="saveStaff()">Save Staff</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ STAFF ID CARD MODAL ═══════════════ -->
+<div class="modal" id="staffIDCardModal">
+  <div class="modal__box" style="max-width:420px;">
+    <div class="modal__header">
+      <h2 class="modal__title">🆔 Staff Identity Card</h2>
+      <button class="modal__close" onclick="closeModal('staffIDCardModal')">✕</button>
+    </div>
+    <div class="modal__body" style="padding:0;">
+      <div class="idc-wrap">
+
+        <!-- FRONT -->
+        <div class="idc-label">FRONT</div>
+        <div class="idc" id="staffCard">
+          <div class="idc-hdr">
+            <div class="idc-hdr-inner">
+              <div class="idc-logo-circle" id="idcStaffLogo">🏫</div>
+              <div class="idc-hdr-text">
+                <div class="idc-school-name" id="idcStaffSchool">School Name</div>
+                <div class="idc-school-addr" id="idcStaffAddr">Address · Nigeria</div>
+              </div>
+            </div>
+          </div>
+          <div class="idc-title-bar">STAFF IDENTITY CARD</div>
+          <div class="idc-body">
+            <div class="idc-watermark" id="idcStaffWatermark">🏫</div>
+            <div class="idc-photo" id="idcSPhoto">👤</div>
+            <div class="idc-fields-grid">
+              <div class="idc-field">
+                <span class="idc-fl">Full Name</span>
+                <span class="idc-fv" id="idcSName">—</span>
+              </div>
+              <div class="idc-field">
+                <span class="idc-fl">Staff ID</span>
+                <span class="idc-fv" id="idcSID">—</span>
+              </div>
+              <div class="idc-field">
+                <span class="idc-fl">Role / Designation</span>
+                <span class="idc-fv" id="idcSRole">—</span>
+              </div>
+              <div class="idc-field">
+                <span class="idc-fl">Phone</span>
+                <span class="idc-fv" id="idcSPhone">—</span>
+              </div>
+              <div class="idc-field">
+                <span class="idc-fl">Branch / Section</span>
+                <span class="idc-fv" id="idcSSection">—</span>
+              </div>
+              <div class="idc-field">
+                <span class="idc-fl">Form Class</span>
+                <span class="idc-fv" id="idcSFormClass">—</span>
+              </div>
+              <div class="idc-field">
+                <span class="idc-fl">Issue Date</span>
+                <span class="idc-fv" id="idcSIssue">—</span>
+              </div>
+              <div class="idc-field">
+                <span class="idc-fl">Valid Till</span>
+                <span class="idc-fv" id="idcSExpiry">—</span>
+              </div>
+            </div>
+          </div>
+          <div class="idc-footer">
+            <div class="idc-sig-block">
+              <div class="idc-sig-line"></div>
+              <div class="idc-sig-label">Staff Signature</div>
+            </div>
+            <canvas id="staffIDQR" width="48" height="48" style="border-radius:4px;"></canvas>
+            <div class="idc-sig-block">
+              <div class="idc-sig-line"></div>
+              <div class="idc-sig-label">Head of Institution</div>
+            </div>
+          </div>
+          <div class="idc-holo"></div>
+        </div>
+
+        <!-- BACK -->
+        <div class="idc-label">BACK</div>
+        <div class="idc-back">
+          <div class="idc-back-hdr">
+            <div class="idc-back-school" id="idcSBackSchool">School Name</div>
+            <div class="idc-back-logo" id="idcSBackLogo">🏫</div>
+          </div>
+          <div class="idc-back-body">
+            <div class="idc-back-nok">Emergency NOK: <span id="idcSBackNOK">—</span></div>
+            <div class="idc-back-disclaimer">
+              This identity card is an official document and is related only to the
+              person described. Impersonation of the authorised holder, or the alteration,
+              destruction or transfer of this card to another person are offences and will
+              be met with appropriate sanctions.
+            </div>
+            <div class="idc-back-return">
+              If found, please return to:<br>
+              <strong id="idcSBackSchoolFull">School Name</strong><br>
+              <span id="idcSBackAddr">Address · Nigeria</span>
+            </div>
+          </div>
+          <div class="idc-back-bottom">
+            <div class="idc-back-emergency">
+              School Emergency No: <strong id="idcSBackPhone">—</strong>
+            </div>
+            <canvas id="staffIDQR2" width="60" height="60" style="border-radius:4px;"></canvas>
+          </div>
+          <div class="idc-holo"></div>
+        </div>
+
+      </div><!-- /.idc-wrap -->
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--secondary" onclick="closeModal('staffIDCardModal')">Close</button>
+      <button class="btn btn--ghost" onclick="openAppointmentLetter()">📄 Appointment Letter</button>
+      <button class="btn btn--primary" onclick="printIDCard('staffCard')">🖨️ Print ID Card</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ APPOINTMENT LETTER MODAL ═══════════════ -->
+<div class="modal" id="appointmentLetterModal">
+  <div class="modal__box" style="max-width:720px;">
+    <div class="modal__header">
+      <h2 class="modal__title">📄 Offer of Appointment</h2>
+      <button class="modal__close" onclick="closeModal('appointmentLetterModal')">✕</button>
+    </div>
+    <div class="modal__body" style="padding:0;">
+      <div class="letter-wrap">
+        <div class="letter-doc" id="appointmentLetterDoc">
+          <div class="letter-header">
+            <div id="apptLogo" style="font-size:40px;margin-bottom:6px;">🏫</div>
+            <div class="letter-school" id="apptSchoolName">School Name</div>
+            <div class="letter-address" id="apptSchoolAddr">Address · Nigeria</div>
+          </div>
+          <div class="letter-ref">
+            <div>Ref: <strong id="apptRef">ETN/STF/001</strong></div>
+            <div>Date: <strong id="apptDate"></strong></div>
+          </div>
+          <div class="letter-title">Offer of Appointment</div>
+          <div class="letter-body">
+            <p>Dear <strong id="apptName">—</strong>,</p>
+            <p>Following your application and satisfactory performance in the selection process, we are pleased to offer you appointment as a member of staff of <strong id="apptSchool2">—</strong> on the following terms:</p>
+            <table class="letter-table">
+              <tr><td>Position</td><td><strong id="apptRole">—</strong></td></tr>
+              <tr><td>Staff ID</td><td><strong id="apptStaffID">—</strong></td></tr>
+              <tr><td>Branch/Section</td><td id="apptSection">—</td></tr>
+              <tr><td>Email</td><td id="apptEmail">—</td></tr>
+              <tr><td>Phone</td><td id="apptPhone">—</td></tr>
+              <tr><td>Resumption</td><td>Immediately upon receipt of this letter</td></tr>
+              <tr><td>Probation</td><td>3 months from date of resumption</td></tr>
+            </table>
+            <p><strong>Terms &amp; Conditions:</strong></p>
+            <p>1. Appointment is subject to verification of credentials submitted.<br>
+            2. You are required to abide by the school's rules and code of conduct.<br>
+            3. This appointment may be terminated by either party with one month's written notice.<br>
+            4. You are expected to maintain confidentiality of all school records.</p>
+            <p>Please indicate acceptance by signing and returning a copy within <strong>7 days</strong>.</p>
+            <p>Yours faithfully,</p>
+          </div>
+          <div class="letter-sig">
+            <div class="letter-sig-box">
+              <div class="letter-stamp">OFFICIAL<br>STAMP</div>
+              <div class="letter-sig-line"></div>
+              <div class="letter-sig-name" id="apptPrincipal">Principal / Proprietor</div>
+              <div class="letter-sig-title">Head of Institution</div>
+            </div>
+            <div class="letter-sig-box">
+              <div style="margin-top:40px;"></div>
+              <div class="letter-sig-line"></div>
+              <div class="letter-sig-name" id="apptStaffSig">Staff Signature &amp; Date</div>
+              <div class="letter-sig-title">Acceptance</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--secondary" onclick="closeModal('appointmentLetterModal')">Close</button>
+      <button class="btn btn--primary" onclick="printDoc('appointmentLetterDoc')">🖨️ Print Letter</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ ASSIGN SUBJECTS MODAL ═══════════════ -->
+<div class="modal" id="assignModal">
+  <div class="modal__box" style="max-width:700px;">
+    <div class="modal__header">
+      <h2 class="modal__title">&#128218; Assign Classes &amp; Subjects</h2>
+      <button class="modal__close" onclick="closeModal('assignModal')">&#10005;</button>
+    </div>
+    <div class="modal__body" style="padding:0;">
+      <div style="padding:16px 20px 12px;border-bottom:1px solid var(--border);background:var(--surface-2);">
+        <div style="font-size:15px;font-weight:800;color:var(--ink);" id="assignTeacherName">—</div>
+        <div style="font-size:12px;color:var(--ink-3);margin-top:2px;">
+          Term: <strong id="assignTermName">—</strong> &nbsp;·&nbsp;
+          Tick the subjects this teacher will teach in each class. Only subjects already assigned to a class appear here.
+        </div>
+      </div>
+      <input type="hidden" id="assignTeacherId">
+      <div id="assignList" style="max-height:460px;overflow-y:auto;padding:0;"></div>
+      <div id="assignError" class="form-error" style="display:none;margin:0 20px 12px;"></div>
+    </div>
+    <div class="modal__footer">
+      <div style="font-size:13px;color:var(--ink-3);" id="assignSummary"></div>
+      <button class="btn btn--secondary" onclick="closeModal('assignModal')">Cancel</button>
+      <button class="btn btn--primary" id="saveAssignBtn" onclick="saveAssignments()">Save Assignments</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ RESET PASSWORD MODAL ═══════════════ -->
+<div class="modal" id="pwResetModal">
+  <div class="modal__box" style="max-width:420px;">
+    <div class="modal__header">
+      <h2 class="modal__title">🔑 Reset Staff Password</h2>
+      <button class="modal__close" onclick="closeModal('pwResetModal')">✕</button>
+    </div>
+    <div class="modal__body">
+      <input type="hidden" id="pwResetStaffId">
+      <div style="background:var(--surface-3);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:16px;font-size:13px;">
+        <div style="font-weight:700;color:var(--ink);" id="pwResetStaffName">—</div>
+        <div style="color:var(--ink-3);" id="pwResetStaffEmail">—</div>
+      </div>
+      <div id="pwResetErr" class="form-error" style="display:none;"></div>
+      <div class="form-group">
+        <label class="form-label">New Password <span class="required">*</span></label>
+        <input type="password" id="pwResetNew" class="form-control" placeholder="Min. 8 characters">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Confirm Password <span class="required">*</span></label>
+        <input type="password" id="pwResetConfirm" class="form-control" placeholder="Repeat new password">
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--secondary" onclick="closeModal('pwResetModal')">Cancel</button>
+      <button class="btn btn--primary" id="pwResetBtn" onclick="doResetStaffPassword()">Reset Password</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="../js/config.js"></script>
+<script src="../js/supabase.js"></script>
+<script src="../js/layout.js"></script>
+<script>
+// ══════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════
+let currentUser, allStaff = [], classes = [], subjects = [], currentTerm,
+    allSections = [], sectionAssignments = [], staffSectionMap = {},
+    currentView = 'role';  // 'role' | 'section' | 'formmaster' | 'list'
+
+const ROLE_LABELS = {
+  teacher:'Teacher', admin:'Administrator / Principal', exam_officer:'Exam Officer',
+  vp_academic:'VP Academic', vp_admin:'VP Admin', registrar:'Registrar',
+  accountant:'Accountant', bursary:'Bursary Officer'
+};
+
+const ROLE_BADGE = {
+  teacher:'badge--blue', admin:'badge--red', exam_officer:'badge--purple',
+  vp_academic:'badge--purple', vp_admin:'badge--orange', registrar:'badge--teal',
+  accountant:'badge--green', bursary:'badge--green'
+};
+
+const ROLE_GROUPS = [
+  { key: 'admin_group',    label: 'Administration',   icon: '🏛️', roles: ['admin','vp_admin','registrar'] },
+  { key: 'academic_group', label: 'Academic',          icon: '📚', roles: ['teacher','vp_academic','exam_officer'] },
+  { key: 'finance_group',  label: 'Finance',           icon: '💰', roles: ['accountant','bursary'] },
+];
+
+const PORTAL_LINKS = {
+  teacher: '../portals/staff/index.html',
+  vp_academic: '../portals/academic-office/index.html',
+  exam_officer: '../portals/academic-office/index.html',
+  vp_admin: '../portals/admin-office/student-admission.html',
+  registrar: '../portals/admin-office/student-admission.html',
+  accountant: '../portals/bursary/fee-tracker.html',
+  bursary: '../portals/bursary/fee-tracker.html'
+};
+
+// ══════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════
+(async () => {
+  currentUser = await initAdminLayout('staff', 'Staff Management');
+  if (!currentUser) return;
+
+  document.getElementById('topbarActions').innerHTML =
+    `<button class="btn btn--primary" onclick="openAddStaff()">+ Add Staff</button>`;
+
+  const [
+    { data: cls }, { data: sub }, { data: term },
+    { data: secs }, { data: sassigns }
+  ] = await Promise.all([
+    db.from('classes').select('id,name,level,teacher_id,users(full_name)').eq('school_id', currentUser.school_id).order('name'),
+    db.from('subjects').select('id,name,code').eq('school_id', currentUser.school_id).order('name'),
+    db.from('terms').select('*').eq('school_id', currentUser.school_id).eq('is_current', true).maybeSingle(),
+    db.from('school_sections').select('*').eq('school_id', currentUser.school_id).order('name'),
+    db.from('section_assignments').select('*,school_sections(name)').eq('school_id', currentUser.school_id)
+  ]);
+
+  classes = cls || [];
+  subjects = sub || [];
+  currentTerm = term;
+  allSections = secs || [];
+  sectionAssignments = sassigns || [];
+
+  // Build staff → section map
+  sectionAssignments.forEach(a => {
+    if (!staffSectionMap[a.staff_id]) staffSectionMap[a.staff_id] = [];
+    staffSectionMap[a.staff_id].push(a.school_sections?.name || '');
+  });
+
+  renderPage();
+  await loadStaff();
+  refreshTeacherSubjectCounts(); // populate subject count badges
+
+  if (new URLSearchParams(location.search).get('action') === 'add') openAddStaff();
+})();
+
+// ══════════════════════════════════════════════════════
+//  LOAD
+// ══════════════════════════════════════════════════════
+async function loadStaff() {
+  const { data, error } = await db.from('users')
+    .select('id,full_name,phone,email,role,is_active,photo_url,created_at')
+    .eq('school_id', currentUser.school_id)
+    .not('role', 'in', '(saas_owner,parent,student)')
+    .order('full_name');
+  if (error) { toast(error.message, 'error'); return; }
+  allStaff = data || [];
+  renderContent();
+}
+
+// ══════════════════════════════════════════════════════
+//  PAGE SHELL
+// ══════════════════════════════════════════════════════
+function renderPage() {
+  document.getElementById('pageBody').innerHTML = `
+    <div class="page-header">
+      <h1>👥 Staff Management</h1>
+      <p>Manage all school staff — grouped by role, branch/section, or form class assignment</p>
+    </div>
+
+    <!-- Summary stats -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:20px;" id="staffStats"></div>
+
+    <!-- Controls row -->
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px;">
+      <div class="view-toggle">
+        <button class="vt-btn ${currentView==='role'?'active':''}"    onclick="setView('role')">By Role</button>
+        <button class="vt-btn ${currentView==='section'?'active':''}" onclick="setView('section')">By Branch/Section</button>
+        <button class="vt-btn ${currentView==='formmaster'?'active':''}" onclick="setView('formmaster')">Form Masters</button>
+        <button class="vt-btn ${currentView==='list'?'active':''}"    onclick="setView('list')">All Staff</button>
+      </div>
+      <input class="form-control" id="staffSearch" placeholder="🔍 Search name or email…" oninput="renderContent()" style="max-width:240px;">
+      <select class="form-control" id="roleFilter" onchange="renderContent()" style="max-width:160px;">
+        <option value="">All Roles</option>
+        ${Object.entries(ROLE_LABELS).map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}
+      </select>
+      <select class="form-control" id="statusFilter" onchange="renderContent()" style="max-width:130px;">
+        <option value="">All Status</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+    </div>
+
+    <div id="staffContent"></div>
+  `;
+}
+
+function setView(v) {
+  currentView = v;
+  document.querySelectorAll('.vt-btn').forEach((b, i) =>
+    b.classList.toggle('active', ['role','section','formmaster','list'][i] === v));
+  renderContent();
+}
+
+function getFiltered() {
+  const q  = (document.getElementById('staffSearch')?.value || '').toLowerCase();
+  const r  = document.getElementById('roleFilter')?.value || '';
+  const st = document.getElementById('statusFilter')?.value || '';
+  return allStaff.filter(s =>
+    (s.full_name.toLowerCase().includes(q) || (s.email||'').toLowerCase().includes(q)) &&
+    (!r  || s.role === r) &&
+    (!st || (st==='active' ? s.is_active : !s.is_active))
+  );
+}
+
+function renderContent() {
+  renderStats();
+  const filtered = getFiltered();
+  const el = document.getElementById('staffContent');
+  if (!el) return;
+  if      (currentView === 'role')       el.innerHTML = buildRoleView(filtered);
+  else if (currentView === 'section')    el.innerHTML = buildSectionView(filtered);
+  else if (currentView === 'formmaster') el.innerHTML = buildFormMasterView(filtered);
+  else                                   el.innerHTML = buildListView(filtered);
+}
+
+function renderStats() {
+  const el = document.getElementById('staffStats');
+  if (!el) return;
+  const total   = allStaff.length;
+  const active  = allStaff.filter(s=>s.is_active).length;
+  const teachers = allStaff.filter(s=>s.role==='teacher').length;
+  const fmCount = classes.filter(c=>c.teacher_id).length;
+  el.innerHTML = `
+    <div class="estat" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;gap:10px;">
+      <span style="font-size:22px;">👥</span>
+      <div><div style="font-size:20px;font-weight:800;color:var(--primary);">${total}</div><div style="font-size:12px;color:var(--ink-3);">Total Staff</div></div>
+    </div>
+    <div class="estat" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;gap:10px;">
+      <span style="font-size:22px;">✅</span>
+      <div><div style="font-size:20px;font-weight:800;color:var(--primary);">${active}</div><div style="font-size:12px;color:var(--ink-3);">Active</div></div>
+    </div>
+    <div class="estat" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;gap:10px;">
+      <span style="font-size:22px;">📚</span>
+      <div><div style="font-size:20px;font-weight:800;color:var(--primary);">${teachers}</div><div style="font-size:12px;color:var(--ink-3);">Teachers</div></div>
+    </div>
+    <div class="estat" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;gap:10px;">
+      <span style="font-size:22px;">🎓</span>
+      <div><div style="font-size:20px;font-weight:800;color:var(--primary);">${fmCount}</div><div style="font-size:12px;color:var(--ink-3);">Form Masters</div></div>
+    </div>
+    <div class="estat" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;gap:10px;">
+      <span style="font-size:22px;">🏢</span>
+      <div><div style="font-size:20px;font-weight:800;color:var(--primary);">${allSections.length}</div><div style="font-size:12px;color:var(--ink-3);">Branches</div></div>
+    </div>
+  `;
+}
+
+// ══════════════════════════════════════════════════════
+//  VIEW: BY ROLE
+// ══════════════════════════════════════════════════════
+function buildRoleView(filtered) {
+  if (!filtered.length) return emptyState('No staff match your filter.');
+  let html = '';
+  ROLE_GROUPS.forEach(group => {
+    const members = filtered.filter(s => group.roles.includes(s.role));
+    if (!members.length) return;
+    html += `
+      <div class="role-group">
+        <div class="role-group-header">
+          <span class="role-group-icon">${group.icon}</span>
+          <span class="role-group-title">${group.label}</span>
+          <span class="role-group-count">${members.length} staff</span>
+        </div>
+        <div class="role-group-body">
+          ${buildStaffTable(members)}
+        </div>
+      </div>`;
+  });
+  // Catch any roles not in groups
+  const groupedRoles = ROLE_GROUPS.flatMap(g => g.roles);
+  const others = filtered.filter(s => !groupedRoles.includes(s.role));
+  if (others.length) {
+    html += `
+      <div class="role-group">
+        <div class="role-group-header">
+          <span class="role-group-icon">⚙️</span>
+          <span class="role-group-title">Other</span>
+          <span class="role-group-count">${others.length} staff</span>
+        </div>
+        <div class="role-group-body">${buildStaffTable(others)}</div>
+      </div>`;
+  }
+  return html || emptyState('No staff found.');
+}
+
+// ══════════════════════════════════════════════════════
+//  VIEW: BY SECTION/BRANCH
+// ══════════════════════════════════════════════════════
+function buildSectionView(filtered) {
+  if (!allSections.length) return `
+    <div class="card" style="text-align:center;padding:40px;">
+      <div style="font-size:48px;margin-bottom:12px;">🏢</div>
+      <h3 style="margin-bottom:8px;">No branches/sections set up yet</h3>
+      <p style="color:var(--ink-3);margin-bottom:16px;">Create sections like "Junior School", "Senior School", or "Primary" to group staff by branch.</p>
+      <a href="/admin/sections.html" class="btn btn--primary">⚙️ Manage Sections</a>
+    </div>`;
+
+  // Build: section_id → [staff_ids]
+  const secToStaff = {};
+  allSections.forEach(s => secToStaff[s.id] = []);
+  sectionAssignments.forEach(a => {
+    if (secToStaff[a.section_id]) secToStaff[a.section_id].push(a.staff_id);
+  });
+
+  const assignedIds = new Set(sectionAssignments.map(a => a.staff_id));
+  const unassigned  = filtered.filter(s => !assignedIds.has(s.id));
+
+  let html = '';
+  allSections.forEach(sec => {
+    const members = filtered.filter(s => (secToStaff[sec.id]||[]).includes(s.id));
+    html += `
+      <div class="role-group">
+        <div class="role-group-header" style="background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark,#085c34) 100%);color:white;border:none;">
+          <span class="role-group-icon">🏢</span>
+          <span class="role-group-title" style="color:white;">${escHtml(sec.name)}</span>
+          ${sec.description ? `<span style="font-size:12px;color:rgba(255,255,255,.7);">${escHtml(sec.description)}</span>` : ''}
+          <span class="role-group-count" style="background:rgba(255,255,255,.2);color:white;">${members.length} staff</span>
+        </div>
+        <div class="role-group-body">
+          ${members.length ? buildStaffCards(members) : `<div style="padding:20px;text-align:center;color:var(--ink-3);font-size:13px;">No staff assigned to this branch yet. <a href="/admin/sections.html">Assign staff →</a></div>`}
+        </div>
+      </div>`;
+  });
+
+  if (unassigned.length) {
+    html += `
+      <div class="role-group">
+        <div class="role-group-header" style="background:var(--surface-3);">
+          <span class="role-group-icon">❓</span>
+          <span class="role-group-title">Unassigned (no branch)</span>
+          <span class="role-group-count">${unassigned.length} staff</span>
+        </div>
+        <div class="role-group-body">${buildStaffCards(unassigned)}</div>
+      </div>`;
+  }
+
+  html += `<div style="text-align:right;margin-top:8px;"><a href="/admin/sections.html" class="btn btn--secondary btn--sm">⚙️ Manage Branches/Sections</a></div>`;
+  return html;
+}
+
+// ══════════════════════════════════════════════════════
+//  VIEW: FORM MASTERS
+// ══════════════════════════════════════════════════════
+function buildFormMasterView(filtered) {
+  const assignedFM = classes.filter(c => c.teacher_id);
+  const unassignedFM = classes.filter(c => !c.teacher_id);
+
+  // Group classes by level
+  const levels = [...new Set(classes.map(c => c.level || 'General'))].sort();
+
+  let html = `
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
+      <div>
+        <strong>${assignedFM.length}</strong> of <strong>${classes.length}</strong> classes have an assigned form master
+        ${unassignedFM.length ? `· <span style="color:var(--danger);">${unassignedFM.length} unassigned</span>` : ' · <span style="color:var(--primary);">All assigned ✓</span>'}
+      </div>
+      <a href="/admin/classes.html" class="btn btn--secondary btn--sm">⚙️ Manage Classes</a>
+    </div>`;
+
+  levels.forEach(level => {
+    const levelClasses = classes.filter(c => (c.level || 'General') === level);
+    html += `
+      <div class="role-group">
+        <div class="role-group-header">
+          <span class="role-group-icon">🎓</span>
+          <span class="role-group-title">${escHtml(level)}</span>
+          <span class="role-group-count">${levelClasses.length} class${levelClasses.length!==1?'es':''}</span>
+        </div>
+        <div class="fm-grid" style="padding:16px;background:var(--surface-2);border:1px solid var(--border);border-radius:0 0 var(--radius) var(--radius);">
+          ${levelClasses.map(cls => {
+            const teacher = cls.teacher_id ? allStaff.find(s => s.id === cls.teacher_id) : null;
+            const initials = teacher ? teacher.full_name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase() : '';
+            return `
+              <div class="fm-card">
+                <div class="fm-class">${escHtml(cls.name)}</div>
+                ${teacher
+                  ? `<div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+                       <div class="staff-avatar" style="width:30px;height:30px;font-size:12px;">${initials}</div>
+                       <div>
+                         <div class="fm-teacher">${escHtml(teacher.full_name)}</div>
+                         <div class="fm-badge">${ROLE_LABELS[teacher.role]||teacher.role} · ${teacher.phone||'—'}</div>
+                       </div>
+                     </div>`
+                  : `<div class="fm-teacher-none">⚠ No form master assigned</div>`}
+              </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+  });
+
+  // Registrars section
+  const registrars = filtered.filter(s => s.role === 'registrar');
+  if (registrars.length) {
+    html += `
+      <div class="role-group" style="margin-top:8px;">
+        <div class="role-group-header">
+          <span class="role-group-icon">📋</span>
+          <span class="role-group-title">Registrars</span>
+          <span class="role-group-count">${registrars.length}</span>
+        </div>
+        <div class="role-group-body">${buildStaffTable(registrars)}</div>
+      </div>`;
+  }
+
+  return html;
+}
+
+// ══════════════════════════════════════════════════════
+//  VIEW: ALL STAFF (TABLE)
+// ══════════════════════════════════════════════════════
+function buildListView(filtered) {
+  if (!filtered.length) return emptyState('No staff match your filter.');
+  return `
+    <div class="card" style="padding:0;">
+      <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:13px;color:var(--ink-3);">${filtered.length} staff member${filtered.length!==1?'s':''}</span>
+        <button class="btn btn--secondary btn--sm" onclick="exportStaffCSV()">📥 Export CSV</button>
+      </div>
+      <div class="table-wrap" style="border:none;">
+        ${buildStaffTable(filtered)}
+      </div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════════
+//  SHARED: TABLE & CARD BUILDERS
+// ══════════════════════════════════════════════════════
+function buildStaffTable(staff) {
+  return `
+    <table>
+      <thead>
+        <tr>
+          <th>Staff Member</th>
+          <th>Role</th>
+          <th>Phone</th>
+          <th>Branch/Section</th>
+          <th>Form Class</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${staff.map(s => {
+          const sections = (staffSectionMap[s.id] || []).join(', ') || '—';
+          const formClass = classes.find(c => c.teacher_id === s.id);
+          const initials  = s.full_name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+          return `
+          <tr>
+            <td>
+              <div class="student-cell">
+                <div class="avatar avatar--sm" style="${s.photo_url ? `background:none;overflow:hidden;` : ''}">
+                  ${s.photo_url ? `<img src="${s.photo_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none';this.parentElement.textContent='${initials}'">` : initials}
+                </div>
+                <div class="info">
+                  <div class="name">${escHtml(s.full_name)}</div>
+                  <div class="sub">${s.email || ''}</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="badge ${ROLE_BADGE[s.role]||'badge--gray'}">${ROLE_LABELS[s.role]||s.role}</span></td>
+            <td style="font-size:13px;">${s.phone||'—'}</td>
+            <td style="font-size:12px;color:var(--ink-2);">${escHtml(sections)}</td>
+            <td style="font-size:12px;">
+              ${formClass ? `<span class="badge badge--green">${escHtml(formClass.name)}</span>` : '—'}
+            </td>
+            <td><span class="badge ${s.is_active?'badge--green':'badge--gray'}">${s.is_active?'Active':'Inactive'}</span></td>
+            <td>
+              <div class="td-action">
+                <button class="btn btn--secondary btn--sm" onclick="editStaff('${s.id}')">Edit</button>
+                ${['teacher','vp_academic','exam_officer'].includes(s.role) ? `<button class="btn btn--ghost btn--sm" onclick="openAssign('${s.id}','${escJS(s.full_name)}')" title="Assign subjects" style="display:inline-flex;align-items:center;gap:5px;">&#128218; <span data-subject-count data-teacher-id="${s.id}" style="font-size:11px;color:var(--ink-4);">…</span></button>` : ''}
+                <button class="btn btn--ghost btn--sm" onclick="viewIDCard('${s.id}')">🆔</button>
+                <button class="btn btn--ghost btn--sm" onclick="resetStaffPassword('${s.id}','${escJS(s.full_name)}','${s.email||''}')">🔑</button>
+                <button class="btn btn--ghost btn--sm" onclick="toggleStaff('${s.id}',${s.is_active})">${s.is_active?'Deactivate':'Activate'}</button>
+                <button class="btn btn--danger btn--sm" onclick="deleteStaff('${s.id}','${escJS(s.full_name)}')">🗑️</button>
+              </div>
+            </td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
+}
+
+function buildStaffCards(staff) {
+  return `<div class="staff-card-grid">
+    ${staff.map(s => {
+      const sections  = (staffSectionMap[s.id] || []).join(', ');
+      const formClass = classes.find(c => c.teacher_id === s.id);
+      const initials  = s.full_name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+      return `
+        <div class="staff-card">
+          <div class="staff-card-top">
+            <div class="staff-avatar">
+              ${s.photo_url
+                ? `<img src="${s.photo_url}" onerror="this.style.display='none';this.parentElement.textContent='${initials}'">`
+                : initials}
+            </div>
+            <div style="min-width:0;">
+              <div class="staff-card-name">${escHtml(s.full_name)}</div>
+              <div class="staff-card-email">${s.email||''}</div>
+            </div>
+          </div>
+          <div class="staff-card-meta">
+            <span class="badge ${ROLE_BADGE[s.role]||'badge--gray'}">${ROLE_LABELS[s.role]||s.role}</span>
+            ${formClass ? `<span class="badge badge--green" title="Form Master">🎓 ${escHtml(formClass.name)}</span>` : ''}
+            <span class="badge ${s.is_active?'badge--green':'badge--gray'}">${s.is_active?'Active':'Inactive'}</span>
+          </div>
+          <div class="staff-card-phone">${s.phone ? `📞 ${s.phone}` : ''}</div>
+          <div class="staff-card-actions">
+            <button class="btn btn--secondary btn--sm" onclick="editStaff('${s.id}')">Edit</button>
+            <button class="btn btn--ghost btn--sm" onclick="viewIDCard('${s.id}')">🆔 ID</button>
+            ${['teacher','vp_academic','exam_officer'].includes(s.role) ? `<button class="btn btn--ghost btn--sm" onclick="openAssign('${s.id}','${escJS(s.full_name)}')" style="display:flex;align-items:center;gap:5px;">&#128218; <span data-subject-count data-teacher-id="${s.id}" style="font-size:11px;color:var(--ink-4);">…</span></button>` : ''}
+          </div>
+        </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function emptyState(msg) {
+  return `<div style="text-align:center;padding:60px 20px;color:var(--ink-3);">
+    <div style="font-size:48px;margin-bottom:12px;">👥</div>
+    <h3 style="color:var(--ink-2);margin-bottom:6px;">${msg}</h3>
+    <button class="btn btn--primary" onclick="openAddStaff()" style="margin-top:12px;">+ Add Staff Member</button>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════
+//  MODAL: ADD / EDIT
+// ══════════════════════════════════════════════════════
+function toggleFormClassField() {
+  const role = document.getElementById('staffRole').value;
+  const show = ['teacher','vp_academic','exam_officer'].includes(role);
+  document.getElementById('formClassGroup').style.display = show ? '' : 'none';
+}
+
+function openAddStaff() {
+  document.getElementById('staffModalTitle').textContent = 'Add Staff Member';
+  document.getElementById('staffId') && (document.getElementById('staffId') || document.createElement('input')).value && true;
+  // Ensure hidden id field exists
+  let idField = document.getElementById('staffId');
+  if (!idField) {
+    idField = document.createElement('input');
+    idField.type = 'hidden'; idField.id = 'staffId';
+    document.getElementById('staffForm') || document.querySelector('#staffModal .modal__body').prepend(idField);
+  }
+  idField.value = '';
+
+  document.getElementById('staffName').value = '';
+  document.getElementById('staffEmail').value = '';
+  document.getElementById('staffPhone').value = '';
+  document.getElementById('staffRole').value = 'teacher';
+  document.getElementById('staffPassword').value = 'School@123';
+  document.getElementById('staffFormError').style.display = 'none';
+  document.getElementById('passwordGroup').style.display = '';
+  document.getElementById('staffEmail').closest('.form-group').style.display = '';
+
+  // Populate form class options
+  document.getElementById('formClass').innerHTML = '<option value="">— None —</option>' +
+    classes.map(c => `<option value="${c.id}">${escHtml(c.name)}</option>`).join('');
+
+  // Populate section options
+  document.getElementById('staffSection').innerHTML = '<option value="">— None —</option>' +
+    allSections.map(s => `<option value="${s.id}">${escHtml(s.name)}</option>`).join('');
+
+  toggleFormClassField();
+  openModal('staffModal');
+}
+
+function editStaff(id) {
+  const s = allStaff.find(s => s.id === id);
+  if (!s) return;
+  document.getElementById('staffModalTitle').textContent = 'Edit Staff Member';
+
+  let idField = document.getElementById('staffId');
+  if (!idField) { idField = document.createElement('input'); idField.type='hidden'; idField.id='staffId'; document.querySelector('#staffModal .modal__body').prepend(idField); }
+  idField.value = s.id;
+
+  document.getElementById('staffName').value  = s.full_name;
+  document.getElementById('staffPhone').value = s.phone || '';
+  document.getElementById('staffRole').value  = s.role;
+  document.getElementById('passwordGroup').style.display = 'none';
+  document.getElementById('staffEmail').closest('.form-group').style.display = 'none';
+  document.getElementById('staffFormError').style.display = 'none';
+
+  document.getElementById('formClass').innerHTML = '<option value="">— None —</option>' +
+    classes.map(c => `<option value="${c.id}" ${c.teacher_id===s.id?'selected':''}>${escHtml(c.name)}</option>`).join('');
+
+  document.getElementById('staffSection').innerHTML = '<option value="">— None —</option>' +
+    allSections.map(sec => {
+      const assigned = sectionAssignments.some(a => a.staff_id === s.id && a.section_id === sec.id);
+      return `<option value="${sec.id}" ${assigned?'selected':''}>${escHtml(sec.name)}</option>`;
+    }).join('');
+
+  toggleFormClassField();
+  openModal('staffModal');
+}
+
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+async function insertProfileWithRetry(data, maxTries=5, delay=600) {
+  for (let i=1; i<=maxTries; i++) {
+    const { error } = await db.from('users').insert(data);
+    if (!error) return null;
+    if ((error.code==='23503'||error.message?.includes('foreign key')) && i<maxTries) { await wait(delay*i); continue; }
+    return error;
+  }
+  return { message:'Profile save failed after retries.' };
+}
+
+function previewStaffPhoto() {
+  const file = document.getElementById('staffPhotoFile')?.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const wrap = document.getElementById('staffPhotoPreview');
+    document.getElementById('staffPhotoIcon').style.display = 'none';
+    const existing = wrap.querySelector('img');
+    if (existing) existing.remove();
+    const img = document.createElement('img');
+    img.src = e.target.result;
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+    wrap.appendChild(img);
+  };
+  reader.readAsDataURL(file);
+}
+
+async function saveStaff() {
+  const btn = document.getElementById('saveStaffBtn');
+  const errEl = document.getElementById('staffFormError');
+  errEl.style.display = 'none';
+  const id       = document.getElementById('staffId')?.value || '';
+  const name     = document.getElementById('staffName').value.trim();
+  const email    = document.getElementById('staffEmail').value.trim();
+  const phone    = document.getElementById('staffPhone').value.trim();
+  const role     = document.getElementById('staffRole').value;
+  const password = document.getElementById('staffPassword').value;
+  const formClassId = document.getElementById('formClass').value || null;
+  const sectionId   = document.getElementById('staffSection').value || null;
+  const photoFile   = document.getElementById('staffPhotoFile')?.files[0];
+
+  if (!name)  { errEl.textContent='Full name is required.'; errEl.style.display='block'; return; }
+  if (!id && !email) { errEl.textContent='Email is required.'; errEl.style.display='block'; return; }
+  if (!id && password.length<6) { errEl.textContent='Password must be at least 6 characters.'; errEl.style.display='block'; return; }
+
+  btn.disabled = true; btn.textContent='Saving…';
+  try {
+    let staffId = id;
+    if (!id) {
+      btn.textContent = 'Creating account…';
+      const { data: authData, error: authError } = await db.auth.signUp({ email, password, options:{ data:{ full_name:name, school_id:currentUser.school_id, role } } });
+      if (authError) throw authError;
+      if (!authData?.user?.id) throw new Error('Sign-up failed. Is this email already registered?');
+      staffId = authData.user.id;
+
+      let photoUrl = null;
+      if (photoFile) {
+        btn.textContent = 'Uploading photo…';
+        const ext = photoFile.name.split('.').pop().toLowerCase();
+        const fileName = `staff/${currentUser.school_id}/${staffId}.${ext}`;
+        const { error: upErr } = await db.storage.from('passports').upload(fileName, photoFile, { upsert:true });
+        if (!upErr) { const { data: u } = db.storage.from('passports').getPublicUrl(fileName); photoUrl = u?.publicUrl||null; }
+      }
+
+      btn.textContent = 'Creating profile…';
+      const profileError = await insertProfileWithRetry({ id:staffId, school_id:currentUser.school_id, full_name:name, phone:phone||null, email:email||null, role, is_active:true, photo_url:photoUrl });
+      if (profileError) throw profileError;
+    } else {
+      const { error } = await db.from('users').update({ full_name:name, phone:phone||null, role }).eq('id', id);
+      if (error) throw error;
+    }
+
+    // Assign/update form class (set teacher_id on class, unset old)
+    if (formClassId) {
+      // Remove this teacher as form master from any other class first
+      await db.from('classes').update({ teacher_id:null }).eq('teacher_id', staffId).eq('school_id', currentUser.school_id);
+      await db.from('classes').update({ teacher_id:staffId }).eq('id', formClassId);
+    }
+
+    // Assign to section
+    if (sectionId) {
+      // Remove existing section assignments for this staff
+      await db.from('section_assignments').delete().eq('staff_id', staffId).eq('school_id', currentUser.school_id);
+      await db.from('section_assignments').insert({ school_id:currentUser.school_id, staff_id:staffId, section_id:sectionId });
+    }
+
+    toast(id ? 'Staff updated!' : `${name} added! Login: ${email}`, 'success');
+    closeModal('staffModal');
+
+    // Refresh data
+    const [{ data:secs },{ data:sassigns }] = await Promise.all([
+      db.from('school_sections').select('*').eq('school_id', currentUser.school_id).order('name'),
+      db.from('section_assignments').select('*,school_sections(name)').eq('school_id', currentUser.school_id)
+    ]);
+    allSections = secs || [];
+    sectionAssignments = sassigns || [];
+    staffSectionMap = {};
+    sectionAssignments.forEach(a => { if (!staffSectionMap[a.staff_id]) staffSectionMap[a.staff_id]=[]; staffSectionMap[a.staff_id].push(a.school_sections?.name||''); });
+
+    const { data:cls2 } = await db.from('classes').select('id,name,level,teacher_id,users(full_name)').eq('school_id', currentUser.school_id).order('name');
+    classes = cls2 || [];
+
+    await loadStaff();
+  } catch(err) {
+    let msg = err.message||'An error occurred.';
+    if (msg.includes('foreign key')) msg = 'Profile save failed. Disable email confirmation in Supabase Auth settings.';
+    if (msg.includes('already registered')) msg = 'This email is already registered.';
+    errEl.innerHTML = msg; errEl.style.display = 'block';
+  } finally { btn.disabled=false; btn.textContent='Save Staff'; }
+}
+
+// ══════════════════════════════════════════════════════
+//  ID CARD & APPOINTMENT LETTER
+// ══════════════════════════════════════════════════════
+let _currentStaffForLetter = null;
+
+function viewIDCard(id) {
+  const s = allStaff.find(s=>s.id===id);
+  if (!s) return;
+  _currentStaffForLetter = s;
+  const school = currentUser.schools||{};
+  const staffNum = 'STF-'+s.id.slice(0,6).toUpperCase();
+  const today = new Date();
+  const expiry = new Date(today.getFullYear()+2, today.getMonth(), today.getDate());
+  const sectionName = (staffSectionMap[s.id]||[]).join(', ') || '—';
+  const formClass = (classes.find(c=>c.teacher_id===s.id)||{}).name || '—';
+
+  // ── FRONT ──
+  const logoEl     = document.getElementById('idcStaffLogo');
+  const backLogoEl = document.getElementById('idcSBackLogo');
+  if (school.logo_url) {
+    logoEl.innerHTML     = `<img src="${school.logo_url}" onerror="this.parentElement.textContent='🏫'">`;
+    backLogoEl.innerHTML = `<img src="${school.logo_url}" onerror="this.parentElement.textContent='🏫'">`;
+  } else { logoEl.textContent='🏫'; backLogoEl.textContent='🏫'; }
+
+  document.getElementById('idcStaffSchool').textContent   = school.name||'School Name';
+  document.getElementById('idcStaffAddr').textContent     = [school.lga,school.state].filter(Boolean).join(', ')||'Nigeria';
+  document.getElementById('idcSID').textContent           = staffNum;
+  document.getElementById('idcSName').textContent         = s.full_name;
+  document.getElementById('idcSRole').textContent         = ROLE_LABELS[s.role]||s.role;
+  document.getElementById('idcSPhone').textContent        = s.phone||'—';
+  document.getElementById('idcSSection').textContent      = sectionName;
+  document.getElementById('idcSFormClass').textContent    = formClass;
+  document.getElementById('idcSIssue').textContent        = today.toLocaleDateString('en-GB');
+  document.getElementById('idcSExpiry').textContent       = expiry.toLocaleDateString('en-GB');
+  document.getElementById('idcStaffWatermark').textContent= school.name?school.name[0]:'🏫';
+
+  // Photo
+  const photoEl = document.getElementById('idcSPhoto');
+  if (s.photo_url) photoEl.innerHTML=`<img src="${s.photo_url}" onerror="this.parentElement.textContent='👤'">`;
+  else photoEl.textContent='👤';
+
+  // ── BACK ──
+  document.getElementById('idcSBackSchool').textContent    = school.name||'School Name';
+  document.getElementById('idcSBackSchoolFull').textContent= school.name||'School Name';
+  document.getElementById('idcSBackAddr').textContent      = [school.address,school.lga,school.state].filter(Boolean).join(', ')||'Nigeria';
+  document.getElementById('idcSBackNOK').textContent       = s.phone||'—';
+  document.getElementById('idcSBackPhone').textContent     = school.phone||school.email||'—';
+
+  openModal('staffIDCardModal');
+
+  // QR codes
+  requestAnimationFrame(()=>{
+    const qrData = `EDUTRAC|STF|${staffNum}|${s.full_name}|${school.name||''}`;
+    const opts48 = {width:48,margin:1,color:{dark:'#0a6e3f',light:'#ffffff'}};
+    const opts60 = {width:60,margin:1,color:{dark:'#0a6e3f',light:'#ffffff'}};
+    if(typeof QRCode!=='undefined'){
+      const q1=document.getElementById('staffIDQR');
+      const q2=document.getElementById('staffIDQR2');
+      if(q1) QRCode.toCanvas(q1,qrData,opts48).catch(()=>{});
+      if(q2) QRCode.toCanvas(q2,qrData,opts60).catch(()=>{});
+    }
+  });
+}
+
+function openAppointmentLetter() {
+  const s = _currentStaffForLetter; if (!s) return;
+  const school = currentUser.schools||{};
+  const staffNum = 'STF-'+s.id.slice(0,6).toUpperCase();
+  const sectionName = (staffSectionMap[s.id]||[]).join(', ')||'—';
+  document.getElementById('apptSchoolName').textContent  = school.name||'School Name';
+  document.getElementById('apptSchoolAddr').textContent  = [school.address,school.lga,school.state].filter(Boolean).join(', ')||'Nigeria';
+  const apptLogoEl = document.getElementById('apptLogo');
+  if (school.logo_url) apptLogoEl.innerHTML=`<img src="${school.logo_url}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;display:block;margin:0 auto;">`;
+  document.getElementById('apptRef').textContent     = `ETN/${staffNum}/${new Date().getFullYear()}`;
+  document.getElementById('apptDate').textContent    = new Date().toLocaleDateString('en-NG',{day:'2-digit',month:'long',year:'numeric'});
+  document.getElementById('apptName').textContent    = s.full_name;
+  document.getElementById('apptSchool2').textContent = school.name||'our school';
+  document.getElementById('apptRole').textContent    = ROLE_LABELS[s.role]||s.role;
+  document.getElementById('apptStaffID').textContent = staffNum;
+  document.getElementById('apptSection').textContent = sectionName;
+  document.getElementById('apptEmail').textContent   = s.email||'—';
+  document.getElementById('apptPhone').textContent   = s.phone||'—';
+  document.getElementById('apptPrincipal').textContent = currentUser.full_name||'Principal';
+  document.getElementById('apptStaffSig').textContent  = s.full_name+' / Date';
+  closeModal('staffIDCardModal');
+  openModal('appointmentLetterModal');
+}
+
+function printIDCard(cardId) {
+  const wrap = document.querySelector('#staffIDCardModal .idc-wrap');
+  if (!wrap) return;
+  const styles = [...document.querySelectorAll('style,link[rel="stylesheet"]')].map(el=>el.outerHTML).join('');
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">${styles}
+    <style>body{margin:0;padding:24px;background:#e8ecf0;display:flex;flex-direction:column;align-items:center;gap:20px;}
+    @media print{body{background:#e8ecf0;}@page{size:portrait;margin:8mm;}}</style>
+    </head><body>${wrap.innerHTML}</body></html>`;
+  openPrintWindow(html);
+}
+
+function printDoc(docId) {
+  const doc = document.getElementById(docId); if (!doc) return;
+  const styles = [...document.querySelectorAll('style,link[rel="stylesheet"]')].map(el=>el.outerHTML).join('');
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">${styles}<style>body{margin:0;padding:20px;background:#f8f8f4;}.letter-wrap{padding:0!important;background:none!important;}@media print{body{background:white;padding:0;}@page{margin:20mm;}}</style></head><body><div class="letter-wrap"><div class="letter-doc">${doc.innerHTML}</div></div></body></html>`;
+  openPrintWindow(html);
+}
+
+function openPrintWindow(html) {
+  const blob = new Blob([html],{type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const w = window.open(url,'_blank','width=800,height=700');
+  setTimeout(()=>{ if(w){w.focus();w.print();} URL.revokeObjectURL(url); },600);
+}
+
+// ══════════════════════════════════════════════════════
+//  ASSIGN SUBJECTS — rebuilt
+//  Logic: for each class, show only subjects already
+//  assigned to that class (class_subjects with no
+//  teacher_id). Teacher picks which of those they teach.
+// ══════════════════════════════════════════════════════
+let _assignClassSubMap = {}; // classId → [{id,name,code}]
+let _assignExisting   = new Set(); // "classId::subjectId" already assigned to this teacher
+let _assignPending    = new Set(); // current checkbox state
+
+async function openAssign(teacherId, teacherName) {
+  const errEl = document.getElementById('assignError');
+  errEl.style.display = 'none';
+  document.getElementById('assignTeacherId').value = teacherId;
+  document.getElementById('assignTeacherName').textContent = teacherName;
+  document.getElementById('assignTermName').textContent = currentTerm?.name || 'No term set';
+  document.getElementById('assignSummary').textContent = '';
+  document.getElementById('assignList').innerHTML =
+    '<div style="padding:20px;text-align:center;color:var(--ink-3)">Loading...</div>';
+  openModal('assignModal');
+
+  if (!currentTerm) {
+    document.getElementById('assignList').innerHTML =
+      '<div style="padding:20px;color:var(--danger);font-weight:600;">No current term set. Configure a term in Settings first.</div>';
+    return;
+  }
+
+  // Fetch: (a) all class_subjects for this term (no teacher filter = class-level assignments)
+  // (b) existing teacher assignments
+  const [csRes, teacherRes] = await Promise.all([
+    db.from('class_subjects')
+      .select('class_id,subject_id,subjects(id,name,code)')
+      .eq('school_id', currentUser.school_id)
+      .eq('term_id', currentTerm.id)
+      .is('teacher_id', null),
+    db.from('class_subjects')
+      .select('class_id,subject_id')
+      .eq('school_id', currentUser.school_id)
+      .eq('term_id', currentTerm.id)
+      .eq('teacher_id', teacherId),
+  ]);
+
+  // Build class→subjects map (subjects the class HAS)
+  _assignClassSubMap = {};
+  (csRes.data || []).forEach(row => {
+    if (!_assignClassSubMap[row.class_id]) _assignClassSubMap[row.class_id] = [];
+    if (row.subjects) _assignClassSubMap[row.class_id].push(row.subjects);
+  });
+
+  // Build existing teacher assignment set
+  _assignExisting = new Set((teacherRes.data || []).map(r => r.class_id + '::' + r.subject_id));
+  _assignPending  = new Set(_assignExisting);
+
+  renderAssignList(teacherId);
+}
+
+function renderAssignList(teacherId) {
+  const listEl = document.getElementById('assignList');
+
+  // Only show classes that have at least one subject
+  const assignableClasses = classes.filter(c => (_assignClassSubMap[c.id]||[]).length > 0);
+
+  if (!assignableClasses.length) {
+    listEl.innerHTML = `
+      <div style="padding:24px;text-align:center;color:var(--ink-3);">
+        <div style="font-size:32px;margin-bottom:8px;">&#128218;</div>
+        <p style="font-weight:600;color:var(--ink-2);margin-bottom:4px;">No subjects assigned to any class yet.</p>
+        <p style="font-size:12px;">Go to <a href="class-subjects.html" style="color:var(--primary);font-weight:700;">Assign Class Subjects</a> to add subjects to classes first.</p>
+      </div>`;
+    return;
+  }
+
+  // Build accordion: one section per class
+  listEl.innerHTML = assignableClasses.map((cls, i) => {
+    const subs = _assignClassSubMap[cls.id] || [];
+    const assignedCount = subs.filter(s => _assignPending.has(cls.id + '::' + s.id)).length;
+    const isFormMaster = cls.teacher_id === teacherId;
+    return `
+      <div style="border-bottom:1px solid var(--border);">
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 20px;cursor:pointer;user-select:none;background:var(--surface-2);"
+             onclick="toggleAssignClass('acc-${cls.id}')">
+          <span style="flex:1;font-size:14px;font-weight:700;color:var(--ink);">
+            ${escHtml(cls.name)}
+            ${isFormMaster ? '<span style="font-size:11px;background:var(--primary-light);color:var(--primary);border-radius:100px;padding:2px 8px;margin-left:6px;font-weight:700;">Form Master</span>' : ''}
+          </span>
+          <span id="badge-${cls.id}" style="font-size:12px;font-weight:700;color:${assignedCount>0?'var(--primary)':'var(--ink-4)'};">
+            ${assignedCount} / ${subs.length} subject${subs.length!==1?'s':''}
+          </span>
+          <span style="color:var(--ink-3);">&#9660;</span>
+        </div>
+        <div id="acc-${cls.id}" style="display:${i===0?'block':'none'};padding:12px 20px 16px;background:var(--surface);">
+          <div style="display:flex;gap:6px;margin-bottom:10px;">
+            <button class="btn btn--secondary btn--sm" onclick="assignAllInClass('${cls.id}')">Select All</button>
+            <button class="btn btn--ghost btn--sm" onclick="clearClassAssign('${cls.id}')">Clear</button>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;">
+            ${subs.map(sub => {
+              const key = cls.id + '::' + sub.id;
+              const checked = _assignPending.has(key);
+              return `
+                <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius-sm);border:1.5px solid ${checked?'var(--primary)':'var(--border)'};background:${checked?'var(--primary-light)':'white'};cursor:pointer;font-size:13px;font-weight:600;transition:all .15s;"
+                       id="lbl-${cls.id}-${sub.id}">
+                  <input type="checkbox" name="assign" value="${key}"
+                    ${checked ? 'checked' : ''}
+                    style="accent-color:var(--primary);"
+                    onchange="onAssignToggle('${cls.id}','${sub.id}',this.checked)">
+                  ${escHtml(sub.name)}
+                  ${sub.code ? '<span style="font-size:10px;color:var(--ink-4);margin-left:2px;">('+escHtml(sub.code)+')</span>' : ''}
+                </label>`;
+            }).join('')}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  updateAssignSummary();
+}
+
+function toggleAssignClass(accId) {
+  const el = document.getElementById(accId);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function onAssignToggle(classId, subjectId, checked) {
+  const key = classId + '::' + subjectId;
+  if (checked) _assignPending.add(key); else _assignPending.delete(key);
+  // Update label style
+  const lbl = document.getElementById('lbl-' + classId + '-' + subjectId);
+  if (lbl) {
+    lbl.style.borderColor = checked ? 'var(--primary)' : 'var(--border)';
+    lbl.style.background  = checked ? 'var(--primary-light)' : 'white';
+  }
+  // Update class badge count
+  const subs = _assignClassSubMap[classId] || [];
+  const count = subs.filter(s => _assignPending.has(classId + '::' + s.id)).length;
+  const badge = document.getElementById('badge-' + classId);
+  if (badge) {
+    badge.textContent = count + ' / ' + subs.length + ' subject' + (subs.length!==1?'s':'');
+    badge.style.color = count > 0 ? 'var(--primary)' : 'var(--ink-4)';
+  }
+  updateAssignSummary();
+}
+
+function assignAllInClass(classId) {
+  (_assignClassSubMap[classId] || []).forEach(sub => {
+    const key = classId + '::' + sub.id;
+    _assignPending.add(key);
+    const cb  = document.querySelector(`input[name="assign"][value="${key}"]`);
+    if (cb) cb.checked = true;
+    const lbl = document.getElementById('lbl-' + classId + '-' + sub.id);
+    if (lbl) { lbl.style.borderColor='var(--primary)'; lbl.style.background='var(--primary-light)'; }
+  });
+  const subs = _assignClassSubMap[classId] || [];
+  const badge = document.getElementById('badge-' + classId);
+  if (badge) { badge.textContent = subs.length + ' / ' + subs.length + ' subjects'; badge.style.color='var(--primary)'; }
+  updateAssignSummary();
+}
+
+function clearClassAssign(classId) {
+  (_assignClassSubMap[classId] || []).forEach(sub => {
+    const key = classId + '::' + sub.id;
+    _assignPending.delete(key);
+    const cb  = document.querySelector(`input[name="assign"][value="${key}"]`);
+    if (cb) cb.checked = false;
+    const lbl = document.getElementById('lbl-' + classId + '-' + sub.id);
+    if (lbl) { lbl.style.borderColor='var(--border)'; lbl.style.background='white'; }
+  });
+  const badge = document.getElementById('badge-' + classId);
+  if (badge) { badge.textContent = '0 / ' + (_assignClassSubMap[classId]||[]).length + ' subjects'; badge.style.color='var(--ink-4)'; }
+  updateAssignSummary();
+}
+
+function updateAssignSummary() {
+  const total = _assignPending.size;
+  const el = document.getElementById('assignSummary');
+  if (el) el.textContent = total + ' subject assignment' + (total!==1?'s':'') + ' selected';
+}
+
+async function saveAssignments() {
+  const teacherId = document.getElementById('assignTeacherId').value;
+  if (!currentTerm) return;
+  const errEl = document.getElementById('assignError');
+  errEl.style.display = 'none';
+  const btn = document.getElementById('saveAssignBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  try {
+    // Keys to ADD (in pending but not in existing)
+    const toAdd = [..._assignPending].filter(k => !_assignExisting.has(k));
+    // Keys to REMOVE (in existing but not in pending)
+    const toRemove = [..._assignExisting].filter(k => !_assignPending.has(k));
+
+    // Delete removed assignments
+    for (const key of toRemove) {
+      const [class_id, subject_id] = key.split('::');
+      const { error } = await db.from('class_subjects')
+        .delete()
+        .eq('school_id', currentUser.school_id)
+        .eq('teacher_id', teacherId)
+        .eq('term_id', currentTerm.id)
+        .eq('class_id', class_id)
+        .eq('subject_id', subject_id);
+      if (error) throw error;
+    }
+
+    // Insert new assignments
+    if (toAdd.length) {
+      const rows = toAdd.map(key => {
+        const [class_id, subject_id] = key.split('::');
+        return { school_id: currentUser.school_id, class_id, subject_id, teacher_id: teacherId, term_id: currentTerm.id };
+      });
+      const { error } = await db.from('class_subjects')
+        .upsert(rows, { onConflict: 'class_id,subject_id,teacher_id,term_id' });
+      if (error) throw error;
+    }
+
+    // Update summary badge on staff table row
+    _assignExisting = new Set(_assignPending);
+    toast('Subject assignments saved — ' + _assignPending.size + ' total assigned.', 'success');
+    closeModal('assignModal');
+    // Refresh teacher subject count badges in table
+    await refreshTeacherSubjectCounts();
+  } catch (err) {
+    errEl.textContent = err.message; errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Save Assignments';
+  }
+}
+
+// Refresh subject count badges in the staff table after saving
+async function refreshTeacherSubjectCounts() {
+  if (!currentTerm) return;
+  const { data } = await db.from('class_subjects')
+    .select('teacher_id')
+    .eq('school_id', currentUser.school_id)
+    .eq('term_id', currentTerm.id)
+    .not('teacher_id', 'is', null);
+  const counts = {};
+  (data || []).forEach(r => { counts[r.teacher_id] = (counts[r.teacher_id] || 0) + 1; });
+  document.querySelectorAll('[data-subject-count]').forEach(el => {
+    const tid = el.dataset.teacherId;
+    const n = counts[tid] || 0;
+    el.textContent = n + ' subject' + (n !== 1 ? 's' : '');
+    el.style.color = n > 0 ? 'var(--primary)' : 'var(--ink-4)';
+  });
+}
+
+// ══════════════════════════════════════════════════════
+//  TOGGLE / DELETE / PASSWORD RESET
+// ══════════════════════════════════════════════════════
+async function toggleStaff(id, current) {
+  if (!confirm(`${current?'Deactivate':'Activate'} this staff member?`)) return;
+  const { error } = await db.from('users').update({is_active:!current}).eq('id',id);
+  if (error) { toast(error.message,'error'); return; }
+  toast('Updated!','success'); await loadStaff();
+}
+
+async function deleteStaff(id, name) {
+  if (!confirm(`Delete ${name}?\n\nThis permanently removes their profile. This action cannot be undone.`)) return;
+  try {
+    const { error } = await db.from('users').delete().eq('id',id);
+    if (error) throw error;
+    toast(`${name} deleted.`,'success');
+    await loadStaff();
+  } catch(err) { toast('Delete failed: '+err.message,'error'); }
+}
+
+function resetStaffPassword(id, name, email) {
+  document.getElementById('pwResetStaffName').textContent  = name;
+  document.getElementById('pwResetStaffEmail').textContent = email;
+  document.getElementById('pwResetNew').value     = '';
+  document.getElementById('pwResetConfirm').value = '';
+  document.getElementById('pwResetErr').style.display = 'none';
+  document.getElementById('pwResetStaffId').value = id;
+  openModal('pwResetModal');
+}
+
+async function doResetStaffPassword() {
+  const id    = document.getElementById('pwResetStaffId').value;
+  const pwd1  = document.getElementById('pwResetNew').value;
+  const pwd2  = document.getElementById('pwResetConfirm').value;
+  const errEl = document.getElementById('pwResetErr');
+  const btn   = document.getElementById('pwResetBtn');
+  errEl.style.display = 'none';
+  if (pwd1.length<8) { errEl.textContent='Password must be at least 8 characters.'; errEl.style.display='block'; return; }
+  if (pwd1!==pwd2)   { errEl.textContent='Passwords do not match.'; errEl.style.display='block'; return; }
+  btn.disabled=true; btn.textContent='Resetting…';
+  try {
+    const _apiBase=(window.__EDUTRAC_CONFIG__||{}).API_BASE_URL||'';
+    const res=await fetch(_apiBase+'/api/reset-staff-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:id,new_password:pwd1})});
+    const data=await res.json();
+    if (!res.ok||data.error) throw new Error(data.error||'Reset failed');
+    await db.from('users').update({must_change_password:true}).eq('id',id);
+    closeModal('pwResetModal');
+    toast('Password reset successfully.','success');
+  } catch(err) { errEl.textContent=err.message||'Failed to reset password.'; errEl.style.display='block'; }
+  btn.disabled=false; btn.textContent='Reset Password';
+}
+
+// ══════════════════════════════════════════════════════
+//  EXPORT CSV
+// ══════════════════════════════════════════════════════
+function exportStaffCSV() {
+  const rows = [['Name','Email','Phone','Role','Branch/Section','Form Class','Status']];
+  getFiltered().forEach(s => {
+    const secs = (staffSectionMap[s.id]||[]).join('; ');
+    const fm   = (classes.find(c=>c.teacher_id===s.id)||{}).name||'';
+    rows.push([s.full_name,s.email||'',s.phone||'',ROLE_LABELS[s.role]||s.role,secs,fm,s.is_active?'Active':'Inactive']);
+  });
+  const csv  = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const link = document.createElement('a');
+  link.href  = 'data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  link.download = 'staff-export.csv';
+  link.click();
+}
+
+// ══════════════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════════════
+function escHtml(v){ return String(v||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escJS(v)  { return String(v||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+</script>
+<script src="/js/pwa-v2.1.js"></script>
+</body>
+</html>

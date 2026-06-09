@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduTrack NG - Student Application</title>
+  <link rel="icon" type="image/x-icon" href="/icons/logo.jpg">
+  <link rel="stylesheet" href="assets/css/global.css">
+  <style>
+    body{margin:0;min-height:100vh;background:#f6fbf8;color:#0f172a;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    .apply-shell{width:min(1120px,calc(100% - 32px));margin:0 auto;padding:32px 0 48px}
+    .apply-top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:900}.brand img{width:40px;height:40px;border-radius:8px;object-fit:cover}.login-link{color:#0a6e3f;font-size:13px;font-weight:800;text-decoration:none}
+    .intro{display:grid;grid-template-columns:minmax(260px,.82fr) minmax(320px,1.18fr);gap:24px;align-items:start}
+    .intro-panel{background:#073d28;color:white;border-radius:8px;padding:30px;min-height:360px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 18px 50px rgba(7,61,40,.2)}
+    .intro-panel h1{font-size:clamp(28px,4vw,44px);line-height:1.04;margin:10px 0 12px}.intro-panel p{color:rgba(255,255,255,.74);line-height:1.7;margin:0}
+    .steps{display:grid;gap:10px;margin-top:26px}.step-pill{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid rgba(255,255,255,.16);border-radius:8px;background:rgba(255,255,255,.06);font-size:13px;font-weight:700}.step-pill span{width:24px;height:24px;display:grid;place-items:center;border-radius:50%;background:#f0a500;color:#111827;font-size:12px}
+    .form-card{background:white;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;box-shadow:0 16px 42px rgba(15,23,42,.08)}.progress{height:5px;background:#e5e7eb}.progress span{display:block;height:100%;width:25%;background:linear-gradient(90deg,#0a6e3f,#16a34a);transition:width .2s ease}
+    .panel{display:none;padding:26px}.panel.active{display:block}.panel h2{margin:0 0 6px;font-size:22px}.panel-sub{color:#64748b;margin:0 0 20px;line-height:1.6;font-size:14px}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.full{grid-column:1/-1}label{display:block;font-size:12px;font-weight:800;color:#334155;margin-bottom:6px}
+    input,select,textarea{width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:11px 12px;font:inherit;font-size:14px;color:#0f172a;background:white;box-sizing:border-box}textarea{min-height:96px;resize:vertical}input:focus,select:focus,textarea:focus{outline:2px solid rgba(10,110,63,.18);border-color:#0a6e3f}
+    .hint{font-size:11px;color:#64748b;margin-top:5px}.err{display:none;color:#dc2626;font-size:12px;font-weight:700;margin-top:5px}.bad input,.bad select,.bad textarea{border-color:#dc2626}.bad .err{display:block}
+    .nav{display:flex;justify-content:space-between;gap:12px;padding:18px 26px 24px;border-top:1px solid #e2e8f0;background:#fbfdff}.btn{border:0;border-radius:8px;padding:11px 16px;font-weight:900;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px}.btn.primary{background:#0a6e3f;color:white;box-shadow:0 8px 18px rgba(10,110,63,.22)}.btn.secondary{background:#eef2f7;color:#334155}.btn:disabled{opacity:.58;cursor:not-allowed;box-shadow:none}
+    .review{display:grid;gap:12px}.review-box{border:1px solid #e2e8f0;border-radius:8px;overflow:hidden}.review-box h3{margin:0;padding:10px 12px;background:#f8fafc;font-size:12px;text-transform:uppercase;color:#475569;letter-spacing:.04em}.review-row{display:flex;justify-content:space-between;gap:14px;padding:8px 12px;font-size:13px;border-top:1px solid #edf2f7}.review-row b{color:#0f172a;text-align:right}
+    .success{display:none;padding:44px 26px;text-align:center}.success.show{display:block}
+    .success-mark{position:relative;width:80px;height:80px;border-radius:16px;background:#f0fdf4;border:2px solid #dcfce7;overflow:visible;margin:0 auto 20px;display:grid;place-items:center}
+    .success-mark img{width:64px;height:64px;border-radius:12px;object-fit:cover}
+    .check-badge{position:absolute;bottom:-8px;right:-8px;width:26px;height:26px;background:#16a34a;border-radius:50%;border:2.5px solid white;display:grid;place-items:center}
+    .ref{display:inline-flex;margin-top:12px;padding:8px 12px;background:#f8fafc;border:1px dashed #94a3b8;border-radius:8px;font-family:Consolas,monospace;font-weight:800}
+    /* ── Track bar ── */
+    .track-bar{background:#fff;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:18px;overflow:hidden;box-shadow:0 2px 8px rgba(15,23,42,.05)}
+    .track-panel{padding:18px 20px}
+    .track-row{display:flex;gap:8px;margin:12px 0 0}
+    .track-row input{flex:1;border:1.5px solid #cbd5e1;border-radius:8px;padding:10px 12px;font:14px Inter,system-ui,sans-serif;color:#0f172a;min-width:0}
+    .track-row input:focus{outline:none;border-color:#0a6e3f;box-shadow:0 0 0 3px rgba(10,110,63,.1)}
+    .track-row button{background:#0a6e3f;color:#fff;border:0;border-radius:8px;padding:10px 20px;font:700 13px Inter,system-ui,sans-serif;cursor:pointer;white-space:nowrap;flex-shrink:0}
+    .track-row button:hover{background:#085c33}
+    .track-row button:disabled{opacity:.55;cursor:not-allowed}
+    /* status cards */
+    .st-card{border-radius:8px;padding:16px;display:none;animation:stFade .2s ease;margin-top:14px}
+    .st-card.show{display:block}
+    @keyframes stFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+    .st-pending{background:#fffbeb;border:1px solid #fde68a}
+    .st-approved,.st-enrolled{background:#f0fdf4;border:1px solid #86efac}
+    .st-rejected{background:#fef2f2;border:1px solid #fecaca}
+    .st-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:9px}
+    .st-badge.pending{background:#fef3c7;color:#92400e}
+    .st-badge.approved,.st-badge.enrolled{background:#dcfce7;color:#14532d}
+    .st-badge.rejected{background:#fee2e2;color:#991b1b}
+    .st-name{font-size:18px;font-weight:900;color:#0f172a;margin:0 0 2px}
+    .st-school{font-size:12px;color:#64748b;margin:0 0 10px}
+    .st-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:5px 12px;font-size:12px;color:#475569;margin-bottom:12px}
+    .st-meta span b{color:#0f172a;font-weight:700}
+    .st-reason{background:#fee2e2;border-radius:6px;padding:10px 12px;font-size:13px;color:#7f1d1d;margin-bottom:10px}
+    .dl-btns{display:flex;gap:8px;flex-wrap:wrap}
+    .dl-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:8px;font:700 13px Inter,system-ui,sans-serif;cursor:pointer;border:0;transition:all .15s}
+    .dl-btn.letter{background:#0a6e3f;color:white;box-shadow:0 4px 10px rgba(10,110,63,.22)}
+    .dl-btn.letter:hover{background:#085c33}
+    .dl-btn.idcard{background:#1e3a5f;color:white;box-shadow:0 4px 10px rgba(30,58,95,.22)}
+    .dl-btn.idcard:hover{background:#172d4a}
+    /* ── ID Card (exact match to students.html) ── */
+    .idc-wrap{display:flex;flex-direction:column;align-items:center;gap:20px;padding:24px 16px;background:#e8ecf0}
+    .idc-label{font-size:11px;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;align-self:flex-start;padding-left:4px}
+    .idc{width:340px;border-radius:10px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.25);font-family:Arial,Helvetica,sans-serif;position:relative}
+    .idc-hdr{background:#0a6e3f;padding:0;position:relative;overflow:hidden;min-height:80px}
+    .idc-hdr::before{content:'';position:absolute;top:-20px;right:-30px;width:130px;height:160px;background:#f0c040;transform:rotate(-25deg);z-index:0}
+    .idc-hdr-inner{position:relative;z-index:1;padding:12px 14px 10px;display:flex;align-items:center;gap:10px}
+    .idc-logo-circle{width:52px;height:52px;border-radius:50%;background:white;border:3px solid #f0c040;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;font-size:26px}
+    .idc-logo-circle img{width:100%;height:100%;object-fit:cover}
+    .idc-hdr-text{flex:1}
+    .idc-school-name{font-size:12px;font-weight:900;color:white;text-transform:uppercase;letter-spacing:.4px;line-height:1.2}
+    .idc-school-addr{font-size:9px;color:rgba(255,255,255,.8);margin-top:2px}
+    .idc-title-bar{background:linear-gradient(90deg,#c8860a,#f0c040,#c8860a);text-align:center;padding:5px;font-size:9.5px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:#1a1a00;border-top:1px solid #a0680a;border-bottom:1px solid #a0680a}
+    .idc-body{background:white;display:flex;gap:10px;padding:10px 12px 8px;position:relative;min-height:130px}
+    .idc-watermark{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:72px;opacity:.05;pointer-events:none;z-index:0;user-select:none}
+    .idc-photo{width:72px;height:90px;border:2px solid #0a6e3f;border-radius:3px;background:#e8ecf0;display:flex;align-items:center;justify-content:center;font-size:36px;flex-shrink:0;overflow:hidden;z-index:1}
+    .idc-photo img{width:100%;height:100%;object-fit:cover}
+    .idc-fields-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 8px;z-index:1;flex:1}
+    .idc-field{margin-bottom:2px}
+    .idc-fl{font-size:8px;font-weight:700;color:#0a6e3f;text-transform:uppercase;letter-spacing:.05em;display:block;line-height:1}
+    .idc-fv{font-size:11px;font-weight:700;color:#111;line-height:1.3}
+    .idc-footer{background:white;border-top:1px solid #e5e7eb;padding:6px 12px 8px;display:flex;align-items:flex-end;justify-content:space-between}
+    .idc-sig-block{text-align:center}
+    .idc-sig-line{width:90px;height:1px;background:#333;margin-bottom:2px;margin-top:26px}
+    .idc-sig-label{font-size:7.5px;font-weight:700;color:#666}
+    .idc-validity{font-size:8px;font-weight:700;color:#0a6e3f;text-align:right}
+    .idc-holo{height:5px;background:linear-gradient(90deg,#ff0080,#ff8c00,#ffed00,#00ff80,#00c8ff,#a855f7,#ff0080)}
+    .idc-back{width:340px;border-radius:10px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.25);font-family:Arial,Helvetica,sans-serif}
+    .idc-back-hdr{background:#0a6e3f;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden}
+    .idc-back-hdr::before{content:'';position:absolute;top:-20px;right:-30px;width:100px;height:120px;background:#f0c040;transform:rotate(-25deg);z-index:0}
+    .idc-back-school{font-size:13px;font-weight:900;color:white;text-transform:uppercase;z-index:1}
+    .idc-back-logo{width:44px;height:44px;border-radius:50%;background:white;border:2px solid #f0c040;display:flex;align-items:center;justify-content:center;overflow:hidden;z-index:1;font-size:22px}
+    .idc-back-logo img{width:100%;height:100%;object-fit:cover}
+    .idc-back-body{background:white;padding:2.5mm 3mm;font-size:2mm;color:#333;line-height:1.5;flex:1;overflow:hidden}
+    .idc-back-nok{font-weight:700;color:#0a6e3f;font-size:12px;margin-bottom:8px}
+    .idc-back-disclaimer{font-size:10px;color:#555;line-height:1.5;margin-bottom:10px}
+    .idc-back-return{font-size:10px;color:#333;border-top:1px solid #e5e7eb;padding-top:8px;margin-top:4px}
+    .idc-back-return strong{color:#0a6e3f}
+    .idc-back-bottom{display:flex;justify-content:space-between;align-items:flex-end;padding:8px 14px 10px;background:white;border-top:1px solid #e5e7eb}
+    .idc-back-emergency{font-size:9px;color:#555}
+    /* ── Admission Letter (exact match to students.html) ── */
+    .letter-wrap{padding:24px;background:#f8f8f4}
+    .letter-doc{background:white;max-width:640px;margin:0 auto;padding:40px 48px;border:1px solid #ddd;font-family:Georgia,serif;font-size:13px;line-height:1.7;color:#222;box-shadow:0 4px 16px rgba(0,0,0,.08)}
+    .letter-header{display:flex;align-items:center;gap:16px;border-bottom:3px double #0a6e3f;padding-bottom:14px;margin-bottom:18px}
+    .letter-school{font-size:17px;font-weight:700;color:#0a6e3f;font-family:Arial,sans-serif;text-transform:uppercase}
+    .letter-addr{font-size:11px;color:#666;font-family:Arial,sans-serif}
+    .letter-ref{display:flex;justify-content:space-between;font-size:12px;font-family:Arial,sans-serif;color:#555;margin-bottom:16px}
+    .letter-title{text-align:center;font-size:15px;font-weight:700;text-decoration:underline;font-family:Arial,sans-serif;margin:14px 0;color:#0a6e3f;text-transform:uppercase}
+    .letter-body p{margin-bottom:10px}
+    .letter-table{width:100%;border-collapse:collapse;margin:12px 0;font-family:Arial,sans-serif;font-size:12px}
+    .letter-table td{padding:7px 10px;border:1px solid #ddd}
+    .letter-table td:first-child{font-weight:700;background:#f5f5f0;width:40%}
+    .letter-sig{margin-top:28px;display:grid;grid-template-columns:1fr 1fr;gap:32px}
+    .letter-sig-box{text-align:center}
+    .letter-stamp{width:72px;height:72px;border:2px dashed #0a6e3f;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;color:#0a6e3f;font-weight:700;text-align:center;margin:0 auto}
+    .letter-sig-line{border-top:1px solid #333;margin-bottom:3px;margin-top:36px}
+    .letter-sig-name{font-size:11px;font-weight:700;font-family:Arial,sans-serif}
+    .letter-sig-title{font-size:10px;color:#666;font-family:Arial,sans-serif}
+    @media(max-width:820px){.intro{grid-template-columns:1fr}.intro-panel{min-height:auto}}
+    @media(max-width:560px){.apply-shell{width:min(100% - 20px,1120px);padding-top:18px}.grid{grid-template-columns:1fr}.panel,.nav{padding-left:16px;padding-right:16px}.nav{flex-direction:column-reverse}.btn{width:100%}}
+    @media print{body *{display:none!important}#printArea{display:block!important;position:fixed;inset:0;z-index:9999;background:white;overflow:auto}}
+  </style>
+</head>
+<body>
+  <main class="apply-shell">
+    <!-- ── Navbar ── -->
+    <div class="apply-top">
+      <div class="brand"><img src="icons/logo.jpg" alt="EduTrack NG"><span>EduTrack NG</span></div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <button onclick="toggleTracker()" id="trackToggleBtn" style="display:inline-flex;align-items:center;gap:7px;background:#073d28;color:white;border:0;border-radius:8px;padding:9px 16px;font:700 13px Inter,system-ui,sans-serif;cursor:pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Track Status
+        </button>
+        <a class="login-link" href="login.html">Portal Login</a>
+      </div>
+    </div>
+
+    <!-- ── Track Status panel ── -->
+    <div class="track-bar" id="trackBar" style="display:none">
+      <div class="track-panel">
+        <p style="font-size:13px;font-weight:700;color:#0f172a;margin:0">&#128269; Check Admission Status</p>
+        <p style="font-size:12px;color:#64748b;margin:4px 0 0">Enter the reference number you received after submitting your application.</p>
+        <div class="track-row">
+          <input id="trackRef" placeholder="e.g. STU-MPZYG0A6" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')checkStatus()">
+          <button id="trackBtn" onclick="checkStatus()">Check</button>
+        </div>
+        <div id="trackerResult"></div>
+      </div>
+    </div>
+
+    <section class="intro">
+      <aside class="intro-panel">
+        <div>
+          <p style="font-size:12px;font-weight:900;text-transform:uppercase;color:#f8d26a;letter-spacing:.08em">Student enrollment</p>
+          <h1>Apply to your school with a scratch card.</h1>
+          <p>Select your school, validate your application card, complete the enrollment form, and wait for registrar approval.</p>
+        </div>
+        <div class="steps">
+          <div class="step-pill"><span>1</span> Choose school and enter scratch card</div>
+          <div class="step-pill"><span>2</span> Complete student and guardian details</div>
+          <div class="step-pill"><span>3</span> Registrar approves and enrolls class</div>
+        </div>
+      </aside>
+
+      <section class="form-card" id="formCard">
+        <div class="progress"><span id="bar"></span></div>
+        <div class="panel active" id="p1">
+          <h2>School and scratch card</h2>
+          <p class="panel-sub">Your application will be sent to the selected school's admin office.</p>
+          <div class="grid">
+            <div class="full field" data-field="schoolId"><label>School *</label><select id="schoolId"><option value="">Loading schools...</option></select><div class="err">Select your school</div></div>
+            <div class="full field" data-field="serialNo"><label>Serial Number *</label><input id="serialNo" placeholder="e.g. ETN12345670001" maxlength="20" style="font-family:monospace;font-size:14px;letter-spacing:2px;text-transform:uppercase;" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')"><div class="hint">Found on the top of your scratch card (e.g. ETN12345670001).</div><div class="err">Enter the serial number printed on your card</div></div>
+            <div class="field" data-field="scratchPin"><label>Scratch Card PIN *</label><input id="scratchPin" placeholder="0000 – 0000 – 0000" maxlength="18" style="font-family:monospace;font-size:18px;letter-spacing:3px;text-align:center;" oninput="
+  let v=this.value.replace(/[^0-9]/g,'').slice(0,12);
+  let fmt='';
+  for(let i=0;i<v.length;i++){if(i===4||i===8)fmt+=' – ';fmt+=v[i];}
+  this.value=fmt;
+"><div class="hint">Enter the 12-digit PIN exactly as shown on your card (e.g. 5638 – 5281 – 5469).</div><div class="err">Enter the full 12-digit card PIN</div></div>
+            <div class="full field" data-field="intendedLevel"><label>Level / Section *</label><select id="intendedLevel"><option value="">Select school first</option></select><div class="hint">Registrar will assign a specific class during approval.</div><div class="err">Please select the level or section you are applying for</div></div>
+          </div>
+        </div>
+        <div class="panel" id="p2">
+          <h2>Student details</h2>
+          <p class="panel-sub">Enter the learner's bio data as it should appear in school records.</p>
+          <div class="grid">
+            <div class="full field" data-field="fullName"><label>Full Name *</label><input id="fullName" placeholder="Surname First Name Other Name"><div class="err">Full name is required</div></div>
+            <div class="field" data-field="gender"><label>Gender *</label><select id="gender"><option value="">Select...</option><option value="M">Male</option><option value="F">Female</option></select><div class="err">Gender is required</div></div>
+            <div class="field" data-field="dob"><label>Date of Birth *</label><input id="dob" type="date"><div class="err">Date of birth is required</div></div>
+            <div class="field"><label>Previous School</label><input id="previousSchool" placeholder="Optional"></div>
+            <div class="field"><label>Religion</label><input id="religion" placeholder="Optional"></div>
+            <div class="full field" data-field="address"><label>Home Address *</label><input id="address" placeholder="Street, town, state"><div class="err">Home address is required</div></div>
+            <div class="full field">
+              <label>Passport Photograph</label>
+              <div style="display:flex;align-items:center;gap:14px;margin-top:2px">
+                <div id="passportPreview" style="width:80px;height:100px;border:2px dashed #cbd5e1;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#f8fafc;font-size:36px;flex-shrink:0;color:#94a3b8">&#128247;</div>
+                <div>
+                  <input type="file" id="passportUpload" accept="image/*" style="display:none" onchange="handlePassportUpload(this)">
+                  <button type="button" onclick="document.getElementById('passportUpload').click()" style="background:#0a6e3f;color:white;border:0;border-radius:8px;padding:10px 16px;font:700 13px Inter,system-ui,sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:7px">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    Choose Photo
+                  </button>
+                  <div class="hint" style="margin-top:6px">Clear recent passport photo (JPG/PNG, max 2 MB). Will appear on your ID card.</div>
+                  <div id="passportErr" style="display:none;color:#dc2626;font-size:12px;font-weight:700;margin-top:5px"></div>
+                </div>
+              </div>
+            </div>
+            <div class="full" id="docUploadsSection">
+              <div style="border-top:1px solid #e2e8f0;padding-top:16px;margin-top:6px">
+                <p style="font-size:13px;font-weight:800;color:#0f172a;margin:0 0 3px">&#128196; Required Documents</p>
+                <p style="font-size:12px;color:#64748b;margin:0 0 14px">Upload documents for your selected level. Images or PDF accepted (max 5 MB each).</p>
+                <div class="grid" id="docUploads">
+                  <p class="full" style="font-size:13px;color:#94a3b8;font-style:italic">Select a level in Step 1 to see required documents.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel" id="p3">
+          <h2>Parent and medical information</h2>
+          <p class="panel-sub">These details help the school contact guardians and support the student safely.</p>
+          <div class="grid">
+            <div class="field" data-field="parentName"><label>Parent/Guardian Name *</label><input id="parentName" placeholder="Guardian full name"><div class="err">Guardian name is required</div></div>
+            <div class="field" data-field="parentPhone"><label>Parent/Guardian Phone *</label><input id="parentPhone" placeholder="08012345678"><div class="err">Guardian phone is required</div></div>
+            <div class="field"><label>Parent Email</label><input id="parentEmail" type="email" placeholder="parent@email.com"></div>
+            <div class="field"><label>Relationship</label><select id="relationship"><option>Father</option><option>Mother</option><option>Guardian</option><option>Other</option></select></div>
+            <div class="field"><label>Emergency Contact</label><input id="emergencyPhone" placeholder="Optional"></div>
+            <div class="field"><label>Blood Group</label><input id="bloodGroup" placeholder="Optional"></div>
+            <div class="full field"><label>Medical Notes</label><textarea id="medicalNotes" placeholder="Allergies, conditions, medication, or special needs"></textarea></div>
+          </div>
+        </div>
+        <div class="panel" id="p4">
+          <h2>Review and submit</h2>
+          <p class="panel-sub">After submission, the registrar will review this application and approve enrollment into a class.</p>
+          <div class="review" id="review"></div>
+        </div>
+        <div class="success" id="success">
+          <div class="success-mark">
+            <img id="successLogo" src="icons/logo.jpg" alt="">
+            <span class="check-badge"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+          </div>
+          <h2>Application submitted!</h2>
+          <p class="panel-sub">Awaiting registrar approval. Keep your reference number safe.</p>
+          <div class="ref" id="refBox">REF: ...</div>
+          <p style="font-size:12px;color:#64748b;margin:14px 0 8px">Use this reference to check your admission status.</p>
+          <button onclick="autoTrack()" style="background:#073d28;color:white;border:0;border-radius:8px;padding:11px 22px;font:700 13px Inter,system-ui,sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:8px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Track My Admission</button>
+        </div>
+        <div class="nav" id="nav">
+          <button class="btn secondary" id="prevBtn" onclick="prevStep()">Back</button>
+          <button class="btn primary" id="nextBtn" onclick="nextStep()">Continue</button>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <!-- Hidden print area -->
+  <div id="printArea" style="display:none"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
+<script src="js/config.js"></script>
+<script src="js/supabase.js"></script>
+<script>
+let step=1, schools=[], lastRef='', lastAppData=null, passportDataUrl=null, uploadedDocs={};
+const total=4;
+const requiredByStep={1:['schoolId','serialNo','scratchPin','intendedLevel'],2:['fullName','gender','dob','address'],3:['parentName','parentPhone']};
+const val=id=>(document.getElementById(id)?.value||'').trim();
+const pinVal=()=>val('scratchPin').replace(/[^0-9]/g,''); // strips ' – ' formatting for DB queries
+const selectedSchool=()=>schools.find(s=>s.id===val('schoolId'));
+const selectedLevel=()=>val('intendedLevel');
+
+(async function init(){await loadSchools();await applyPrefillFromQuery();updateStep();})();
+
+async function loadSchools(){
+  const sel=document.getElementById('schoolId');
+  try{
+    const{data,error}=await db.from('schools').select('id,name,address,lga,state,phone,email,logo_url,school_type,is_active').eq('is_active',true).order('name');
+    if(error)throw error;
+    schools=data||[];
+    sel.innerHTML='<option value="">Select school</option>'+schools.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('');
+  }catch(e){sel.innerHTML='<option value="">Unable to load schools</option>';console.warn(e);}
+}
+
+document.getElementById('schoolId').addEventListener('change',async()=>{await loadLevelsForSchool();renderDocUploads();});
+document.addEventListener('DOMContentLoaded',()=>document.getElementById('intendedLevel')?.addEventListener('change',renderDocUploads));
+
+async function loadLevelsForSchool(){
+  const school=selectedSchool();
+  const sel=document.getElementById('intendedLevel');
+  if(!sel)return;
+  sel.innerHTML='<option value="">Loading levels…</option>';
+  uploadedDocs={};
+  renderDocUploads();
+  if(!school){sel.innerHTML='<option value="">Select school first</option>';return;}
+  try{
+    // ── Primary: pull distinct levels straight from this school's classes ──
+    const{data:rows,error}=await db.from('classes')
+      .select('level')
+      .eq('school_id',school.id)
+      .not('level','is',null)
+      .order('level');
+    // Deduplicate while preserving order
+    const seen=new Set();
+    const dbLevels=(rows||[]).map(r=>r.level).filter(l=>l&&!seen.has(l)&&seen.add(l));
+    if(dbLevels.length){
+      sel.innerHTML='<option value="">Select a level / section…</option>'+
+        dbLevels.map(l=>`<option value="${esc(l)}">${esc(l)}</option>`).join('');
+      return;
+    }
+    // ── Fallback: derive from school_type when no class levels configured ──
+    const fallback=getLevelsForSchool(school);
+    sel.innerHTML='<option value="">Select a level / section…</option>'+
+      fallback.map(l=>`<option value="${esc(l.v)}">${esc(l.l)}</option>`).join('');
+  }catch(e){
+    console.warn('loadLevelsForSchool:',e);
+    const fallback=getLevelsForSchool(school);
+    sel.innerHTML='<option value="">Select a level / section…</option>'+
+      fallback.map(l=>`<option value="${esc(l.v)}">${esc(l.l)}</option>`).join('');
+  }
+}
+
+function getLevelsForSchool(school){
+  const t=(school?.school_type||'').toLowerCase();
+  if(t.includes('university')||t.includes('college_of_tech'))return[
+    {v:'Foundation / Remedial',l:'Foundation / Remedial'},
+    {v:'100 Level (Year 1)',l:'100 Level (Year 1)'},
+    {v:'200 Level (Year 2)',l:'200 Level (Year 2)'},
+    {v:'300 Level (Year 3)',l:'300 Level (Year 3)'},
+    {v:'400 Level (Year 4)',l:'400 Level (Year 4)'},
+    {v:'Postgraduate',l:'Postgraduate'},
+  ];
+  if(t.includes('institute')||t.includes('vocational')||t.includes('technical')||t.includes('polytechnic'))return[
+    {v:'Diploma',l:'Diploma'},
+    {v:'Certificate',l:'Certificate'},
+    {v:'Professional Diploma',l:'Professional Diploma'},
+    {v:'HND',l:'Higher National Diploma (HND)'},
+  ];
+  // O-level / Regular school
+  const levels=[];
+  if(!t||t.includes('nursery')||t.includes('creche')||t.includes('comprehensive')||t.includes('all'))
+    levels.push({v:'Nursery / Kindergarten',l:'Nursery / Kindergarten'});
+  if(!t||t.includes('primary')||t.includes('comprehensive')||t.includes('all')||t.includes('nursery'))
+    levels.push({v:'Primary',l:'Primary'});
+  if(!t||t.includes('secondary')||t.includes('comprehensive')||t.includes('all')||t.includes('junior')){
+    levels.push({v:'Junior Secondary (JSS)',l:'Junior Secondary (JSS)'});
+    levels.push({v:'Senior Secondary (SSS)',l:'Senior Secondary (SSS)'});
+  }
+  return levels.length?levels:[
+    {v:'Nursery / Kindergarten',l:'Nursery / Kindergarten'},
+    {v:'Primary',l:'Primary'},
+    {v:'Junior Secondary (JSS)',l:'Junior Secondary (JSS)'},
+    {v:'Senior Secondary (SSS)',l:'Senior Secondary (SSS)'},
+  ];
+}
+
+function getDocsForLevel(level){
+  const l=(level||'').toLowerCase();
+  if(l.includes('nursery')||l.includes('kindergarten')||l.includes('creche'))return[
+    {id:'doc_birth',label:'Birth Certificate',required:true,hint:'Official birth or baptism certificate'},
+    {id:'doc_immunization',label:'Immunization / Health Card',required:false},
+    {id:'doc_parentid',label:'Parent / Guardian Valid ID',required:false},
+  ];
+  if(l.includes('primary'))return[
+    {id:'doc_birth',label:'Birth Certificate',required:true},
+    {id:'doc_report',label:'Previous School Report Card',required:false,hint:'Last term result from previous school'},
+    {id:'doc_transfer',label:'Transfer Certificate',required:false},
+    {id:'doc_parentid',label:'Parent / Guardian Valid ID',required:false},
+  ];
+  if(l.includes('junior')||l.includes('jss'))return[
+    {id:'doc_birth',label:'Birth Certificate',required:true},
+    {id:'doc_fslc',label:'Primary School Leaving Certificate (FSLC)',required:true},
+    {id:'doc_report',label:'Last Term Report Card',required:false},
+    {id:'doc_transfer',label:'Transfer Certificate',required:false},
+  ];
+  if(l.includes('senior')||l.includes('sss'))return[
+    {id:'doc_birth',label:'Birth Certificate',required:true},
+    {id:'doc_bece',label:'BECE / JSS3 Result or Certificate',required:true},
+    {id:'doc_report',label:'Last Term Report Card',required:false},
+    {id:'doc_transfer',label:'Transfer Certificate',required:false},
+  ];
+  if(l.includes('professional diploma'))return[
+    {id:'doc_olevel',label:'WAEC / NECO O-Level Result',required:true},
+    {id:'doc_birth',label:'Birth Certificate or Government-Issued ID',required:true},
+    {id:'doc_prior',label:'Previous Diploma / Degree Certificate (if any)',required:false},
+    {id:'doc_nysc',label:'NYSC Certificate or Exemption Letter',required:false},
+    {id:'doc_lga',label:'LGA Certificate of Origin',required:false},
+  ];
+  if(l.includes('diploma')||l.includes('certificate')||l.includes('hnd'))return[
+    {id:'doc_olevel',label:'WAEC / NECO O-Level Result',required:true},
+    {id:'doc_birth',label:'Birth Certificate or Government-Issued ID',required:true},
+    {id:'doc_lga',label:'LGA Certificate of Origin',required:false},
+  ];
+  if(l.includes('postgraduate'))return[
+    {id:'doc_olevel',label:'WAEC / NECO O-Level Result',required:true},
+    {id:'doc_degree',label:'First Degree Certificate & Transcript',required:true},
+    {id:'doc_birth',label:'Birth Certificate or NIN Slip',required:true},
+    {id:'doc_nysc',label:'NYSC Certificate or Exemption Letter',required:true},
+    {id:'doc_lga',label:'LGA Certificate of Origin',required:false},
+  ];
+  if(l.includes('level')||l.includes('foundation'))return[
+    {id:'doc_olevel',label:'WAEC / NECO / NABTEB O-Level Result',required:true},
+    {id:'doc_jamb',label:'JAMB Result Slip / Admission Letter',required:true},
+    {id:'doc_birth',label:'Birth Certificate or NIN Slip',required:true},
+    {id:'doc_lga',label:'LGA Certificate of Origin',required:false},
+  ];
+  return[
+    {id:'doc_birth',label:'Birth Certificate or Valid ID',required:true},
+    {id:'doc_report',label:'Previous School Certificate / Report',required:false},
+  ];
+}
+
+function renderDocUploads(){
+  const container=document.getElementById('docUploads');
+  if(!container)return;
+  const level=val('intendedLevel');
+  if(!level){
+    container.innerHTML='<p class="full" style="font-size:13px;color:#94a3b8;font-style:italic">Select a level in Step 1 to see required documents.</p>';
+    return;
+  }
+  const docs=getDocsForLevel(level);
+  if(!docs.length){container.innerHTML='';return;}
+  container.innerHTML=docs.map(d=>{
+    const up=uploadedDocs[d.id];
+    const border=up?'#86efac':'#cbd5e1';
+    const bg=up?'#f0fdf4':'#f8fafc';
+    const btnColor=up?'#166534':'#334155';
+    const thumb=up&&up.type.startsWith('image/')?`<img src="${up.url}" style="width:100%;height:100%;object-fit:cover">`:'&#128196;';
+    const btnLabel=up?`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>\u00a0${esc(up.name.length>24?up.name.slice(0,24)+'\u2026':up.name)}`:`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>\u00a0Upload`;
+    return `<div class="full field doc-slot" data-doc="${d.id}">
+      <label>${esc(d.label)}${d.required?' <span style="color:#dc2626">*</span>':' <span style="color:#94a3b8;font-weight:400">(optional)</span>'}</label>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:2px">
+        <div style="width:42px;height:42px;border:1.5px dashed ${border};border-radius:6px;background:${bg};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;overflow:hidden">${thumb}</div>
+        <div style="flex:1">
+          <input type="file" id="file_${d.id}" accept="image/*,.pdf" style="display:none" onchange="handleDocUpload('${d.id}','${esc(d.label)}',this)">
+          <button type="button" onclick="document.getElementById('file_${d.id}').click()" style="background:${bg};color:${btnColor};border:1px solid ${border};border-radius:6px;padding:8px 14px;font:600 12px Inter,system-ui,sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:5px">${btnLabel}</button>
+          ${d.hint?`<div class="hint">${esc(d.hint)}</div>`:''}
+        </div>
+      </div>
+      <div class="err">This document is required — please upload a file.</div>
+    </div>`;
+  }).join('');
+}
+
+function handleDocUpload(docId,label,input){
+  const file=input.files[0];
+  if(!file)return;
+  if(file.size>5*1024*1024){alert('File must be under 5 MB');input.value='';return;}
+  const reader=new FileReader();
+  reader.onload=e=>{
+    uploadedDocs[docId]={name:file.name,url:e.target.result,type:file.type,label};
+    renderDocUploads();
+  };
+  reader.readAsDataURL(file);
+}
+
+async function applyPrefillFromQuery(){
+  const p=new URLSearchParams(location.search);
+  const school=p.get('school'),pin=p.get('pin'),serial=p.get('serial');
+  if(school){document.getElementById('schoolId').value=school;await loadLevelsForSchool();}
+  if(serial)document.getElementById('serialNo').value=serial.toUpperCase();
+  if(pin)document.getElementById('scratchPin').value=pin;
+}
+
+function validateStep(n){
+  let ok=true;
+  (requiredByStep[n]||[]).forEach(id=>{
+    const wrap=document.querySelector(`[data-field="${id}"]`),missing=!val(id);
+    if(wrap)wrap.classList.toggle('bad',missing);
+    if(missing)ok=false;
+  });
+  // Extra check: PIN must be exactly 12 digits
+  if(n===1&&val('scratchPin')){
+    const digits=pinVal();
+    const pinWrap=document.querySelector('[data-field="scratchPin"]');
+    const pinErr=pinWrap?.querySelector('.err');
+    if(digits.length!==12){
+      if(pinWrap)pinWrap.classList.add('bad');
+      if(pinErr){pinErr.textContent='PIN must be exactly 12 digits ('+digits.length+' entered).';pinErr.style.display='block';}
+      ok=false;
+    }
+  }
+  // Validate required documents in step 2
+  if(n===2){
+    const level=val('intendedLevel');
+    if(level){
+      getDocsForLevel(level).filter(d=>d.required).forEach(d=>{
+        if(!uploadedDocs[d.id]){
+          const slot=document.querySelector('[data-doc="'+d.id+'"]');
+          if(slot)slot.classList.add('bad');
+          ok=false;
+        }
+      });
+    }
+  }
+  return ok;
+}
+
+async function nextStep(){
+  if(step<total){
+    if(!validateStep(step))return;
+    if(step===1){
+      const btn=document.getElementById('nextBtn');
+      btn.disabled=true;btn.textContent='Validating\u2026';
+      try{await validateScratchCard();}
+      catch(e){
+        btn.disabled=false;btn.textContent='Continue';
+        const wrap=document.querySelector('[data-field="scratchPin"]');
+        if(wrap){wrap.classList.add('bad');const er=wrap.querySelector('.err');if(er){er.textContent=e.message;er.style.display='block';}}
+        return;
+      }finally{btn.disabled=false;btn.textContent='Continue';}
+    }
+    step++;if(step===total)buildReview();updateStep();return;
+  }
+  submitApplication();
+}
+
+function prevStep(){if(step>1){step--;updateStep();}}
+
+function updateStep(){
+  for(let i=1;i<=total;i++)document.getElementById('p'+i).classList.toggle('active',i===step);
+  document.getElementById('bar').style.width=`${(step/total)*100}%`;
+  document.getElementById('prevBtn').style.visibility=step===1?'hidden':'visible';
+  document.getElementById('nextBtn').textContent=step===total?'Submit Application':'Continue';
+}
+
+function buildReview(){
+  const rows=[
+    ['School',selectedSchool()?.name||''],['Serial No.',val('serialNo')],['Scratch Card PIN',val('scratchPin')],
+    ['Level / Section',selectedLevel()||'Not selected'],
+    ['Documents Uploaded',Object.values(uploadedDocs).map(d=>d.label||d.name).join(', ')||'None uploaded'],
+    ['Student',val('fullName')],['Gender',val('gender')==='M'?'Male':val('gender')==='F'?'Female':''],
+    ['Date of Birth',val('dob')],['Address',val('address')],
+    ['Guardian',val('parentName')],['Phone',val('parentPhone')],
+    ['Email',val('parentEmail')||'-'],['Medical Notes',val('medicalNotes')||'-']
+  ];
+  document.getElementById('review').innerHTML=`<div class="review-box"><h3>Application Summary</h3>${rows.map(([k,v])=>`<div class="review-row"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>`;
+}
+
+async function validateScratchCard(){
+  const schoolId=val('schoolId'),serialNo=val('serialNo'),pin=pinVal();
+
+  // 1. Try the RPC (serial + pin) — works for cards generated after SQL migration
+  const{data,error}=await db.rpc('verify_scratch_pin',{p_school_id:schoolId,p_serial_no:serialNo,p_pin:pin});
+  if(!error&&data?.valid)return{id:data.card_id,card_type:data.card_type};
+
+  // 2. Fallback: direct table query by pin only — for legacy cards where serial_no is still NULL
+  //    (SQL backfill not yet run). If found via pin, treat serial as matching so the user can proceed.
+  const{data:card,error:fbErr}=await db.from('scratch_cards')
+    .select('id,pin,school_id,serial_no,is_used,uses_count,max_uses,card_type')
+    .eq('school_id',schoolId).eq('pin',pin).maybeSingle();
+  if(fbErr)throw new Error(fbErr.message);
+  if(!card)throw new Error(data?.error||'Scratch card not found. Check your Serial Number and PIN, and make sure you selected the correct school.');
+  if(card.serial_no&&card.serial_no.toUpperCase()!==serialNo.toUpperCase())
+    throw new Error('Serial Number does not match this PIN. Please check your card.');
+  if(card.is_used===true||Number(card.uses_count||0)>=Number(card.max_uses||1))
+    throw new Error('This scratch card has already been used. Please request a new card.');
+  return{id:card.id,card_type:card.card_type||'registration'};
+}
+
+async function submitApplication(){
+  if(!validateStep(step))return;
+  const btn=document.getElementById('nextBtn');
+  btn.disabled=true;btn.textContent='Submitting\u2026';
+  try{
+    const card=await validateScratchCard();
+    const ref='STU-'+Date.now().toString(36).toUpperCase();
+
+    // Try the RPC first (handles card marking atomically)
+    const{data:result,error:rpcErr}=await db.rpc('submit_student_application',{
+      p_school_id:val('schoolId'),
+      p_serial_no:val('serialNo'),
+      p_pin:pinVal(),
+      p_full_name:val('fullName'),
+      p_gender:val('gender'),
+      p_date_of_birth:val('dob')||null,
+      p_address:val('address'),
+      p_guardian_name:val('parentName'),
+      p_parent_phone:val('parentPhone'),
+      p_parent_email:val('parentEmail')||null,
+      p_medical_notes:val('medicalNotes')||null,
+      p_requested_class_id:null,
+      p_photo_url:null
+    });
+
+    let appId=null;
+    if(!rpcErr&&result&&!result.error){
+      appId=result.id;
+    } else {
+      // Fallback: direct insert for legacy cards (serial_no null / RPC not yet deployed)
+      const payload={
+        school_id:val('schoolId'),scratch_card_id:card.id,scratch_card_pin:pinVal(),
+        intended_class_id:null,full_name:val('fullName'),gender:val('gender'),
+        date_of_birth:val('dob')||null,address:val('address'),parent_name:val('parentName'),
+        parent_phone:val('parentPhone'),parent_email:val('parentEmail')||null,
+        blood_group:val('bloodGroup')||null,medical_notes:val('medicalNotes')||null,
+        ref_id:ref,status:'pending',submitted_at:new Date().toISOString()
+      };
+      const{data:ins,error:insErr}=await db.from('student_applications').insert(payload).select('id').single();
+      if(insErr)throw new Error(insErr.message);
+      appId=ins?.id;
+      // Mark card used manually in fallback path
+      await db.from('scratch_cards').update({is_used:true,used_at:new Date().toISOString(),uses_count:Number(card.uses_count||0)+1}).eq('id',card.id);
+      // Non-critical: store level on fallback path
+      if(appId&&val('intendedLevel')){try{await db.from('student_applications').update({intended_level:val('intendedLevel')}).eq('id',appId);}catch(_){}}
+    }
+
+    // ── Always persist ref_id (critical) — isolated so a missing column never silently kills it ──
+    if(appId){
+      try{
+        const{error:refErr}=await db.from('student_applications').update({ref_id:ref}).eq('id',appId);
+        if(refErr)console.warn('ref_id save failed:',refErr.message);
+      }catch(e){console.warn('ref_id patch exception:',e);}
+    }
+    // ── Non-critical: persist intended_level in a separate call so errors are fully isolated ──
+    if(appId&&val('intendedLevel')){
+      try{await db.from('student_applications').update({intended_level:val('intendedLevel')}).eq('id',appId);}
+      catch(_){}
+    }
+
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    document.getElementById('nav').style.display='none';
+    document.getElementById('bar').style.width='100%';
+    document.getElementById('refBox').textContent='REF: '+ref;
+    const _sch=selectedSchool();
+    if(_sch?.logo_url){const _i=document.getElementById('successLogo');if(_i){_i.src=_sch.logo_url;_i.alt=_sch.name;}}
+    lastRef=ref;lastAppData=null;
+    document.getElementById('success').classList.add('show');
+  }catch(e){alert(e.message||'Application submission failed.');}
+  finally{btn.disabled=false;btn.textContent='Submit Application';}
+}
+
+/* ── Tracker ── */
+function toggleTracker(){
+  const bar=document.getElementById('trackBar');
+  const open=bar.style.display!=='none';
+  bar.style.display=open?'none':'block';
+  if(!open){document.getElementById('trackRef').focus();bar.scrollIntoView({behavior:'smooth',block:'nearest'});}
+}
+
+function autoTrack(){
+  document.getElementById('trackBar').style.display='block';
+  document.getElementById('trackRef').value=lastRef;
+  document.getElementById('trackBar').scrollIntoView({behavior:'smooth',block:'start'});
+  setTimeout(checkStatus,300);
+}
+
+async function checkStatus(){
+  const ref=(document.getElementById('trackRef').value||'').trim().toUpperCase();
+  if(!ref){document.getElementById('trackerResult').innerHTML='<p style="font-size:13px;color:#dc2626;margin:8px 0 0">Please enter a reference number.</p>';return;}
+  const btn=document.getElementById('trackBtn');
+  btn.disabled=true;btn.textContent='Checking\u2026';
+  document.getElementById('trackerResult').innerHTML='';
+  try{
+    const{data,error}=await db.from('student_applications')
+      .select('ref_id,full_name,status,submitted_at,reviewed_at,rejection_reason,gender,date_of_birth,address,parent_name,parent_phone,blood_group,admission_number,intended_class_id,school_id,schools(name,address,lga,state,phone,email,logo_url)')
+      .eq('ref_id',ref).maybeSingle();
+    if(error)throw error;
+    if(!data){document.getElementById('trackerResult').innerHTML='<p style="font-size:13px;color:#dc2626;margin:8px 0 0">No application found for that reference number.</p>';return;}
+    // Resolve class/level name:
+    // New applications store a plain-text level in intended_level.
+    // Legacy applications may still have an intended_class_id UUID.
+    let className='\u2014';
+    if(data.intended_level){
+      className=data.intended_level;
+    } else if(data.intended_class_id){
+      try{
+        const{data:cl}=await db.from('classes').select('name').eq('id',data.intended_class_id).single();
+        if(cl)className=cl.name;
+      }catch(_){}
+    }
+    data._className=className;
+    // fetch subjects for the class
+    let subjects=[];
+    if(data.intended_class_id){
+      try{
+        const{data:cs}=await db.from('class_subjects')
+          .select('subjects(name,code)')
+          .eq('class_id',data.intended_class_id);
+        subjects=(cs||[]).map(r=>r.subjects).filter(Boolean);
+        // Deduplicate — class_subjects may have duplicate rows
+        const _seen=new Set();
+        subjects=subjects.filter(s=>{const k=(s.name||'')+(s.code||'');if(_seen.has(k))return false;_seen.add(k);return true;});
+      }catch(_){}
+    }
+    data._subjects=subjects;
+    lastAppData=data;
+    renderStatus(data);
+  }catch(e){
+    document.getElementById('trackerResult').innerHTML=`<p style="font-size:13px;color:#dc2626;margin:8px 0 0">${esc(e.message)}</p>`;
+  }finally{btn.disabled=false;btn.textContent='Check';}
+}
+
+function renderStatus(d){
+  const s=d.status||'pending';
+  const labels={pending:'\u23f3 Pending Review',approved:'\u2713 Approved',rejected:'\u2717 Rejected',enrolled:'\u2713 Enrolled'};
+  const badgeCls=s==='enrolled'?'approved':s;
+  const sub=d.submitted_at?new Date(d.submitted_at).toLocaleDateString('en-NG',{day:'2-digit',month:'short',year:'numeric'}):'—';
+  const rev=d.reviewed_at?new Date(d.reviewed_at).toLocaleDateString('en-NG',{day:'2-digit',month:'short',year:'numeric'}):'Pending';
+  let html=`<div class="st-card st-${s} show">
+    <span class="st-badge ${badgeCls}">${labels[s]||s}</span>
+    <p class="st-name">${esc(d.full_name||'')}</p>
+    <p class="st-school">${esc(d.schools?.name||'')}</p>
+    <div class="st-meta">
+      <span>Ref: <b>${esc(d.ref_id)}</b></span>
+      <span>Submitted: <b>${sub}</b></span>
+      <span>Class: <b>${esc(d._className)}</b></span>
+      <span>Reviewed: <b>${rev}</b></span>
+      ${(s==='approved'||s==='enrolled')?`<span>Adm. No: <b>${esc(d.admission_number||'—')}</b></span>`:''}
+    </div>`;
+  if(s==='rejected'&&d.rejection_reason)html+=`<div class="st-reason"><b>Reason:</b> ${esc(d.rejection_reason)}</div>`;
+  if(s==='approved'||s==='enrolled'){
+    html+=`<div class="dl-btns">
+      <button class="dl-btn letter" onclick="downloadLetter()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Admission Letter
+      </button>
+      <button class="dl-btn idcard" onclick="downloadIDCard()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="9" cy="11" r="2.5"/><path d="M14 9h4M14 13h3"/></svg>
+        ID Card
+      </button>
+    </div>`;
+  }
+  html+='</div>';
+  document.getElementById('trackerResult').innerHTML=html;
+}
+
+/* ── Admission Letter — exact students.html design ── */
+function downloadLetter(){
+  const d=lastAppData;if(!d)return;
+  const school=d.schools||{};
+  const logoSrc=school.logo_url||'icons/logo.jpg';
+  const today=new Date();
+  const session=`${today.getFullYear()}/${today.getFullYear()+1}`;
+  const dob=d.date_of_birth?new Date(d.date_of_birth).toLocaleDateString('en-NG',{day:'2-digit',month:'long',year:'numeric'}):'—';
+  const gender=d.gender==='M'?'Male':d.gender==='F'?'Female':'—';
+  const admRef=`ADM/${d.admission_number||d.ref_id||''}/${today.getFullYear()}`;
+  const dateStr=today.toLocaleDateString('en-NG',{day:'2-digit',month:'long',year:'numeric'});
+  const schoolAddr=[school.address,school.lga,school.state].filter(Boolean).join(', ')||'Nigeria';
+  // subjects rows
+  const subRows=(d._subjects&&d._subjects.length)
+    ? d._subjects.map((s,i)=>`<tr><td>Subject ${i+1}</td><td>${esc(s.name||'')}${s.code?' ('+esc(s.code)+')':''}</td></tr>`).join('')
+    : '<tr><td colspan="2" style="text-align:center;color:#888;">Subjects will be communicated by the school</td></tr>';
+
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Admission Letter — ${esc(d.full_name)}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{margin:0;background:#f8f8f4;font-family:Georgia,serif}
+.letter-wrap{padding:24px;background:#f8f8f4}
+.letter-doc{background:white;max-width:640px;margin:0 auto;padding:40px 48px;border:1px solid #ddd;font-family:Georgia,serif;font-size:13px;line-height:1.7;color:#222;box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.letter-header{display:flex;align-items:center;gap:16px;border-bottom:3px double #0a6e3f;padding-bottom:14px;margin-bottom:18px}
+.letter-school{font-size:17px;font-weight:700;color:#0a6e3f;font-family:Arial,sans-serif;text-transform:uppercase}
+.letter-addr{font-size:11px;color:#666;font-family:Arial,sans-serif}
+.letter-ref{display:flex;justify-content:space-between;font-size:12px;font-family:Arial,sans-serif;color:#555;margin-bottom:16px}
+.letter-title{text-align:center;font-size:15px;font-weight:700;text-decoration:underline;font-family:Arial,sans-serif;margin:14px 0;color:#0a6e3f;text-transform:uppercase}
+.letter-body p{margin-bottom:10px;font-family:Georgia,serif}
+.letter-table{width:100%;border-collapse:collapse;margin:12px 0;font-family:Arial,sans-serif;font-size:12px}
+.letter-table td{padding:7px 10px;border:1px solid #ddd}
+.letter-table td:first-child{font-weight:700;background:#f5f5f0;width:40%}
+.letter-sig{margin-top:28px;display:grid;grid-template-columns:1fr 1fr;gap:32px}
+.letter-sig-box{text-align:center}
+.letter-stamp{width:72px;height:72px;border:2px dashed #0a6e3f;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;color:#0a6e3f;font-weight:700;text-align:center;margin:0 auto}
+.letter-sig-line{border-top:1px solid #333;margin-bottom:3px;margin-top:36px}
+.letter-sig-name{font-size:11px;font-weight:700;font-family:Arial,sans-serif}
+.letter-sig-title{font-size:10px;color:#666;font-family:Arial,sans-serif}
+@media print{body{background:white}@page{margin:20mm}.letter-doc{box-shadow:none;border:none}print-color-adjust:exact;-webkit-print-color-adjust:exact}
+</style></head><body>
+<div class="letter-wrap"><div class="letter-doc">
+  <div class="letter-header">
+    <img src="${logoSrc}" style="width:64px;height:64px;object-fit:cover;border-radius:8px;flex-shrink:0;" onerror="this.outerHTML='&#127979;'">
+    <div>
+      <div class="letter-school">${esc(school.name||'School Name')}</div>
+      <div class="letter-addr">${esc(schoolAddr)}</div>
+    </div>
+  </div>
+  <div class="letter-ref">
+    <div>Ref: <strong>${esc(admRef)}</strong></div>
+    <div>Date: <strong>${dateStr}</strong></div>
+  </div>
+  <div class="letter-title">Offer of Admission</div>
+  <div class="letter-body">
+    <p>Dear Parent / Guardian of <strong>${esc(d.parent_name||'Parent/Guardian')}</strong>,</p>
+    <p>We are pleased to inform you that following the review of your ward's application, the management of <strong>${esc(school.name||'our school')}</strong> has approved the admission of your ward into this institution on the following terms:</p>
+    <table class="letter-table">
+      <tr><td>Student's Full Name</td><td><strong>${esc(d.full_name||'')}</strong></td></tr>
+      <tr><td>Admission Number</td><td><strong>${esc(d.admission_number||'—')}</strong></td></tr>
+      <tr><td>Class Admitted Into</td><td><strong>${esc(d._className||'To be assigned')}</strong></td></tr>
+      <tr><td>Date of Birth</td><td>${dob}</td></tr>
+      <tr><td>Gender</td><td>${gender}</td></tr>
+      <tr><td>Academic Session</td><td>${session}</td></tr>
+      <tr><td>Resumption Date</td><td>As announced by the school</td></tr>
+    </table>
+    ${(d._subjects&&d._subjects.length)?`
+    <p><strong>Courses / Subjects Offered:</strong></p>
+    <table class="letter-table">${subRows}</table>`:''}
+    <p><strong>Conditions of Admission:</strong></p>
+    <p>1. This admission is subject to verification of all credentials and documents submitted.<br>
+    2. The student is expected to abide by all school rules and regulations.<br>
+    3. School fees must be paid in full before or on the first day of resumption.<br>
+    4. The school reserves the right to withdraw this admission if any information provided is found to be false.</p>
+    <p>Please acknowledge acceptance of this offer by signing the copy below and returning it to the school office within <strong>7 days</strong> of receipt.</p>
+    <p>Congratulations and welcome to our school family!</p>
+    <p>Yours faithfully,</p>
+  </div>
+  <div class="letter-sig">
+    <div class="letter-sig-box">
+      <div class="letter-stamp">OFFICIAL<br>STAMP</div>
+      <div class="letter-sig-line"></div>
+      <div class="letter-sig-name">Principal / Head Teacher</div>
+      <div class="letter-sig-title">Head of Institution</div>
+    </div>
+    <div class="letter-sig-box">
+      <div style="margin-top:36px"></div>
+      <div class="letter-sig-line"></div>
+      <div class="letter-sig-name">Parent / Guardian Signature &amp; Date</div>
+      <div class="letter-sig-title">Acceptance</div>
+    </div>
+  </div>
+</div></div>
+<script>window.onload=()=>{window.print();}<\/script></body></html>`;
+  printDoc(html);
+}
+
+/* ── ID Card — exact students.html design, CR80 print size ── */
+function downloadIDCard(){
+  const d=lastAppData;if(!d)return;
+  const school=d.schools||{};
+  const logoSrc=school.logo_url||'icons/logo.jpg';
+  const today=new Date();
+  const expiry=new Date(today.getFullYear()+1,6,31);
+  const session=`${today.getFullYear()}/${today.getFullYear()+1}`;
+  const dob=d.date_of_birth?new Date(d.date_of_birth).toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'}):'—';
+  const gender=d.gender==='M'?'Male':d.gender==='F'?'Female':'—';
+  const schoolAddr=[school.lga,school.state].filter(Boolean).join(', ')||'Nigeria';
+  const schoolFull=[school.address,school.lga,school.state].filter(Boolean).join(', ')||'Nigeria';
+  const expiryStr=expiry.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  const validityStr=`Valid Till ${expiry.toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'})}`;
+  const watermark=(school.name||'S').charAt(0).toUpperCase();
+  const logoHtml=`<img src="${logoSrc}" onerror="this.outerHTML='&#127979;'" style="width:100%;height:100%;object-fit:cover">`;
+
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ID Card — ${esc(d.full_name)}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#e8ecf0;font-family:Arial,Helvetica,sans-serif;padding:20px;display:flex;flex-direction:column;align-items:center;gap:20px}
+.idc-label{font-size:11px;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;align-self:flex-start;padding-left:4px}
+/* CR80 standard: 85.6mm × 54mm */
+.idc{width:85.6mm;height:54mm;border-radius:6px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.25);font-family:Arial,Helvetica,sans-serif;position:relative;display:flex;flex-direction:column}
+.idc-back{width:85.6mm;height:54mm;border-radius:6px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.25);font-family:Arial,Helvetica,sans-serif;position:relative;display:flex;flex-direction:column}
+.idc-hdr{background:#0a6e3f;padding:0;position:relative;overflow:hidden}
+.idc-hdr::before{content:'';position:absolute;top:-5mm;right:-7mm;width:30mm;height:38mm;background:#f0c040;transform:rotate(-25deg);z-index:0}
+.idc-hdr-inner{position:relative;z-index:1;padding:2.5mm 3mm 2mm;display:flex;align-items:center;gap:2.5mm}
+.idc-logo-circle{width:13mm;height:13mm;border-radius:50%;background:white;border:0.7mm solid #f0c040;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;font-size:6mm}
+.idc-logo-circle img{width:100%;height:100%;object-fit:cover}
+.idc-school-name{font-size:2.8mm;font-weight:900;color:white;text-transform:uppercase;letter-spacing:.3px;line-height:1.2}
+.idc-school-addr{font-size:2mm;color:rgba(255,255,255,.8);margin-top:.5mm}
+.idc-title-bar{background:linear-gradient(90deg,#c8860a,#f0c040,#c8860a);text-align:center;padding:1.2mm;font-size:2mm;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:#1a1a00;border-top:.3mm solid #a0680a;border-bottom:.3mm solid #a0680a}
+.idc-body{background:white;display:flex;gap:2.5mm;padding:2.5mm 3mm 2mm;position:relative;flex:1;overflow:hidden}
+.idc-watermark{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:18mm;opacity:.05;pointer-events:none;z-index:0;user-select:none}
+.idc-photo{width:16mm;height:20mm;border:.5mm solid #0a6e3f;border-radius:.8mm;background:#e8ecf0;display:flex;align-items:center;justify-content:center;font-size:8mm;flex-shrink:0;overflow:hidden;z-index:1}
+.idc-photo img{width:100%;height:100%;object-fit:cover}
+.idc-fields-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2mm 2mm;z-index:1;flex:1}
+.idc-field{margin-bottom:0}
+.idc-fl{font-size:1.7mm;font-weight:700;color:#0a6e3f;text-transform:uppercase;letter-spacing:.05em;display:block;line-height:1}
+.idc-fv{font-size:2.4mm;font-weight:700;color:#111;line-height:1.3}
+.idc-footer{background:white;border-top:.3mm solid #e5e7eb;padding:1.5mm 3mm 2mm;display:flex;align-items:flex-end;justify-content:space-between}
+.idc-sig-block{text-align:center}
+.idc-sig-line{width:22mm;height:.3mm;background:#333;margin-bottom:.5mm;margin-top:6mm}
+.idc-sig-label{font-size:1.7mm;font-weight:700;color:#666}
+.idc-validity{font-size:1.8mm;font-weight:700;color:#0a6e3f;text-align:right}
+.idc-holo{height:1.2mm;background:linear-gradient(90deg,#ff0080,#ff8c00,#ffed00,#00ff80,#00c8ff,#a855f7,#ff0080)}
+.idc-back-hdr{background:#0a6e3f;padding:2.5mm 3mm;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden}
+.idc-back-hdr::before{content:'';position:absolute;top:-5mm;right:-7mm;width:24mm;height:28mm;background:#f0c040;transform:rotate(-25deg);z-index:0}
+.idc-back-school{font-size:2.8mm;font-weight:900;color:white;text-transform:uppercase;z-index:1;max-width:55mm}
+.idc-back-logo{width:10mm;height:10mm;border-radius:50%;background:white;border:.5mm solid #f0c040;display:flex;align-items:center;justify-content:center;overflow:hidden;z-index:1;font-size:5mm}
+.idc-back-logo img{width:100%;height:100%;object-fit:cover}
+.idc-back-body{background:white;padding:3mm 3.5mm;font-size:2.2mm;color:#333;line-height:1.6}
+.idc-back-nok{font-weight:700;color:#0a6e3f;font-size:2.5mm;margin-bottom:2mm}
+.idc-back-disclaimer{font-size:1.9mm;color:#555;line-height:1.5;margin-bottom:2mm}
+.idc-back-return{font-size:2mm;color:#333;border-top:.3mm solid #e5e7eb;padding-top:1.5mm;margin-top:1mm}
+.idc-back-return strong{color:#0a6e3f}
+.idc-back-bottom{display:flex;justify-content:space-between;align-items:flex-end;padding:2mm 3mm;background:white;border-top:.3mm solid #e5e7eb}
+.idc-back-emergency{font-size:1.9mm;color:#555}
+.barcode{font-family:monospace;font-size:2mm;color:#ccc;letter-spacing:2px}
+@media print{
+  body{background:#e8ecf0;padding:5mm}
+  .idc,.idc-back{page-break-inside:avoid}
+  @page{size:A4;margin:10mm}
+  *{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+}
+</style></head><body>
+<div class="idc-label">FRONT</div>
+<div class="idc">
+  <div class="idc-hdr"><div class="idc-hdr-inner">
+    <div class="idc-logo-circle">${logoHtml}</div>
+    <div><div class="idc-school-name">${esc(school.name||'School Name')}</div><div class="idc-school-addr">${esc(schoolAddr)}</div></div>
+  </div></div>
+  <div class="idc-title-bar">STUDENT IDENTITY CARD</div>
+  <div class="idc-body">
+    <div class="idc-watermark">${esc(watermark)}</div>
+    <div class="idc-photo">${passportDataUrl?`<img src="${passportDataUrl}" style="width:100%;height:100%;object-fit:cover">`:'&#128247;'}</div>
+    <div class="idc-fields-grid">
+      <div class="idc-field"><span class="idc-fl">Full Name</span><span class="idc-fv">${esc(d.full_name||'—')}</span></div>
+      <div class="idc-field"><span class="idc-fl">Admission No</span><span class="idc-fv">${esc(d.admission_number||'—')}</span></div>
+      <div class="idc-field"><span class="idc-fl">Date of Birth</span><span class="idc-fv">${dob}</span></div>
+      <div class="idc-field"><span class="idc-fl">Sex</span><span class="idc-fv">${gender}</span></div>
+      <div class="idc-field"><span class="idc-fl">Class</span><span class="idc-fv">${esc(d._className||'—')}</span></div>
+      <div class="idc-field"><span class="idc-fl">Blood Group</span><span class="idc-fv">${esc(d.blood_group||'—')}</span></div>
+      <div class="idc-field"><span class="idc-fl">Session</span><span class="idc-fv">${session}</span></div>
+      <div class="idc-field"><span class="idc-fl">Valid Till</span><span class="idc-fv">${expiryStr}</span></div>
+    </div>
+  </div>
+  <div class="idc-footer">
+    <div class="idc-sig-block"><div class="idc-sig-line"></div><div class="idc-sig-label">Student Signature</div></div>
+    <div class="idc-sig-block"><div class="idc-sig-line"></div><div class="idc-sig-label">Principal's Signature</div></div>
+    <div class="idc-validity">${esc(validityStr)}</div>
+  </div>
+  <div class="idc-holo"></div>
+</div>
+
+<div class="idc-label">BACK</div>
+<div class="idc-back">
+  <div class="idc-back-hdr">
+    <div class="idc-back-school">${esc(school.name||'School Name')}</div>
+    <div class="idc-back-logo">${logoHtml}</div>
+  </div>
+  <div class="idc-back-body">
+    <div class="idc-back-nok">Emergency Contact: <span>${esc(d.parent_phone||d.parent_name||'—')}</span></div>
+    <div class="idc-back-disclaimer">This identity card is an official document issued by the school and is related only to the person described. Impersonation, alteration, destruction or transfer to another person of this card is a punishable offence.</div>
+    <div class="idc-back-return">If found, please return to:<br><strong>${esc(school.name||'School Name')}</strong><br><span>${esc(schoolFull)}</span></div>
+  </div>
+  <div class="idc-back-bottom">
+    <div class="idc-back-emergency">School Emergency No: <strong>${esc(school.phone||school.email||'—')}</strong></div>
+    <div class="barcode">||| ${esc(d.ref_id||'')} |||</div>
+  </div>
+  <div class="idc-holo"></div>
+</div>
+<script>window.onload=()=>{window.print();}<\/script></body></html>`;
+  printDoc(html);
+}
+
+function printDoc(html){
+  const w=window.open('','_blank','width=700,height=900');
+  if(w){w.document.write(html);w.document.close();}
+}
+
+function handlePassportUpload(input){
+  const file=input.files[0];
+  if(!file)return;
+  const err=document.getElementById('passportErr');
+  if(file.size>2*1024*1024){err.textContent='Photo must be under 2 MB.';err.style.display='block';input.value='';return;}
+  if(!file.type.startsWith('image/')){err.textContent='Please upload a valid image file (JPG/PNG).';err.style.display='block';input.value='';return;}
+  err.style.display='none';
+  const reader=new FileReader();
+  reader.onload=e=>{
+    passportDataUrl=e.target.result;
+    const prev=document.getElementById('passportPreview');
+    prev.innerHTML=`<img src="${passportDataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:6px">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+</script>
+</body>
+</html>

@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/icons/icon-96.png" type="image/png">
+  <meta name="theme-color" content="#0a6e3f">
+  <title>E-Learning Portal · EduTrack NG</title>
+  <link rel="stylesheet" href="../assets/css/global.css">
+<style>
+/* ── Page-specific styles only — all global vars/classes from global.css ── */
+.el-hero {
+  background: linear-gradient(130deg,#053d22 0%,#0a6e3f 60%,#15803d 100%);
+  border-radius: 12px; padding: 24px 28px; margin-bottom: 20px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  color: #fff; position: relative; overflow: hidden;
+}
+.el-hero::before {
+  content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 40%;
+  background-image: radial-gradient(rgba(255,255,255,.05) 1px, transparent 1px);
+  background-size: 16px 16px; pointer-events: none;
+}
+.el-hero-text { position: relative; z-index: 1; }
+.el-hero-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 4px; }
+.el-hero-sub   { font-size: .8rem; color: rgba(255,255,255,.65); }
+.el-hero-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.el-hero-pill  {
+  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15);
+  border-radius: 20px; padding: 3px 12px; font-size: .7rem; font-weight: 600;
+  display: flex; align-items: center; gap: 5px;
+}
+
+.kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 20px; }
+.kpi-box { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; position: relative; overflow: hidden; }
+.kpi-box::after { content: attr(data-icon); position: absolute; right: -2px; bottom: -8px; font-size: 40px; opacity: .06; }
+.kpi-accent { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; border-radius: 10px 0 0 10px; }
+.kpi-lbl { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); margin-bottom: 6px; }
+.kpi-val { font-size: 1.7rem; font-weight: 900; letter-spacing: -.5px; line-height: 1; }
+
+.tab-row { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 18px; }
+.tab-pill {
+  padding: 9px 16px; font-size: .82rem; font-weight: 600;
+  color: var(--ink-3); cursor: pointer; border-bottom: 2px solid transparent;
+  margin-bottom: -2px; background: none; border-top: none; border-left: none; border-right: none;
+  transition: .15s; display: flex; align-items: center; gap: 6px; white-space: nowrap;
+}
+.tab-pill:hover { color: var(--ink-2); }
+.tab-pill.active { color: var(--primary); border-bottom-color: var(--primary); }
+.tab-count {
+  font-size: .65rem; font-weight: 700; background: var(--surface-2);
+  color: var(--ink-3); padding: 1px 6px; border-radius: 20px;
+}
+.tab-pill.active .tab-count { background: var(--primary); color: #fff; }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; animation: fadeUp .2s ease; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+.filter-bar {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px 18px; display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;
+  margin-bottom: 16px;
+}
+.filter-bar .form-group { margin-bottom: 0; min-width: 130px; }
+
+.cat-strip { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 16px; }
+.cat-chip {
+  padding: 5px 14px; border-radius: 30px; font-size: .75rem; font-weight: 600;
+  color: var(--ink-3); background: var(--surface); border: 1px solid var(--border);
+  cursor: pointer; transition: .13s;
+}
+.cat-chip:hover { border-color: var(--border-2); color: var(--ink); }
+.cat-chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+.res-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(280px,1fr)); gap: 14px; }
+.res-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  overflow: hidden; transition: .15s; cursor: pointer;
+}
+.res-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: var(--border-2); }
+.res-thumb {
+  height: 130px; display: flex; align-items: center; justify-content: center;
+  font-size: 44px; position: relative;
+}
+.res-type-tag {
+  position: absolute; top: 9px; right: 9px;
+  padding: 2px 8px; border-radius: 5px; font-size: .65rem; font-weight: 700;
+}
+.res-body { padding: 12px 14px; }
+.res-title { font-size: .85rem; font-weight: 700; margin-bottom: 4px; line-height: 1.35; }
+.res-desc  { font-size: .74rem; color: var(--ink-3); margin-bottom: 10px; line-height: 1.5; }
+.res-foot  { display: flex; align-items: center; justify-content: space-between; }
+.res-meta  { font-size: .7rem; color: var(--ink-3); display: flex; align-items: center; gap: 7px; }
+
+.upload-panel {
+  background: var(--surface); border: 1px dashed var(--border-2); border-radius: 10px;
+  padding: 18px 20px; margin-bottom: 18px;
+}
+.upload-panel-title { font-size: .88rem; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; }
+.form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.subj-row {
+  display: flex; align-items: center; gap: 12px; padding: 11px 14px;
+  border-radius: 9px; background: var(--surface); border: 1px solid var(--border);
+  margin-bottom: 7px; transition: .13s;
+}
+.subj-row:hover { border-color: var(--border-2); }
+.subj-icon-box { width: 34px; height: 34px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+.subj-score { font-size: .85rem; font-weight: 800; font-family: var(--mono,monospace); }
+
+.lb-item {
+  display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 9px; margin-bottom: 7px;
+}
+.lb-num { font-size: .78rem; font-weight: 800; width: 22px; text-align: center; color: var(--ink-3); font-family: var(--mono,monospace); }
+.lb-av  { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .7rem; font-weight: 700; flex-shrink: 0; color: #fff; }
+.lb-info { flex: 1; }
+.lb-name  { font-size: .82rem; font-weight: 600; }
+.lb-class { font-size: .7rem; color: var(--ink-3); }
+.lb-pts   { font-size: .85rem; font-weight: 800; color: var(--primary); font-family: var(--mono,monospace); }
+
+.prog-sm { height: 4px; background: var(--surface-3,#e5e7eb); border-radius: 2px; overflow: hidden; margin-top: 5px; }
+.prog-sm-fill { height: 100%; border-radius: 2px; }
+
+.two-col { display: grid; grid-template-columns: 1fr 290px; gap: 16px; }
+.card-block { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.card-block-head { padding: 13px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.card-block-title { font-size: .85rem; font-weight: 700; }
+
+.exam-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; margin-bottom: 20px; }
+.exam-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px 18px; display: flex; align-items: center; gap: 12px; transition: .13s;
+}
+.exam-card:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+.exam-logo { width: 44px; height: 44px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: .72rem; font-weight: 800; flex-shrink: 0; }
+.exam-name { font-size: .88rem; font-weight: 700; }
+.exam-meta { font-size: .72rem; color: var(--ink-3); margin-top: 2px; }
+
+@media(max-width:900px) { .kpi-row{grid-template-columns:1fr 1fr;} .form-grid-3{grid-template-columns:1fr 1fr;} .two-col{grid-template-columns:1fr;} .exam-grid{grid-template-columns:1fr;} }
+@media(max-width:550px) { .kpi-row{grid-template-columns:1fr;} .form-grid-3,.form-grid-2{grid-template-columns:1fr;} .res-grid{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<!-- Add Resource Modal — uses project's modal__ classes -->
+<div class="modal" id="addResModal">
+  <div class="modal__box" style="max-width:560px;">
+    <div class="modal__header">
+      <h2 class="modal__title">Add New Resource</h2>
+      <button class="modal__close" onclick="closeModal('addResModal')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal__body">
+      <div class="form-grid-2">
+        <div class="form-group col-full">
+          <label class="form-label">Title <span class="required">*</span></label>
+          <input type="text" id="res_title" class="form-control" placeholder="Resource title">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Type <span class="required">*</span></label>
+          <select id="res_type" class="form-control">
+            <option value="Notes">📘 Lesson Notes</option>
+            <option value="Video">🎥 Video Tutorial</option>
+            <option value="PastQuestions">📝 Past Questions</option>
+            <option value="eBook">📚 eBook</option>
+            <option value="CBT">💻 CBT Practice</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Subject <span class="required">*</span></label>
+          <input type="text" id="res_subject" class="form-control" placeholder="e.g. Biology">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Class Level</label>
+          <select id="res_class" class="form-control">
+            <option value="">All Classes</option>
+            <option>JSS 1</option><option>JSS 2</option><option>JSS 3</option>
+            <option>SSS 1</option><option>SSS 2</option><option>SSS 3</option>
+          </select>
+        </div>
+        <div class="form-group col-full">
+          <label class="form-label">File / External URL</label>
+          <input type="url" id="res_url" class="form-control" placeholder="https://...">
+        </div>
+        <div class="form-group col-full">
+          <label class="form-label">Description</label>
+          <textarea id="res_desc" class="form-control" rows="2" placeholder="Brief description…"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--secondary" onclick="closeModal('addResModal')">Cancel</button>
+      <button class="btn btn--primary" id="saveResBtn" onclick="saveResource()">Publish Resource</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
+<script src="../js/config.js"></script>
+<script src="../js/supabase.js"></script>
+<script src="../js/layout.js"></script>
+<script>
+/* ============================================================
+   E-LEARNING ADMIN — uses project's initAdminLayout, db,
+   toast(), openModal(), closeModal() from supabase.js
+   Tables: el_resources, el_quiz_attempts (+ students join)
+============================================================ */
+let _user, _sid, _activeCat = 'all';
+let _allResources = [];
+
+const TYPE_META = {
+  Notes:         { emoji:'📘', bg:'#f0fdf4', color:'#15803d', tagBg:'#dcfce7', tagCol:'#15803d' },
+  Video:         { emoji:'🎥', bg:'#fff1f2', color:'#be123c', tagBg:'#ffe4e6', tagCol:'#be123c' },
+  PastQuestions: { emoji:'📝', bg:'#fffbeb', color:'#d97706', tagBg:'#fef3c7', tagCol:'#d97706' },
+  eBook:         { emoji:'📚', bg:'#eff6ff', color:'#1d4ed8', tagBg:'#dbeafe', tagCol:'#1d4ed8' },
+  CBT:           { emoji:'💻', bg:'#faf5ff', color:'#7c3aed', tagBg:'#f3e8ff', tagCol:'#7c3aed' },
+};
+
+/* ── Init ───────────────────────────────────────────────────── */
+(async () => {
+  _user = await initAdminLayout('e-learning', 'E-Learning Portal');
+  if (!_user) return;
+  _sid = _user.school_id;
+  document.getElementById('topbarActions').innerHTML =
+    `<button class="btn btn--primary btn--sm" onclick="openModal('addResModal')">+ Add Resource</button>`;
+  await renderPage();
+})();
+
+/* ── Main page render ───────────────────────────────────────── */
+async function renderPage() {
+  const body = document.getElementById('pageBody');
+  showLoader(body, 'Loading E-Learning portal…');
+
+  const [resResult, attResult] = await Promise.all([
+    db.from('el_resources').select('*').eq('school_id', _sid).order('created_at', { ascending: false }),
+    db.from('el_quiz_attempts').select('id,score,total,subject,exam_type').eq('school_id', _sid),
+  ]);
+
+  _allResources = resResult.data || [];
+  const attempts  = attResult.data  || [];
+  const published = _allResources.filter(r => r.is_published).length;
+  const totalViews = _allResources.reduce((s, r) => s + (r.views || 0), 0);
+  const avgScore = attempts.length
+    ? Math.round(attempts.reduce((s, a) => s + (a.score / (a.total || 1)) * 100, 0) / attempts.length)
+    : 0;
+
+  body.innerHTML = `
+    <div class="el-hero">
+      <div class="el-hero-text">
+        <div class="el-hero-title">📚 E-Learning &amp; Digital Library</div>
+        <div class="el-hero-sub">Manage learning resources, CBT practice tests and track student performance.</div>
+        <div class="el-hero-pills">
+          <div class="el-hero-pill">✅ ${published} Published</div>
+          <div class="el-hero-pill">👁 ${totalViews.toLocaleString()} Views</div>
+          <div class="el-hero-pill">📊 ${avgScore}% Avg CBT Score</div>
+        </div>
+      </div>
+      <button class="btn btn--sm" style="background:#fff;color:#0a6e3f;font-weight:700;position:relative;z-index:1" onclick="openModal('addResModal')">+ Add Resource</button>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi-box" data-icon="📚"><div class="kpi-accent" style="background:#0a6e3f"></div><div class="kpi-lbl">Total Resources</div><div class="kpi-val" style="color:#0a6e3f">${_allResources.length}</div></div>
+      <div class="kpi-box" data-icon="👁"><div class="kpi-accent" style="background:#2563eb"></div><div class="kpi-lbl">Total Views</div><div class="kpi-val" style="color:#2563eb">${totalViews.toLocaleString()}</div></div>
+      <div class="kpi-box" data-icon="📝"><div class="kpi-accent" style="background:#d97706"></div><div class="kpi-lbl">CBT Attempts</div><div class="kpi-val" style="color:#d97706">${attempts.length}</div></div>
+      <div class="kpi-box" data-icon="🏆"><div class="kpi-accent" style="background:#7c3aed"></div><div class="kpi-lbl">Avg CBT Score</div><div class="kpi-val" style="color:#7c3aed">${avgScore}%</div></div>
+    </div>
+
+    <div class="tab-row">
+      <button class="tab-pill active" id="tp-library" onclick="switchTab('library')">📖 Library <span class="tab-count" id="tc-library">${_allResources.length}</span></button>
+      <button class="tab-pill" id="tp-cbt" onclick="switchTab('cbt')">💻 CBT Center <span class="tab-count" id="tc-cbt">${attempts.length}</span></button>
+      <button class="tab-pill" id="tp-leaderboard" onclick="switchTab('leaderboard')">🏆 Leaderboard</button>
+    </div>
+
+    <div class="tab-pane active" id="pane-library"></div>
+    <div class="tab-pane" id="pane-cbt"></div>
+    <div class="tab-pane" id="pane-leaderboard"></div>
+  `;
+
+  renderLibraryPane();
+}
+
+/* ── LIBRARY PANE ───────────────────────────────────────────── */
+function renderLibraryPane() {
+  const cats = ['all','Notes','Video','PastQuestions','eBook','CBT'];
+  const catLabel = { all:'All', Notes:'📘 Notes', Video:'🎥 Videos', PastQuestions:'📝 Past Qs', eBook:'📚 eBooks', CBT:'💻 CBT' };
+  const subjects = [...new Set(_allResources.map(r => r.subject).filter(Boolean))];
+
+  document.getElementById('pane-library').innerHTML = `
+    <div class="cat-strip">
+      ${cats.map(c => `<div class="cat-chip${c === _activeCat ? ' active' : ''}" onclick="selectCat(this,'${c}')">${catLabel[c]}</div>`).join('')}
+    </div>
+    <div class="filter-bar">
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">Search</label>
+        <input id="res_q" class="form-control" placeholder="Title, subject…" oninput="applyFilters()" style="min-width:160px">
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">Subject</label>
+        <select id="res_subj_f" class="form-control" onchange="applyFilters()">
+          <option value="">All Subjects</option>
+          ${subjects.map(s => `<option>${s}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">Class</label>
+        <select id="res_cls_f" class="form-control" onchange="applyFilters()">
+          <option value="">All Classes</option>
+          <option>JSS 1</option><option>JSS 2</option><option>JSS 3</option>
+          <option>SSS 1</option><option>SSS 2</option><option>SSS 3</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">Status</label>
+        <select id="res_pub_f" class="form-control" onchange="applyFilters()">
+          <option value="">All</option><option value="1">Published</option><option value="0">Draft</option>
+        </select>
+      </div>
+    </div>
+    <div class="res-grid" id="resGrid"></div>
+  `;
+  applyFilters();
+}
+
+function selectCat(el, cat) {
+  document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  _activeCat = cat;
+  applyFilters();
+}
+
+function applyFilters() {
+  const q    = (document.getElementById('res_q')?.value || '').toLowerCase();
+  const subj = document.getElementById('res_subj_f')?.value || '';
+  const cls  = document.getElementById('res_cls_f')?.value  || '';
+  const pub  = document.getElementById('res_pub_f')?.value;
+
+  const filtered = _allResources.filter(r => {
+    if (_activeCat !== 'all' && r.type !== _activeCat) return false;
+    if (subj && r.subject !== subj) return false;
+    if (cls  && r.class_level !== cls) return false;
+    if (pub !== '' && pub !== undefined && String(r.is_published ? '1' : '0') !== pub) return false;
+    if (q && !(r.title||'').toLowerCase().includes(q) && !(r.description||'').toLowerCase().includes(q) && !(r.subject||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  const tc = document.getElementById('tc-library');
+  if (tc) tc.textContent = filtered.length;
+
+  const grid = document.getElementById('resGrid');
+  if (!grid) return;
+
+  if (!filtered.length) {
+    grid.innerHTML = `<div class="et-empty" style="grid-column:1/-1"><div class="et-empty__icon">📭</div><p>No resources found. Try different filters or <button class="btn btn--ghost btn--sm" onclick="openModal('addResModal')">add one</button>.</p></div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(r => {
+    const m = TYPE_META[r.type] || TYPE_META.Notes;
+    return `<div class="res-card">
+      <div class="res-thumb" style="background:${m.bg}">
+        ${m.emoji}
+        <div class="res-type-tag" style="background:${m.tagBg};color:${m.tagCol}">${r.type}</div>
+        ${!r.is_published ? '<div style="position:absolute;top:9px;left:9px;background:#fef9c3;color:#a16207;padding:2px 7px;border-radius:4px;font-size:.65rem;font-weight:700">DRAFT</div>' : ''}
+      </div>
+      <div class="res-body">
+        <div class="res-title">${esc(r.title)}</div>
+        <div class="res-desc">${esc((r.description||'').substring(0,80))}${(r.description||'').length > 80 ? '…' : ''}</div>
+        <div class="res-foot">
+          <div class="res-meta">
+            <span style="background:var(--surface-2);padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:600">${esc(r.subject||'—')}</span>
+            <span>👁 ${(r.views||0).toLocaleString()}</span>
+            <span>⬇ ${r.downloads||0}</span>
+          </div>
+          <div style="display:flex;gap:4px">
+            <button class="btn btn--ghost btn--sm" title="${r.is_published ? 'Unpublish' : 'Publish'}" onclick="togglePublish('${r.id}',${r.is_published})">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="${r.is_published ? 'M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24M1 1l22 22' : '1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'}" />${!r.is_published ? '<circle cx="12" cy="12" r="3"/>' : ''}</svg>
+            </button>
+            <button class="btn btn--ghost btn--sm" style="color:var(--danger)" title="Delete" onclick="deleteResource('${r.id}')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ── CBT PANE ───────────────────────────────────────────────── */
+async function loadCBTPane() {
+  const pane = document.getElementById('pane-cbt');
+  showLoader(pane, 'Loading CBT data…');
+
+  const { data: attempts } = await db.from('el_quiz_attempts')
+    .select('*,students(full_name,admission_no)')
+    .eq('school_id', _sid)
+    .order('taken_at', { ascending: false })
+    .limit(100);
+
+  const rows = attempts || [];
+  const bySubject = {};
+  rows.forEach(a => {
+    if (!bySubject[a.subject]) bySubject[a.subject] = { total: 0, sum: 0 };
+    bySubject[a.subject].total++;
+    bySubject[a.subject].sum += (a.score / (a.total || 1)) * 100;
+  });
+
+  const examTypes = [
+    { code:'JAMB', name:'JAMB / UTME', qs:40, time:'30 min', bg:'#fef9c3', col:'#d97706' },
+    { code:'WAEC', name:'WAEC / SSCE', qs:50, time:'40 min', bg:'#dcfce7', col:'#15803d' },
+    { code:'NECO', name:'NECO',        qs:40, time:'35 min', bg:'#dbeafe', col:'#1d4ed8' },
+    { code:'POST', name:'Post-UTME',   qs:30, time:'25 min', bg:'#f3e8ff', col:'#7c3aed' },
+  ];
+
+  pane.innerHTML = `
+    <div class="two-col">
+      <div>
+        <p style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);margin-bottom:12px">Exam Simulators</p>
+        <div class="exam-grid">
+          ${examTypes.map(e => `
+          <div class="exam-card">
+            <div class="exam-logo" style="background:${e.bg};color:${e.col}">${e.code}</div>
+            <div>
+              <div class="exam-name">${e.name}</div>
+              <div class="exam-meta">${e.qs} Questions · ${e.time}</div>
+              <div style="font-size:.7rem;color:var(--ink-3);margin-top:3px">${rows.filter(a=>a.exam_type===e.code).length} attempts this term</div>
+            </div>
+          </div>`).join('')}
+        </div>
+
+        <p style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);margin-bottom:12px">Subject Performance</p>
+        ${Object.keys(bySubject).length ? Object.entries(bySubject).map(([subj, s]) => {
+          const avg = Math.round(s.sum / s.total);
+          const subjectIcons = {Mathematics:'📐',Biology:'🧪',Physics:'⚡',Chemistry:'🔬','English Language':'📖'};
+          return `<div class="subj-row">
+            <div class="subj-icon-box" style="background:#f0fdf4">${subjectIcons[subj]||'📚'}</div>
+            <div style="flex:1">
+              <div style="font-size:.84rem;font-weight:600">${esc(subj)}</div>
+              <div style="font-size:.7rem;color:var(--ink-3)">${s.total} attempt${s.total>1?'s':''}</div>
+              <div class="prog-sm"><div class="prog-sm-fill" style="width:${avg}%;background:${avg>=70?'#16a34a':avg>=50?'#d97706':'#dc2626'}"></div></div>
+            </div>
+            <div class="subj-score" style="color:${avg>=70?'#16a34a':avg>=50?'#d97706':'#dc2626'}">${avg}%</div>
+          </div>`;
+        }).join('') : `<div class="et-empty"><div class="et-empty__icon">📊</div><p>No CBT attempts yet. Students will appear here after taking practice tests.</p></div>`}
+      </div>
+
+      <div>
+        <div class="card-block">
+          <div class="card-block-head"><span class="card-block-title">Recent Attempts</span></div>
+          <div style="padding:12px;max-height:500px;overflow-y:auto">
+            ${rows.slice(0,20).map(a => {
+              const pct = Math.round((a.score/(a.total||1))*100);
+              return `<div style="padding:9px 10px;border:1px solid var(--border);border-radius:8px;margin-bottom:7px">
+                <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+                  <div style="font-size:.82rem;font-weight:600">${esc(a.students?.full_name||'Unknown')}</div>
+                  <div style="font-size:.82rem;font-weight:800;color:${pct>=70?'#16a34a':pct>=50?'#d97706':'#dc2626'}">${pct}%</div>
+                </div>
+                <div style="font-size:.7rem;color:var(--ink-3)">${esc(a.subject||'—')} · ${esc(a.exam_type||'—')} · ${a.score}/${a.total}</div>
+              </div>`;
+            }).join('') || `<div class="et-empty"><div class="et-empty__icon">📋</div><p>No attempts yet.</p></div>`}
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+/* ── LEADERBOARD PANE ───────────────────────────────────────── */
+async function loadLeaderboardPane() {
+  const pane = document.getElementById('pane-leaderboard');
+  showLoader(pane, 'Building leaderboard…');
+
+  const { data: attempts } = await db.from('el_quiz_attempts')
+    .select('student_id,score,total,students(full_name,admission_no)')
+    .eq('school_id', _sid);
+
+  if (!attempts?.length) {
+    showEmpty(pane, 'No CBT data yet. Leaderboard will populate after students take practice tests.', '🏆');
+    return;
+  }
+
+  const byStudent = {};
+  attempts.forEach(a => {
+    const key = a.student_id;
+    if (!byStudent[key]) byStudent[key] = { name: a.students?.full_name||'Unknown', adm: a.students?.admission_no||'—', sum: 0, count: 0 };
+    byStudent[key].sum += (a.score/(a.total||1))*100;
+    byStudent[key].count++;
+  });
+
+  const ranked = Object.entries(byStudent)
+    .map(([id,v]) => ({ id, name: v.name, adm: v.adm, avg: Math.round(v.sum/v.count), count: v.count }))
+    .sort((a,b) => b.avg - a.avg).slice(0,20);
+
+  const medalColors = ['#d97706','#6b7280','#92400e'];
+  const avBgs = ['linear-gradient(135deg,#d97706,#f59e0b)','linear-gradient(135deg,#6b7280,#9ca3af)','linear-gradient(135deg,#92400e,#b45309)'];
+
+  pane.innerHTML = `
+    <div style="max-width:560px">
+      <p style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);margin-bottom:14px">Top Performers — Average CBT Score</p>
+      ${ranked.map((s,i) => `
+      <div class="lb-item" ${i===0?'style="border-color:#d97706;background:#fffbeb"':''}>
+        <div class="lb-num" style="${i<3?`color:${medalColors[i]}`:''}">
+          ${i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1)}
+        </div>
+        <div class="lb-av" style="background:${avBgs[i]||'#e5e7eb'};${i>=3?'color:var(--ink)':''}">${s.name.charAt(0)}</div>
+        <div class="lb-info">
+          <div class="lb-name">${esc(s.name)}</div>
+          <div class="lb-class">${esc(s.adm)} · ${s.count} quiz${s.count>1?'zes':''}</div>
+        </div>
+        <div class="lb-pts">${s.avg}%</div>
+      </div>`).join('')}
+    </div>`;
+}
+
+/* ── Tab switcher ───────────────────────────────────────────── */
+function switchTab(name) {
+  document.querySelectorAll('.tab-pill').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('tp-' + name).classList.add('active');
+  document.getElementById('pane-' + name).classList.add('active');
+  if (name === 'cbt' && !document.getElementById('pane-cbt').querySelector('.exam-grid')) loadCBTPane();
+  if (name === 'leaderboard' && !document.getElementById('pane-leaderboard').querySelector('.lb-item')) loadLeaderboardPane();
+}
+
+/* ── Resource CRUD ──────────────────────────────────────────── */
+async function saveResource() {
+  const btn = document.getElementById('saveResBtn');
+  const title = document.getElementById('res_title')?.value.trim();
+  const subj  = document.getElementById('res_subject')?.value.trim();
+  if (!title || !subj) { toast('Title and Subject are required', 'error'); return; }
+
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const { data: row, error } = await db.from('el_resources').insert({
+    school_id:   _sid,
+    title,
+    type:        document.getElementById('res_type').value,
+    subject:     subj,
+    class_level: document.getElementById('res_class').value || null,
+    file_url:    document.getElementById('res_url').value.trim() || null,
+    description: document.getElementById('res_desc').value.trim() || null,
+    is_published: true,
+    views: 0, downloads: 0,
+    created_by: _user.id,
+  }).select().single();
+
+  btn.disabled = false; btn.textContent = 'Publish Resource';
+
+  if (error) { toast('Error: ' + error.message, 'error'); return; }
+  closeModal('addResModal');
+  ['res_title','res_subject','res_url','res_desc'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  _allResources.unshift(row);
+  renderLibraryPane();
+  toast('Resource published!', 'success');
+}
+
+async function togglePublish(id, current) {
+  const { error } = await db.from('el_resources').update({ is_published: !current }).eq('id', id);
+  if (error) { toast('Error: ' + error.message, 'error'); return; }
+  const r = _allResources.find(x => x.id === id);
+  if (r) r.is_published = !current;
+  applyFilters();
+  toast(current ? 'Resource set to draft' : 'Resource published', 'success');
+}
+
+async function deleteResource(id) {
+  if (!confirm('Delete this resource permanently?')) return;
+  const { error } = await db.from('el_resources').delete().eq('id', id);
+  if (error) { toast('Error: ' + error.message, 'error'); return; }
+  _allResources = _allResources.filter(r => r.id !== id);
+  applyFilters();
+  toast('Resource deleted', 'success');
+}
+
+function esc(s) { return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+</script>
+<script src="/js/pwa-v2.1.js"></script>
+
+<script src="../js/assistant.js"></script>
+</body>
+</html>

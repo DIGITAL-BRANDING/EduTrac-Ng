@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" href="/icons/icon-96.png" type="image/png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduTrack NG — ID Card Generator</title>
+  <link rel="stylesheet" href="../../assets/css/global.css">
+  <style>
+    /* ── CR80 ID Card Size: 3.375 × 2.125 inches landscape ── */
+    /* At 96dpi screen: 324 × 204px. Print: exact CR80. */
+    :root {
+      --card-w: 324px;
+      --card-h: 204px;
+    }
+
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white; margin: 0; padding: 0; }
+      .cards-grid {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 6mm !important;
+        padding: 6mm !important;
+        justify-content: flex-start !important;
+      }
+      .id-card-wrap {
+        width: 85.6mm !important;
+        height: 54mm !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        flex-shrink: 0 !important;
+      }
+      .id-card {
+        width: 85.6mm !important;
+        height: 54mm !important;
+        font-size: 7pt !important;
+      }
+      @page { margin: 5mm; size: A4 portrait; }
+    }
+
+    .cards-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      padding: 20px 0;
+    }
+
+    .id-card-wrap {
+      width: var(--card-w);
+      height: var(--card-h);
+      flex-shrink: 0;
+    }
+
+    /* ── ID Card — exact CR80 landscape proportions ── */
+    .id-card {
+      width: var(--card-w);   /* 324px ≈ 3.375in at 96dpi */
+      height: var(--card-h);  /* 204px ≈ 2.125in at 96dpi */
+      border-radius: 8px;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      box-shadow: 0 4px 20px rgba(0,0,0,.22);
+      position: relative;
+      background: var(--card-bg, #0a6e3f);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Holographic strip at bottom */
+    .id-holo {
+      height: 5px;
+      background: linear-gradient(90deg,#ff0080,#ff8c00,#ffed00,#00ff80,#00c8ff,#a855f7,#ff0080);
+      flex-shrink: 0;
+      order: 99;
+    }
+
+    /* Green header with diagonal gold stripe */
+    .id-header {
+      background: var(--card-bg, #0a6e3f);
+      padding: 6px 8px 5px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .id-header::before {
+      content: '';
+      position: absolute;
+      top: -10px; right: -16px;
+      width: 70px; height: 90px;
+      background: var(--card-accent, #f0c040);
+      transform: rotate(-25deg);
+      z-index: 0;
+    }
+
+    .id-logo {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      border: 2px solid var(--card-accent, #f0c040);
+      background: white;
+      overflow: hidden;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      position: relative; z-index: 1;
+    }
+    .id-logo img { width: 100%; height: 100%; object-fit: cover; }
+
+    .id-school-info { flex: 1; min-width: 0; position: relative; z-index: 1; }
+    .id-school-name {
+      font-size: 8px; font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .3px;
+      color: white;
+      line-height: 1.2;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    .id-card-type {
+      font-size: 6px;
+      color: var(--card-accent, #f0c040);
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-top: 1px;
+    }
+
+    /* Gold accent bar */
+    .id-accent-bar {
+      height: 4px;
+      background: linear-gradient(90deg,
+        var(--card-accent, #c8860a),
+        var(--card-accent-light, #f0c040),
+        var(--card-accent, #c8860a));
+      flex-shrink: 0;
+    }
+
+    .id-body {
+      flex: 1;
+      background: white;
+      padding: 5px 7px;
+      display: flex;
+      gap: 6px;
+      min-height: 0;
+      overflow: hidden;
+      position: relative;   /* needed for logo watermark */
+    }
+
+    .id-photo-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      flex-shrink: 0;
+      z-index: 1;
+    }
+
+    .id-photo {
+      width: 62px; height: 78px;   /* larger — closer to NYSC passport size */
+      border-radius: 3px;
+      border: 2px solid var(--card-bg, #0a6e3f);
+      background: #e8ecf0;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .id-photo svg { position: absolute; }
+    .id-photo img { width: 100%; height: 100%; object-fit: cover; display: block; position: relative; z-index: 1; }
+
+    /* Signature line below photo */
+    .id-sig-line-box { text-align: center; margin-top: 4px; }
+    .id-sig-line { width: 62px; height: 1px; background: #333; margin: 0 auto 2px; }
+    .id-sig-label { font-size: 5.5px; color: #888; font-weight: 600; text-transform: uppercase; letter-spacing: .3px; }
+
+    /* Logo watermark — centred in card body, behind content */
+    .id-logo-watermark {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 70px; height: 70px;
+      opacity: .08;
+      pointer-events: none;
+      z-index: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .id-logo-watermark img { width: 100%; height: 100%; object-fit: contain; }
+
+    /* Back: text + QR side by side */
+    .id-back-content-row {
+      display: flex;
+      gap: 6px;
+      align-items: flex-start;
+    }
+    .id-back-text-col { flex: 1; min-width: 0; }
+    .id-back-qr-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      flex-shrink: 0;
+    }
+    .id-back-qr-label {
+      font-size: 5px;
+      font-weight: 700;
+      color: #666;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: .3px;
+      line-height: 1.3;
+    }
+
+    .id-qr { display: none; } /* QR is on back card only */
+
+    .id-info-col {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 2px;
+      padding-top: 1px;
+      position: relative;
+      z-index: 1;
+    }
+    }
+
+    .id-name {
+      font-size: 9px;
+      font-weight: 900;
+      color: var(--card-bg, #0a6e3f);
+      line-height: 1.2;
+      text-transform: uppercase;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      margin-bottom: 2px;
+    }
+
+    .id-fields-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px 6px;
+    }
+
+    .id-field {
+      display: flex;
+      flex-direction: column;
+    }
+    .id-field-label {
+      font-size: 5.5px;
+      font-weight: 700;
+      color: var(--card-bg, #0a6e3f);
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      line-height: 1;
+    }
+    .id-field-value {
+      font-size: 7.5px;
+      font-weight: 700;
+      color: #111;
+      line-height: 1.3;
+    }
+
+    .id-footer {
+      background: white;
+      border-top: 1px solid #e5e7eb;
+      padding: 3px 7px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .id-footer-text {
+      font-size: 5.5px;
+      color: #888;
+      font-style: italic;
+    }
+    .id-validity {
+      font-size: 6px;
+      font-weight: 700;
+      color: var(--card-bg, #0a6e3f);
+    }
+
+    /* ── Card pair: front + back stacked per student ── */
+    .card-pair {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .card-pair-label {
+      font-size: 9px;
+      font-weight: 700;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      padding-left: 2px;
+    }
+
+    /* ── BACK card ── */
+    .id-card-back {
+      width: var(--card-w);
+      height: var(--card-h);
+      border-radius: 8px;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      box-shadow: 0 4px 20px rgba(0,0,0,.22);
+      display: flex;
+      flex-direction: column;
+      background: white;
+    }
+    .id-back-header {
+      background: var(--card-bg, #0a6e3f);
+      padding: 6px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .id-back-header::before {
+      content: '';
+      position: absolute;
+      top: -10px; right: -16px;
+      width: 70px; height: 90px;
+      background: var(--card-accent, #f0c040);
+      transform: rotate(-25deg);
+      z-index: 0;
+    }
+    .id-back-school {
+      font-size: 9px; font-weight: 900;
+      color: white; text-transform: uppercase;
+      z-index: 1; max-width: 200px;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      line-height: 1.2;
+    }
+    .id-back-logo {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: white;
+      border: 2px solid var(--card-accent, #f0c040);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; z-index: 1; font-size: 14px; flex-shrink: 0;
+    }
+    .id-back-logo img { width: 100%; height: 100%; object-fit: cover; }
+    .id-back-body {
+      flex: 1; background: white;
+      padding: 5px 7px;
+      font-size: 7px; color: #333; line-height: 1.5;
+      overflow: hidden;
+    }
+    .id-back-nok {
+      font-weight: 700; color: var(--card-bg, #0a6e3f);
+      font-size: 8px; margin-bottom: 4px;
+    }
+    .id-back-disclaimer {
+      font-size: 6.5px; color: #555; line-height: 1.45;
+      margin-bottom: 4px;
+    }
+    .id-back-return {
+      font-size: 6.5px; color: #333;
+      border-top: 1px solid #e5e7eb;
+      padding-top: 4px;
+    }
+    .id-back-return strong { color: var(--card-bg, #0a6e3f); }
+    .id-back-footer {
+      background: white;
+      border-top: 1px solid #e5e7eb;
+      padding: 3px 7px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .id-back-emergency { font-size: 6px; color: #555; }
+
+    @media print {
+      .card-pair {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        gap: 3mm !important;
+      }
+      .id-card-back {
+        width: 85.6mm !important;
+        height: 54mm !important;
+      }
+      .card-pair-label { display: none !important; }
+      .cards-grid {
+        gap: 8mm !important;
+      }
+    }
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: .04;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      font-weight: 900;
+      color: #0a6e3f;
+      transform: rotate(-25deg);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-family: Arial, sans-serif;
+      white-space: nowrap;
+      z-index: 0;
+    }
+
+    /* Controls */
+    .filter-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      margin-bottom: 10px;
+    }
+    .filter-row .form-group { margin-bottom: 0; flex: 1; min-width: 160px; }
+
+    /* Bulk selector */
+    .select-bar {
+      background: var(--primary-light);
+      border: 1px solid var(--primary);
+      border-radius: var(--radius-sm);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .select-bar span { font-size: 13px; font-weight: 600; color: var(--primary-dark); flex: 1; }
+    .id-card .select-check {
+      position: absolute;
+      top: 6px; right: 6px;
+      width: 16px; height: 16px;
+      z-index: 10;
+      cursor: pointer;
+      accent-color: var(--primary);
+    }
+    .id-card.selected {
+      outline: 3px solid var(--primary);
+      outline-offset: 2px;
+    }
+    .card-pair.selected .id-card,
+    .card-pair.selected .id-card-back {
+      outline: 3px solid var(--primary, #0a6e3f);
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+<body>
+<div id="app"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
+<!-- Minimal QR code generator (no dependencies) -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="../../js/config.js"></script>
+<script src="../../api/database.js"></script>
+<script src="../../api/auth.js"></script>
+<script src="../../assets/js/sidebar.js"></script>
+<script>
+let user, term, classes = [], students = [], schoolInfo = null, idCardConfig = null, allTerms = [];
+let selectedIds = new Set();
+// currentStep: 1 = type selection, 2 = filters + generate
+let currentStep = 1;
+let selectedCardType = null; // 'student' | 'staff'
+
+(async () => {
+  user = await initPage(['admin','teacher','registrar'], 'ID Card Generator', 'id-card');
+  if (!user) return;
+
+  document.getElementById('topbarActions').innerHTML = `
+    <button class="btn btn--secondary btn--sm no-print" onclick="selectAll()">Select All</button>
+    <button class="btn btn--secondary btn--sm no-print" onclick="clearSelection()">Clear</button>
+    <button class="btn btn--primary btn--sm no-print" id="printBtn" onclick="printSelected()"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Print Selected</button>
+  `;
+
+  const ctx = await loadSchoolContext(user.school_id);
+  term    = ctx.term;
+  classes = ctx.classes;
+
+  // Load school info, ID card config, and ALL terms for session dropdown
+  const [{ data: school }, { data: idc }, { data: terms }] = await Promise.all([
+    db.from('schools').select('*').eq('id', user.school_id).single(),
+    db.from('id_card_config').select('*').eq('school_id', user.school_id).maybeSingle(),
+    db.from('terms').select('id,name,is_current').eq('school_id', user.school_id).order('created_at', { ascending: false }),
+  ]);
+  schoolInfo   = school;
+  idCardConfig = idc;
+  allTerms     = terms || [];
+
+  renderStep1();
+})();
+
+// ── Helper: resolve photo URL from Supabase storage path or full URL ──
+function resolvePhotoUrl(photoUrl) {
+  if (!photoUrl) return null;
+  if (photoUrl.startsWith('http')) return photoUrl; // already a full URL
+  // Assume it's a storage path — build public URL from the passports bucket
+  return `${SUPABASE_URL}/storage/v1/object/public/passports/${photoUrl}`;
+}
+
+// ── Step 1: Select Card Type ──────────────────────────────────
+function renderStep1() {
+  currentStep = 1;
+  document.getElementById('app').innerHTML = `
+    <div class="portal-layout__content">
+      <div class="page-header no-print">
+        <div>
+          <h1 class="page-title">ID Card Generator</h1>
+          <p class="page-subtitle">Generate printable student &amp; staff ID cards with QR codes</p>
+        </div>
+      </div>
+
+      <!-- Step indicator -->
+      <div class="no-print" style="display:flex;align-items:center;gap:0;margin-bottom:24px;max-width:400px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--primary,#1a2e6e);color:white;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0;">1</div>
+        <div style="flex:1;height:3px;background:var(--border,#e5e7eb);margin:0 4px;"></div>
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--border,#e5e7eb);color:var(--ink-3,#6b7280);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0;">2</div>
+        <div style="flex:1;height:3px;background:var(--border,#e5e7eb);margin:0 4px;"></div>
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--border,#e5e7eb);color:var(--ink-3,#6b7280);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0;">3</div>
+      </div>
+
+      <div class="card no-print" style="margin-bottom:20px;max-width:600px;">
+        <div style="padding:8px 0 20px;">
+          <h3 style="font-size:16px;font-weight:700;margin-bottom:4px;">Step 1: Select ID Card Type</h3>
+          <p style="font-size:13px;color:var(--ink-3,#6b7280);">Choose whether you are generating ID cards for Students or Staff.</p>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+
+          <!-- Student card -->
+          <div onclick="selectType('student')" style="border:2px solid var(--border,#e5e7eb);border-radius:10px;padding:24px 16px;cursor:pointer;text-align:center;transition:all .2s;background:white;"
+               onmouseover="this.style.borderColor='var(--primary,#1a2e6e)';this.style.background='#f0f4ff';"
+               onmouseout="this.style.borderColor='var(--border,#e5e7eb)';this.style.background='white';">
+            <div style="font-size:40px;margin-bottom:10px;">🎓</div>
+            <div style="font-size:15px;font-weight:800;color:var(--primary,#1a2e6e);margin-bottom:4px;">Student</div>
+            <div style="font-size:12px;color:var(--ink-3,#6b7280);">Generate ID cards for enrolled students by class or session</div>
+          </div>
+
+          <!-- Staff card -->
+          <div onclick="selectType('staff')" style="border:2px solid var(--border,#e5e7eb);border-radius:10px;padding:24px 16px;cursor:pointer;text-align:center;transition:all .2s;background:white;"
+               onmouseover="this.style.borderColor='var(--primary,#1a2e6e)';this.style.background='#f0f4ff';"
+               onmouseout="this.style.borderColor='var(--border,#e5e7eb)';this.style.background='white';">
+            <div style="font-size:40px;margin-bottom:10px;">👩‍🏫</div>
+            <div style="font-size:15px;font-weight:800;color:var(--primary,#1a2e6e);margin-bottom:4px;">Staff</div>
+            <div style="font-size:12px;color:var(--ink-3,#6b7280);">Generate ID cards for all active school staff members</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function selectType(type) {
+  selectedCardType = type;
+  renderStep2();
+}
+
+// ── Step 2: Filters ────────────────────────────────────────────
+function renderStep2() {
+  currentStep = 2;
+  const cfg    = idCardConfig || {};
+  const accent = cfg.accent_color || '#f0c040';
+
+  const studentFilters = `
+    <div class="form-group">
+      <label class="form-label">Class / Students</label>
+      <select class="form-control" id="filterClass">
+        <option value="">— All Students —</option>
+        ${classes.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+      </select>
+    </div>`;
+
+  document.getElementById('app').innerHTML = `
+    <div class="portal-layout__content">
+      <div class="page-header no-print">
+        <div>
+          <h1 class="page-title">ID Card Generator</h1>
+          <p class="page-subtitle">Generate printable ${selectedCardType === 'staff' ? 'Staff' : 'Student'} ID cards with QR codes</p>
+        </div>
+      </div>
+
+      <!-- Step indicator -->
+      <div class="no-print" style="display:flex;align-items:center;gap:0;margin-bottom:24px;max-width:400px;">
+        <div onclick="renderStep1()" style="width:32px;height:32px;border-radius:50%;background:#e5e7eb;color:#1a2e6e;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0;cursor:pointer;border:2px solid var(--primary,#1a2e6e);" title="Back to Step 1">✓</div>
+        <div style="flex:1;height:3px;background:var(--primary,#1a2e6e);margin:0 4px;"></div>
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--primary,#1a2e6e);color:white;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0;">2</div>
+        <div style="flex:1;height:3px;background:var(--border,#e5e7eb);margin:0 4px;"></div>
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--border,#e5e7eb);color:var(--ink-3,#6b7280);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0;">3</div>
+      </div>
+
+      <div class="card no-print" style="margin-bottom:20px;">
+        <div style="padding:8px 0 16px;display:flex;align-items:center;gap:10px;">
+          <button class="btn btn--ghost btn--sm" onclick="renderStep1()">← Back</button>
+          <div>
+            <h3 style="font-size:16px;font-weight:700;margin-bottom:2px;">
+              Step 2: ${selectedCardType === 'staff' ? 'Confirm &amp; Generate Staff Cards' : 'Select Students &amp; Generate'}
+            </h3>
+            <p style="font-size:13px;color:var(--ink-3,#6b7280);margin:0;">Type: <strong>${selectedCardType === 'staff' ? '👩‍🏫 Staff' : '🎓 Student'}</strong></p>
+          </div>
+        </div>
+        <div class="filter-row">
+          ${selectedCardType === 'student' ? studentFilters : ''}
+          <div class="form-group">
+            <label class="form-label">Session</label>
+            <select class="form-control" id="sessionLabel">
+              ${allTerms.length
+                ? allTerms.map(t => `<option value="${t.name}" ${t.is_current ? 'selected' : ''}>${t.name}${t.is_current ? ' ✓ Current' : ''}</option>`).join('')
+                : `<option value="${new Date().getFullYear()}/${new Date().getFullYear()+1}">${new Date().getFullYear()}/${new Date().getFullYear()+1}</option>`
+              }
+            </select>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:8px;flex-shrink:0">
+            <button class="btn btn--primary" onclick="loadAndGenerate()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="9" cy="12" r="2.5"/><line x1="13" y1="10" x2="20" y2="10"/><line x1="13" y1="14" x2="20" y2="14"/></svg>
+              Generate ID Cards
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="selectBar" style="display:none" class="select-bar no-print">
+        <span id="selectCount">0 selected</span>
+        <button class="btn btn--sm btn--secondary" onclick="selectAll()">Select All</button>
+        <button class="btn btn--sm btn--secondary" onclick="clearSelection()">Deselect All</button>
+        <button class="btn btn--sm btn--primary" onclick="printSelected()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Print Selected
+        </button>
+      </div>
+
+      <div id="cardsContainer">
+        <div class="et-empty" style="padding:60px 20px">
+          <div class="et-empty__icon">🪪</div>
+          <p>Click "Generate ID Cards" to preview cards</p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function loadAndGenerate() {
+  // Advance step indicator to 3
+  const stepDots = document.querySelectorAll('.step-dot');
+  stepDots.forEach((d, i) => {
+    if (i === 2) { d.style.background = 'var(--primary,#0a6e3f)'; d.style.color = 'white'; }
+  });
+
+  const classId   = document.getElementById('filterClass')?.value || '';
+  const session   = document.getElementById('sessionLabel')?.value || '';
+  const container = document.getElementById('cardsContainer');
+  if (!container) return;
+
+  container.innerHTML = `<div style="padding:40px;text-align:center;color:var(--ink-3);">
+    <div style="font-size:32px;margin-bottom:10px;">⏳</div>Loading cards…
+  </div>`;
+
+  try {
+    if (selectedCardType === 'staff') {
+      // ── Staff ──────────────────────────────────────────────
+      const { data, error } = await db.from('users')
+        .select('id,full_name,role,photo_url,email,phone')
+        .eq('school_id', user.school_id)
+        .eq('is_active', true)
+        .not('role', 'in', '(parent,student,saas_owner)')
+        .order('full_name');
+      if (error) throw error;
+      students = data || [];
+
+    } else {
+      // ── Students ────────────────────────────────────────────
+      // Step 1: get enrolled student IDs for the chosen class
+      let enrolledIds = null;
+      if (classId) {
+        // Build enrollment query — term may be null, so don't require it
+        let enrQ = db.from('enrollments')
+          .select('student_id')
+          .eq('class_id', classId)
+          .eq('school_id', user.school_id);
+        // Only filter by term if one is active
+        if (term?.id) enrQ = enrQ.eq('term_id', term.id);
+        const { data: enr, error: enrErr } = await enrQ;
+        if (enrErr) throw enrErr;
+        enrolledIds = (enr || []).map(e => e.student_id);
+        if (enrolledIds.length === 0) {
+          container.innerHTML = `<div style="padding:60px;text-align:center;color:var(--ink-3);">
+            <div style="font-size:48px;margin-bottom:12px;">🏫</div>
+            <strong>No students enrolled in this class yet.</strong><br>
+            <span style="font-size:13px;">Enroll students first in the Enrollment Manager.</span>
+          </div>`;
+          return;
+        }
+      }
+
+      // Step 2: fetch student records
+      let stuQ = db.from('students')
+        .select('id,full_name,admission_no,gender,date_of_birth,blood_group,photo_url,parent_phone,parent_name,is_active')
+        .eq('school_id', user.school_id)
+        .eq('is_active', true)
+        .order('full_name');
+
+      if (enrolledIds) stuQ = stuQ.in('id', enrolledIds);
+
+      const { data: stuData, error: stuErr } = await stuQ;
+      if (stuErr) throw stuErr;
+      students = stuData || [];
+
+      // Step 3: fetch class name for each student separately
+      if (classId) {
+        // All students share the same class
+        const cls = classes.find(c => c.id === classId);
+        students = students.map(s => ({ ...s, _className: cls?.name || '—' }));
+      } else {
+        // Look up each student's class from enrollments
+        const { data: allEnr } = await db.from('enrollments')
+          .select('student_id,class_id')
+          .eq('school_id', user.school_id)
+          .in('student_id', students.map(s => s.id));
+        const enrMap = {};
+        (allEnr || []).forEach(e => { enrMap[e.student_id] = e.class_id; });
+        students = students.map(s => {
+          const cls = classes.find(c => c.id === enrMap[s.id]);
+          return { ...s, _className: cls?.name || '—' };
+        });
+      }
+    }
+
+    if (!students.length) {
+      container.innerHTML = `<div style="padding:60px;text-align:center;color:var(--ink-3);">
+        <div style="font-size:48px;margin-bottom:12px;">🪪</div>
+        <strong>No records found.</strong>
+      </div>`;
+      return;
+    }
+
+    renderCards(session);
+
+  } catch(e) {
+    container.innerHTML = `<div style="padding:40px;text-align:center;color:var(--danger);">
+      <strong>Error loading data:</strong> ${e.message}
+    </div>`;
+  }
+}
+
+async function renderCards(session) {
+  const container = document.getElementById('cardsContainer');
+  const cardType  = selectedCardType || 'student';
+  session = session || document.getElementById('sessionLabel')?.value
+            || `${new Date().getFullYear()}/${new Date().getFullYear()+1}`;
+  const cfg       = idCardConfig || {};
+  const bg        = cfg.background_color || '#0a6e3f';
+  const accent    = cfg.accent_color     || '#f0c040';
+  const accentLight = lightenHex(accent, 40);
+  const expYear   = new Date().getFullYear() + 1;
+  const validTill = `31 Jul ${expYear}`;
+  const school    = schoolInfo || {};
+
+  container.innerHTML = `<div class="cards-grid" id="cardsGrid"></div>`;
+  const grid = document.getElementById('cardsGrid');
+
+  for (const s of students) {
+    // ── Common values ───────────────────────────────────────
+    const className   = s._className || (cardType === 'staff' ? formatRole(s.role) : '—');
+    const admNo       = s.admission_no || (cardType === 'staff' ? 'STF-' + s.id.slice(0,6).toUpperCase() : '—');
+    const qrData      = `EDUTRAC|${cardType.toUpperCase()}|${admNo}|${s.full_name}|${school.name || ''}`;
+    const dobLabel    = s.date_of_birth
+      ? new Date(s.date_of_birth).toLocaleDateString('en-GB', {day:'2-digit',month:'2-digit',year:'numeric'})
+      : '—';
+    const genderLabel = s.gender === 'M' ? 'Male' : s.gender === 'F' ? 'Female' : (s.gender || '—');
+    const photoUrl    = resolvePhotoUrl(s.photo_url);
+    const logoHtml    = school.logo_url
+      ? `<img src="${school.logo_url}" crossorigin="anonymous" onerror="this.parentElement.innerHTML='🏫'">`
+      : '🏫';
+    const noPhoto     = `<div style="width:100%;height:100%;background:#e8ecf0;display:flex;align-items:center;justify-content:center;"><svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='#94a3b8' stroke-width='1.5'><path d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/><circle cx='12' cy='7' r='4'/></svg></div>`;
+    const photoHtml   = photoUrl
+      ? `<img src="${photoUrl}" crossorigin="anonymous" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.style.display='none';this.parentElement.dataset.nophoto='1'">` 
+      : '';
+    const contactNo   = s.parent_phone || school.phone || '—';
+    const schoolAddr  = [school.address, school.lga, school.state].filter(Boolean).join(', ') || 'Nigeria';
+    const schoolPhone = school.phone || school.email || '—';
+
+    // ── Fields for front ────────────────────────────────────
+    const fieldsHtml = cardType === 'student' ? `
+      <div class="id-fields-grid">
+        <div class="id-field"><span class="id-field-label">Admission No</span><span class="id-field-value">${admNo}</span></div>
+        <div class="id-field"><span class="id-field-label">Sex</span><span class="id-field-value">${genderLabel}</span></div>
+        <div class="id-field"><span class="id-field-label">Date of Birth</span><span class="id-field-value">${dobLabel}</span></div>
+        <div class="id-field"><span class="id-field-label">Blood Group</span><span class="id-field-value">${s.blood_group || '—'}</span></div>
+        <div class="id-field"><span class="id-field-label">Class</span><span class="id-field-value">${className}</span></div>
+        <div class="id-field"><span class="id-field-label">Session</span><span class="id-field-value">${session}</span></div>
+      </div>` : `
+      <div class="id-fields-grid">
+        <div class="id-field"><span class="id-field-label">Staff ID</span><span class="id-field-value">${admNo}</span></div>
+        <div class="id-field"><span class="id-field-label">Role</span><span class="id-field-value">${formatRole(s.role)}</span></div>
+        <div class="id-field"><span class="id-field-label">Phone</span><span class="id-field-value">${s.phone || '—'}</span></div>
+        <div class="id-field"><span class="id-field-label">Session</span><span class="id-field-value">${session}</span></div>
+      </div>`;
+
+    // ══════════════════════════════════════════
+    //  PAIR WRAPPER (front + back per student)
+    // ══════════════════════════════════════════
+    const pair = document.createElement('div');
+    pair.className = 'card-pair';
+    pair.style.setProperty('--card-bg', bg);
+    pair.style.setProperty('--card-accent', accent);
+    pair.style.setProperty('--card-accent-light', accentLight);
+
+    // ── FRONT ──────────────────────────────────
+    const front = document.createElement('div');
+    front.innerHTML = `<div class="card-pair-label">FRONT</div>`;
+
+    const frontCard = document.createElement('div');
+    frontCard.className = 'id-card';
+    frontCard.dataset.id = s.id;
+    frontCard.style.setProperty('--card-bg', bg);
+    frontCard.style.setProperty('--card-accent', accent);
+    // Logo watermark src for front body
+    const logoWatermarkSrc = school.logo_url || '';
+
+    frontCard.innerHTML = `
+      <input type="checkbox" class="select-check no-print" onchange="toggleSelect('${s.id}', this)">
+      <div class="id-header">
+        <div class="id-logo">${logoHtml}</div>
+        <div class="id-school-info">
+          <div class="id-school-name">${escapeHtml(school.name || 'School Name')}</div>
+          <div class="id-card-type">${cardType === 'staff' ? 'STAFF IDENTITY CARD' : 'STUDENT IDENTITY CARD'}</div>
+        </div>
+      </div>
+      <div class="id-accent-bar"></div>
+      <div class="id-body">
+        ${logoWatermarkSrc
+          ? `<div class="id-logo-watermark"><img src="${logoWatermarkSrc}" crossorigin="anonymous"></div>`
+          : `<div class="id-logo-watermark" style="font-size:38px;opacity:.07;">🏫</div>`}
+        <div class="id-photo-col">
+          <div class="id-photo" id="photo-wrap-${s.id}">
+            <svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='none' stroke='#94a3b8' stroke-width='1.5' style='position:absolute;'><path d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/><circle cx='12' cy='7' r='4'/></svg>
+            ${photoHtml}
+          </div>
+          <div class="id-sig-line-box">
+            <div class="id-sig-line"></div>
+            <div class="id-sig-label">Signature</div>
+          </div>
+        </div>
+        <div class="id-info-col">
+          <div class="id-name">${escapeHtml(s.full_name)}</div>
+          ${fieldsHtml}
+        </div>
+      </div>
+      <div class="id-footer">
+        <span class="id-footer-text">${cfg.footer_text || 'Return to school if found'}</span>
+        <span class="id-validity">Valid Till ${validTill}</span>
+      </div>
+      <div class="id-holo"></div>`;
+
+    front.appendChild(frontCard);
+
+    // ── BACK ───────────────────────────────────
+    const back = document.createElement('div');
+    back.innerHTML = `<div class="card-pair-label">BACK</div>`;
+
+    const backCard = document.createElement('div');
+    backCard.className = 'id-card-back';
+    backCard.style.setProperty('--card-bg', bg);
+    backCard.style.setProperty('--card-accent', accent);
+    backCard.innerHTML = `
+      <div class="id-back-header">
+        <div class="id-back-school">${escapeHtml(school.name || 'School Name')}</div>
+        <div class="id-back-logo">${logoHtml}</div>
+      </div>
+      <div class="id-back-body">
+        <div class="id-back-nok">Emergency NOK: <strong>${contactNo}</strong></div>
+        <div class="id-back-content-row">
+          <div class="id-back-text-col">
+            <div class="id-back-disclaimer">
+              This identity card is an official document and is related only to the person described.
+              Impersonation, alteration, destruction or transfer of this card to another person
+              are offences and will be met with appropriate sanctions.
+            </div>
+            <div class="id-back-return">
+              If found, please return to:<br>
+              <strong>${escapeHtml(school.name || 'School Name')}</strong><br>
+              ${escapeHtml(schoolAddr)}
+            </div>
+          </div>
+          <div class="id-back-qr-col">
+            <canvas id="qr-back-${s.id}" width="56" height="56" style="border-radius:4px;display:block;"></canvas>
+            <div class="id-back-qr-label">SCAN FOR<br>VERIFICATION</div>
+          </div>
+        </div>
+      </div>
+      <div class="id-back-footer">
+        <span class="id-back-emergency">School Emergency No: <strong>${schoolPhone}</strong></span>
+      </div>
+      <div class="id-holo"></div>`;
+
+    back.appendChild(backCard);
+
+    pair.appendChild(front);
+    pair.appendChild(back);
+    grid.appendChild(pair);
+
+    // ── Render QR code on back only ─────────────
+    requestAnimationFrame(() => {
+      if (typeof QRCode === 'undefined') return;
+      const q2 = document.getElementById(`qr-back-${s.id}`);
+      const opts = { margin: 1, color: { dark: bg, light: '#ffffff' } };
+      if (q2) QRCode.toCanvas(q2, qrData, { ...opts, width: 56 }).catch(() => {});
+    });
+  }
+
+  const bar = document.getElementById('selectBar');
+  if (bar) bar.style.display = 'flex';
+  const cnt = document.getElementById('selectCount');
+  if (cnt) cnt.textContent = `${students.length} card${students.length !== 1 ? 's' : ''} generated`;
+}
+
+
+function toggleSelect(id, cb) {
+  if (cb.checked) {
+    selectedIds.add(id);
+    // Highlight the whole pair wrapper
+    document.querySelector(`.id-card[data-id="${id}"]`)?.closest('.card-pair')?.classList.add('selected');
+    document.querySelector(`.id-card[data-id="${id}"]`)?.classList.add('selected');
+  } else {
+    selectedIds.delete(id);
+    document.querySelector(`.id-card[data-id="${id}"]`)?.closest('.card-pair')?.classList.remove('selected');
+    document.querySelector(`.id-card[data-id="${id}"]`)?.classList.remove('selected');
+  }
+  updateSelectBar();
+}
+
+function printSelected() {
+  // Collect HTML of all selected card pairs (front + back)
+  const pairs = [];
+  if (selectedIds.size === 0) {
+    // Print all if nothing selected
+    document.querySelectorAll('.card-pair').forEach(p => pairs.push(p.outerHTML));
+  } else {
+    selectedIds.forEach(id => {
+      const card = document.querySelector(`.id-card[data-id="${id}"]`);
+      const pair = card?.closest('.card-pair');
+      if (pair) pairs.push(pair.outerHTML);
+    });
+  }
+  if (!pairs.length) { alert('No cards to print.'); return; }
+
+  // Collect all styles
+  const styles = [...document.querySelectorAll('style, link[rel="stylesheet"]')]
+    .map(el => el.outerHTML).join('');
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  ${styles}
+  <style>
+    body {
+      margin: 0;
+      padding: 6mm;
+      background: white;
+    }
+    .print-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6mm;
+      justify-content: flex-start;
+    }
+    .card-pair {
+      page-break-inside: avoid;
+      break-inside: avoid;
+      display: flex;
+      flex-direction: column;
+      gap: 3mm;
+    }
+    .card-pair-label { display: none !important; }
+    .select-check    { display: none !important; }
+    .id-card, .id-card-back {
+      width: 85.6mm !important;
+      height: 54mm !important;
+    }
+    @page { size: A4 portrait; margin: 5mm; }
+  </style>
+</head>
+<body>
+  <div class="print-grid">
+    ${pairs.join('\n')}
+  </div>
+</body>
+</html>`;
+
+  const blob = new Blob([html], { type: 'text/html' });
+  const url  = URL.createObjectURL(blob);
+  const w    = window.open(url, '_blank', 'width=900,height=700');
+  setTimeout(() => {
+    if (w) { w.focus(); w.print(); }
+    URL.revokeObjectURL(url);
+  }, 800);
+}
+
+function selectAll() {
+  document.querySelectorAll('.id-card').forEach(card => {
+    card.classList.add('selected');
+    selectedIds.add(card.dataset.id);
+    const cb = card.querySelector('.select-check');
+    if (cb) cb.checked = true;
+  });
+  updateSelectBar();
+}
+
+function clearSelection() {
+  document.querySelectorAll('.id-card').forEach(card => {
+    card.classList.remove('selected');
+    const cb = card.querySelector('.select-check');
+    if (cb) cb.checked = false;
+  });
+  selectedIds.clear();
+  updateSelectBar();
+}
+
+function updateSelectBar() {
+  const bar = document.getElementById('selectBar');
+  const cnt = document.getElementById('selectCount');
+  if (bar && cnt) {
+    bar.style.display = selectedIds.size > 0 ? 'flex' : 'none';
+    cnt.textContent   = `${selectedIds.size} card${selectedIds.size !== 1 ? 's' : ''} selected`;
+  }
+}
+
+// ── Utilities ─────────────────────────────────────────────────
+function formatRole(role) {
+  const map = {
+    admin: 'Administrator', teacher: 'Teacher', parent: 'Parent/Guardian',
+    exam_officer: 'Exam Officer', vp_academic: 'VP Academic',
+    registrar: 'Registrar', bursary: 'Bursary Officer',
+  };
+  return map[role] || role;
+}
+
+function escapeHtml(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function lightenHex(hex, amount) {
+  // Simple hex lightener for accent-light
+  try {
+    let h = hex.replace('#','');
+    if (h.length === 3) h = h.split('').map(x=>x+x).join('');
+    const r = Math.min(255, parseInt(h.slice(0,2),16) + amount);
+    const g = Math.min(255, parseInt(h.slice(2,4),16) + amount);
+    const b = Math.min(255, parseInt(h.slice(4,6),16) + amount);
+    return `#${[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('')}`;
+  } catch { return hex; }
+}
+</script>
+
+
+<script src="../../js/assistant.js"></script>
+
+<script src="/js/pwa-v2.1.js"></script>
+</body>
+</html>

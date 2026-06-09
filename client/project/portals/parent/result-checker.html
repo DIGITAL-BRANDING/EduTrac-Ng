@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" href="/icons/icon-96.png" type="image/png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0a6e3f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>EduTrack NG — Result Checker</title>
+  <link rel="stylesheet" href="../../assets/css/global.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=EB+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Playfair+Display:wght@400;700;900&family=Nunito:wght@400;600;700;800;900&family=Poppins:wght@400;500;600;700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+  
+<style>
+@media print {
+  .no-print { display:none!important; }
+  .rc-page-header { display:none!important; }
+  .rc-shell { background:white!important; padding:0!important; margin:0!important; min-height:unset!important; }
+  .rc-page-header { display:none!important; }
+  .rc-card { display:none!important; }
+  body { background:white!important; }
+  .report-card { box-shadow:none!important; }
+  .card-wrap { margin:0!important; }
+  .deco-border { border:3px solid #000!important; }
+}
+/* ── Shell & gate card ── */
+.rc-shell{min-height:100vh;background:var(--ink);background-image:radial-gradient(circle at 20% 80%,#2563eb18 0%,transparent 50%),radial-gradient(circle at 80% 20%,#7c3aed0d 0%,transparent 50%);padding:32px 16px;}
+.rc-page-header{max-width:460px;margin:0 auto 28px;text-align:center;}
+.rc-page-header-logo{width:56px;height:56px;border-radius:14px;background:var(--primary);display:inline-flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:14px;overflow:hidden;}
+.rc-page-header-logo img{width:56px;height:56px;object-fit:cover;border-radius:14px;}
+.rc-page-header h1{color:white;font-size:22px;font-weight:800;margin-bottom:4px;}
+.rc-page-header p{color:#9ca3af;font-size:13px;}
+.rc-card{max-width:460px;margin:0 auto;background:white;border-radius:16px;padding:32px;box-shadow:0 20px 60px rgba(0,0,0,.35);}
+.rc-card h2{font-size:18px;font-weight:700;margin-bottom:4px;color:var(--ink);}
+.rc-card p.sub{font-size:13px;color:var(--ink-3);margin-bottom:22px;line-height:1.5;}
+.step{display:none;}.step.active{display:block;}
+.school-search-wrap{position:relative;}
+.school-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:white;border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:100;max-height:220px;overflow-y:auto;display:none;}
+.school-dropdown.open{display:block;}
+.school-option{padding:11px 14px;cursor:pointer;font-size:14px;border-bottom:1px solid var(--border);transition:background .1s;}
+.school-option:last-child{border-bottom:none;}.school-option:hover{background:var(--primary-light);}
+.school-option__name{font-weight:600;color:var(--ink);}.school-option__sub{font-size:11px;color:var(--ink-3);margin-top:2px;}
+.school-badge{display:flex;align-items:center;gap:10px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px 14px;margin-bottom:20px;}
+.school-badge__name{font-weight:700;font-size:14px;color:#166534;}.school-badge__sub{font-size:11px;color:#16a34a;}
+.school-badge__change{font-size:12px;color:var(--primary);cursor:pointer;text-decoration:underline;background:none;border:none;padding:0;margin-left:auto;flex-shrink:0;}
+.pin-display{font-family:var(--mono);font-size:24px;letter-spacing:6px;text-align:center;}
+/* report-card shell */
+.report-card-shell{max-width:820px;margin:0 auto;}
+.card-action-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.usage-banner-ok{background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px 16px;margin-bottom:16px;font-size:13px;color:#166534;}
+.usage-banner-expired{background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#991b1b;}
+</style>
+
+</head>
+<body>
+<div class="rc-shell">
+
+  <!-- ── Header ─────────────────────────────────────────── -->
+  <div class="rc-page-header">
+    <div class="rc-page-header-logo" id="headerLogo">
+      <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+    </div>
+    <h1 id="headerTitle">EduTrack NG</h1>
+    <p id="headerSub">Result Checker Portal</p>
+  </div>
+
+  <!-- ── Gate card (Steps 1–3) ─────────────────────────── -->
+  <div class="rc-card" id="gateCard">
+
+    <!-- STEP 1: Find your school -->
+    <div class="step active" id="stepSchool">
+      <h2>Find Your School</h2>
+      <p class="sub">Search for your school to continue</p>
+      <div class="form-group">
+        <label class="form-label">School Name</label>
+        <div class="school-search-wrap">
+          <input type="text" id="schoolSearch" class="form-control"
+                 placeholder="Type your school name…"
+                 autocomplete="off"
+                 oninput="searchSchools(this.value)">
+          <div class="school-dropdown" id="schoolDropdown"></div>
+        </div>
+      </div>
+      <div id="schoolPickErr" class="form-error" style="display:none;margin-bottom:12px;"></div>
+      <!-- Shown only after a school is selected from dropdown -->
+      <div id="schoolConfirmBar" style="display:none;margin-top:12px;">
+        <div style="display:flex;align-items:center;gap:10px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px 14px;margin-bottom:14px;">
+          <span style="font-size:20px;" id="confirmSchoolLogo">🏫</span>
+          <div style="flex:1;">
+            <div style="font-weight:700;font-size:14px;color:#166534;" id="confirmSchoolName"></div>
+            <div style="font-size:11px;color:#16a34a;" id="confirmSchoolSub"></div>
+          </div>
+        </div>
+        <button class="btn btn--primary btn--full" onclick="confirmSchoolAndProceed()">
+          Continue with this school →
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 2: Select Term -->
+    <div class="step" id="stepTerm">
+      <div class="school-badge" id="termSchoolBadge">
+        <span id="termBadgeLogo" style="font-size:20px;">🏫</span>
+        <div style="flex:1;">
+          <div class="school-badge__name" id="termBadgeName">—</div>
+          <div class="school-badge__sub">Confirmed school</div>
+        </div>
+        <button class="school-badge__change" onclick="changeSchool()">Change</button>
+      </div>
+      <h2 id="termStepTitle">Select Term</h2>
+      <p class="sub" id="termStepSub">Choose the academic term. Your scratch card will be locked to this period once used.</p>
+      <div class="form-group">
+        <label class="form-label" id="termSelectLabel">Academic Term <span class="required">*</span></label>
+        <select id="termSelect" class="form-control" style="font-size:15px;font-weight:600;">
+          <option value="">— Loading… —</option>
+        </select>
+        <div class="form-hint" style="margin-top:6px;">⚠️ PIN is locked to 1 student &amp; 1 period only.</div>
+      </div>
+      <div id="termErr" class="form-error" style="display:none;margin-bottom:12px;"></div>
+      <button class="btn btn--primary btn--full" onclick="goToPin()">Continue →</button>
+    </div>
+
+    <!-- STEP 3: Admission no + PIN -->
+    <div class="step" id="stepPin">
+      <div class="school-badge">
+        <span id="badgeLogo" style="font-size:20px;">🏫</span>
+        <div style="flex:1;">
+          <div class="school-badge__name" id="badgeName">—</div>
+          <div class="school-badge__sub">Confirmed school</div>
+        </div>
+        <button class="school-badge__change" onclick="changeSchool()">Change</button>
+      </div>
+      <div id="pinTermBadge" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#e6f4ed;border:1px solid #0a6e3f;border-radius:10px;margin-bottom:16px;">
+        <span style="font-size:16px;">📅</span>
+        <div style="flex:1;">
+          <div style="font-size:11px;color:#0a6e3f;font-weight:700;text-transform:uppercase;letter-spacing:.5px;" id="pinPeriodLabel">Checking Results For</div>
+          <div id="pinTermBadgeName" style="font-size:14px;font-weight:800;color:#111;"></div>
+        </div>
+        <button onclick="goBackToTerm()" style="font-size:11px;color:#0a6e3f;background:none;border:none;cursor:pointer;font-weight:600;">Change</button>
+      </div>
+      <h2>Check Results</h2>
+      <p class="sub">Enter the student's admission number and scratch card PIN to generate the report card.</p>
+      <div class="form-group">
+        <label class="form-label">Admission Number <span class="required">*</span></label>
+        <input type="text" id="admNo" class="form-control" placeholder="e.g. ADM/2025/001" style="text-transform:uppercase;">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Serial Number <span class="required">*</span></label>
+        <input type="text" id="serialNo" class="form-control" placeholder="e.g. SN-001234" style="text-transform:uppercase;" autocomplete="off">
+        <div class="form-hint">The serial number is printed on your scratch card.</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Scratch Card PIN <span class="required">*</span></label>
+        <input type="text" id="pinInput" class="form-control pin-display" placeholder="XXXX-XXXX-XXXX" maxlength="15">
+        <div class="form-hint">Format: XXXX-XXXX-XXXX. Card is locked to 1 student &amp; 1 term only.</div>
+      </div>
+      <div id="gateErr" class="form-error" style="display:none;margin-bottom:12px;"></div>
+      <button class="btn btn--primary btn--full" id="checkBtn" onclick="checkResult()">
+        🎓 Generate Report Card
+      </button>
+      <div style="margin-top:16px;text-align:center;font-size:12px;color:var(--ink-4);line-height:1.8;">
+        Scratch cards are available from your school's admin office.<br>
+        Each PIN is valid for <strong>5 checks</strong> for one student &amp; one period only.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Report Card Display ─────────────────────────────── -->
+  <div id="resultDisplay" style="display:none;">
+    <div class="report-card-shell">
+      <!-- Action bar -->
+      <div class="card-action-bar no-print">
+        <button class="btn btn--primary" onclick="window.print()">🖨 Print Report Card</button>
+        <button class="btn btn--secondary" onclick="location.reload()">← Check Another</button>
+      </div>
+      <!-- Usage banner -->
+      <div id="usageBanner"></div>
+      <!-- Report card content -->
+      <div id="reportCardContent"></div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
+<script src="../../js/config.js"></script>
+<script src="../../api/database.js"></script>
+<script src="../../api/calculations.js"></script>
+<script src="../../js/report-card-engine.js"></script>
+<script>
+
+// ── Step helper ──────────────────────────────────────────────
+function showStep(id) {
+  ['stepSchool','stepTerm','stepPin'].forEach(s => {
+    const el = document.getElementById(s);
+    if (el) el.className = 'step' + (s === id ? ' active' : '');
+  });
+}
+
+// ── Ordinal suffix helper ─────────────────────────────────────
+function getOrdinalSuffix(n) {
+  const s = ['th','st','nd','rd'], v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
+let currentSchoolId   = null;
+let currentSchoolObj  = null;
+let allSchools        = [];
+let searchTimeout     = null;
+let schoolTerms       = [];
+let selectedTermId    = null;
+let periodLabel       = 'Term'; // 'Term', 'Semester', 'Quarter', etc.
+
+// ── Detect what a school calls their periods ──────────────────
+function detectPeriodLabel(terms) {
+  if (!terms || !terms.length) return 'Term';
+  const names = terms.map(t => (t.name || '').toLowerCase()).join(' ');
+  if (/semester/i.test(names))  return 'Semester';
+  if (/quarter/i.test(names))   return 'Quarter';
+  if (/session/i.test(names))   return 'Session';
+  if (/module/i.test(names))    return 'Module';
+  if (/period/i.test(names))    return 'Period';
+  return 'Term';
+}
+
+function applyPeriodLabel(label) {
+  periodLabel = label;
+  const els = {
+    termStepTitle:   `Select ${label}`,
+    termStepSub:     `Choose the academic ${label.toLowerCase()}. Your scratch card will be locked to this ${label.toLowerCase()} once used.`,
+    termSelectLabel: `Academic ${label}`,
+  };
+  Object.entries(els).forEach(([id, text]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text + (id === 'termSelectLabel' ? ' *' : '');
+  });
+  // Update the hint text in stepTerm
+  const hint = document.querySelector('#stepTerm .form-hint');
+  if (hint) hint.textContent = `⚠️ PIN is locked to 1 student & 1 ${label.toLowerCase()} only.`;
+}
+
+// ── Init ────────────────────────────────────────────────────
+(async () => {
+  const schoolId = new URLSearchParams(location.search).get('school');
+  if (schoolId) {
+    const { data: school } = await db.from('schools')
+      .select('id,name,logo_url,is_active,state,lga')
+      .eq('id', schoolId).maybeSingle();
+    if (school && school.is_active) { await selectSchool(school); return; }
+  }
+  const { data: schools } = await db.from('schools')
+    .select('id,name,state,lga,logo_url').eq('is_active', true).order('name');
+  allSchools = schools || [];
+  if (allSchools.length === 1) { await selectSchool(allSchools[0]); return; }
+  showStep('stepSchool');
+})();
+
+// ── School search ────────────────────────────────────────────
+function searchSchools(q) {
+  clearTimeout(searchTimeout);
+  const dd = document.getElementById('schoolDropdown');
+  // Hide confirm bar when user starts typing again
+  document.getElementById('schoolConfirmBar').style.display = 'none';
+  currentSchoolObj = null;
+  if (!q.trim()) { dd.classList.remove('open'); return; }
+  searchTimeout = setTimeout(() => {
+    const matches = allSchools.filter(s =>
+      s.name.toLowerCase().includes(q.toLowerCase()) ||
+      (s.state||'').toLowerCase().includes(q.toLowerCase()) ||
+      (s.lga||'').toLowerCase().includes(q.toLowerCase())
+    );
+    dd.innerHTML = matches.length
+      ? matches.map(s => `
+          <div class="school-option" onclick='pickSchool(${JSON.stringify(s)})'>
+            <div class="school-option__name">${s.name}</div>
+            <div class="school-option__sub">${[s.state, s.lga].filter(Boolean).join(', ') || 'Location not set'}</div>
+          </div>`).join('')
+      : `<div class="school-option" style="color:var(--ink-3);cursor:default;">No schools found for "<strong>${q}</strong>"</div>`;
+    dd.classList.add('open');
+  }, 200);
+}
+
+function pickSchool(school) {
+  // Close dropdown, fill input, show confirm bar — don't auto-proceed yet
+  document.getElementById('schoolDropdown').classList.remove('open');
+  document.getElementById('schoolSearch').value = school.name;
+  currentSchoolObj = school;
+  document.getElementById('confirmSchoolName').textContent = school.name;
+  document.getElementById('confirmSchoolSub').textContent  =
+    [school.state, school.lga].filter(Boolean).join(', ') || 'Location not set';
+  if (school.logo_url) {
+    document.getElementById('confirmSchoolLogo').innerHTML =
+      `<img src="${school.logo_url}" style="width:28px;height:28px;border-radius:6px;object-fit:cover;" onerror="this.outerHTML='🏫'">`;
+  } else {
+    document.getElementById('confirmSchoolLogo').textContent = '🏫';
+  }
+  document.getElementById('schoolConfirmBar').style.display = 'block';
+  document.getElementById('schoolPickErr').style.display = 'none';
+}
+
+async function confirmSchoolAndProceed() {
+  if (!currentSchoolObj) {
+    document.getElementById('schoolPickErr').textContent = 'Please select a school from the list first.';
+    document.getElementById('schoolPickErr').style.display = 'block';
+    return;
+  }
+  await selectSchool(currentSchoolObj);
+}
+
+async function selectSchool(school) {
+  currentSchoolId  = school.id;
+  currentSchoolObj = school;
+  // Update header
+  document.getElementById('headerTitle').textContent = school.name;
+  document.getElementById('headerSub').textContent   = 'Report Card Portal';
+  document.title = school.name + ' — Report Card';
+  const logoHTML = school.logo_url
+    ? `<img src="${school.logo_url}" onerror="this.parentElement.innerHTML='🏫'" style="width:56px;height:56px;object-fit:cover;border-radius:14px;">`
+    : `<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>`;
+  document.getElementById('headerLogo').innerHTML = logoHTML;
+  const badgeLogoHTML = school.logo_url
+    ? `<img src="${school.logo_url}" style="width:24px;height:24px;border-radius:4px;object-fit:cover;" onerror="this.outerHTML='🏫'">`
+    : '🏫';
+  document.getElementById('badgeLogo').innerHTML    = badgeLogoHTML;
+  document.getElementById('termBadgeLogo').innerHTML = badgeLogoHTML;
+  document.getElementById('badgeName').textContent  = school.name;
+  const url = new URL(location.href);
+  url.searchParams.set('school', school.id);
+  history.replaceState(null, '', url.toString());
+  await loadSchoolTerms(school.id, school.name);
+}
+
+async function loadSchoolTerms(schoolId, schoolName) {
+  document.getElementById('termBadgeName').textContent = schoolName;
+  const termSel = document.getElementById('termSelect');
+  termSel.innerHTML = '<option value="">Loading…</option>';
+  showStep('stepTerm');
+
+  const { data: terms } = await db.from('terms')
+    .select('id,name,is_current,results_published')
+    .eq('school_id', schoolId)
+    .order('created_at', { ascending: false });
+  schoolTerms = terms || [];
+
+  // Detect and apply period label (Term/Semester/Quarter…)
+  const label = detectPeriodLabel(schoolTerms);
+  applyPeriodLabel(label);
+
+  if (!schoolTerms.length) {
+    termSel.innerHTML = `<option value="">— No ${label.toLowerCase()}s found —</option>`;
+    return;
+  }
+
+  termSel.innerHTML = `<option value="">— Select a ${label.toLowerCase()} —</option>`
+    + schoolTerms.map(t =>
+        `<option value="${t.id}" ${t.is_current ? 'selected' : ''}>${t.name}${t.is_current ? ' ★ Current' : ''}</option>`
+      ).join('');
+  const cur = schoolTerms.find(t => t.is_current);
+  if (cur) termSel.value = cur.id;
+}
+
+function goToPin() {
+  const termSel = document.getElementById('termSelect');
+  const errEl   = document.getElementById('termErr');
+  errEl.style.display = 'none';
+  if (!termSel.value) {
+    errEl.textContent = `Please select a ${periodLabel.toLowerCase()} to continue.`;
+    errEl.style.display = 'block'; return;
+  }
+  selectedTermId = termSel.value;
+  document.getElementById('pinTermBadgeName').textContent = termSel.options[termSel.selectedIndex].text;
+  // Update the "Checking Results For" label dynamically
+  const lbl = document.getElementById('pinPeriodLabel');
+  if (lbl) lbl.textContent = `Checking Results For ${periodLabel}`;
+  showStep('stepPin');
+  setTimeout(() => document.getElementById('admNo')?.focus(), 100);
+}
+
+function goBackToTerm() {
+  selectedTermId = null;
+  document.getElementById('admNo').value    = '';
+  document.getElementById('pinInput').value = '';
+  document.getElementById('gateErr').style.display = 'none';
+  showStep('stepTerm');
+}
+
+function changeSchool() {
+  currentSchoolId = null; selectedTermId = null; schoolTerms = [];
+  document.getElementById('admNo').value    = '';
+  document.getElementById('pinInput').value = '';
+  document.getElementById('gateErr').style.display  = 'none';
+  document.getElementById('termErr').style.display  = 'none';
+  document.getElementById('schoolSearch').value     = '';
+  document.getElementById('schoolDropdown').classList.remove('open');
+  showStep('stepSchool');
+  setTimeout(() => document.getElementById('schoolSearch')?.focus(), 100);
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.school-search-wrap'))
+    document.getElementById('schoolDropdown')?.classList.remove('open');
+});
+
+// ── PIN auto-format ──────────────────────────────────────────
+document.addEventListener('input', e => {
+  if (e.target.id !== 'pinInput') return;
+  let v = e.target.value.replace(/[^0-9]/g, '');
+  if (v.length > 4) v = v.slice(0,4) + '-' + v.slice(4);
+  if (v.length > 9) v = v.slice(0,9) + '-' + v.slice(9);
+  if (v.length > 14) v = v.slice(0,14) + '-' + v.slice(14);
+  e.target.value = v.slice(0,15);
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  if (document.querySelector('.step.active')?.id === 'stepPin') checkResult();
+});
+
+// ── Check result & generate report card ─────────────────────
+async function checkResult() {
+  const admNo  = document.getElementById('admNo').value.trim().toUpperCase();
+  const rawPin = document.getElementById('pinInput').value.replace(/-/g,'').trim();
+  const errEl  = document.getElementById('gateErr');
+  const btn    = document.getElementById('checkBtn');
+  errEl.style.display = 'none';
+
+  if (!currentSchoolId) { errEl.textContent = 'School not selected.'; errEl.style.display = 'block'; return; }
+  if (!admNo || !rawPin) { errEl.textContent = 'Please enter both admission number and PIN.'; errEl.style.display = 'block'; return; }
+  if (rawPin.length !== 12) { errEl.textContent = 'PIN must be 12 digits (XXXX-XXXX-XXXX format).'; errEl.style.display = 'block'; return; }
+  if (!selectedTermId) { errEl.textContent = `No ${periodLabel.toLowerCase()} selected. Please go back.`; errEl.style.display = 'block'; return; }
+
+  btn.disabled = true; btn.textContent = '⏳ Generating Report Card…';
+
+  try {
+    const serialNo = (document.getElementById('serialNo')?.value || '').trim().toUpperCase();
+    const { data: useResult, error: useErr } = await db.rpc('use_scratch_card', {
+      p_pin:          rawPin,
+      p_serial_no:    serialNo || null,
+      p_school_id:    currentSchoolId,
+      p_card_type:    'result',
+      p_admission_no: admNo,
+      p_student_id:   null,
+      p_term_id:      selectedTermId
+    });
+    if (useErr) throw new Error(useErr.message);
+    if (useResult?.error) throw new Error(useResult.error);
+
+    const maxUses    = useResult.max_uses;
+    const usesLeft   = useResult.uses_left;
+    const nowExpired = useResult.now_expired;
+    const termId     = useResult.term_id || selectedTermId;
+    const student    = useResult.student;
+    const term       = useResult.term;
+    const school     = useResult.school;
+
+    if (!student) throw new Error('Student data not returned. Please contact your school admin.');
+
+    const studentId = student.id;
+    const [{ data: results }, { data: grading }, { data: affective }, { data: _subjects }, { data: attendance }] = await Promise.all([
+      db.from('results')
+        .select('score,subject_id,exam_id,subjects(id,name,code),exams(id,name,max_score,weight)')
+        .eq('student_id', studentId).eq('term_id', termId),
+      db.from('grading_scales')
+        .select('*').eq('school_id', currentSchoolId).order('min_score', { ascending: false }),
+      db.from('affective_domain')
+        .select('*').eq('student_id', studentId).eq('term_id', termId).maybeSingle(),
+      db.from('subjects').select('id,name,code').eq('school_id', currentSchoolId),
+      db.from('attendance')
+        .select('status,date').eq('student_id', studentId).eq('term_id', termId),
+    ]);
+
+    // Patch subject references
+    const subjectLookup = {};
+    (_subjects || []).forEach(s => { subjectLookup[s.id] = s; });
+    (results || []).forEach(r => {
+      if (!r.subjects && subjectLookup[r.subject_id]) r.subjects = subjectLookup[r.subject_id];
+      if (!r.exams) r.exams = { id: r.exam_id, name: 'Score', max_score: 100, weight: 1 };
+    });
+
+    // Class position
+    let positionStr = '—';
+    let classRow = null;
+    try {
+      const { data: enrData } = await db.from('enrollments')
+        .select('class_id,classes(id,name,level,section)').eq('student_id', studentId).eq('term_id', termId).maybeSingle();
+      classRow = enrData?.classes || null;
+      if (enrData?.class_id) {
+        const { data: posData } = await db.rpc('class_positions', {
+          p_class_id: enrData.class_id, p_term_id: termId
+        });
+        const pos = (posData || []).find(p => p.student_id === studentId);
+        if (pos) positionStr = getOrdinalSuffix(pos.position) + ' / ' + pos.out_of;
+      }
+    } catch {}
+
+    // Fetch school detail (logo, sigs, etc.)
+    let schoolDetail = school;
+    try {
+      const { data: sd } = await db.from('schools')
+        .select('name,logo_url,address,state,lga,phone,email,affiliation_no,principal_signature_url,class_teacher_signature_url,exam_officer_signature_url')
+        .eq('id', currentSchoolId).maybeSingle();
+      if (sd) schoolDetail = { ...school, ...sd };
+    } catch {}
+
+    // ── Hydrate engine state & build card ─────────────────────
+    _school        = schoolDetail;
+    _scale         = grading || [];
+    _term          = term;
+    _classRow      = classRow;
+    _exams         = null;
+    _classSubjects = null;
+    _bulkResults   = null;
+    _bulkAtt       = null;
+    _bulkAffective = null;
+
+    // Usage banner
+    const bannerEl = document.getElementById('usageBanner');
+    if (nowExpired) {
+      bannerEl.innerHTML = `<div class="usage-banner-expired no-print">
+        ⚠️ <strong>This scratch card has now expired.</strong> All ${maxUses} permitted checks have been used.
+        Please obtain a new card from your school admin office.
+      </div>`;
+    } else {
+      bannerEl.innerHTML = `<div class="usage-banner-ok no-print">
+        ✅ <strong>Check ${maxUses - usesLeft} of ${maxUses}.</strong>
+        You have <strong>${usesLeft}</strong> check${usesLeft !== 1 ? 's' : ''} remaining on this PIN.
+        This card is locked to this student for ${term?.name || 'this term'}.
+      </div>`;
+    }
+
+    // Build card using the shared engine (same as VP/Exam Officer view)
+    const cardHtml = await buildCard(student, termId);
+    if (!cardHtml) throw new Error('No results found for this student this term. Please contact your school admin.');
+    document.getElementById('reportCardContent').innerHTML = cardHtml;
+
+    document.getElementById('gateCard').style.display     = 'none';
+    document.getElementById('resultDisplay').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  } catch (err) {
+    errEl.textContent = err.message; errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = '🎓 Generate Report Card';
+  }
+}
+
+
+</script>
+
+<script src="../../js/assistant.js"></script>
+</body>
+</html>
