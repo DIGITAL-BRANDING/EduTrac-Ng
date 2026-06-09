@@ -194,7 +194,33 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0">
+  // ── Modal helpers — fallback if not defined by global/sidebar.js ──────────
+  if (typeof openModal !== 'function') {
+    window.openModal = function(id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    };
+  }
+  if (typeof closeModal !== 'function') {
+    window.closeModal = function(id) {
+      var el = document.getElementById(id);
+      if (el) el.classList.remove('active');
+      if (!document.querySelector('.modal.active')) {
+        document.body.style.overflow = '';
+      }
+    };
+  }
+  // Close modal on Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      var open = document.querySelector('.modal.active');
+      if (open) closeModal(open.id);
+    }
+  });
+</script>
 <script src="../../js/config.js"></script>
 <script src="../../api/database.js"></script>
 <script src="../../api/auth.js"></script>
@@ -882,32 +908,95 @@ async function openHistory() {
 }
 
 function filterHistory() {
-  const q = (document.getElementById('histSearch')?.value||'').toLowerCase();
+  const q  = (document.getElementById('histSearch')?.value||'').toLowerCase();
   const st = document.getElementById('histStatus')?.value||'';
   const list = allHistory.filter(a => {
     if (st && a.status !== st) return false;
-    if (q && !(a.full_name||'').toLowerCase().includes(q) &&
-              !(a.ref_id||'').toLowerCase().includes(q) &&
-              !(a.parent_phone||'').includes(q) &&
-              !(a.parent_name||'').toLowerCase().includes(q) &&
-              !(a.admission_number||'').toLowerCase().includes(q)) return false;
+    if (q && ![a.full_name,a.ref_id,a.parent_phone,a.parent_name,
+               a.admission_number,a.intended_level,a.address]
+             .some(v=>(v||'').toLowerCase().includes(q))) return false;
     return true;
   });
+
   const el = document.getElementById('historyList');
-  if (!list.length) { el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--ink-3)">No applications found.</div>'; return; }
-  const statusColor = { pending:'#92400e', approved:'#14532d', rejected:'#991b1b', enrolled:'#14532d' };
-  const statusBg    = { pending:'#fef3c7', approved:'#dcfce7', rejected:'#fee2e2', enrolled:'#dcfce7' };
-  el.innerHTML = '<div class="tbl-wrap"><table><thead><tr><th>Applicant</th><th>Ref</th><th>Status</th><th>Adm No</th><th>Guardian</th><th>Submitted</th></tr></thead><tbody>' +
-    list.map(a => '<tr>' +
-      '<td><strong>'+escapeText(a.full_name||'—')+'</strong><div style="font-size:11px;color:var(--ink-3);">'+escapeText(a.classes?.name||'—')+'</div></td>' +
-      '<td><span style="font-family:monospace;font-size:12px;">'+escapeText(a.ref_id||'—')+'</span></td>' +
-      '<td><span style="background:'+statusBg[a.status]||'#f1f5f9'+';color:'+statusColor[a.status]||'#475569'+';padding:2px 8px;border-radius:100px;font-size:11px;font-weight:800;text-transform:uppercase;">'+escapeText(a.status)+'</span>' +
-        (a.rejection_reason?'<div style="font-size:11px;color:#dc2626;margin-top:2px;">'+escapeText(a.rejection_reason)+'</div>':'')+'</td>' +
-      '<td><span style="font-family:monospace;font-size:12px;">'+(a.admission_number?escapeText(a.admission_number):'—')+'</span></td>' +
-      '<td>'+escapeText(a.parent_name||'—')+'<div style="font-size:11px;color:var(--ink-3);">'+escapeText(a.parent_phone||'')+'</div></td>' +
-      '<td style="font-size:12px;color:var(--ink-3);">'+formatDate(a.submitted_at)+'</td>' +
-    '</tr>').join('') +
-    '</tbody></table></div>';
+  if (!list.length) {
+    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--ink-3,#64748b);">No applications match your filter.</div>';
+    return;
+  }
+
+  const SC = {
+    pending:  {bg:'#fef3c7',fg:'#92400e'},
+    approved: {bg:'#dcfce7',fg:'#14532d'},
+    rejected: {bg:'#fee2e2',fg:'#991b1b'},
+    enrolled: {bg:'#dbeafe',fg:'#1e40af'}
+  };
+  const AV = { pending:'#d97706', approved:'#16a34a', rejected:'#dc2626', enrolled:'#2563eb' };
+
+  const counts = {
+    total:    list.length,
+    pending:  list.filter(a=>a.status==='pending').length,
+    approved: list.filter(a=>a.status==='approved').length,
+    rejected: list.filter(a=>a.status==='rejected').length
+  };
+
+  const statsHtml =
+    '<div class="hist-stats">' +
+      mkStat(counts.total,  'Total',    '#f8fafc','#e2e8f0','#0f172a','#64748b') +
+      mkStat(counts.pending, 'Pending', '#fef3c7','#fcd34d','#92400e','#92400e') +
+      mkStat(counts.approved,'Approved','#dcfce7','#86efac','#14532d','#14532d') +
+      mkStat(counts.rejected,'Rejected','#fee2e2','#fca5a5','#991b1b','#991b1b') +
+    '</div>';
+
+  const cardsHtml = '<div class="hist-cards">' + list.map(function(a) {
+    const sc   = SC[a.status] || {bg:'#f1f5f9',fg:'#475569'};
+    const avBg = AV[a.status] || '#64748b';
+    const init = escapeText((a.full_name||'?').charAt(0).toUpperCase());
+    const badge = '<span style="background:'+sc.bg+';color:'+sc.fg+
+      ';padding:3px 10px;border-radius:100px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;">'
+      +escapeText(a.status)+'</span>';
+    const dob = a.date_of_birth
+      ? new Date(a.date_of_birth).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})
+      : null;
+    const fld = function(lbl,val,mono) {
+      return '<div><span class="hist-field-lbl">'+lbl+'</span>' +
+             '<span class="hist-field-val'+(mono?' hist-adm':'')+'">'+escapeText(val||'—')+'</span></div>';
+    };
+    return '<div class="hist-card">' +
+      '<div class="hist-card-head">' +
+        '<div class="hist-card-av" style="background:'+avBg+';color:#fff;">'+init+'</div>' +
+        '<div style="flex:1;min-width:0;">' +
+          '<div class="hist-card-name">'+escapeText(a.full_name||'—')+'</div>' +
+          '<div class="hist-card-ref">Ref:&nbsp;'+escapeText(a.ref_id||'Pending')+'</div>' +
+        '</div>' +
+        badge +
+      '</div>' +
+      '<div class="hist-card-body">' +
+        fld('Level / Section', a.intended_level) +
+        fld('Gender', a.gender) +
+        fld('Date of Birth', dob) +
+        fld('Blood Group', a.blood_group) +
+        fld('Guardian', a.parent_name) +
+        fld('Guardian Phone', a.parent_phone) +
+        fld('Home Address', a.address) +
+        (a.scratch_card_pin ? '<div><span class="hist-field-lbl">Scratch Card PIN</span><span class="hist-field-val" style="font-family:monospace;letter-spacing:1px;">'+escapeText(a.scratch_card_pin)+'</span></div>' : '') +
+        (a.admission_number ? fld('Admission Number', a.admission_number, true) : '') +
+      '</div>' +
+      '<div class="hist-card-foot">' +
+        '<span>&#128197; Submitted: <strong>'+formatDate(a.submitted_at)+'</strong></span>' +
+        (a.reviewed_at ? '<span>&#10003; Reviewed: <strong>'+formatDate(a.reviewed_at)+'</strong></span>' : '') +
+      '</div>' +
+      (a.rejection_reason ? '<div class="hist-rejection">&#10007; Reason: '+escapeText(a.rejection_reason)+'</div>' : '') +
+    '</div>';
+  }).join('') + '</div>';
+
+  el.innerHTML = statsHtml + cardsHtml;
+}
+
+function mkStat(num, lbl, bg, bdr, numColor, lblColor) {
+  return '<div class="hist-stat" style="background:'+bg+';border:1px solid '+bdr+';">' +
+    '<div class="hist-stat-num" style="color:'+numColor+';">'+num+'</div>' +
+    '<div class="hist-stat-lbl" style="color:'+lblColor+';">'+lbl+'</div>' +
+  '</div>';
 }
 
 async function editStudent(id) {
