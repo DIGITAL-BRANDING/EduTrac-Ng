@@ -62,6 +62,16 @@
     @media(max-width:480px){
       .app-card-body { grid-template-columns:1fr; }
     }
+
+    /* ── Combo / Subject Section picker ─────────────────────── */
+    .combo-opt { transition:border-color .15s,background .15s,box-shadow .15s;cursor:pointer; }
+    .combo-opt:hover { border-color:var(--primary,#0a6e3f) !important; }
+    .combo-opt.selected {
+      border-color:var(--primary,#0a6e3f) !important;
+      background:#f0fdf4;
+      box-shadow:0 0 0 3px rgba(10,110,63,.15);
+    }
+    .combo-opt.selected .combo-name { color:var(--primary,#0a6e3f) !important; }
   </style>
 </head>
 <body>
@@ -351,31 +361,37 @@ function openApproveApplication(id) {
 
 function renderApproveComboSection(classId) {
   const wrap = document.getElementById('approveComboSection');
-  if (!classId || !combos.length) { wrap.style.display = 'none'; return; }
+  if (!classId || !combos.length) { wrap.style.display = 'none'; selApproveCombo = null; return; }
+  // Reset selection whenever the section is rebuilt (class changed)
+  selApproveCombo = null;
   wrap.style.display = 'block';
   const listEl = document.getElementById('approveComboList');
-  const noneDiv = document.createElement('div');
-  noneDiv.className = 'combo-opt';
-  noneDiv.style.cssText = 'border:2px solid var(--border);border-radius:var(--radius);padding:10px;cursor:pointer;text-align:center;';
-  noneDiv.innerHTML = '<div style="font-weight:700;font-size:13px;">No Section</div><div style="font-size:11px;color:var(--ink-3);">Assign later</div>';
-  noneDiv.onclick = function() {
-    selApproveCombo = null;
-    listEl.querySelectorAll('.combo-opt').forEach(e => e.classList.remove('selected'));
-    noneDiv.classList.add('selected');
-  };
   listEl.innerHTML = '';
+
+  function selectComboOpt(el, id) {
+    listEl.querySelectorAll('.combo-opt').forEach(e => e.classList.remove('selected'));
+    el.classList.add('selected');
+    selApproveCombo = id;
+  }
+
+  // ── "No Section" default option (pre-selected) ──
+  const noneDiv = document.createElement('div');
+  noneDiv.className = 'combo-opt selected';
+  noneDiv.style.cssText = 'border:2px solid var(--border);border-radius:var(--radius);padding:10px;text-align:center;';
+  noneDiv.innerHTML = '<div class="combo-name" style="font-weight:700;font-size:13px;">No Section</div>' +
+    '<div style="font-size:11px;color:var(--ink-3);">Assign later</div>';
+  noneDiv.onclick = function() { selectComboOpt(noneDiv, null); };
   listEl.appendChild(noneDiv);
+
+  // ── Combination options ──
   combos.forEach(function(x) {
     const div = document.createElement('div');
     div.className = 'combo-opt';
-    div.style.cssText = 'border:2px solid var(--border);border-radius:var(--radius);padding:10px;cursor:pointer;text-align:center;';
-    div.innerHTML = '<div style="font-weight:700;font-size:13px;color:' + (x.color || 'var(--primary)') + ';">' + escapeText(x.name) + '</div>' +
+    div.style.cssText = 'border:2px solid var(--border);border-radius:var(--radius);padding:10px;text-align:center;';
+    div.innerHTML = '<div class="combo-name" style="font-weight:700;font-size:13px;color:' + escapeText(x.color || 'var(--primary)') + ';">' +
+        escapeText(x.name) + '</div>' +
       '<div style="font-size:11px;color:var(--ink-3);">' + ((comboSubMap[x.id] || []).length) + ' subjects</div>';
-    div.onclick = function() {
-      selApproveCombo = x.id;
-      listEl.querySelectorAll('.combo-opt').forEach(e => e.classList.remove('selected'));
-      div.classList.add('selected');
-    };
+    div.onclick = function() { selectComboOpt(div, x.id); };
     listEl.appendChild(div);
   });
 }
@@ -422,12 +438,14 @@ async function approveApplication() {
       if (!term) {
         // No current term set — enroll without term_id using insert
         const { error: enrErr } = await db.from('enrollments').insert(
-          { school_id: user.school_id, student_id: sid, class_id: classId }
+          { school_id: user.school_id, student_id: sid, class_id: classId,
+            ...(selApproveCombo ? { combination_id: selApproveCombo } : {}) }
         );
         if (enrErr && !enrErr.message.includes('duplicate')) throw new Error('Enrollment failed: ' + enrErr.message);
       } else {
         const { error: enrErr } = await db.from('enrollments').upsert(
-          { school_id: user.school_id, student_id: sid, class_id: classId, term_id: term.id },
+          { school_id: user.school_id, student_id: sid, class_id: classId, term_id: term.id,
+            ...(selApproveCombo ? { combination_id: selApproveCombo } : {}) },
           { onConflict: 'student_id,class_id,term_id' }
         );
         if (enrErr) throw new Error('Enrollment failed: ' + enrErr.message);
@@ -447,7 +465,10 @@ async function approveApplication() {
     }).eq('id', appId);
     if (updErr) console.error('[Admission] Application update failed:', updErr.message);
 
-    toast('Student admitted successfully! Adm No: ' + admNo, 'success');
+    const comboLabel = selApproveCombo
+      ? (combos.find(x => x.id === selApproveCombo)?.name || 'Section assigned')
+      : 'No section';
+    toast('Student admitted! Adm No: ' + admNo + ' · ' + comboLabel, 'success');
     closeModal('approveModal');
     await loadStudents();
     await loadApplications();
