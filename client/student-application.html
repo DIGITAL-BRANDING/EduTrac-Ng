@@ -654,12 +654,17 @@ async function checkStatus(){
       .eq('ref_id',ref).maybeSingle();
     if(error)throw error;
     if(!data){document.getElementById('trackerResult').innerHTML='<p style="font-size:13px;color:#dc2626;margin:8px 0 0">No application found for that reference number.</p>';return;}
-    // resolve class name without ambiguous embed
+    // Resolve class/level name:
+    // New applications store a plain-text level in intended_level.
+    // Legacy applications may still have an intended_class_id UUID.
     let className='\u2014';
-    if(data.intended_class_id){
-      const cached=classes.find(c=>c.id===data.intended_class_id);
-      if(cached){className=cached.name;}
-      else{try{const{data:cl}=await db.from('classes').select('name').eq('id',data.intended_class_id).single();if(cl)className=cl.name;}catch(_){}}
+    if(data.intended_level){
+      className=data.intended_level;
+    } else if(data.intended_class_id){
+      try{
+        const{data:cl}=await db.from('classes').select('name').eq('id',data.intended_class_id).single();
+        if(cl)className=cl.name;
+      }catch(_){}
     }
     data._className=className;
     // fetch subjects for the class
