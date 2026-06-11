@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -176,39 +177,41 @@
   for(let i=0;i<v.length;i++){if(i===4||i===8)fmt+=' – ';fmt+=v[i];}
   this.value=fmt;
 "><div class="hint">Enter the 12-digit PIN exactly as shown on your card (e.g. 5638 – 5281 – 5469).</div><div class="err">Enter the full 12-digit card PIN</div></div>
-            <!-- Hidden fields store resolved names for saving to DB -->
-            <input type="hidden" id="intendedProgram" value="">
-            <input type="hidden" id="intendedLevel"   value="">
-            <input type="hidden" id="intendedCombo"   value="">
+            <!-- Hidden fields — store IDs and names for DB save -->
+            <input type="hidden" id="intendedProgramId"   value="">
+            <input type="hidden" id="intendedProgram"     value="">
+            <input type="hidden" id="intendedLevelId"     value="">
+            <input type="hidden" id="intendedLevel"       value="">
+            <input type="hidden" id="intendedCombo"       value="">
 
-            <!-- Programme select — loaded from school's programs table -->
+            <!-- Step A: Programme — from programs table -->
             <div class="full field" id="fieldProgram" data-field="intendedProgram" style="display:none;">
               <label>Programme *</label>
               <select id="programSel" onchange="onProgramChange(this)">
-                <option value="">Select school first</option>
+                <option value="">— Select programme —</option>
               </select>
               <div class="hint">Select the programme you are applying for.</div>
               <div class="err">Please select a programme</div>
             </div>
 
-            <!-- Combination select — loaded after programme is picked, filtered by that programme -->
+            <!-- Step B: Level — from levels table filtered by selected programme -->
+            <div class="full field" id="fieldLevel" data-field="intendedLevel" style="display:none;">
+              <label>Level *</label>
+              <select id="levelSel" onchange="onLevelChange(this)">
+                <option value="">— Select level —</option>
+              </select>
+              <div class="hint">Select the level within your chosen programme.</div>
+              <div class="err">Please select a level</div>
+            </div>
+
+            <!-- Step C: Combination — from subject_combinations table -->
             <div class="full field" id="fieldCombo" data-field="intendedCombo" style="display:none;">
               <label>Combination *</label>
               <select id="comboSel" onchange="onComboChange(this)">
                 <option value="">— Select combination —</option>
               </select>
-              <div class="hint">Select your subject combination within your chosen programme.</div>
+              <div class="hint">Select your subject combination.</div>
               <div class="err">Please select a combination</div>
-            </div>
-
-            <!-- Fallback: plain programme/level select when school has no programs table entries -->
-            <div class="full field" id="fieldLevel" data-field="intendedLevel" style="display:none;">
-              <label>Programme *</label>
-              <select id="levelSel" onchange="onLevelChange(this)">
-                <option value="">Select school first</option>
-              </select>
-              <div class="hint">Select the programme you are applying for.</div>
-              <div class="err">Please select a programme</div>
             </div>
           </div>
         </div>
@@ -317,7 +320,7 @@ document.getElementById('schoolId').addEventListener('change', async () => {
   document.getElementById('intendedProgram').value = '';
   document.getElementById('intendedLevel').value   = '';
   document.getElementById('intendedCombo').value   = '';
-  _schoolPrograms = []; _schoolCombos = []; _levelProgMap = {};
+  _schoolPrograms = []; _schoolLevels = []; _schoolCombos = []; _levelProgMap = {};
   // Load active term for this school (used in session year on letter)
   const sid = val('schoolId');
   if(sid){
@@ -332,7 +335,7 @@ document.getElementById('schoolId').addEventListener('change', async () => {
 // level change now handled by onLevelChange / onComboChange
 
 // ── Caches for this school session ──────────────────────────────
-let _schoolPrograms = [], _schoolCombos = [], _levelProgMap = {};
+let _schoolPrograms = [], _schoolLevels = [], _schoolCombos = [], _levelProgMap = {};
 
 // Alias so existing calls still work
 async function loadLevelsForSchool(){ return loadSchoolSelects(); }
@@ -342,183 +345,141 @@ async function loadSchoolSelects(){
   uploadedDocs = {};
   renderDocUploads();
 
-  // Hide all variant fields first
-  ['fieldProgram','fieldCombo','fieldLevel'].forEach(id=>{
+  // Reset all fields
+  ['fieldProgram','fieldLevel','fieldCombo'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.style.display='none';
   });
-  document.getElementById('intendedProgram').value = '';
-  document.getElementById('intendedLevel').value   = '';
+  ['intendedProgramId','intendedProgram','intendedLevelId','intendedLevel','intendedCombo'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
 
   if(!school) return;
 
+  // Show loading state on programme select
+  const progSel = document.getElementById('programSel');
+  progSel.innerHTML = '<option value="">Loading…</option>';
+  document.getElementById('fieldProgram').style.display = '';
+
   try{
-    // ── Fetch Programs + Combinations + Levels in parallel ──────
-    const [ progsRes, combosRes, lvlsRes ] = await Promise.all([
+    // Fetch programs, levels, and combinations in parallel
+    const [progsRes, lvlsRes, combosRes] = await Promise.all([
       db.from('programs').select('id,name,description').eq('school_id',school.id).order('name'),
-      db.from('subject_combinations').select('id,name,color,description,program_id').eq('school_id',school.id).order('name'),
       db.from('levels').select('id,name,program_id,sort_order').eq('school_id',school.id).order('sort_order,name'),
+      db.from('subject_combinations').select('id,name,description').eq('school_id',school.id).order('name'),
     ]);
 
-    if(progsRes.error)  console.warn('programs fetch error:',  progsRes.error.message);
-    if(combosRes.error) console.warn('combos fetch error:',    combosRes.error.message);
-    if(lvlsRes.error)   console.warn('levels fetch error:',    lvlsRes.error.message);
+    if(progsRes.error)  console.warn('[programs]',  progsRes.error.message);
+    if(lvlsRes.error)   console.warn('[levels]',    lvlsRes.error.message);
+    if(combosRes.error) console.warn('[combos]',    combosRes.error.message);
 
     _schoolPrograms = progsRes.data  || [];
+    _schoolLevels   = lvlsRes.data   || [];
     _schoolCombos   = combosRes.data || [];
-    const lvls      = lvlsRes.data   || [];
 
-    // ── CASE A: School has Programs configured ───────────────────
     if(_schoolPrograms.length){
-      const progSel = document.getElementById('programSel');
-      progSel.innerHTML = '<option value="">— Select Programme —</option>' +
-        _schoolPrograms.map(p => `<option value="${esc(p.id)}" data-name="${esc(p.name)}">${esc(p.name)}${p.description?' — '+esc(p.description):''}</option>`).join('');
-
-      // Store level→program map for later use
-      _levelProgMap = {};
-      lvls.forEach(l => {
-        _levelProgMap[l.id] = { name: l.name, programId: l.program_id };
-      });
-
+      // ── Has Programs: show programme dropdown ──────────────────
+      progSel.innerHTML = '<option value="">— Select programme —</option>' +
+        _schoolPrograms.map(p=>
+          `<option value="${esc(p.id)}" data-name="${esc(p.name)}">${esc(p.name)}${p.description?' — '+esc(p.description):''}</option>`
+        ).join('');
       document.getElementById('fieldProgram').style.display = '';
-      document.getElementById('fieldCombo').style.display = 'none';
-      document.getElementById('fieldLevel').style.display = 'none';
-      return;
+    } else if(_schoolLevels.length){
+      // ── No programs but has levels: show levels as "programme" ─
+      progSel.innerHTML = '<option value="">— Select programme —</option>' +
+        _schoolLevels.map(l=>
+          `<option value="${esc(l.id)}" data-name="${esc(l.name)}">${esc(l.name)}</option>`
+        ).join('');
+      document.getElementById('fieldProgram').style.display = '';
+    } else {
+      // ── Absolute fallback: school_type presets ─────────────────
+      const presets = getLevelsForSchool(school);
+      progSel.innerHTML = '<option value="">— Select programme —</option>' +
+        presets.map(l=>`<option value="${esc(l.v)}" data-name="${esc(l.l)}">${esc(l.l)}</option>`).join('');
+      document.getElementById('fieldProgram').style.display = '';
     }
-
-    // ── CASE B: No Programs, but has Combinations ────────────────
-    if(_schoolCombos.length){
-      const comboSel = document.getElementById('comboSel');
-      comboSel.innerHTML = '<option value="">— Select combination —</option>' +
-        _schoolCombos.map(cb=>`<option value="${esc(cb.id)}" data-name="${esc(cb.name)}">${esc(cb.name)}</option>`).join('');
-      document.getElementById('fieldProgram').style.display = 'none';
-      document.getElementById('fieldCombo').style.display = '';
-      await _populateLevelFallback(school, lvls);
-      return;
-    }
-
-    // ── CASE C: Has DB Levels but no programs/combos ─────────────
-    if(lvls.length){
-      await _populateLevelFallback(school, lvls);
-      return;
-    }
-
-    // ── CASE D: Fall back to class.level text ────────────────────
-    const {data:rows} = await db.from('classes')
-      .select('level').eq('school_id',school.id).not('level','is',null).order('level');
-    const seen = new Set();
-    const dbLevels = (rows||[]).map(r=>r.level).filter(l=>l&&!seen.has(l)&&seen.add(l));
-    if(dbLevels.length){
-      const levelSel = document.getElementById('levelSel');
-      levelSel.innerHTML = '<option value="">— Select Programme —</option>' +
-        dbLevels.map(l=>`<option value="${esc(l)}">${esc(l)}</option>`).join('');
-      document.getElementById('fieldLevel').style.display = '';
-      return;
-    }
-
-    // ── CASE E: Absolute final fallback — school_type presets ────
-    await _populateLevelFallback(school, []);
 
   }catch(e){
-    console.warn('loadSchoolSelects:', e);
-    // Show level field with school_type presets
-    await _populateLevelFallback(selectedSchool(), []);
+    console.warn('loadSchoolSelects error:', e);
+    progSel.innerHTML = '<option value="">— Unable to load —</option>';
   }
 }
 
-// Populates and shows the plain programme/level select
-async function _populateLevelFallback(school, dbLvls){
-  const levelSel = document.getElementById('levelSel');
-  if(!levelSel) return;
-  let html = '<option value="">— Select Programme —</option>';
-
-  if(dbLvls.length){
-    // If levels have program_id, try to fetch program names for proper grouping
-    const hasProgId = dbLvls.some(l=>l.program_id);
-    if(hasProgId && !_schoolPrograms.length){
-      // Attempt to load program names via levels join
-      try{
-        const progIds = [...new Set(dbLvls.filter(l=>l.program_id).map(l=>l.program_id))];
-        const {data:pData} = await db.from('programs').select('id,name').in('id', progIds);
-        if(pData && pData.length){
-          // We got program names — show programs in programSel instead
-          _schoolPrograms = pData;
-          const progSel = document.getElementById('programSel');
-          progSel.innerHTML = '<option value="">— Select Programme —</option>' +
-            pData.map(p=>`<option value="${esc(p.id)}" data-name="${esc(p.name)}">${esc(p.name)}</option>`).join('');
-          // Store level map
-          dbLvls.forEach(l=>{
-            _levelProgMap[l.id]={name:l.name,programId:l.program_id};
-          });
-          document.getElementById('fieldProgram').style.display = '';
-          document.getElementById('fieldLevel').style.display   = 'none';
-          document.getElementById('fieldCombo').style.display   = 'none';
-          return;
-        }
-      }catch(_){}
-    }
-    // Show level names directly as fallback
-    dbLvls.forEach(l=>{ html+=`<option value="${esc(l.name)}">${esc(l.name)}</option>`; });
-  } else {
-    const presets = getLevelsForSchool(school);
-    presets.forEach(l=>{ html+=`<option value="${esc(l.v)}">${esc(l.l)}</option>`; });
-  }
-  levelSel.innerHTML = html;
-  document.getElementById('fieldLevel').style.display = '';
-}
-
-// Called when student picks a Programme
+// Called when student picks a Programme → populate Levels filtered by programme
 function onProgramChange(sel){
   const opt = sel.options[sel.selectedIndex];
   const progId   = sel.value;
   const progName = (opt && opt.dataset.name) ? opt.dataset.name : '';
 
-  // Update hidden programme fields
-  document.getElementById('intendedProgram').value = progName;
-  document.getElementById('intendedLevel').value   = progName;
-  // Clear any previously selected section
-  document.getElementById('intendedCombo').value = '';
+  // Save programme
+  document.getElementById('intendedProgramId').value = progId;
+  document.getElementById('intendedProgram').value   = progName;
+  // Reset downstream fields
+  ['intendedLevelId','intendedLevel','intendedCombo'].forEach(id=>{
+    document.getElementById(id).value='';
+  });
+  document.getElementById('fieldLevel').style.display = 'none';
+  document.getElementById('fieldCombo').style.display = 'none';
 
-  if(!progId){
-    document.getElementById('fieldCombo').style.display = 'none';
-    renderDocUploads();
-    return;
+  if(!progId){ renderDocUploads(); return; }
+
+  // Filter levels that belong to this programme
+  const levelsForProg = _schoolLevels.filter(l => l.program_id === progId);
+  const levelSel = document.getElementById('levelSel');
+
+  if(levelsForProg.length){
+    levelSel.innerHTML = '<option value="">— Select level —</option>' +
+      levelsForProg.map(l =>
+        `<option value="${esc(l.id)}" data-name="${esc(l.name)}">${esc(l.name)}</option>`
+      ).join('');
+    document.getElementById('fieldLevel').style.display = '';
+  } else {
+    // Programme has no levels defined — skip level, go straight to combination
+    document.getElementById('fieldLevel').style.display = 'none';
+    document.getElementById('intendedLevel').value = progName; // use programme name as level fallback
+    _showCombinations();
   }
+  renderDocUploads();
+}
 
-  // Filter sections (subject_combinations) that belong to this programme
-  // A section belongs to this programme if:
-  //   a) its program_id matches progId, OR
-  //   b) it has no program_id (school-wide sections, shown for all programmes)
-  const sectionsForProg = _schoolCombos.filter(cb =>
-    !cb.program_id || cb.program_id === progId
-  );
+// Called when student picks a Level → populate Combinations
+function onLevelChange(sel){
+  const opt = sel.options[sel.selectedIndex];
+  const levelId   = sel.value;
+  const levelName = (opt && opt.dataset.name) ? opt.dataset.name : '';
 
-  const comboSel = document.getElementById('comboSel');
+  document.getElementById('intendedLevelId').value = levelId;
+  document.getElementById('intendedLevel').value   = levelName;
+  document.getElementById('intendedCombo').value   = '';
+  document.getElementById('fieldCombo').style.display = 'none';
+
+  // Clear bad state
+  const wrap = document.querySelector('[data-field="intendedLevel"]');
+  if(wrap && levelName) wrap.classList.remove('bad');
+
+  if(levelId) _showCombinations();
+  renderDocUploads();
+}
+
+// Show combinations dropdown (school-wide, all combos available)
+function _showCombinations(){
+  const comboSel   = document.getElementById('comboSel');
   const fieldCombo = document.getElementById('fieldCombo');
-
-  if(sectionsForProg.length){
+  if(_schoolCombos.length){
     comboSel.innerHTML = '<option value="">— Select combination —</option>' +
-      sectionsForProg.map(cb =>
+      _schoolCombos.map(cb =>
         `<option value="${esc(cb.id)}" data-name="${esc(cb.name)}">${esc(cb.name)}${cb.description?' — '+esc(cb.description):''}</option>`
       ).join('');
     fieldCombo.style.display = '';
-    // Make it required in validation
-    fieldCombo.querySelector('label').textContent = 'Combination *';
   } else {
-    // No combinations defined for this programme — hide the field
     fieldCombo.style.display = 'none';
-    comboSel.innerHTML = '<option value="">— No combinations —</option>';
   }
-
-  renderDocUploads();
 }
 
 // Called when student picks a Combination
 function onComboChange(sel){
   const opt = sel.options[sel.selectedIndex];
   const comboName = (opt && opt.dataset.name) ? opt.dataset.name : '';
-  const inp = document.getElementById('intendedCombo');
-  if(inp) inp.value = comboName;
-  // Clear bad state
+  document.getElementById('intendedCombo').value = comboName;
   const wrap = document.querySelector('[data-field="intendedCombo"]');
   if(wrap && comboName) wrap.classList.remove('bad');
   renderDocUploads();
@@ -691,7 +652,21 @@ function validateStep(n){
       ok=false;
     }
   }
-  // Section (combo) is required when its field is visible
+  // Level is required only when its field is visible
+  if(n===1){
+    const fieldLevel=document.getElementById('fieldLevel');
+    if(fieldLevel && fieldLevel.style.display!=='none'){
+      const lvlWrap=document.querySelector('[data-field="intendedLevel"]');
+      const missing=!val('intendedLevel');
+      if(lvlWrap)lvlWrap.classList.toggle('bad',missing);
+      if(missing)ok=false;
+    } else if(fieldLevel && fieldLevel.style.display==='none'){
+      // Level field hidden — remove any stale bad state
+      const lvlWrap=document.querySelector('[data-field="intendedLevel"]');
+      if(lvlWrap)lvlWrap.classList.remove('bad');
+    }
+  }
+  // Combination is required only when its field is visible
   if(n===1){
     const fieldCombo=document.getElementById('fieldCombo');
     if(fieldCombo && fieldCombo.style.display!=='none'){
@@ -748,8 +723,9 @@ function updateStep(){
 function buildReview(){
   const rows=[
     ['School',selectedSchool()?.name||''],['Serial No.',val('serialNo')],['Scratch Card PIN',val('scratchPin')],
-    ['Programme',      val('intendedProgram')||val('intendedLevel')||'Not selected'],
-    ['Combination',    val('intendedCombo')||'—'],
+    ['Programme',    val('intendedProgram')||'Not selected'],
+    ['Level',        val('intendedLevel')||'—'],
+    ['Combination',  val('intendedCombo')||'—'],
     ['Documents Uploaded',Object.values(uploadedDocs).map(d=>d.label||d.name).join(', ')||'None uploaded'],
     ['Student',val('fullName')],['Gender',val('gender')==='M'?'Male':val('gender')==='F'?'Female':''],
     ['Date of Birth',val('dob')],['Address',val('address')],
@@ -927,7 +903,8 @@ function renderStatus(d){
     <div class="st-meta">
       <span>Ref: <b>${esc(d.ref_id)}</b></span>
       <span>Submitted: <b>${sub}</b></span>
-      <span>Programme: <b>${esc(d.intended_program||d.intended_level||'—')}</b></span>
+      <span>Programme: <b>${esc(d.intended_program||'—')}</b></span>
+      ${d.intended_level&&d.intended_level!==d.intended_program?`<span>Level: <b>${esc(d.intended_level)}</b></span>`:''}
       ${d.intended_combo?`<span>Combination: <b>${esc(d.intended_combo)}</b></span>`:''}
       <span>Class: <b>${esc(d._className)}</b></span>
       <span>Reviewed: <b>${rev}</b></span>
