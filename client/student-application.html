@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -191,13 +192,14 @@
               <div class="err">Please select a programme</div>
             </div>
 
-            <!-- Combination / Department select — loaded after programme is picked -->
-            <div class="full field" id="fieldCombo" style="display:none;">
-              <label>Department / Combination</label>
+            <!-- Section select — loaded after programme is picked, filtered by that programme -->
+            <div class="full field" id="fieldCombo" data-field="intendedCombo" style="display:none;">
+              <label>Section *</label>
               <select id="comboSel" onchange="onComboChange(this)">
-                <option value="">— Any department —</option>
+                <option value="">— Select section —</option>
               </select>
-              <div class="hint">Select your department or subject combination (optional — registrar can assign during approval).</div>
+              <div class="hint">Select the section or specialisation within your chosen programme.</div>
+              <div class="err">Please select a section</div>
             </div>
 
             <!-- Fallback: plain programme/level select when school has no programs table entries -->
@@ -354,7 +356,7 @@ async function loadSchoolSelects(){
     // ── Fetch Programs + Combinations + Levels in parallel ──────
     const [ {data:progs}, {data:combos}, {data:lvls} ] = await Promise.all([
       db.from('programs').select('id,name,description').eq('school_id',school.id).order('name'),
-      db.from('subject_combinations').select('id,name,color,description').eq('school_id',school.id).order('name'),
+      db.from('subject_combinations').select('id,name,color,description,program_id').eq('school_id',school.id).order('name'),
       db.from('levels').select('id,name,program_id,sort_order').eq('school_id',school.id).order('sort_order,name'),
     ]);
 
@@ -457,34 +459,55 @@ function onProgramChange(sel){
   const progId   = sel.value;
   const progName = (opt && opt.dataset.name) ? opt.dataset.name : '';
 
-  // Update hidden fields
+  // Update hidden programme fields
   document.getElementById('intendedProgram').value = progName;
-  document.getElementById('intendedLevel').value   = progName; // level = program name for backwards compat
+  document.getElementById('intendedLevel').value   = progName;
+  // Clear any previously selected section
+  document.getElementById('intendedCombo').value = '';
 
-  // Now populate the Combinations dropdown filtered to this school
-  // (For now show ALL combinations — school admin can later tag combos to programs)
-  const comboSel = document.getElementById('comboSel');
-  if(_schoolCombos.length && progId){
-    comboSel.innerHTML = '<option value="">— Any department / combination —</option>' +
-      _schoolCombos.map(cb=>`<option value="${esc(cb.id)}" data-name="${esc(cb.name)}">${esc(cb.name)}</option>`).join('');
-    document.getElementById('fieldCombo').style.display = '';
-  } else if(_schoolCombos.length){
-    comboSel.innerHTML = '<option value="">— Select programme first —</option>';
-    document.getElementById('fieldCombo').style.display = progId ? '' : 'none';
-  } else {
+  if(!progId){
     document.getElementById('fieldCombo').style.display = 'none';
+    renderDocUploads();
+    return;
   }
 
-  document.getElementById('intendedCombo') && (document.getElementById('intendedCombo').value='');
+  // Filter sections (subject_combinations) that belong to this programme
+  // A section belongs to this programme if:
+  //   a) its program_id matches progId, OR
+  //   b) it has no program_id (school-wide sections, shown for all programmes)
+  const sectionsForProg = _schoolCombos.filter(cb =>
+    !cb.program_id || cb.program_id === progId
+  );
+
+  const comboSel = document.getElementById('comboSel');
+  const fieldCombo = document.getElementById('fieldCombo');
+
+  if(sectionsForProg.length){
+    comboSel.innerHTML = '<option value="">— Select section —</option>' +
+      sectionsForProg.map(cb =>
+        `<option value="${esc(cb.id)}" data-name="${esc(cb.name)}">${esc(cb.name)}${cb.description?' — '+esc(cb.description):''}</option>`
+      ).join('');
+    fieldCombo.style.display = '';
+    // Make it required in validation
+    fieldCombo.querySelector('label').textContent = 'Section *';
+  } else {
+    // No sections defined for this programme — hide the field, not required
+    fieldCombo.style.display = 'none';
+    comboSel.innerHTML = '<option value="">— No sections —</option>';
+  }
+
   renderDocUploads();
 }
 
-// Called when student picks a Combination
+// Called when student picks a Section
 function onComboChange(sel){
   const opt = sel.options[sel.selectedIndex];
   const comboName = (opt && opt.dataset.name) ? opt.dataset.name : '';
   const inp = document.getElementById('intendedCombo');
   if(inp) inp.value = comboName;
+  // Clear bad state
+  const wrap = document.querySelector('[data-field="intendedCombo"]');
+  if(wrap && comboName) wrap.classList.remove('bad');
   renderDocUploads();
 }
 
@@ -655,6 +678,16 @@ function validateStep(n){
       ok=false;
     }
   }
+  // Section (combo) is required when its field is visible
+  if(n===1){
+    const fieldCombo=document.getElementById('fieldCombo');
+    if(fieldCombo && fieldCombo.style.display!=='none'){
+      const comboWrap=document.querySelector('[data-field="intendedCombo"]');
+      const missing=!val('intendedCombo');
+      if(comboWrap)comboWrap.classList.toggle('bad',missing);
+      if(missing)ok=false;
+    }
+  }
   // Validate required documents in step 2
   if(n===2){
     const level=val('intendedLevel')||val('intendedProgram');
@@ -703,7 +736,7 @@ function buildReview(){
   const rows=[
     ['School',selectedSchool()?.name||''],['Serial No.',val('serialNo')],['Scratch Card PIN',val('scratchPin')],
     ['Programme',      val('intendedProgram')||val('intendedLevel')||'Not selected'],
-    ['Department / Combination', val('intendedCombo')||'Not selected'],
+    ['Section',        val('intendedCombo')||'—'],
     ['Documents Uploaded',Object.values(uploadedDocs).map(d=>d.label||d.name).join(', ')||'None uploaded'],
     ['Student',val('fullName')],['Gender',val('gender')==='M'?'Male':val('gender')==='F'?'Female':''],
     ['Date of Birth',val('dob')],['Address',val('address')],
@@ -830,7 +863,7 @@ async function checkStatus(){
   document.getElementById('trackerResult').innerHTML='';
   try{
     const{data,error}=await db.from('student_applications')
-      .select('ref_id,full_name,status,submitted_at,reviewed_at,rejection_reason,gender,date_of_birth,address,parent_name,parent_phone,blood_group,admission_number,intended_class_id,intended_level,intended_program,school_id,schools(name,address,lga,state,phone,email,logo_url,school_type),classes:intended_class_id(id,name,level)')
+      .select('ref_id,full_name,status,submitted_at,reviewed_at,rejection_reason,gender,date_of_birth,address,parent_name,parent_phone,blood_group,admission_number,intended_class_id,intended_level,intended_program,intended_combo,school_id,schools(name,address,lga,state,phone,email,logo_url,school_type),classes:intended_class_id(id,name,level)')
       .eq('ref_id',ref).maybeSingle();
     if(error)throw error;
     if(!data){document.getElementById('trackerResult').innerHTML='<p style="font-size:13px;color:#dc2626;margin:8px 0 0">No application found for that reference number.</p>';return;}
@@ -881,6 +914,8 @@ function renderStatus(d){
     <div class="st-meta">
       <span>Ref: <b>${esc(d.ref_id)}</b></span>
       <span>Submitted: <b>${sub}</b></span>
+      <span>Programme: <b>${esc(d.intended_program||d.intended_level||'—')}</b></span>
+      ${d.intended_combo?`<span>Section: <b>${esc(d.intended_combo)}</b></span>`:''}
       <span>Class: <b>${esc(d._className)}</b></span>
       <span>Reviewed: <b>${rev}</b></span>
       ${(s==='approved'||s==='enrolled')?`<span>Adm. No: <b>${esc(d.admission_number||'—')}</b></span>`:''}
@@ -963,6 +998,7 @@ body{margin:0;background:#f8f8f4;font-family:Georgia,serif}
       <tr><td>Admission Number</td><td><strong>${esc(d.admission_number||'—')}</strong></td></tr>
       <tr><td>Class / Level Admitted</td><td><strong>${esc(d._className||d.intended_level||'To be assigned')}</strong></td></tr>
       ${d.intended_program&&d.intended_program!==d._className?`<tr><td>Programme</td><td><strong>${esc(d.intended_program)}</strong></td></tr>`:''}
+      ${d.intended_combo?`<tr><td>Section</td><td><strong>${esc(d.intended_combo)}</strong></td></tr>`:''}
       <tr><td>Date of Birth</td><td>${dob}</td></tr>
       <tr><td>Gender</td><td>${gender}</td></tr>
       <tr><td>Academic Session</td><td>${session}</td></tr>
