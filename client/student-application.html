@@ -156,7 +156,7 @@
           <p>Select your school, validate your application card, complete the enrollment form, and wait for registrar approval.</p>
         </div>
         <div class="steps">
-          <div class="step-pill"><span>1</span> Choose school and enter scratch card</div>
+          <div class="step-pill"><span>1</span> Choose school and select your programme</div>
           <div class="step-pill"><span>2</span> Complete student and guardian details</div>
           <div class="step-pill"><span>3</span> Registrar approves and enrolls class</div>
         </div>
@@ -200,14 +200,14 @@
               <div class="hint">Select your department or subject combination (optional — registrar can assign during approval).</div>
             </div>
 
-            <!-- Fallback: plain level select when school has no programs configured -->
+            <!-- Fallback: plain programme/level select when school has no programs table entries -->
             <div class="full field" id="fieldLevel" data-field="intendedLevel" style="display:none;">
-              <label>Level / Section *</label>
+              <label>Programme *</label>
               <select id="levelSel" onchange="onLevelChange(this)">
                 <option value="">Select school first</option>
               </select>
-              <div class="hint">Select the level you are applying for. A specific class will be assigned by the registrar.</div>
-              <div class="err">Please select a level</div>
+              <div class="hint">Select the programme you are applying for. A specific class will be assigned by the registrar.</div>
+              <div class="err">Please select a programme</div>
             </div>
           </div>
         </div>
@@ -239,7 +239,7 @@
             <div class="full" id="docUploadsSection">
               <div style="border-top:1px solid #e2e8f0;padding-top:16px;margin-top:6px">
                 <p style="font-size:13px;font-weight:800;color:#0f172a;margin:0 0 3px">&#128196; Required Documents</p>
-                <p style="font-size:12px;color:#64748b;margin:0 0 14px">Upload documents for your selected level. Images or PDF accepted (max 5 MB each).</p>
+                <p style="font-size:12px;color:#64748b;margin:0 0 14px">Upload documents for your selected programme. Images or PDF accepted (max 5 MB each).</p>
                 <div class="grid" id="docUploads">
                   <p class="full" style="font-size:13px;color:#94a3b8;font-style:italic">Select a level in Step 1 to see required documents.</p>
                 </div>
@@ -406,7 +406,7 @@ async function loadSchoolSelects(){
     const dbLevels = (rows||[]).map(r=>r.level).filter(l=>l&&!seen.has(l)&&seen.add(l));
     if(dbLevels.length){
       const levelSel = document.getElementById('levelSel');
-      levelSel.innerHTML = '<option value="">— Select Level / Section —</option>' +
+      levelSel.innerHTML = '<option value="">— Select Programme —</option>' +
         dbLevels.map(l=>`<option value="${esc(l)}">${esc(l)}</option>`).join('');
       document.getElementById('fieldLevel').style.display = '';
       return;
@@ -426,7 +426,7 @@ async function loadSchoolSelects(){
 async function _populateLevelFallback(school, dbLvls){
   const levelSel = document.getElementById('levelSel');
   if(!levelSel) return;
-  let html = '<option value="">— Select Level —</option>';
+  let html = '<option value="">— Select Programme —</option>';
   if(dbLvls.length){
     // Group by program if possible
     const hasProg = dbLvls.some(l=>l.program_id);
@@ -590,7 +590,7 @@ function renderDocUploads(){
   if(!container)return;
   const level=val('intendedLevel')||val('intendedProgram');
   if(!level){
-    container.innerHTML='<p class="full" style="font-size:13px;color:#94a3b8;font-style:italic">Select a programme or level in Step 1 to see required documents.</p>';
+    container.innerHTML='<p class="full" style="font-size:13px;color:#94a3b8;font-style:italic">Select a programme in Step 1 to see required documents.</p>';
     return;
   }
   const docs=getDocsForLevel(level);
@@ -777,38 +777,31 @@ async function submitApplication(){
       appId=ins?.id;
       // Mark card used manually in fallback path
       await db.from('scratch_cards').update({is_used:true,used_at:new Date().toISOString(),uses_count:Number(card.uses_count||0)+1}).eq('id',card.id);
-      // Non-critical: store level on fallback path
-      if(appId&&val('intendedProgram')){try{await db.from('student_applications').update({
-  intended_level:   val('intendedLevel')||val('intendedProgram'),
-  intended_program: val('intendedProgram')||null,
-  intended_combo:   val('intendedCombo')||null,
-}).eq('id',appId);}catch(_){}}
     }
 
-    // ── Always persist ref_id (critical) — isolated so a missing column never silently kills it ──
-    if(appId){
-      try{
-        const{error:refErr}=await db.from('student_applications').update({ref_id:ref}).eq('id',appId);
-        if(refErr)console.warn('ref_id save failed:',refErr.message);
-      }catch(e){console.warn('ref_id patch exception:',e);}
-    }
-    // ── Non-critical: persist intended_level in a separate call so errors are fully isolated ──
-    if(appId&&val('intendedLevel')){
-      try{await db.from('student_applications').update({
-  intended_level:   val('intendedLevel')||val('intendedProgram'),
-  intended_program: val('intendedProgram')||null,
-  intended_combo:   val('intendedCombo')||null,
-}).eq('id',appId);}
-      catch(_){}
-    }
+    if(!appId) throw new Error('Application could not be saved. Please try again.');
+
+    // ── Persist ref_id + programme fields atomically in one update ──
+    const updatePayload = {
+      ref_id: ref,
+      intended_level:   val('intendedLevel')||val('intendedProgram')||null,
+      intended_program: val('intendedProgram')||null,
+      intended_combo:   val('intendedCombo')||null,
+    };
+    const{data:updatedRow, error:updateErr} = await db.from('student_applications')
+      .update(updatePayload).eq('id',appId).select('ref_id').single();
+    if(updateErr) console.warn('ref_id/programme update failed:', updateErr.message);
+
+    // Use the ref_id actually stored in DB so the tracker always matches
+    const finalRef = updatedRow?.ref_id || ref;
 
     document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
     document.getElementById('nav').style.display='none';
     document.getElementById('bar').style.width='100%';
-    document.getElementById('refBox').textContent='REF: '+ref;
+    document.getElementById('refBox').textContent='REF: '+finalRef;
     const _sch=selectedSchool();
     if(_sch?.logo_url){const _i=document.getElementById('successLogo');if(_i){_i.src=_sch.logo_url;_i.alt=_sch.name;}}
-    lastRef=ref;lastAppData=null;
+    lastRef=finalRef;lastAppData=null;
     document.getElementById('success').classList.add('show');
   }catch(e){alert(e.message||'Application submission failed.');}
   finally{btn.disabled=false;btn.textContent='Submit Application';}
