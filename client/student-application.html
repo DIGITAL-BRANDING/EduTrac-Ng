@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -355,52 +354,55 @@ async function loadSchoolSelects(){
 
   if(!school) return;
 
-  // Show loading state on programme select
   const progSel = document.getElementById('programSel');
-  progSel.innerHTML = '<option value="">Loading…</option>';
+  progSel.innerHTML = '<option value="">Loading programmes…</option>';
   document.getElementById('fieldProgram').style.display = '';
 
   try{
-    // Fetch programs, levels, and combinations in parallel
     const [progsRes, lvlsRes, combosRes] = await Promise.all([
       db.from('programs').select('id,name,description').eq('school_id',school.id).order('name'),
       db.from('levels').select('id,name,program_id,sort_order').eq('school_id',school.id).order('sort_order,name'),
       db.from('subject_combinations').select('id,name,description').eq('school_id',school.id).order('name'),
     ]);
 
-    if(progsRes.error)  console.warn('[programs]',  progsRes.error.message);
-    if(lvlsRes.error)   console.warn('[levels]',    lvlsRes.error.message);
-    if(combosRes.error) console.warn('[combos]',    combosRes.error.message);
+    // Log any errors clearly for debugging
+    if(progsRes.error)  console.error('[EduTrack] programs RLS/fetch error:',  progsRes.error.message, '— Add RLS: allow anon SELECT on programs where is_public=true or school_id matches');
+    if(lvlsRes.error)   console.error('[EduTrack] levels RLS/fetch error:',    lvlsRes.error.message);
+    if(combosRes.error) console.error('[EduTrack] combos RLS/fetch error:',    combosRes.error.message);
 
     _schoolPrograms = progsRes.data  || [];
     _schoolLevels   = lvlsRes.data   || [];
     _schoolCombos   = combosRes.data || [];
 
     if(_schoolPrograms.length){
-      // ── Has Programs: show programme dropdown ──────────────────
+      // Programs table accessible — show real programmes
       progSel.innerHTML = '<option value="">— Select programme —</option>' +
         _schoolPrograms.map(p=>
           `<option value="${esc(p.id)}" data-name="${esc(p.name)}">${esc(p.name)}${p.description?' — '+esc(p.description):''}</option>`
         ).join('');
-      document.getElementById('fieldProgram').style.display = '';
+
     } else if(_schoolLevels.length){
-      // ── No programs but has levels: show levels as "programme" ─
+      // Programs blocked by RLS but levels accessible — show levels as programmes
       progSel.innerHTML = '<option value="">— Select programme —</option>' +
         _schoolLevels.map(l=>
           `<option value="${esc(l.id)}" data-name="${esc(l.name)}">${esc(l.name)}</option>`
         ).join('');
-      document.getElementById('fieldProgram').style.display = '';
+
     } else {
-      // ── Absolute fallback: school_type presets ─────────────────
-      const presets = getLevelsForSchool(school);
-      progSel.innerHTML = '<option value="">— Select programme —</option>' +
-        presets.map(l=>`<option value="${esc(l.v)}" data-name="${esc(l.l)}">${esc(l.l)}</option>`).join('');
+      // Both tables blocked or empty — show actionable message, NO hardcoded presets
+      progSel.innerHTML = '<option value="">— No programmes available —</option>';
       document.getElementById('fieldProgram').style.display = '';
+      // Show helper message below the select
+      const hint = document.querySelector('#fieldProgram .hint');
+      if(hint) hint.innerHTML = '<span style="color:#dc2626;font-weight:700;">⚠ Programmes could not be loaded for this school. Please contact the school admin or try again.</span>';
+      console.error('[EduTrack] No programmes or levels found for school:', school.id, '— Check Supabase RLS policies: programs and levels tables need SELECT allowed for anon role.');
     }
 
+    document.getElementById('fieldProgram').style.display = '';
+
   }catch(e){
-    console.warn('loadSchoolSelects error:', e);
-    progSel.innerHTML = '<option value="">— Unable to load —</option>';
+    console.error('[EduTrack] loadSchoolSelects exception:', e);
+    progSel.innerHTML = '<option value="">— Error loading programmes —</option>';
   }
 }
 
@@ -485,46 +487,6 @@ function onComboChange(sel){
   renderDocUploads();
 }
 
-// Called when student picks a Level (plain fallback select)
-function onLevelChange(sel){
-  document.getElementById('intendedProgram').value = sel.value;
-  document.getElementById('intendedLevel').value   = sel.value;
-  renderDocUploads();
-}
-
-function getLevelsForSchool(school){
-  const t=(school?.school_type||'').toLowerCase();
-  if(t.includes('university')||t.includes('college_of_tech'))return[
-    {v:'Foundation / Remedial',l:'Foundation / Remedial'},
-    {v:'100 Level (Year 1)',l:'100 Level (Year 1)'},
-    {v:'200 Level (Year 2)',l:'200 Level (Year 2)'},
-    {v:'300 Level (Year 3)',l:'300 Level (Year 3)'},
-    {v:'400 Level (Year 4)',l:'400 Level (Year 4)'},
-    {v:'Postgraduate',l:'Postgraduate'},
-  ];
-  if(t.includes('institute')||t.includes('vocational')||t.includes('technical')||t.includes('polytechnic'))return[
-    {v:'Diploma',l:'Diploma'},
-    {v:'Certificate',l:'Certificate'},
-    {v:'Professional Diploma',l:'Professional Diploma'},
-    {v:'HND',l:'Higher National Diploma (HND)'},
-  ];
-  // O-level / Regular school
-  const levels=[];
-  if(!t||t.includes('nursery')||t.includes('creche')||t.includes('comprehensive')||t.includes('all'))
-    levels.push({v:'Nursery / Kindergarten',l:'Nursery / Kindergarten'});
-  if(!t||t.includes('primary')||t.includes('comprehensive')||t.includes('all')||t.includes('nursery'))
-    levels.push({v:'Primary',l:'Primary'});
-  if(!t||t.includes('secondary')||t.includes('comprehensive')||t.includes('all')||t.includes('junior')){
-    levels.push({v:'Junior Secondary (JSS)',l:'Junior Secondary (JSS)'});
-    levels.push({v:'Senior Secondary (SSS)',l:'Senior Secondary (SSS)'});
-  }
-  return levels.length?levels:[
-    {v:'Nursery / Kindergarten',l:'Nursery / Kindergarten'},
-    {v:'Primary',l:'Primary'},
-    {v:'Junior Secondary (JSS)',l:'Junior Secondary (JSS)'},
-    {v:'Senior Secondary (SSS)',l:'Senior Secondary (SSS)'},
-  ];
-}
 
 function getDocsForLevel(level){
   const l=(level||'').toLowerCase();
@@ -1167,4 +1129,3 @@ function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&l
 </script>
 </body>
 </html>
-
