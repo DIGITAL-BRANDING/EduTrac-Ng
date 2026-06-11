@@ -144,24 +144,30 @@ async function loadSchoolContext(schoolId) {
     } catch (_) {}
     // No cache at all and offline — return empty-but-safe structure
     console.warn('[DB] Offline and no school context cache found — returning empty context');
-    return { term: null, classes: [], subjects: [], terms: [], grading: [], dashSettings: null, _offline: true };
+    return { term: null, classes: [], subjects: [], terms: [], grading: [], dashSettings: null, school: null, programs: [], levels: [], _offline: true };
   }
 
-  // 3. Online + cache miss — fire all 6 queries in parallel
+  // 3. Online + cache miss — fire all queries in parallel
   const [
     { data: term },
     { data: classes },
     { data: subjects },
     { data: terms },
     { data: grading },
-    { data: dashSettings }
+    { data: dashSettings },
+    { data: schoolRow },
+    { data: programs },
+    { data: levels },
   ] = await Promise.all([
     db.from('terms').select('*').eq('school_id', schoolId).eq('is_current', true).maybeSingle(),
-    db.from('classes').select('id,name,level,teacher_id,combination_id').eq('school_id', schoolId).order('name'),
+    db.from('classes').select('id,name,level,level_id,program_id,teacher_id,combination_id').eq('school_id', schoolId).order('name'),
     db.from('subjects').select('id,name,code').eq('school_id', schoolId).order('name'),
     db.from('terms').select('*').eq('school_id', schoolId).order('created_at', { ascending: false }),
     db.from('grading_scales').select('*').eq('school_id', schoolId).order('min_score', { ascending: false }),
-    db.from('dashboard_settings').select('*').eq('school_id', schoolId).maybeSingle()
+    db.from('dashboard_settings').select('*').eq('school_id', schoolId).maybeSingle(),
+    db.from('schools').select('id,name,school_type,logo_url,address,phone,email,state,lga,motto').eq('id', schoolId).maybeSingle(),
+    db.from('programs').select('*').eq('school_id', schoolId).order('name'),
+    db.from('levels').select('*').eq('school_id', schoolId).order('sort_order,name'),
   ]);
 
   const ctx = {
@@ -171,6 +177,9 @@ async function loadSchoolContext(schoolId) {
     terms:       terms       || [],
     grading:     grading     || [],
     dashSettings,
+    school:      schoolRow   || null,
+    programs:    programs    || [],
+    levels:      levels      || [],
     _expires:    Date.now() + _CTX_TTL_MS,
   };
 
@@ -349,3 +358,16 @@ function closeModal(id) {
 document.addEventListener('click', e => {
   if (e.target.classList.contains('modal')) closeModal(e.target.id);
 });
+
+// ── School-type helpers (available globally once ctx is loaded) ──
+window.getSchoolCtxType = function(ctx) {
+  return (ctx?.school?.school_type) || window._schoolType || 'o_level';
+};
+window.getPeriodLabelFor = function(ctx) {
+  const t = window.getSchoolCtxType(ctx);
+  return (t === 'tertiary' || t === 'vocational') ? 'Semester' : 'Term';
+};
+window.getSessionLabelFor = function(ctx) {
+  const t = window.getSchoolCtxType(ctx);
+  return t === 'tertiary' ? 'Academic Year' : 'Academic Session';
+};

@@ -228,6 +228,13 @@
 <script src="../../assets/js/sidebar.js"></script>
 <script>
 let user, term, classes = [], combos = [], comboSubMap = {}, allStudents = [], pendingApplications = [];
+let levels = [], programs = [];
+
+// ── School-type helpers ─────────────────────────────────────────
+function getSchoolType(){ return (user&&user.schools&&user.schools.school_type)||window._schoolType||'o_level'; }
+function getPeriodLabel(){ var t=getSchoolType(); return (t==='tertiary'||t==='vocational')?'Semester':'Term'; }
+function getSessionLabel(){ var t=getSchoolType(); return t==='tertiary'?'Academic Year':'Academic Session'; }
+
 let curStep = 1, selCombo = null;
 
 (async () => {
@@ -239,6 +246,9 @@ let curStep = 1, selCombo = null;
 
   const ctx = await loadSchoolContext(user.school_id);
   term = ctx.term; classes = ctx.classes;
+  levels = ctx.levels || [];
+  programs = ctx.programs || [];
+  if (ctx.school) window._schoolType = ctx.school.school_type;
 
   // loadSchoolContext doesn't include combos — fetch separately
   const { data: combosData } = await db.from('subject_combinations')
@@ -319,7 +329,8 @@ function showApplications() {
           '<span class="badge badge--yellow" style="flex-shrink:0;">Pending</span>' +
         '</div>' +
         '<div class="app-card-body">' +
-          '<div class="app-card-field"><span class="app-card-lbl">Requested Level</span><span class="app-card-val">' + level + '</span></div>' +
+          '<div class="app-card-field"><span class="app-card-lbl">Programme / Level</span><span class="app-card-val" style="font-weight:700;color:var(--primary);">' + level + '</span></div>' +
+      (a.intended_program ? '<div class="app-card-field"><span class="app-card-lbl">Programme</span><span class="app-card-val">' + escapeText(a.intended_program||'') + '</span></div>' : '') +
           '<div class="app-card-field"><span class="app-card-lbl">Class</span><span class="app-card-val">' + cls + '</span></div>' +
           '<div class="app-card-field"><span class="app-card-lbl">Guardian</span><span class="app-card-val">' + guardian + '</span>' +
             (phone ? '<div style="font-size:12px;color:var(--ink-3);">' + phone + '</div>' : '') +
@@ -374,15 +385,70 @@ function openApproveApplication(id) {
   // pre-select intended class
   const cls = document.getElementById('appClassSelect');
   cls.innerHTML = '<option value="">— Assign class —</option>' +
-    classes.map(x => '<option value="'+x.id+'"'+(x.id===a.intended_class_id?' selected':'')+'>'+escapeText(x.name)+'</option>').join('');
+    buildClassOptions(classes, levels, programs, a.intended_class_id);
   // reset section picker
   selApproveCombo = null;
   renderApproveComboSection(a.intended_class_id);
   // clear admission number (will auto-generate on approve)
+  // Show what the student requested
+  var progLevelBanner = document.getElementById('appProgLevelDisplay');
+  var progLevelText = document.getElementById('appProgLevelText');
+  if(progLevelBanner && progLevelText){
+    var parts = [];
+    if(a.intended_program) parts.push(a.intended_program);
+    if(a.intended_level)   parts.push(a.intended_level);
+    if(parts.length){
+      progLevelText.textContent = parts.join(' — ');
+      progLevelBanner.style.display = 'block';
+    } else {
+      progLevelBanner.style.display = 'none';
+    }
+  }
+  // Populate class select grouped by level/programme
+  var approvedClassSel = document.getElementById('appClassSelect');
+  if(approvedClassSel){
+    approvedClassSel.innerHTML = buildClassOptions(classes, levels, programs, a.intended_class_id);
+  }
   document.getElementById('appAdmNo').value = '';
   document.getElementById('appErr').style.display = 'none';
   document.getElementById('appErr').textContent = '';
   openModal('approveModal');
+}
+
+
+function buildClassOptions(clsList, lvlList, progList, selectedId) {
+  var levelMap = {}; (lvlList||[]).forEach(function(l){ levelMap[l.id]=l; });
+  var byLevel = {}, noLevel = [];
+  (clsList||[]).forEach(function(cls){
+    if (cls.level_id && levelMap[cls.level_id]) {
+      var lname = levelMap[cls.level_id].name;
+      if (!byLevel[lname]) byLevel[lname] = [];
+      byLevel[lname].push(cls);
+    } else if (cls.level) {
+      if (!byLevel[cls.level]) byLevel[cls.level] = [];
+      byLevel[cls.level].push(cls);
+    } else {
+      noLevel.push(cls);
+    }
+  });
+  var html = '<option value="">— Select class —</option>';
+  noLevel.forEach(function(cls){
+    html += '<option value="'+escapeText(cls.id)+'"'+(cls.id===selectedId?' selected':'')+'>'+escapeText(cls.name)+'</option>';
+  });
+  Object.keys(byLevel).sort().forEach(function(lname){
+    html += '<optgroup label="'+escapeText(lname)+'">';
+    byLevel[lname].forEach(function(cls){
+      html += '<option value="'+escapeText(cls.id)+'"'+(cls.id===selectedId?' selected':'')+'>'+escapeText(cls.name)+'</option>';
+    });
+    html += '</optgroup>';
+  });
+  return html;
+}
+
+function populateSClassSelect(selectedId) {
+  var sel = document.getElementById('sClass');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— No class yet —</option>' + buildClassOptions(classes, levels, programs, selectedId||'');
 }
 
 function renderApproveComboSection(classId) {
@@ -442,18 +508,26 @@ async function approveApplication() {
     }
 
     // ── Create student record ───────────────────────────────────
+    // Resolve the level name for this student
+    var assignedClass = classes.find(function(x){ return x.id === classId; });
+    var levelName = assignedClass
+      ? (levels.find(function(l){ return l.id === assignedClass.level_id; })?.name || assignedClass.level || a.intended_level || null)
+      : (a.intended_level || null);
+
     const payload = {
-      school_id: user.school_id,
-      full_name: a.full_name,
-      admission_no: admNo,
-      gender: a.gender || null,
-      date_of_birth: a.date_of_birth || null,
-      parent_name: a.parent_name || null,
-      parent_phone: a.parent_phone || null,
-      address: a.address || null,
-      blood_group: a.blood_group || null,
+      school_id:      user.school_id,
+      full_name:      a.full_name,
+      admission_no:   admNo,
+      gender:         a.gender || null,
+      date_of_birth:  a.date_of_birth || null,
+      parent_name:    a.parent_name || null,
+      parent_phone:   a.parent_phone || null,
+      address:        a.address || null,
+      blood_group:    a.blood_group || null,
       combination_id: selApproveCombo || null,
-      is_active: true,
+      level:          levelName,
+      programme:      a.intended_program || null,
+      is_active:      true,
     };
     const { data: ns, error: insErr } = await db.from('students').insert(payload).select().single();
     if (insErr) throw insErr;
@@ -462,7 +536,7 @@ async function approveApplication() {
     // ── Enroll in class ─────────────────────────────────────────
     if (classId) {
       if (!term) {
-        // No current term set — enroll without term_id using insert
+        // No active period — enroll without term_id
         const { error: enrErr } = await db.from('enrollments').insert(
           { school_id: user.school_id, student_id: sid, class_id: classId,
             ...(selApproveCombo ? { combination_id: selApproveCombo } : {}) }
@@ -483,11 +557,12 @@ async function approveApplication() {
 
     // ── Update application record ───────────────────────────────
     const { error: updErr } = await db.from('student_applications').update({
-      status: 'approved',
-      reviewed_at: new Date().toISOString(),
-      reviewed_by: user.id,
-      student_id: sid,
+      status:          'approved',
+      reviewed_at:     new Date().toISOString(),
+      reviewed_by:     user.id,
+      student_id:      sid,
       admission_number: admNo,
+      intended_class_id: classId || null,
     }).eq('id', appId);
     if (updErr) console.error('[Admission] Application update failed:', updErr.message);
 
@@ -507,28 +582,42 @@ async function approveApplication() {
 }
 
 async function generateAdmissionNumber(classId, comboId) {
-  // Build prefix: SCHOOL_ABBREV/YY/CLASS_ABBREV/SECTION_ABBREV
+  // Build prefix: SCHOOL_ABBREV/YY/LEVEL_ABBREV/CLASS_ABBREV
   const school = user.schools || {};
   const schoolName = school.name || '';
-  // Abbreviate: take first letter of each word (max 4 words, skip short words)
+  // School abbreviation: first letter of each significant word (max 5 chars)
   const abbrev = schoolName.split(/\s+/).filter(w => w.length > 2).map(w => w[0].toUpperCase()).join('').slice(0, 5);
-  const year = String(new Date().getFullYear()).slice(2); // "25"
-  // Class abbreviation
+  const year = String(new Date().getFullYear()).slice(2); // e.g. "25"
+
+  // Level abbreviation — prefer the level name from DB
+  let levelAbbr = '';
+  if (classId) {
+    const cls = classes.find(x => x.id === classId);
+    if (cls) {
+      // Try to get level from the levels array
+      const lvl = cls.level_id ? levels.find(l => l.id === cls.level_id) : null;
+      const levelName = lvl ? lvl.name : (cls.level || '');
+      if (levelName) {
+        // Abbreviate level: take first chars of each word, max 4 chars
+        levelAbbr = levelName.split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 4);
+      }
+    }
+  }
+
+  // Class abbreviation (e.g. "JSS1A" → "JSS1")
   let classAbbr = '';
   if (classId) {
     const cls = classes.find(x => x.id === classId);
-    if (cls) classAbbr = cls.name.replace(/[^A-Za-z0-9]/g, '').slice(0, 4).toUpperCase();
+    if (cls) classAbbr = cls.name.replace(/[^A-Za-z0-9]/g, '').slice(0, 5).toUpperCase();
   }
-  // Section/combo abbreviation
-  let comboAbbr = '';
-  if (comboId) {
-    const combo = combos.find(x => x.id === comboId);
-    if (combo) comboAbbr = combo.name.replace(/[^A-Za-z0-9]/g, '').slice(0, 4).toUpperCase();
-  }
-  // Build prefix parts (only non-empty)
-  const parts = [abbrev, year, classAbbr, comboAbbr].filter(Boolean);
+
+  // Build prefix — use level if distinct from class, else just class
+  const parts = [abbrev, year];
+  if (levelAbbr && classAbbr && !classAbbr.startsWith(levelAbbr)) parts.push(levelAbbr);
+  if (classAbbr) parts.push(classAbbr);
   const prefix = parts.join('/');
-  // Count existing admission numbers that start with this prefix to get next serial
+
+  // Serial: count existing students with same prefix
   const { data: existing } = await db.from('students')
     .select('admission_no')
     .eq('school_id', user.school_id)
@@ -671,8 +760,8 @@ function openAdd() {
 
 function populateClassSelect() {
   document.getElementById('sClass').innerHTML =
-    `<option value="">— No class yet —</option>` +
-    classes.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    '<option value="">— No class yet —</option>' +
+    buildClassOptions(classes, levels, programs, '');
 }
 
 function goStep(n) {
@@ -971,7 +1060,8 @@ function filterHistory() {
         badge +
       '</div>' +
       '<div class="hist-card-body">' +
-        fld('Level / Section', a.intended_level) +
+        fld('Programme / Level', [a.intended_program, a.intended_level].filter(Boolean).join(' — ') || '—') +
+        (a.intended_program ? fld('Programme / Track', a.intended_program) : '') +
         fld('Gender', a.gender) +
         fld('Date of Birth', dob) +
         fld('Blood Group', a.blood_group) +
@@ -1053,6 +1143,10 @@ async function toggleActive(id, current) {
         </div>
       </div>
       <!-- Class assignment -->
+      <div class="form-group" id="appProgLevelDisplay" style="background:var(--primary-light,#f0fdf4);border:1.5px solid var(--primary,#0a6e3f);border-radius:var(--radius,8px);padding:10px 14px;margin-bottom:10px;display:none;">
+        <div style="font-size:11px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.5px;">Student Requested</div>
+        <div id="appProgLevelText" style="font-size:14px;font-weight:700;color:var(--ink-1);margin-top:2px;"></div>
+      </div>
       <div class="form-group">
         <label class="form-label">Assign Class <span class="required">*</span></label>
         <select id="appClassSelect" class="form-control" onchange="renderApproveComboSection(this.value)">

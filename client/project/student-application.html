@@ -176,7 +176,39 @@
   for(let i=0;i<v.length;i++){if(i===4||i===8)fmt+=' – ';fmt+=v[i];}
   this.value=fmt;
 "><div class="hint">Enter the 12-digit PIN exactly as shown on your card (e.g. 5638 – 5281 – 5469).</div><div class="err">Enter the full 12-digit card PIN</div></div>
-            <div class="full field" data-field="intendedLevel"><label>Level / Section *</label><select id="intendedLevel"><option value="">Select school first</option></select><div class="hint">Registrar will assign a specific class during approval.</div><div class="err">Please select the level or section you are applying for</div></div>
+            <!-- Hidden fields store resolved names for saving to DB -->
+            <input type="hidden" id="intendedProgram" value="">
+            <input type="hidden" id="intendedLevel"   value="">
+            <input type="hidden" id="intendedCombo"   value="">
+
+            <!-- Programme select — loaded from school's programs table -->
+            <div class="full field" id="fieldProgram" data-field="intendedProgram" style="display:none;">
+              <label>Programme *</label>
+              <select id="programSel" onchange="onProgramChange(this)">
+                <option value="">Select school first</option>
+              </select>
+              <div class="hint">Select the programme you are applying for.</div>
+              <div class="err">Please select a programme</div>
+            </div>
+
+            <!-- Combination / Department select — loaded after programme is picked -->
+            <div class="full field" id="fieldCombo" style="display:none;">
+              <label>Department / Combination</label>
+              <select id="comboSel" onchange="onComboChange(this)">
+                <option value="">— Any department —</option>
+              </select>
+              <div class="hint">Select your department or subject combination (optional — registrar can assign during approval).</div>
+            </div>
+
+            <!-- Fallback: plain level select when school has no programs configured -->
+            <div class="full field" id="fieldLevel" data-field="intendedLevel" style="display:none;">
+              <label>Level / Section *</label>
+              <select id="levelSel" onchange="onLevelChange(this)">
+                <option value="">Select school first</option>
+              </select>
+              <div class="hint">Select the level you are applying for. A specific class will be assigned by the registrar.</div>
+              <div class="err">Please select a level</div>
+            </div>
           </div>
         </div>
         <div class="panel" id="p2">
@@ -261,11 +293,11 @@
 <script>
 let step=1, schools=[], lastRef='', lastAppData=null, passportDataUrl=null, uploadedDocs={};
 const total=4;
-const requiredByStep={1:['schoolId','serialNo','scratchPin','intendedLevel'],2:['fullName','gender','dob','address'],3:['parentName','parentPhone']};
+const requiredByStep={1:['schoolId','serialNo','scratchPin','intendedProgram'],2:['fullName','gender','dob','address'],3:['parentName','parentPhone']};
 const val=id=>(document.getElementById(id)?.value||'').trim();
 const pinVal=()=>val('scratchPin').replace(/[^0-9]/g,''); // strips ' – ' formatting for DB queries
 const selectedSchool=()=>schools.find(s=>s.id===val('schoolId'));
-const selectedLevel=()=>val('intendedLevel');
+const selectedLevel=()=>val('intendedLevel'); // resolved from hidden field
 
 (async function init(){await loadSchools();await applyPrefillFromQuery();updateStep();})();
 
@@ -279,42 +311,188 @@ async function loadSchools(){
   }catch(e){sel.innerHTML='<option value="">Unable to load schools</option>';console.warn(e);}
 }
 
-document.getElementById('schoolId').addEventListener('change',async()=>{await loadLevelsForSchool();renderDocUploads();});
-document.addEventListener('DOMContentLoaded',()=>document.getElementById('intendedLevel')?.addEventListener('change',renderDocUploads));
-
-async function loadLevelsForSchool(){
-  const school=selectedSchool();
-  const sel=document.getElementById('intendedLevel');
-  if(!sel)return;
-  sel.innerHTML='<option value="">Loading levels…</option>';
-  uploadedDocs={};
+document.getElementById('schoolId').addEventListener('change', async () => {
+  // Reset all selection fields when school changes
+  document.getElementById('intendedProgram').value = '';
+  document.getElementById('intendedLevel').value   = '';
+  document.getElementById('intendedCombo').value   = '';
+  _schoolPrograms = []; _schoolCombos = []; _levelProgMap = {};
+  // Load active term for this school (used in session year on letter)
+  const sid = val('schoolId');
+  if(sid){
+    try{
+      const{data:t}=await db.from('terms').select('id,name,session,is_current').eq('school_id',sid).eq('is_current',true).maybeSingle();
+      window._activeTerm = t || null;
+    }catch(_){}
+  }
+  await loadSchoolSelects();
   renderDocUploads();
-  if(!school){sel.innerHTML='<option value="">Select school first</option>';return;}
+});
+// level change now handled by onLevelChange / onComboChange
+
+// ── Caches for this school session ──────────────────────────────
+let _schoolPrograms = [], _schoolCombos = [], _levelProgMap = {};
+
+// Alias so existing calls still work
+async function loadLevelsForSchool(){ return loadSchoolSelects(); }
+
+async function loadSchoolSelects(){
+  const school = selectedSchool();
+  uploadedDocs = {};
+  renderDocUploads();
+
+  // Hide all variant fields first
+  ['fieldProgram','fieldCombo','fieldLevel'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.style.display='none';
+  });
+  document.getElementById('intendedProgram').value = '';
+  document.getElementById('intendedLevel').value   = '';
+
+  if(!school) return;
+
   try{
-    // ── Primary: pull distinct levels straight from this school's classes ──
-    const{data:rows,error}=await db.from('classes')
-      .select('level')
-      .eq('school_id',school.id)
-      .not('level','is',null)
-      .order('level');
-    // Deduplicate while preserving order
-    const seen=new Set();
-    const dbLevels=(rows||[]).map(r=>r.level).filter(l=>l&&!seen.has(l)&&seen.add(l));
-    if(dbLevels.length){
-      sel.innerHTML='<option value="">Select a level / section…</option>'+
-        dbLevels.map(l=>`<option value="${esc(l)}">${esc(l)}</option>`).join('');
+    // ── Fetch Programs + Combinations + Levels in parallel ──────
+    const [ {data:progs}, {data:combos}, {data:lvls} ] = await Promise.all([
+      db.from('programs').select('id,name,description').eq('school_id',school.id).order('name'),
+      db.from('subject_combinations').select('id,name,color,description').eq('school_id',school.id).order('name'),
+      db.from('levels').select('id,name,program_id,sort_order').eq('school_id',school.id).order('sort_order,name'),
+    ]);
+
+    _schoolPrograms = progs  || [];
+    _schoolCombos   = combos || [];
+
+    // ── CASE A: School has Programs configured ───────────────────
+    if(_schoolPrograms.length){
+      const progSel = document.getElementById('programSel');
+      progSel.innerHTML = '<option value="">— Select Programme —</option>' +
+        _schoolPrograms.map(p => `<option value="${esc(p.id)}" data-name="${esc(p.name)}">${esc(p.name)}${p.description?' — '+esc(p.description):''}</option>`).join('');
+
+      // If this school ALSO has levels, store the map for later
+      _levelProgMap = {};
+      (lvls||[]).forEach(l => {
+        _levelProgMap[l.id] = { name: l.name, programId: l.program_id };
+      });
+
+      document.getElementById('fieldProgram').style.display = '';
+      // Combo field hidden until programme is selected
+      document.getElementById('fieldCombo').style.display = 'none';
+      document.getElementById('fieldLevel').style.display = 'none';
       return;
     }
-    // ── Fallback: derive from school_type when no class levels configured ──
-    const fallback=getLevelsForSchool(school);
-    sel.innerHTML='<option value="">Select a level / section…</option>'+
-      fallback.map(l=>`<option value="${esc(l.v)}">${esc(l.l)}</option>`).join('');
+
+    // ── CASE B: No Programs, but has Combinations ────────────────
+    if(_schoolCombos.length){
+      const comboSel = document.getElementById('comboSel');
+      comboSel.innerHTML = '<option value="">— Any department / combination —</option>' +
+        _schoolCombos.map(cb=>`<option value="${esc(cb.id)}" data-name="${esc(cb.name)}">${esc(cb.name)}</option>`).join('');
+      document.getElementById('fieldProgram').style.display = 'none';
+      document.getElementById('fieldCombo').style.display = '';
+
+      // Also show level fallback below combo if levels exist
+      await _populateLevelFallback(school, lvls||[]);
+      return;
+    }
+
+    // ── CASE C: Has DB Levels but no programs/combos ─────────────
+    if(lvls && lvls.length){
+      await _populateLevelFallback(school, lvls);
+      return;
+    }
+
+    // ── CASE D: Fall back to class.level text ────────────────────
+    const {data:rows} = await db.from('classes')
+      .select('level').eq('school_id',school.id).not('level','is',null).order('level');
+    const seen = new Set();
+    const dbLevels = (rows||[]).map(r=>r.level).filter(l=>l&&!seen.has(l)&&seen.add(l));
+    if(dbLevels.length){
+      const levelSel = document.getElementById('levelSel');
+      levelSel.innerHTML = '<option value="">— Select Level / Section —</option>' +
+        dbLevels.map(l=>`<option value="${esc(l)}">${esc(l)}</option>`).join('');
+      document.getElementById('fieldLevel').style.display = '';
+      return;
+    }
+
+    // ── CASE E: Absolute final fallback — school_type presets ────
+    await _populateLevelFallback(school, []);
+
   }catch(e){
-    console.warn('loadLevelsForSchool:',e);
-    const fallback=getLevelsForSchool(school);
-    sel.innerHTML='<option value="">Select a level / section…</option>'+
-      fallback.map(l=>`<option value="${esc(l.v)}">${esc(l.l)}</option>`).join('');
+    console.warn('loadSchoolSelects:', e);
+    // Show level field with school_type presets
+    await _populateLevelFallback(selectedSchool(), []);
   }
+}
+
+// Populates and shows the plain level select
+async function _populateLevelFallback(school, dbLvls){
+  const levelSel = document.getElementById('levelSel');
+  if(!levelSel) return;
+  let html = '<option value="">— Select Level —</option>';
+  if(dbLvls.length){
+    // Group by program if possible
+    const hasProg = dbLvls.some(l=>l.program_id);
+    if(hasProg){
+      const ungrouped = dbLvls.filter(l=>!l.program_id);
+      const grouped   = dbLvls.filter(l=>l.program_id);
+      ungrouped.forEach(l=>{ html+=`<option value="${esc(l.name)}">${esc(l.name)}</option>`; });
+      // We don't have program names here but group by ID
+      const byProg={};
+      grouped.forEach(l=>{if(!byProg[l.program_id])byProg[l.program_id]=[];byProg[l.program_id].push(l);});
+      Object.values(byProg).forEach(group=>{
+        group.forEach(l=>{ html+=`<option value="${esc(l.name)}">${esc(l.name)}</option>`; });
+      });
+    } else {
+      dbLvls.forEach(l=>{ html+=`<option value="${esc(l.name)}">${esc(l.name)}</option>`; });
+    }
+  } else {
+    const presets = getLevelsForSchool(school);
+    presets.forEach(l=>{ html+=`<option value="${esc(l.v)}">${esc(l.l)}</option>`; });
+  }
+  levelSel.innerHTML = html;
+  document.getElementById('fieldLevel').style.display = '';
+}
+
+// Called when student picks a Programme
+function onProgramChange(sel){
+  const opt = sel.options[sel.selectedIndex];
+  const progId   = sel.value;
+  const progName = (opt && opt.dataset.name) ? opt.dataset.name : '';
+
+  // Update hidden fields
+  document.getElementById('intendedProgram').value = progName;
+  document.getElementById('intendedLevel').value   = progName; // level = program name for backwards compat
+
+  // Now populate the Combinations dropdown filtered to this school
+  // (For now show ALL combinations — school admin can later tag combos to programs)
+  const comboSel = document.getElementById('comboSel');
+  if(_schoolCombos.length && progId){
+    comboSel.innerHTML = '<option value="">— Any department / combination —</option>' +
+      _schoolCombos.map(cb=>`<option value="${esc(cb.id)}" data-name="${esc(cb.name)}">${esc(cb.name)}</option>`).join('');
+    document.getElementById('fieldCombo').style.display = '';
+  } else if(_schoolCombos.length){
+    comboSel.innerHTML = '<option value="">— Select programme first —</option>';
+    document.getElementById('fieldCombo').style.display = progId ? '' : 'none';
+  } else {
+    document.getElementById('fieldCombo').style.display = 'none';
+  }
+
+  document.getElementById('intendedCombo') && (document.getElementById('intendedCombo').value='');
+  renderDocUploads();
+}
+
+// Called when student picks a Combination
+function onComboChange(sel){
+  const opt = sel.options[sel.selectedIndex];
+  const comboName = (opt && opt.dataset.name) ? opt.dataset.name : '';
+  const inp = document.getElementById('intendedCombo');
+  if(inp) inp.value = comboName;
+  renderDocUploads();
+}
+
+// Called when student picks a Level (plain fallback select)
+function onLevelChange(sel){
+  document.getElementById('intendedProgram').value = sel.value;
+  document.getElementById('intendedLevel').value   = sel.value;
+  renderDocUploads();
 }
 
 function getLevelsForSchool(school){
@@ -410,9 +588,9 @@ function getDocsForLevel(level){
 function renderDocUploads(){
   const container=document.getElementById('docUploads');
   if(!container)return;
-  const level=val('intendedLevel');
+  const level=val('intendedLevel')||val('intendedProgram');
   if(!level){
-    container.innerHTML='<p class="full" style="font-size:13px;color:#94a3b8;font-style:italic">Select a level in Step 1 to see required documents.</p>';
+    container.innerHTML='<p class="full" style="font-size:13px;color:#94a3b8;font-style:italic">Select a programme or level in Step 1 to see required documents.</p>';
     return;
   }
   const docs=getDocsForLevel(level);
@@ -479,7 +657,7 @@ function validateStep(n){
   }
   // Validate required documents in step 2
   if(n===2){
-    const level=val('intendedLevel');
+    const level=val('intendedLevel')||val('intendedProgram');
     if(level){
       getDocsForLevel(level).filter(d=>d.required).forEach(d=>{
         if(!uploadedDocs[d.id]){
@@ -524,7 +702,8 @@ function updateStep(){
 function buildReview(){
   const rows=[
     ['School',selectedSchool()?.name||''],['Serial No.',val('serialNo')],['Scratch Card PIN',val('scratchPin')],
-    ['Level / Section',selectedLevel()||'Not selected'],
+    ['Programme',      val('intendedProgram')||val('intendedLevel')||'Not selected'],
+    ['Department / Combination', val('intendedCombo')||'Not selected'],
     ['Documents Uploaded',Object.values(uploadedDocs).map(d=>d.label||d.name).join(', ')||'None uploaded'],
     ['Student',val('fullName')],['Gender',val('gender')==='M'?'Male':val('gender')==='F'?'Female':''],
     ['Date of Birth',val('dob')],['Address',val('address')],
@@ -599,7 +778,11 @@ async function submitApplication(){
       // Mark card used manually in fallback path
       await db.from('scratch_cards').update({is_used:true,used_at:new Date().toISOString(),uses_count:Number(card.uses_count||0)+1}).eq('id',card.id);
       // Non-critical: store level on fallback path
-      if(appId&&val('intendedLevel')){try{await db.from('student_applications').update({intended_level:val('intendedLevel')}).eq('id',appId);}catch(_){}}
+      if(appId&&val('intendedProgram')){try{await db.from('student_applications').update({
+  intended_level:   val('intendedLevel')||val('intendedProgram'),
+  intended_program: val('intendedProgram')||null,
+  intended_combo:   val('intendedCombo')||null,
+}).eq('id',appId);}catch(_){}}
     }
 
     // ── Always persist ref_id (critical) — isolated so a missing column never silently kills it ──
@@ -611,7 +794,11 @@ async function submitApplication(){
     }
     // ── Non-critical: persist intended_level in a separate call so errors are fully isolated ──
     if(appId&&val('intendedLevel')){
-      try{await db.from('student_applications').update({intended_level:val('intendedLevel')}).eq('id',appId);}
+      try{await db.from('student_applications').update({
+  intended_level:   val('intendedLevel')||val('intendedProgram'),
+  intended_program: val('intendedProgram')||null,
+  intended_combo:   val('intendedCombo')||null,
+}).eq('id',appId);}
       catch(_){}
     }
 
@@ -650,7 +837,7 @@ async function checkStatus(){
   document.getElementById('trackerResult').innerHTML='';
   try{
     const{data,error}=await db.from('student_applications')
-      .select('ref_id,full_name,status,submitted_at,reviewed_at,rejection_reason,gender,date_of_birth,address,parent_name,parent_phone,blood_group,admission_number,intended_class_id,school_id,schools(name,address,lga,state,phone,email,logo_url)')
+      .select('ref_id,full_name,status,submitted_at,reviewed_at,rejection_reason,gender,date_of_birth,address,parent_name,parent_phone,blood_group,admission_number,intended_class_id,intended_level,intended_program,school_id,schools(name,address,lga,state,phone,email,logo_url,school_type),classes:intended_class_id(id,name,level)')
       .eq('ref_id',ref).maybeSingle();
     if(error)throw error;
     if(!data){document.getElementById('trackerResult').innerHTML='<p style="font-size:13px;color:#dc2626;margin:8px 0 0">No application found for that reference number.</p>';return;}
@@ -781,7 +968,8 @@ body{margin:0;background:#f8f8f4;font-family:Georgia,serif}
     <table class="letter-table">
       <tr><td>Student's Full Name</td><td><strong>${esc(d.full_name||'')}</strong></td></tr>
       <tr><td>Admission Number</td><td><strong>${esc(d.admission_number||'—')}</strong></td></tr>
-      <tr><td>Class Admitted Into</td><td><strong>${esc(d._className||'To be assigned')}</strong></td></tr>
+      <tr><td>Class / Level Admitted</td><td><strong>${esc(d._className||d.intended_level||'To be assigned')}</strong></td></tr>
+      ${d.intended_program&&d.intended_program!==d._className?`<tr><td>Programme</td><td><strong>${esc(d.intended_program)}</strong></td></tr>`:''}
       <tr><td>Date of Birth</td><td>${dob}</td></tr>
       <tr><td>Gender</td><td>${gender}</td></tr>
       <tr><td>Academic Session</td><td>${session}</td></tr>
