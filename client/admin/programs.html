@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -282,7 +283,7 @@ async function saveProgram() {
     ? await db.from('programs').update(payload).eq('id', id)
     : await db.from('programs').insert(payload);
   btn.disabled = false; btn.textContent = 'Save Programme';
-  if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+  if (error) { errEl.textContent = friendlyError(error,'program'); errEl.style.display = 'block'; return; }
   closeModal('programModal');
   toast(id ? 'Programme updated.' : 'Programme added.', 'success');
   await loadAll(); renderTab();
@@ -396,7 +397,7 @@ async function saveLevel() {
     ? await db.from('levels').update(payload).eq('id', id)
     : await db.from('levels').insert(payload);
   btn.disabled = false; btn.textContent = 'Save Level';
-  if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+  if (error) { errEl.textContent = friendlyError(error,'level'); errEl.style.display = 'block'; return; }
   closeModal('levelModal');
   toast(id ? 'Level updated.' : 'Level added.', 'success');
   await loadAll(); renderTab();
@@ -507,7 +508,7 @@ async function saveCombo() {
     ? await db.from('subject_combinations').update(payload).eq('id', id)
     : await db.from('subject_combinations').insert(payload);
   btn.disabled = false; btn.textContent = 'Save Combination';
-  if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+  if (error) { errEl.textContent = friendlyError(error,'combo'); errEl.style.display = 'block'; return; }
   closeModal('comboModal');
   toast(id ? 'Combination updated.' : 'Combination added.', 'success');
   await loadAll(); renderTab();
@@ -522,6 +523,22 @@ async function deleteCombo(id, name) {
 }
 
 function esc(v){ return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// Translate raw Postgres/Supabase errors into plain English
+function friendlyError(error, context='') {
+  const msg = error?.message || '';
+  if (/duplicate key|unique constraint/i.test(msg)) {
+    if (context==='program') return 'A programme with this name already exists for your school. Please use a different name or edit the existing one.';
+    if (context==='level')   return 'A level with this name already exists under that programme.';
+    if (context==='combo')   return 'A combination with this name already exists for your school.';
+    return 'A record with this name already exists. Please use a different name.';
+  }
+  if (/foreign key|violates foreign key/i.test(msg)) return 'This record is linked to other data and cannot be removed. Remove the linked records first.';
+  if (/not.null|null value/i.test(msg))              return 'A required field is missing. Please fill in all required fields.';
+  if (/permission denied|rls|policy/i.test(msg))    return 'Permission denied. You may not have access to perform this action.';
+  if (/schema cache|column.*not found|does not exist/i.test(msg)) return 'A database column is missing. Please run the latest SQL migration in Supabase and reload the schema cache.';
+  return msg || 'An unexpected error occurred. Please try again.';
+}
 </script>
 <script src="/js/pwa-v2.1.js"></script>
 <script src="../js/assistant.js"></script>
