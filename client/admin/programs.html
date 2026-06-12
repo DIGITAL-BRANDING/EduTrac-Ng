@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/icons/icon-96.png" type="image/png">
+  <meta name="theme-color" content="#0a6e3f">
+  <title>Programs &amp; Levels · EduTrack NG</title>
+  <link rel="stylesheet" href="../assets/css/global.css">
+  <style>
+    .tab-bar{display:flex;gap:4px;padding:4px;background:var(--surface-3);border-radius:10px;width:fit-content;margin-bottom:24px;}
+    .tab-btn{padding:8px 20px;border-radius:7px;border:none;background:transparent;font:600 .875rem var(--font);color:var(--ink-3);cursor:pointer;transition:var(--transition);}
+    .tab-btn.active{background:var(--surface);color:var(--primary);font-weight:700;box-shadow:var(--shadow-sm);}
+    .prog-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
+    .prog-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:10px;transition:box-shadow .18s;}
+    .prog-card:hover{box-shadow:var(--shadow);}
+    .prog-name{font-size:1.05rem;font-weight:800;color:var(--ink);}
+    .prog-desc{font-size:.82rem;color:var(--ink-3);line-height:1.5;flex:1;}
+    .prog-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:100px;font-size:.72rem;font-weight:700;}
+    .prog-badge.levels{background:var(--primary-light);color:var(--primary);}
+    .prog-badge.combos{background:var(--accent-light);color:var(--warning);}
+    .prog-actions{display:flex;gap:6px;margin-top:4px;}
+    .lvl-table{width:100%;border-collapse:collapse;font-size:.875rem;}
+    .lvl-table th{background:var(--surface-3);padding:10px 14px;text-align:left;font-weight:700;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);border-bottom:1px solid var(--border);}
+    .lvl-table td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:middle;}
+    .lvl-table tr:last-child td{border-bottom:none;}
+    .lvl-table tr:hover td{background:var(--surface-2);}
+    .combo-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:100px;font-size:.72rem;font-weight:600;background:var(--surface-3);color:var(--ink-2);margin:2px;}
+    .empty-state{text-align:center;padding:48px;color:var(--ink-3);grid-column:1/-1;}
+    .empty-state svg{opacity:.3;display:block;margin:0 auto 12px;}
+    .prog-header-row{background:var(--primary-light);border-left:3px solid var(--primary);}
+    .prog-header-row td{font-weight:800;color:var(--primary);padding:8px 14px;}
+  </style>
+</head>
+<body>
+<div id="app"></div>
+
+<!-- ── Program Modal ── -->
+<div class="modal" id="programModal">
+  <div class="modal__box" style="max-width:520px;">
+    <div class="modal__header">
+      <h2 class="modal__title" id="programModalTitle">Add Programme</h2>
+      <button class="modal__close" onclick="closeModal('programModal')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal__body">
+      <input type="hidden" id="programId">
+      <div class="form-grid">
+        <div class="form-group col-full">
+          <label class="form-label">Programme Name <span class="required">*</span></label>
+          <input type="text" id="progName" class="form-control" placeholder="e.g. Science, Arts, Vocational Studies, ND Accountancy">
+        </div>
+        <div class="form-group col-full">
+          <label class="form-label">Description <span style="color:var(--ink-4);font-weight:400;">(optional)</span></label>
+          <textarea id="progDesc" class="form-control" rows="3" placeholder="Brief description visible to applicants on the application form…"></textarea>
+        </div>
+        <div class="form-group col-full">
+          <label class="form-label">Duration</label>
+          <input type="text" id="progDuration" class="form-control" placeholder="e.g. 3 Years, 2 Semesters">
+        </div>
+      </div>
+      <div id="programFormErr" class="form-error" style="display:none;margin-top:8px;"></div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--secondary" onclick="closeModal('programModal')">Cancel</button>
+      <button class="btn btn--primary" id="saveProgramBtn" onclick="saveProgram()">Save Programme</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Level Modal ── -->
+<div class="modal" id="levelModal">
+  <div class="modal__box" style="max-width:500px;">
+    <div class="modal__header">
+      <h2 class="modal__title" id="levelModalTitle">Add Level</h2>
+      <button class="modal__close" onclick="closeModal('levelModal')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal__body">
+      <input type="hidden" id="levelId">
+      <div class="form-grid">
+        <div class="form-group col-full">
+          <label class="form-label">Programme <span class="required">*</span></label>
+          <select id="levelProgram" class="form-control">
+            <option value="">— Select Programme —</option>
+          </select>
+        </div>
+        <div class="form-group col-full">
+          <label class="form-label">Level Name <span class="required">*</span></label>
+          <input type="text" id="levelName" class="form-control" placeholder="e.g. JSS 1, Year 1, ND1 Semester 1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Sort Order</label>
+          <input type="number" id="levelSort" class="form-control" placeholder="1" min="1">
+          <span class="form-hint">Lower number appears first in dropdowns</span>
+        </div>
+      </div>
+      <div id="levelFormErr" class="form-error" style="display:none;margin-top:8px;"></div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--secondary" onclick="closeModal('levelModal')">Cancel</button>
+      <button class="btn btn--primary" id="saveLevelBtn" onclick="saveLevel()">Save Level</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Combination Modal ── -->
+<div class="modal" id="comboModal">
+  <div class="modal__box" style="max-width:520px;">
+    <div class="modal__header">
+      <h2 class="modal__title" id="comboModalTitle">Add Combination</h2>
+      <button class="modal__close" onclick="closeModal('comboModal')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal__body">
+      <input type="hidden" id="comboId">
+      <div class="form-grid">
+        <div class="form-group col-full">
+          <label class="form-label">Programme <span class="required">*</span></label>
+          <select id="comboProgramSel" class="form-control">
+            <option value="">— Select Programme (optional filter) —</option>
+          </select>
+          <span class="form-hint">Applicants in this programme will see this combination.</span>
+        </div>
+        <div class="form-group col-full">
+          <label class="form-label">Combination / Course Name <span class="required">*</span></label>
+          <input type="text" id="comboName" class="form-control" placeholder="e.g. Physics/Chemistry/Biology, Business Studies, Fine Arts">
+        </div>
+        <div class="form-group col-full">
+          <label class="form-label">Description <span style="color:var(--ink-4);font-weight:400;">(optional)</span></label>
+          <textarea id="comboDesc" class="form-control" rows="2" placeholder="Short description shown to applicants…"></textarea>
+        </div>
+      </div>
+      <div id="comboFormErr" class="form-error" style="display:none;margin-top:8px;"></div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--secondary" onclick="closeModal('comboModal')">Cancel</button>
+      <button class="btn btn--primary" id="saveComboBtn" onclick="saveCombo()">Save Combination</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
+<script src="../js/config.js"></script>
+<script src="../js/supabase.js"></script>
+<script src="../js/layout.js"></script>
+<script>
+let currentUser, allPrograms=[], allLevels=[], allCombos=[];
+let activeTab = 'programs'; // 'programs' | 'levels' | 'combos'
+
+(async () => {
+  currentUser = await initAdminLayout('programs', 'Programs & Levels');
+  if (!currentUser) return;
+
+  document.getElementById('pageBody').innerHTML = `
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+      <div>
+        <h1 style="font-size:1.45rem;font-weight:800;margin:0;">Programmes &amp; Levels</h1>
+        <p style="color:var(--ink-3);font-size:.875rem;margin:4px 0 0;">Define programmes applicants select on the admission form, the levels within them, and subject combinations.</p>
+      </div>
+      <button class="btn btn--primary btn--sm" id="addTopBtn" onclick="openAddTop()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Programme
+      </button>
+    </div>
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tab-programs" onclick="switchTab('programs')">Programmes</button>
+      <button class="tab-btn" id="tab-levels" onclick="switchTab('levels')">Levels</button>
+      <button class="tab-btn" id="tab-combos" onclick="switchTab('combos')">Combinations</button>
+    </div>
+    <div id="tabContent"><div style="text-align:center;padding:48px;color:var(--ink-3);">Loading…</div></div>
+  `;
+
+  await loadAll();
+  renderTab();
+})();
+
+async function loadAll() {
+  const sid = currentUser.school_id;
+  const [pRes, lRes, cRes] = await Promise.all([
+    db.from('programs').select('id,name,description,duration').eq('school_id', sid).order('name'),
+    db.from('levels').select('id,name,program_id,sort_order').eq('school_id', sid).order('sort_order,name'),
+    db.from('subject_combinations').select('id,name,description,program_id').eq('school_id', sid).order('name'),
+  ]);
+  if (pRes.error) console.error('programs:', pRes.error.message);
+  if (lRes.error) console.error('levels:', lRes.error.message);
+  if (cRes.error) console.error('combos:', cRes.error.message);
+  allPrograms = pRes.data || [];
+  allLevels   = lRes.data || [];
+  allCombos   = cRes.data || [];
+  populateProgramSelects();
+}
+
+function populateProgramSelects() {
+  const opts = '<option value="">— No Programme (school-wide) —</option>' +
+    allPrograms.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  document.getElementById('levelProgram').innerHTML = '<option value="">— Select Programme —</option>' +
+    allPrograms.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  document.getElementById('comboProgramSel').innerHTML = opts;
+}
+
+function switchTab(tab) {
+  activeTab = tab;
+  ['programs','levels','combos'].forEach(t => {
+    document.getElementById('tab-'+t).classList.toggle('active', t === tab);
+  });
+  const btn = document.getElementById('addTopBtn');
+  if (tab === 'programs') { btn.textContent = ''; btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Programme'; }
+  if (tab === 'levels')   { btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Level'; }
+  if (tab === 'combos')   { btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Combination'; }
+  renderTab();
+}
+
+function openAddTop() {
+  if (activeTab === 'programs') openAddProgram();
+  else if (activeTab === 'levels') openAddLevel();
+  else openAddCombo();
+}
+
+function renderTab() {
+  const el = document.getElementById('tabContent');
+  if (activeTab === 'programs') renderPrograms(el);
+  else if (activeTab === 'levels') renderLevels(el);
+  else renderCombos(el);
+}
+
+// ── PROGRAMS ──────────────────────────────────────────────────
+function renderPrograms(el) {
+  if (!allPrograms.length) {
+    el.innerHTML = `<div class="empty-state"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg><p style="font-weight:700;font-size:1rem;">No programmes yet</p><p style="font-size:.85rem;margin:4px 0 16px;">Programmes group students by study path (e.g. Science, Arts, ND Accounting).</p><button class="btn btn--primary btn--sm" onclick="openAddProgram()">Add First Programme</button></div>`;
+    return;
+  }
+  el.innerHTML = `<div class="prog-grid">${allPrograms.map(p => {
+    const lvlCount = allLevels.filter(l => l.program_id === p.id).length;
+    const comboCount = allCombos.filter(c => c.program_id === p.id).length;
+    return `<div class="prog-card">
+      <div class="prog-name">${esc(p.name)}</div>
+      ${p.description ? `<div class="prog-desc">${esc(p.description)}</div>` : ''}
+      ${p.duration ? `<div style="font-size:.78rem;color:var(--ink-3);">⏱ ${esc(p.duration)}</div>` : ''}
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <span class="prog-badge levels">${lvlCount} level${lvlCount!==1?'s':''}</span>
+        <span class="prog-badge combos">${comboCount} combination${comboCount!==1?'s':''}</span>
+      </div>
+      <div class="prog-actions">
+        <button class="btn btn--secondary btn--sm" style="flex:1;" onclick="editProgram('${p.id}')"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Edit</button>
+        <button class="btn btn--ghost btn--sm" style="color:var(--danger);" onclick="deleteProgram('${p.id}','${p.name.replace(/'/g,"\\'")}')"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg> Delete</button>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function openAddProgram() {
+  document.getElementById('programModalTitle').textContent = 'Add Programme';
+  document.getElementById('programId').value = '';
+  ['progName','progDesc','progDuration'].forEach(id => { document.getElementById(id).value = ''; });
+  document.getElementById('programFormErr').style.display = 'none';
+  openModal('programModal');
+}
+
+function editProgram(id) {
+  const p = allPrograms.find(x => x.id === id); if (!p) return;
+  document.getElementById('programModalTitle').textContent = 'Edit Programme';
+  document.getElementById('programId').value = p.id;
+  document.getElementById('progName').value = p.name || '';
+  document.getElementById('progDesc').value = p.description || '';
+  document.getElementById('progDuration').value = p.duration || '';
+  document.getElementById('programFormErr').style.display = 'none';
+  openModal('programModal');
+}
+
+async function saveProgram() {
+  const btn = document.getElementById('saveProgramBtn');
+  const errEl = document.getElementById('programFormErr');
+  const name = document.getElementById('progName').value.trim();
+  if (!name) { errEl.textContent = 'Programme name is required.'; errEl.style.display = 'block'; return; }
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const payload = {
+    school_id: currentUser.school_id, name,
+    description: document.getElementById('progDesc').value.trim() || null,
+    duration: document.getElementById('progDuration').value.trim() || null,
+  };
+  const id = document.getElementById('programId').value;
+  const { error } = id
+    ? await db.from('programs').update(payload).eq('id', id)
+    : await db.from('programs').insert(payload);
+  btn.disabled = false; btn.textContent = 'Save Programme';
+  if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+  closeModal('programModal');
+  toast(id ? 'Programme updated.' : 'Programme added.', 'success');
+  await loadAll(); renderTab();
+}
+
+async function deleteProgram(id, name) {
+  if (!confirm(`Delete programme "${name}"? All levels and combinations linked to it will also be removed.`)) return;
+  const { error } = await db.from('programs').delete().eq('id', id);
+  if (error) { toast('Error: ' + error.message, 'error'); return; }
+  toast('Programme deleted.', 'success');
+  await loadAll(); renderTab();
+}
+
+// ── LEVELS ────────────────────────────────────────────────────
+function renderLevels(el) {
+  if (!allLevels.length) {
+    el.innerHTML = `<div class="empty-state"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><p style="font-weight:700;font-size:1rem;">No levels yet</p><p style="font-size:.85rem;margin:4px 0 16px;">Levels are the year/class groups within each programme (e.g. JSS 1, Year 2).</p><button class="btn btn--primary btn--sm" onclick="openAddLevel()">Add First Level</button></div>`;
+    return;
+  }
+
+  // Group levels by programme
+  const byProg = {};
+  allLevels.forEach(l => {
+    const pid = l.program_id || '__none__';
+    if (!byProg[pid]) byProg[pid] = [];
+    byProg[pid].push(l);
+  });
+
+  let html = `<div style="overflow-x:auto;"><table class="lvl-table">
+    <thead><tr><th>Programme</th><th>Level Name</th><th>Sort Order</th><th style="text-align:right;">Actions</th></tr></thead><tbody>`;
+
+  allPrograms.forEach(prog => {
+    const levels = byProg[prog.id] || [];
+    if (!levels.length) return;
+    html += `<tr class="prog-header-row"><td colspan="4">${esc(prog.name)}</td></tr>`;
+    levels.forEach(l => {
+      html += `<tr>
+        <td style="color:var(--ink-3);font-size:.8rem;padding-left:28px;">↳</td>
+        <td style="font-weight:600;">${esc(l.name)}</td>
+        <td style="color:var(--ink-3);">${l.sort_order ?? '—'}</td>
+        <td style="text-align:right;">
+          <div style="display:flex;gap:6px;justify-content:flex-end;">
+            <button class="btn btn--secondary btn--sm" onclick="editLevel('${l.id}')"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Edit</button>
+            <button class="btn btn--ghost btn--sm" style="color:var(--danger);" onclick="deleteLevel('${l.id}','${l.name.replace(/'/g,"\\'")}')"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
+          </div>
+        </td>
+      </tr>`;
+    });
+  });
+
+  // Unlinked levels
+  if (byProg['__none__'] && byProg['__none__'].length) {
+    html += `<tr class="prog-header-row"><td colspan="4" style="color:var(--warning);">⚠ Not linked to a programme</td></tr>`;
+    byProg['__none__'].forEach(l => {
+      html += `<tr>
+        <td style="color:var(--ink-3);font-size:.8rem;padding-left:28px;">↳</td>
+        <td style="font-weight:600;">${esc(l.name)}</td>
+        <td style="color:var(--ink-3);">${l.sort_order ?? '—'}</td>
+        <td style="text-align:right;">
+          <div style="display:flex;gap:6px;justify-content:flex-end;">
+            <button class="btn btn--secondary btn--sm" onclick="editLevel('${l.id}')">Edit</button>
+            <button class="btn btn--ghost btn--sm" style="color:var(--danger);" onclick="deleteLevel('${l.id}','${l.name.replace(/'/g,"\\'")}')">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+            </button>
+          </div>
+        </td>
+      </tr>`;
+    });
+  }
+
+  html += '</tbody></table></div>';
+  el.innerHTML = html;
+}
+
+function openAddLevel(progId='') {
+  document.getElementById('levelModalTitle').textContent = 'Add Level';
+  document.getElementById('levelId').value = '';
+  document.getElementById('levelName').value = '';
+  document.getElementById('levelSort').value = '';
+  document.getElementById('levelProgram').value = progId;
+  document.getElementById('levelFormErr').style.display = 'none';
+  openModal('levelModal');
+}
+
+function editLevel(id) {
+  const l = allLevels.find(x => x.id === id); if (!l) return;
+  document.getElementById('levelModalTitle').textContent = 'Edit Level';
+  document.getElementById('levelId').value = l.id;
+  document.getElementById('levelName').value = l.name || '';
+  document.getElementById('levelSort').value = l.sort_order ?? '';
+  document.getElementById('levelProgram').value = l.program_id || '';
+  document.getElementById('levelFormErr').style.display = 'none';
+  openModal('levelModal');
+}
+
+async function saveLevel() {
+  const btn = document.getElementById('saveLevelBtn');
+  const errEl = document.getElementById('levelFormErr');
+  const name = document.getElementById('levelName').value.trim();
+  const progId = document.getElementById('levelProgram').value;
+  if (!name) { errEl.textContent = 'Level name is required.'; errEl.style.display = 'block'; return; }
+  if (!progId) { errEl.textContent = 'Please select a programme.'; errEl.style.display = 'block'; return; }
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const payload = {
+    school_id: currentUser.school_id, name,
+    program_id: progId || null,
+    sort_order: parseInt(document.getElementById('levelSort').value) || null,
+  };
+  const id = document.getElementById('levelId').value;
+  const { error } = id
+    ? await db.from('levels').update(payload).eq('id', id)
+    : await db.from('levels').insert(payload);
+  btn.disabled = false; btn.textContent = 'Save Level';
+  if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+  closeModal('levelModal');
+  toast(id ? 'Level updated.' : 'Level added.', 'success');
+  await loadAll(); renderTab();
+}
+
+async function deleteLevel(id, name) {
+  if (!confirm(`Delete level "${name}"?`)) return;
+  const { error } = await db.from('levels').delete().eq('id', id);
+  if (error) { toast('Error: ' + error.message, 'error'); return; }
+  toast('Level deleted.', 'success');
+  await loadAll(); renderTab();
+}
+
+// ── COMBINATIONS ──────────────────────────────────────────────
+function renderCombos(el) {
+  if (!allCombos.length) {
+    el.innerHTML = `<div class="empty-state"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><p style="font-weight:700;font-size:1rem;">No combinations yet</p><p style="font-size:.85rem;margin:4px 0 16px;">Combinations are subject bundles shown to applicants after they pick a programme (e.g. Physics/Chem/Biology, Business Studies).</p><button class="btn btn--primary btn--sm" onclick="openAddCombo()">Add First Combination</button></div>`;
+    return;
+  }
+
+  // Group by programme
+  const byProg = {};
+  allCombos.forEach(c => {
+    const pid = c.program_id || '__none__';
+    if (!byProg[pid]) byProg[pid] = [];
+    byProg[pid].push(c);
+  });
+
+  let html = `<div style="overflow-x:auto;"><table class="lvl-table">
+    <thead><tr><th>Programme</th><th>Combination / Course</th><th>Description</th><th style="text-align:right;">Actions</th></tr></thead><tbody>`;
+
+  allPrograms.forEach(prog => {
+    const combos = byProg[prog.id] || [];
+    if (!combos.length) return;
+    html += `<tr class="prog-header-row"><td colspan="4">${esc(prog.name)}</td></tr>`;
+    combos.forEach(c => {
+      html += `<tr>
+        <td style="color:var(--ink-3);font-size:.8rem;padding-left:28px;">↳</td>
+        <td style="font-weight:600;">${esc(c.name)}</td>
+        <td style="color:var(--ink-3);font-size:.82rem;">${esc(c.description||'—')}</td>
+        <td style="text-align:right;">
+          <div style="display:flex;gap:6px;justify-content:flex-end;">
+            <button class="btn btn--secondary btn--sm" onclick="editCombo('${c.id}')"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Edit</button>
+            <button class="btn btn--ghost btn--sm" style="color:var(--danger);" onclick="deleteCombo('${c.id}','${c.name.replace(/'/g,"\\'")}')"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
+          </div>
+        </td>
+      </tr>`;
+    });
+  });
+
+  if (byProg['__none__'] && byProg['__none__'].length) {
+    html += `<tr class="prog-header-row"><td colspan="4" style="color:var(--warning);">School-wide (no programme filter)</td></tr>`;
+    byProg['__none__'].forEach(c => {
+      html += `<tr>
+        <td style="color:var(--ink-3);font-size:.8rem;padding-left:28px;">↳</td>
+        <td style="font-weight:600;">${esc(c.name)}</td>
+        <td style="color:var(--ink-3);font-size:.82rem;">${esc(c.description||'—')}</td>
+        <td style="text-align:right;">
+          <div style="display:flex;gap:6px;justify-content:flex-end;">
+            <button class="btn btn--secondary btn--sm" onclick="editCombo('${c.id}')">Edit</button>
+            <button class="btn btn--ghost btn--sm" style="color:var(--danger);" onclick="deleteCombo('${c.id}','${c.name.replace(/'/g,"\\'")}')">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+            </button>
+          </div>
+        </td>
+      </tr>`;
+    });
+  }
+
+  html += '</tbody></table></div>';
+  el.innerHTML = html;
+}
+
+function openAddCombo(progId='') {
+  document.getElementById('comboModalTitle').textContent = 'Add Combination';
+  document.getElementById('comboId').value = '';
+  document.getElementById('comboName').value = '';
+  document.getElementById('comboDesc').value = '';
+  document.getElementById('comboProgramSel').value = progId;
+  document.getElementById('comboFormErr').style.display = 'none';
+  openModal('comboModal');
+}
+
+function editCombo(id) {
+  const c = allCombos.find(x => x.id === id); if (!c) return;
+  document.getElementById('comboModalTitle').textContent = 'Edit Combination';
+  document.getElementById('comboId').value = c.id;
+  document.getElementById('comboName').value = c.name || '';
+  document.getElementById('comboDesc').value = c.description || '';
+  document.getElementById('comboProgramSel').value = c.program_id || '';
+  document.getElementById('comboFormErr').style.display = 'none';
+  openModal('comboModal');
+}
+
+async function saveCombo() {
+  const btn = document.getElementById('saveComboBtn');
+  const errEl = document.getElementById('comboFormErr');
+  const name = document.getElementById('comboName').value.trim();
+  if (!name) { errEl.textContent = 'Combination name is required.'; errEl.style.display = 'block'; return; }
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const payload = {
+    school_id: currentUser.school_id, name,
+    description: document.getElementById('comboDesc').value.trim() || null,
+    program_id: document.getElementById('comboProgramSel').value || null,
+  };
+  const id = document.getElementById('comboId').value;
+  const { error } = id
+    ? await db.from('subject_combinations').update(payload).eq('id', id)
+    : await db.from('subject_combinations').insert(payload);
+  btn.disabled = false; btn.textContent = 'Save Combination';
+  if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+  closeModal('comboModal');
+  toast(id ? 'Combination updated.' : 'Combination added.', 'success');
+  await loadAll(); renderTab();
+}
+
+async function deleteCombo(id, name) {
+  if (!confirm(`Delete combination "${name}"?`)) return;
+  const { error } = await db.from('subject_combinations').delete().eq('id', id);
+  if (error) { toast('Error: ' + error.message, 'error'); return; }
+  toast('Combination deleted.', 'success');
+  await loadAll(); renderTab();
+}
+
+function esc(v){ return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+</script>
+<script src="/js/pwa-v2.1.js"></script>
+<script src="../js/assistant.js"></script>
+</body>
+</html>
