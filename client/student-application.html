@@ -840,7 +840,19 @@ async function submitApplication(){
   try{
     const card=await validateScratchCard();
     const schoolId=_resolvedSchool?.id||val('schoolId');
+
+    // Generate ref ONCE — same value goes into DB and shown to user
     const ref='STU-'+Date.now().toString(36).toUpperCase();
+
+    // Common programme fields
+    const progFields={
+      ref_id:           ref,
+      intended_level:   val('intendedLevel')||val('intendedProgram')||null,
+      intended_program: val('intendedProgram')||null,
+      intended_combo:   val('intendedCombo')||null,
+    };
+
+    let appId=null;
 
     // Try the RPC first (handles card marking atomically)
     const{data:result,error:rpcErr}=await db.rpc('submit_student_application',{
@@ -859,18 +871,22 @@ async function submitApplication(){
       p_photo_url:null
     });
 
-    let appId=null;
     if(!rpcErr&&result&&!result.error){
       appId=result.id;
+      // RPC succeeded — now stamp our client ref + programme fields onto the row
+      const{error:stampErr}=await db.from('student_applications')
+        .update(progFields).eq('id',appId);
+      if(stampErr) console.warn('[EduTrack] ref_id stamp failed:',stampErr.message);
     } else {
-      // Fallback: direct insert for legacy cards (serial_no null / RPC not yet deployed)
+      // Fallback: direct insert — ref_id + programme fields included from the start
       const payload={
         school_id:schoolId,scratch_card_id:card.id,scratch_card_pin:pinVal(),
         intended_class_id:null,full_name:val('fullName'),gender:val('gender'),
         date_of_birth:val('dob')||null,address:val('address'),parent_name:val('parentName'),
         parent_phone:val('parentPhone'),parent_email:val('parentEmail')||null,
         blood_group:val('bloodGroup')||null,medical_notes:val('medicalNotes')||null,
-        ref_id:ref,status:'pending',submitted_at:new Date().toISOString()
+        status:'pending',submitted_at:new Date().toISOString(),
+        ...progFields,
       };
       const{data:ins,error:insErr}=await db.from('student_applications').insert(payload).select('id').single();
       if(insErr)throw new Error(insErr.message);
@@ -881,19 +897,8 @@ async function submitApplication(){
 
     if(!appId) throw new Error('Application could not be saved. Please try again.');
 
-    // ── Persist ref_id + programme fields atomically in one update ──
-    const updatePayload = {
-      ref_id: ref,
-      intended_level:   val('intendedLevel')||val('intendedProgram')||null,
-      intended_program: val('intendedProgram')||null,
-      intended_combo:   val('intendedCombo')||null,
-    };
-    const{data:updatedRow, error:updateErr} = await db.from('student_applications')
-      .update(updatePayload).eq('id',appId).select('ref_id').single();
-    if(updateErr) console.warn('ref_id/programme update failed:', updateErr.message);
-
-    // Use the ref_id actually stored in DB so the tracker always matches
-    const finalRef = updatedRow?.ref_id || ref;
+    // ref is the single source of truth — no second lookup needed
+    const finalRef = ref;
 
     document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
     document.getElementById('nav').style.display='none';
@@ -939,7 +944,13 @@ async function checkStatus(){
       ({data,error}=await db.from('student_applications').select(fallbackSelect).eq('ref_id',ref).maybeSingle());
     }
     if(error)throw error;
-    if(!data){document.getElementById('trackerResult').innerHTML='<p style="font-size:13px;color:#dc2626;margin:8px 0 0">No application found for that reference number.</p>';return;}
+    if(!data){
+      console.warn('[EduTrack] Tracker: no row found for ref_id=',ref);
+      document.getElementById('trackerResult').innerHTML=`
+        <p style="font-size:13px;color:#dc2626;margin:8px 0 0;font-weight:700;">No application found for <code style="background:#fee2e2;padding:2px 6px;border-radius:4px;">${ref}</code></p>
+        <p style="font-size:12px;color:#64748b;margin:6px 0 0;">Double-check the reference number on your confirmation screen. It starts with <b>STU-</b> and is case-sensitive. If you just submitted, wait a few seconds and try again.</p>`;
+      return;
+    }
     // Resolve class/level name:
     // New applications store a plain-text level in intended_level.
     // Legacy applications may still have an intended_class_id UUID.
