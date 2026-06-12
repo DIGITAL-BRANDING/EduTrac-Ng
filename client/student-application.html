@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -403,10 +402,25 @@ async function validateCardAndRevealSchool(){
       window._activeTerm=t||null;
     }catch(_){}
 
-    // Show school badge
+    // Show school badge with actual logo
     const box=document.getElementById('resolvedSchoolBox');
     document.getElementById('resolvedSchoolName').textContent=school.name;
     document.getElementById('resolvedSchoolSub').textContent=(school.lga?school.lga+', ':'')+( school.state||'');
+    // Inject real school logo (or fall back to emoji if no logo_url)
+    const logoEl=document.getElementById('resolvedSchoolLogo');
+    if(logoEl){
+      if(school.logo_url){
+        logoEl.innerHTML=`<img src="${school.logo_url}" alt="${school.name}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;" onerror="this.outerHTML='&#127979;'">`;
+      } else {
+        logoEl.textContent='\u{1F3EB}';
+      }
+    }
+    // Also pre-load the success screen logo so it's ready
+    const successLogoEl=document.getElementById('successLogo');
+    if(successLogoEl&&school.logo_url){
+      successLogoEl.src=school.logo_url;
+      successLogoEl.alt=school.name;
+    }
     box.style.display='flex';
 
     // Hide validate button row — card is done
