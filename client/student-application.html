@@ -852,6 +852,35 @@ async function submitApplication(){
       intended_combo:   val('intendedCombo')||null,
     };
 
+    // ── Upload passport photo to Supabase Storage ──
+    let photoUrl = null;
+    if(passportDataUrl){
+      try{
+        // Convert base64 dataUrl to Blob
+        const base64 = passportDataUrl.split(',')[1];
+        const mime   = passportDataUrl.match(/data:(.*?);/)[1];
+        const bytes  = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+        const blob   = new Blob([bytes], {type: mime});
+        const ext    = mime === 'image/png' ? 'png' : 'jpg';
+        const path   = `passports/${schoolId}/${ref}.${ext}`;
+
+        const{data:upData, error:upErr} = await db.storage
+          .from('student-photos')
+          .upload(path, blob, {contentType: mime, upsert: true});
+
+        if(upErr){
+          console.warn('[EduTrack] Photo upload failed:', upErr.message);
+        } else {
+          const{data:urlData} = db.storage.from('student-photos').getPublicUrl(path);
+          photoUrl = urlData?.publicUrl || null;
+          console.log('[EduTrack] Photo uploaded:', photoUrl);
+        }
+      } catch(photoErr){
+        console.warn('[EduTrack] Photo upload exception:', photoErr.message);
+        // Don't block submission if photo upload fails
+      }
+    }
+
     let appId=null;
 
     // Try the RPC first (handles card marking atomically)
@@ -873,9 +902,9 @@ async function submitApplication(){
 
     if(!rpcErr&&result&&!result.error){
       appId=result.id;
-      // RPC succeeded — now stamp our client ref + programme fields onto the row
+      // RPC succeeded — stamp ref, programme fields and photo_url onto the row
       const{error:stampErr}=await db.from('student_applications')
-        .update(progFields).eq('id',appId);
+        .update({...progFields, photo_url: photoUrl}).eq('id',appId);
       if(stampErr) console.warn('[EduTrack] ref_id stamp failed:',stampErr.message);
     } else {
       // Fallback: direct insert — ref_id + programme fields included from the start
@@ -886,6 +915,7 @@ async function submitApplication(){
         parent_phone:val('parentPhone'),parent_email:val('parentEmail')||null,
         blood_group:val('bloodGroup')||null,medical_notes:val('medicalNotes')||null,
         status:'pending',submitted_at:new Date().toISOString(),
+        photo_url: photoUrl,
         ...progFields,
       };
       const{data:ins,error:insErr}=await db.from('student_applications').insert(payload).select('id').single();
@@ -937,9 +967,9 @@ async function checkStatus(){
     let data=null, error=null;
 
     // Build selects with graceful column fallbacks
-    const fullSelect = 'ref_id,full_name,status,submitted_at,reviewed_at,rejection_reason,gender,date_of_birth,address,parent_name,parent_phone,blood_group,admission_number,intended_class_id,intended_level,intended_program,intended_combo,school_id,schools(name,address,lga,state,phone,email,logo_url,school_type),classes:intended_class_id(id,name,level)';
-    const safeSelect  = 'ref_id,full_name,status,submitted_at,reviewed_at,rejection_reason,gender,date_of_birth,address,parent_name,parent_phone,blood_group,admission_number,intended_class_id,intended_level,intended_program,school_id,schools(name,address,lga,state,phone,email,logo_url,school_type),classes:intended_class_id(id,name,level)';
-    const minSelect   = 'ref_id,full_name,status,submitted_at,school_id,schools(name,logo_url)';
+    const fullSelect = 'ref_id,full_name,status,submitted_at,reviewed_at,rejection_reason,gender,date_of_birth,address,parent_name,parent_phone,blood_group,admission_number,photo_url,intended_class_id,intended_level,intended_program,intended_combo,school_id,schools(name,address,lga,state,phone,email,logo_url,school_type),classes:intended_class_id(id,name,level)';
+    const safeSelect  = 'ref_id,full_name,status,submitted_at,reviewed_at,rejection_reason,gender,date_of_birth,address,parent_name,parent_phone,blood_group,admission_number,photo_url,intended_class_id,intended_level,intended_program,school_id,schools(name,address,lga,state,phone,email,logo_url,school_type),classes:intended_class_id(id,name,level)';
+    const minSelect   = 'ref_id,full_name,status,submitted_at,photo_url,school_id,schools(name,logo_url)';
 
     // Strategy 1: exact ref_id match (full columns)
     ({data,error}=await db.from('student_applications').select(fullSelect).eq('ref_id',ref).maybeSingle());
@@ -1102,10 +1132,11 @@ body{margin:0;background:#f8f8f4;font-family:Georgia,serif}
 <div class="letter-wrap"><div class="letter-doc">
   <div class="letter-header">
     <img src="${logoSrc}" style="width:64px;height:64px;object-fit:cover;border-radius:8px;flex-shrink:0;" onerror="this.outerHTML='&#127979;'">
-    <div>
+    <div style="flex:1">
       <div class="letter-school">${esc(school.name||'School Name')}</div>
       <div class="letter-addr">${esc(schoolAddr)}</div>
     </div>
+    ${(d.photo_url||passportDataUrl)?`<img src="${d.photo_url||passportDataUrl}" style="width:72px;height:90px;object-fit:cover;border:2px solid #0a6e3f;border-radius:4px;flex-shrink:0;" onerror="this.style.display='none'">`:``}
   </div>
   <div class="letter-ref">
     <div>Ref: <strong>${esc(admRef)}</strong></div>
@@ -1233,7 +1264,7 @@ body{background:#e8ecf0;font-family:Arial,Helvetica,sans-serif;padding:20px;disp
   <div class="idc-title-bar">STUDENT IDENTITY CARD</div>
   <div class="idc-body">
     <div class="idc-watermark">${esc(watermark)}</div>
-    <div class="idc-photo">${passportDataUrl?`<img src="${passportDataUrl}" style="width:100%;height:100%;object-fit:cover">`:'&#128247;'}</div>
+    <div class="idc-photo">${(d.photo_url||passportDataUrl)?`<img src="${d.photo_url||passportDataUrl}" style="width:100%;height:100%;object-fit:cover" onerror="this.outerHTML='&#128247;'">`:'&#128247;'}</div>
     <div class="idc-fields-grid">
       <div class="idc-field"><span class="idc-fl">Full Name</span><span class="idc-fv">${esc(d.full_name||'—')}</span></div>
       <div class="idc-field"><span class="idc-fl">Admission No</span><span class="idc-fv">${esc(d.admission_number||'—')}</span></div>
