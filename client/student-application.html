@@ -156,7 +156,7 @@
           <p>Select your school, validate your application card, complete the enrollment form, and wait for registrar approval.</p>
         </div>
         <div class="steps">
-          <div class="step-pill"><span>1</span> Choose school and select your programme</div>
+          <div class="step-pill"><span>1</span> Validate your scratch card to identify your school</div>
           <div class="step-pill"><span>2</span> Complete student and guardian details</div>
           <div class="step-pill"><span>3</span> Registrar approves and enrolls class</div>
         </div>
@@ -165,17 +165,35 @@
       <section class="form-card" id="formCard">
         <div class="progress"><span id="bar"></span></div>
         <div class="panel active" id="p1">
-          <h2>School and scratch card</h2>
-          <p class="panel-sub">Your application will be sent to the selected school's admin office.</p>
+          <h2>Validate scratch card</h2>
+          <p class="panel-sub">Enter the serial number and PIN from your scratch card. Your school will be identified automatically.</p>
           <div class="grid">
-            <div class="full field" data-field="schoolId"><label>School *</label><select id="schoolId"><option value="">Loading schools...</option></select><div class="err">Select your school</div></div>
-            <div class="full field" data-field="serialNo"><label>Serial Number *</label><input id="serialNo" placeholder="e.g. ETN12345670001" maxlength="20" style="font-family:monospace;font-size:14px;letter-spacing:2px;text-transform:uppercase;" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')"><div class="hint">Found on the top of your scratch card (e.g. ETN12345670001).</div><div class="err">Enter the serial number printed on your card</div></div>
+            <!-- School resolved from card — never shown in dropdown to anon users -->
+            <input type="hidden" id="schoolId" value="">
+            <!-- Resolved school display (shown after card validation) -->
+            <div class="full" id="resolvedSchoolBox" style="display:none;padding:12px 14px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;align-items:center;gap:12px">
+              <div id="resolvedSchoolLogo" style="width:44px;height:44px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#e2e8f0;display:flex;align-items:center;justify-content:center;font-size:22px;border:1.5px solid #86efac">&#127979;</div>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" style="flex-shrink:0"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              <div>
+                <div style="font-size:13px;font-weight:800;color:#166534" id="resolvedSchoolName">School verified</div>
+                <div style="font-size:11px;color:#4ade80" id="resolvedSchoolSub"></div>
+              </div>
+            </div>
+            <div class="full field" data-field="serialNo"><label>Serial Number *</label><input id="serialNo" placeholder="e.g. ETN12345670001" maxlength="20" style="font-family:monospace;font-size:14px;letter-spacing:2px;text-transform:uppercase;" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'');resetCardValidation()"><div class="hint">Found on the top of your scratch card (e.g. ETN12345670001).</div><div class="err">Enter the serial number printed on your card</div></div>
             <div class="field" data-field="scratchPin"><label>Scratch Card PIN *</label><input id="scratchPin" placeholder="0000 – 0000 – 0000" maxlength="18" style="font-family:monospace;font-size:18px;letter-spacing:3px;text-align:center;" oninput="
   let v=this.value.replace(/[^0-9]/g,'').slice(0,12);
   let fmt='';
   for(let i=0;i<v.length;i++){if(i===4||i===8)fmt+=' – ';fmt+=v[i];}
   this.value=fmt;
+  resetCardValidation();
 "><div class="hint">Enter the 12-digit PIN exactly as shown on your card (e.g. 5638 – 5281 – 5469).</div><div class="err">Enter the full 12-digit card PIN</div></div>
+            <!-- Validate button — appears before card is confirmed -->
+            <div class="full" id="validateCardRow" style="margin-top:2px">
+              <button type="button" id="validateCardBtn" onclick="validateCardAndRevealSchool()" style="background:#0a6e3f;color:white;border:0;border-radius:8px;padding:11px 20px;font:700 13px Inter,system-ui,sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:8px">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                Validate Card
+              </button>
+            </div>
             <!-- Hidden fields — store IDs and names for DB save -->
             <input type="hidden" id="intendedProgramId"   value="">
             <input type="hidden" id="intendedProgram"     value="">
@@ -193,23 +211,17 @@
               <div class="err">Please select a programme</div>
             </div>
 
-            <!-- Step B: Level — from levels table filtered by selected programme -->
-            <div class="full field" id="fieldLevel" data-field="intendedLevel" style="display:none;">
-              <label>Level *</label>
-              <select id="levelSel" onchange="onLevelChange(this)">
-                <option value="">— Select level —</option>
-              </select>
-              <div class="hint">Select the level within your chosen programme.</div>
-              <div class="err">Please select a level</div>
-            </div>
+            <!-- Step B: Level — REMOVED (assigned by registrar/admin) -->
+            <!-- Invisible stub so JS getElementById('fieldLevel') never returns null -->
+            <div id="fieldLevel" style="display:none;"></div>
 
-            <!-- Step C: Combination — from subject_combinations table -->
+            <!-- Step C: Combination — from subject_combinations filtered by selected programme -->
             <div class="full field" id="fieldCombo" data-field="intendedCombo" style="display:none;">
-              <label>Combination *</label>
+              <label>Combination / Course *</label>
               <select id="comboSel" onchange="onComboChange(this)">
                 <option value="">— Select combination —</option>
               </select>
-              <div class="hint">Select your subject combination.</div>
+              <div class="hint">Select your course or subject combination within this programme.</div>
               <div class="err">Please select a combination</div>
             </div>
           </div>
@@ -295,42 +307,137 @@
 <script src="js/supabase.js"></script>
 <script>
 let step=1, schools=[], lastRef='', lastAppData=null, passportDataUrl=null, uploadedDocs={};
+let _resolvedSchool=null; // set after card validation — never exposed to anon via dropdown
 const total=4;
-const requiredByStep={1:['schoolId','serialNo','scratchPin','intendedProgram'],2:['fullName','gender','dob','address'],3:['parentName','parentPhone']};
+const requiredByStep={1:['serialNo','scratchPin','intendedProgram'],2:['fullName','gender','dob','address'],3:['parentName','parentPhone']};
 const val=id=>(document.getElementById(id)?.value||'').trim();
 const pinVal=()=>val('scratchPin').replace(/[^0-9]/g,''); // strips ' – ' formatting for DB queries
-const selectedSchool=()=>schools.find(s=>s.id===val('schoolId'));
+const selectedSchool=()=>_resolvedSchool;
 const selectedLevel=()=>val('intendedLevel'); // resolved from hidden field
 
-(async function init(){await loadSchools();await applyPrefillFromQuery();updateStep();})();
+(async function init(){await applyPrefillFromQuery();updateStep();})();
 
-async function loadSchools(){
-  const sel=document.getElementById('schoolId');
-  try{
-    const{data,error}=await db.from('schools').select('id,name,address,lga,state,phone,email,logo_url,school_type,is_active').eq('is_active',true).order('name');
-    if(error)throw error;
-    schools=data||[];
-    sel.innerHTML='<option value="">Select school</option>'+schools.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('');
-  }catch(e){sel.innerHTML='<option value="">Unable to load schools</option>';console.warn(e);}
+// Called when serial or PIN changes — reset card validation state
+function resetCardValidation(){
+  _resolvedSchool=null;
+  document.getElementById('schoolId').value='';
+  const box=document.getElementById('resolvedSchoolBox');
+  if(box)box.style.display='none';
+  const logoSlot=document.getElementById('resolvedSchoolLogo');
+  if(logoSlot){logoSlot.innerHTML='&#127979;';logoSlot.style.background='#e2e8f0';}
+  // Hide programme/level/combo fields
+  ['fieldProgram','fieldLevel','fieldCombo'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.style.display='none';
+  });
+  document.getElementById('validateCardRow').style.display='';
 }
 
-document.getElementById('schoolId').addEventListener('change', async () => {
-  // Reset all selection fields when school changes
-  document.getElementById('intendedProgram').value = '';
-  document.getElementById('intendedLevel').value   = '';
-  document.getElementById('intendedCombo').value   = '';
-  _schoolPrograms = []; _schoolLevels = []; _schoolCombos = []; _levelProgMap = {};
-  // Load active term for this school (used in session year on letter)
-  const sid = val('schoolId');
-  if(sid){
-    try{
-      const{data:t}=await db.from('terms').select('id,name,session,is_current').eq('school_id',sid).eq('is_current',true).maybeSingle();
-      window._activeTerm = t || null;
-    }catch(_){}
+// Card-first validation: look up school from card, then reveal it
+async function validateCardAndRevealSchool(){
+  const serialNo=val('serialNo'), pin=pinVal();
+  const btn=document.getElementById('validateCardBtn');
+  const pinWrap=document.querySelector('[data-field="scratchPin"]');
+  const serialWrap=document.querySelector('[data-field="serialNo"]');
+
+  // Basic presence check
+  if(!serialNo){
+    if(serialWrap){serialWrap.classList.add('bad');const e=serialWrap.querySelector('.err');if(e){e.textContent='Enter the serial number printed on your card';e.style.display='block';}}
+    return;
   }
-  await loadSchoolSelects();
-  renderDocUploads();
-});
+  if(pin.length!==12){
+    if(pinWrap){pinWrap.classList.add('bad');const e=pinWrap.querySelector('.err');if(e){e.textContent='PIN must be exactly 12 digits ('+pin.length+' entered).';e.style.display='block';}}
+    return;
+  }
+
+  btn.disabled=true;btn.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Validating\u2026';
+
+  try{
+    // Try RPC that returns school_id alongside card data
+    let schoolId=null, cardType='registration';
+
+    const{data:rpcData,error:rpcErr}=await db.rpc('verify_scratch_pin_anon',{p_serial_no:serialNo,p_pin:pin});
+    if(!rpcErr&&rpcData?.valid){
+      schoolId=rpcData.school_id;
+      cardType=rpcData.card_type||'registration';
+    } else {
+      // Fallback: query scratch_cards directly — serial+pin, get school_id back
+      const{data:card,error:cardErr}=await db.from('scratch_cards')
+        .select('id,pin,school_id,serial_no,is_used,uses_count,max_uses,card_type')
+        .eq('serial_no',serialNo).eq('pin',pin).maybeSingle();
+
+      if(cardErr||!card){
+        // One more fallback: PIN-only (legacy null-serial cards)
+        const{data:legacyCard,error:legErr}=await db.from('scratch_cards')
+          .select('id,pin,school_id,serial_no,is_used,uses_count,max_uses,card_type')
+          .eq('pin',pin).maybeSingle();
+        if(legErr||!legacyCard)throw new Error('Scratch card not found. Check your Serial Number and PIN.');
+        if(legacyCard.serial_no&&legacyCard.serial_no.toUpperCase()!==serialNo.toUpperCase())
+          throw new Error('Serial Number does not match this PIN. Please check your card.');
+        if(legacyCard.is_used===true||Number(legacyCard.uses_count||0)>=Number(legacyCard.max_uses||1))
+          throw new Error('This scratch card has already been used. Please request a new card.');
+        schoolId=legacyCard.school_id;
+        cardType=legacyCard.card_type||'registration';
+      } else {
+        if(card.is_used===true||Number(card.uses_count||0)>=Number(card.max_uses||1))
+          throw new Error('This scratch card has already been used. Please request a new card.');
+        schoolId=card.school_id;
+        cardType=card.card_type||'registration';
+      }
+    }
+
+    if(!schoolId)throw new Error('Could not identify a school for this card. Contact your school admin.');
+
+    // Fetch school details — only after card is proven valid
+    const{data:school,error:schErr}=await db.from('schools')
+      .select('id,name,address,lga,state,phone,email,logo_url,school_type,is_active')
+      .eq('id',schoolId).single();
+    if(schErr||!school)throw new Error('School not found. Please contact your school admin.');
+    if(!school.is_active)throw new Error('This school is not currently active on EduTrack NG.');
+
+    // Store resolved school
+    _resolvedSchool=school;
+    document.getElementById('schoolId').value=school.id;
+
+    // Fetch active term
+    try{
+      const{data:t}=await db.from('terms').select('id,name,session,is_current').eq('school_id',school.id).eq('is_current',true).maybeSingle();
+      window._activeTerm=t||null;
+    }catch(_){}
+
+    // Show school badge with logo
+    const box=document.getElementById('resolvedSchoolBox');
+    document.getElementById('resolvedSchoolName').textContent=school.name;
+    document.getElementById('resolvedSchoolSub').textContent=(school.lga?school.lga+', ':'')+(school.state||'');
+    // Render logo or fallback emoji
+    const logoSlot=document.getElementById('resolvedSchoolLogo');
+    if(logoSlot){
+      if(school.logo_url){
+        logoSlot.innerHTML=`<img src="${school.logo_url}" alt="Logo" style="width:100%;height:100%;object-fit:contain;border-radius:6px;" onerror="this.parentElement.innerHTML='&#127979;'">`;
+      } else {
+        // Generate initials-based avatar as fallback
+        const initials=(school.name||'').split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+        logoSlot.innerHTML=`<span style="font-size:15px;font-weight:800;color:#166534;font-family:Inter,system-ui,sans-serif;">${initials||'&#127979;'}</span>`;
+        logoSlot.style.background='#dcfce7';
+      }
+    }
+    box.style.display='flex';
+
+    // Hide validate button row — card is done
+    document.getElementById('validateCardRow').style.display='none';
+
+    // Clear any error states
+    [serialWrap,pinWrap].forEach(w=>{if(w)w.classList.remove('bad');});
+
+    // Load programmes for this school
+    await loadSchoolSelects();
+    renderDocUploads();
+
+  }catch(e){
+    if(pinWrap){pinWrap.classList.add('bad');const er=pinWrap.querySelector('.err');if(er){er.textContent=e.message;er.style.display='block';}}
+  }finally{
+    btn.disabled=false;btn.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Validate Card';
+  }
+}
 // level change now handled by onLevelChange / onComboChange
 
 // ── Caches for this school session ──────────────────────────────
@@ -340,7 +447,7 @@ let _schoolPrograms = [], _schoolLevels = [], _schoolCombos = [], _levelProgMap 
 async function loadLevelsForSchool(){ return loadSchoolSelects(); }
 
 async function loadSchoolSelects(){
-  const school = selectedSchool();
+  const school = _resolvedSchool;
   uploadedDocs = {};
   renderDocUploads();
 
@@ -362,7 +469,7 @@ async function loadSchoolSelects(){
     const [progsRes, lvlsRes, combosRes] = await Promise.all([
       db.from('programs').select('id,name,description').eq('school_id',school.id).order('name'),
       db.from('levels').select('id,name,program_id,sort_order').eq('school_id',school.id).order('sort_order,name'),
-      db.from('subject_combinations').select('id,name,description').eq('school_id',school.id).order('name'),
+      db.from('subject_combinations').select('id,name,description,program_id').eq('school_id',school.id).order('name'),
     ]);
 
     // Log any errors clearly for debugging
@@ -406,7 +513,7 @@ async function loadSchoolSelects(){
   }
 }
 
-// Called when student picks a Programme → populate Levels filtered by programme
+// Called when student picks a Programme → populate Combinations filtered by programme
 function onProgramChange(sel){
   const opt = sel.options[sel.selectedIndex];
   const progId   = sel.value;
@@ -415,31 +522,19 @@ function onProgramChange(sel){
   // Save programme
   document.getElementById('intendedProgramId').value = progId;
   document.getElementById('intendedProgram').value   = progName;
-  // Reset downstream fields
-  ['intendedLevelId','intendedLevel','intendedCombo'].forEach(id=>{
-    document.getElementById(id).value='';
-  });
+  // Level is assigned by admin — set to programme name as placeholder
+  document.getElementById('intendedLevelId').value   = '';
+  document.getElementById('intendedLevel').value     = progName; // fallback for doc detection
+  document.getElementById('intendedCombo').value     = '';
+
+  // Always hide level field — it's admin-assigned
   document.getElementById('fieldLevel').style.display = 'none';
   document.getElementById('fieldCombo').style.display = 'none';
 
   if(!progId){ renderDocUploads(); return; }
 
-  // Filter levels that belong to this programme
-  const levelsForProg = _schoolLevels.filter(l => l.program_id === progId);
-  const levelSel = document.getElementById('levelSel');
-
-  if(levelsForProg.length){
-    levelSel.innerHTML = '<option value="">— Select level —</option>' +
-      levelsForProg.map(l =>
-        `<option value="${esc(l.id)}" data-name="${esc(l.name)}">${esc(l.name)}</option>`
-      ).join('');
-    document.getElementById('fieldLevel').style.display = '';
-  } else {
-    // Programme has no levels defined — skip level, go straight to combination
-    document.getElementById('fieldLevel').style.display = 'none';
-    document.getElementById('intendedLevel').value = progName; // use programme name as level fallback
-    _showCombinations();
-  }
+  // Show combinations for this programme (filtered by program_id if available)
+  _showCombinations(progId);
   renderDocUploads();
 }
 
@@ -462,18 +557,47 @@ function onLevelChange(sel){
   renderDocUploads();
 }
 
-// Show combinations dropdown (school-wide, all combos available)
-function _showCombinations(){
+// Show combinations dropdown — filtered by programme_id when possible, with smart fallbacks
+async function _showCombinations(progId){
   const comboSel   = document.getElementById('comboSel');
   const fieldCombo = document.getElementById('fieldCombo');
-  if(_schoolCombos.length){
-    comboSel.innerHTML = '<option value="">— Select combination —</option>' +
-      _schoolCombos.map(cb =>
-        `<option value="${esc(cb.id)}" data-name="${esc(cb.name)}">${esc(cb.name)}${cb.description?' — '+esc(cb.description):''}</option>`
+  const hint       = fieldCombo.querySelector('.hint');
+
+  // Reset hint to default each time
+  if(hint){ hint.innerHTML = 'Select your course or subject combination within this programme.'; }
+
+  comboSel.innerHTML = '<option value="">Loading combinations\u2026</option>';
+  fieldCombo.style.display = '';
+
+  // Strategy 1: combos linked to this specific programme
+  let combos = progId ? _schoolCombos.filter(cb => cb.program_id === progId) : [];
+
+  // Strategy 2: unlinked combos (no program_id set) — school-wide
+  if(!combos.length) combos = _schoolCombos.filter(cb => !cb.program_id);
+
+  // Strategy 3: all school combos — handles case where combos exist but aren't linked to any programme
+  if(!combos.length) combos = _schoolCombos.slice();
+
+  // Strategy 4: live DB fetch if cache is empty
+  if(!combos.length && _resolvedSchool){
+    try{
+      const{data:fresh,error:fErr}=await db.from('subject_combinations')
+        .select('id,name,description,program_id')
+        .eq('school_id',_resolvedSchool.id).order('name');
+      if(!fErr&&fresh&&fresh.length){ _schoolCombos=fresh; combos=fresh; }
+    }catch(_){}
+  }
+
+  if(combos.length){
+    comboSel.innerHTML='<option value="">— Select combination —</option>'+
+      combos.map(cb=>
+        `<option value="${esc(cb.id)}" data-name="${esc(cb.name)}">${esc(cb.name)}${cb.description?' \u2014 '+esc(cb.description):''}</option>`
       ).join('');
-    fieldCombo.style.display = '';
+    fieldCombo.style.display='';
   } else {
-    fieldCombo.style.display = 'none';
+    comboSel.innerHTML='<option value="">— No combinations available —</option>';
+    fieldCombo.style.display='';
+    if(hint) hint.innerHTML='<span style="color:#f0a500;font-weight:700;">\u2139 No combinations set up yet. You may proceed \u2014 the school will assign one.</span>';
   }
 }
 
@@ -590,10 +714,14 @@ function handleDocUpload(docId,label,input){
 
 async function applyPrefillFromQuery(){
   const p=new URLSearchParams(location.search);
-  const school=p.get('school'),pin=p.get('pin'),serial=p.get('serial');
-  if(school){document.getElementById('schoolId').value=school;await loadLevelsForSchool();}
+  const serial=p.get('serial'),pin=p.get('pin');
   if(serial)document.getElementById('serialNo').value=serial.toUpperCase();
   if(pin)document.getElementById('scratchPin').value=pin;
+  // If both serial and pin provided, auto-validate
+  if(serial&&pin){
+    const pinDigits=pin.replace(/[^0-9]/g,'');
+    if(pinDigits.length===12) await validateCardAndRevealSchool();
+  }
 }
 
 function validateStep(n){
@@ -603,8 +731,14 @@ function validateStep(n){
     if(wrap)wrap.classList.toggle('bad',missing);
     if(missing)ok=false;
   });
+  // Step 1: card must have been validated (school resolved)
+  if(n===1&&!_resolvedSchool){
+    const pinWrap=document.querySelector('[data-field="scratchPin"]');
+    if(pinWrap){pinWrap.classList.add('bad');const e=pinWrap.querySelector('.err');if(e){e.textContent='Please validate your scratch card first.';e.style.display='block';}}
+    ok=false;
+  }
   // Extra check: PIN must be exactly 12 digits
-  if(n===1&&val('scratchPin')){
+  if(n===1&&val('scratchPin')&&_resolvedSchool){
     const digits=pinVal();
     const pinWrap=document.querySelector('[data-field="scratchPin"]');
     const pinErr=pinWrap?.querySelector('.err');
@@ -614,20 +748,7 @@ function validateStep(n){
       ok=false;
     }
   }
-  // Level is required only when its field is visible
-  if(n===1){
-    const fieldLevel=document.getElementById('fieldLevel');
-    if(fieldLevel && fieldLevel.style.display!=='none'){
-      const lvlWrap=document.querySelector('[data-field="intendedLevel"]');
-      const missing=!val('intendedLevel');
-      if(lvlWrap)lvlWrap.classList.toggle('bad',missing);
-      if(missing)ok=false;
-    } else if(fieldLevel && fieldLevel.style.display==='none'){
-      // Level field hidden — remove any stale bad state
-      const lvlWrap=document.querySelector('[data-field="intendedLevel"]');
-      if(lvlWrap)lvlWrap.classList.remove('bad');
-    }
-  }
+  // Level is admin-assigned — no longer required from applicant
   // Combination is required only when its field is visible
   if(n===1){
     const fieldCombo=document.getElementById('fieldCombo');
@@ -657,17 +778,6 @@ function validateStep(n){
 async function nextStep(){
   if(step<total){
     if(!validateStep(step))return;
-    if(step===1){
-      const btn=document.getElementById('nextBtn');
-      btn.disabled=true;btn.textContent='Validating\u2026';
-      try{await validateScratchCard();}
-      catch(e){
-        btn.disabled=false;btn.textContent='Continue';
-        const wrap=document.querySelector('[data-field="scratchPin"]');
-        if(wrap){wrap.classList.add('bad');const er=wrap.querySelector('.err');if(er){er.textContent=e.message;er.style.display='block';}}
-        return;
-      }finally{btn.disabled=false;btn.textContent='Continue';}
-    }
     step++;if(step===total)buildReview();updateStep();return;
   }
   submitApplication();
@@ -684,7 +794,7 @@ function updateStep(){
 
 function buildReview(){
   const rows=[
-    ['School',selectedSchool()?.name||''],['Serial No.',val('serialNo')],['Scratch Card PIN',val('scratchPin')],
+    ['School',_resolvedSchool?.name||''],['Serial No.',val('serialNo')],['Scratch Card PIN',val('scratchPin')],
     ['Programme',    val('intendedProgram')||'Not selected'],
     ['Level',        val('intendedLevel')||'—'],
     ['Combination',  val('intendedCombo')||'—'],
@@ -698,19 +808,18 @@ function buildReview(){
 }
 
 async function validateScratchCard(){
-  const schoolId=val('schoolId'),serialNo=val('serialNo'),pin=pinVal();
+  const schoolId=_resolvedSchool?.id||val('schoolId'),serialNo=val('serialNo'),pin=pinVal();
 
   // 1. Try the RPC (serial + pin) — works for cards generated after SQL migration
   const{data,error}=await db.rpc('verify_scratch_pin',{p_school_id:schoolId,p_serial_no:serialNo,p_pin:pin});
   if(!error&&data?.valid)return{id:data.card_id,card_type:data.card_type};
 
   // 2. Fallback: direct table query by pin only — for legacy cards where serial_no is still NULL
-  //    (SQL backfill not yet run). If found via pin, treat serial as matching so the user can proceed.
   const{data:card,error:fbErr}=await db.from('scratch_cards')
     .select('id,pin,school_id,serial_no,is_used,uses_count,max_uses,card_type')
     .eq('school_id',schoolId).eq('pin',pin).maybeSingle();
   if(fbErr)throw new Error(fbErr.message);
-  if(!card)throw new Error(data?.error||'Scratch card not found. Check your Serial Number and PIN, and make sure you selected the correct school.');
+  if(!card)throw new Error(data?.error||'Scratch card not found. Check your Serial Number and PIN.');
   if(card.serial_no&&card.serial_no.toUpperCase()!==serialNo.toUpperCase())
     throw new Error('Serial Number does not match this PIN. Please check your card.');
   if(card.is_used===true||Number(card.uses_count||0)>=Number(card.max_uses||1))
@@ -724,11 +833,12 @@ async function submitApplication(){
   btn.disabled=true;btn.textContent='Submitting\u2026';
   try{
     const card=await validateScratchCard();
+    const schoolId=_resolvedSchool?.id||val('schoolId');
     const ref='STU-'+Date.now().toString(36).toUpperCase();
 
     // Try the RPC first (handles card marking atomically)
     const{data:result,error:rpcErr}=await db.rpc('submit_student_application',{
-      p_school_id:val('schoolId'),
+      p_school_id:schoolId,
       p_serial_no:val('serialNo'),
       p_pin:pinVal(),
       p_full_name:val('fullName'),
@@ -749,7 +859,7 @@ async function submitApplication(){
     } else {
       // Fallback: direct insert for legacy cards (serial_no null / RPC not yet deployed)
       const payload={
-        school_id:val('schoolId'),scratch_card_id:card.id,scratch_card_pin:pinVal(),
+        school_id:schoolId,scratch_card_id:card.id,scratch_card_pin:pinVal(),
         intended_class_id:null,full_name:val('fullName'),gender:val('gender'),
         date_of_birth:val('dob')||null,address:val('address'),parent_name:val('parentName'),
         parent_phone:val('parentPhone'),parent_email:val('parentEmail')||null,
@@ -813,9 +923,15 @@ async function checkStatus(){
   btn.disabled=true;btn.textContent='Checking\u2026';
   document.getElementById('trackerResult').innerHTML='';
   try{
-    const{data,error}=await db.from('student_applications')
-      .select('ref_id,full_name,status,submitted_at,reviewed_at,rejection_reason,gender,date_of_birth,address,parent_name,parent_phone,blood_group,admission_number,intended_class_id,intended_level,intended_program,intended_combo,school_id,schools(name,address,lga,state,phone,email,logo_url,school_type),classes:intended_class_id(id,name,level)')
-      .eq('ref_id',ref).maybeSingle();
+    // First try full select including intended_combo
+    let data, error;
+    const fullSelect = 'ref_id,full_name,status,submitted_at,reviewed_at,rejection_reason,gender,date_of_birth,address,parent_name,parent_phone,blood_group,admission_number,intended_class_id,intended_level,intended_program,intended_combo,school_id,schools(name,address,lga,state,phone,email,logo_url,school_type),classes:intended_class_id(id,name,level)';
+    const fallbackSelect = 'ref_id,full_name,status,submitted_at,reviewed_at,rejection_reason,gender,date_of_birth,address,parent_name,parent_phone,blood_group,admission_number,intended_class_id,intended_level,intended_program,school_id,schools(name,address,lga,state,phone,email,logo_url,school_type),classes:intended_class_id(id,name,level)';
+    ({data,error}=await db.from('student_applications').select(fullSelect).eq('ref_id',ref).maybeSingle());
+    // If column doesn't exist (42703), retry without intended_combo
+    if(error&&(error.code==='42703'||/intended_combo|does not exist/i.test(error.message||''))){
+      ({data,error}=await db.from('student_applications').select(fallbackSelect).eq('ref_id',ref).maybeSingle());
+    }
     if(error)throw error;
     if(!data){document.getElementById('trackerResult').innerHTML='<p style="font-size:13px;color:#dc2626;margin:8px 0 0">No application found for that reference number.</p>';return;}
     // Resolve class/level name:
@@ -1129,3 +1245,4 @@ function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&l
 </script>
 </body>
 </html>
+
