@@ -934,21 +934,58 @@ async function checkStatus(){
   btn.disabled=true;btn.textContent='Checking\u2026';
   document.getElementById('trackerResult').innerHTML='';
   try{
-    // First try full select including intended_combo
-    let data, error;
+    let data=null, error=null;
+
+    // Build selects with graceful column fallbacks
     const fullSelect = 'ref_id,full_name,status,submitted_at,reviewed_at,rejection_reason,gender,date_of_birth,address,parent_name,parent_phone,blood_group,admission_number,intended_class_id,intended_level,intended_program,intended_combo,school_id,schools(name,address,lga,state,phone,email,logo_url,school_type),classes:intended_class_id(id,name,level)';
-    const fallbackSelect = 'ref_id,full_name,status,submitted_at,reviewed_at,rejection_reason,gender,date_of_birth,address,parent_name,parent_phone,blood_group,admission_number,intended_class_id,intended_level,intended_program,school_id,schools(name,address,lga,state,phone,email,logo_url,school_type),classes:intended_class_id(id,name,level)';
+    const safeSelect  = 'ref_id,full_name,status,submitted_at,reviewed_at,rejection_reason,gender,date_of_birth,address,parent_name,parent_phone,blood_group,admission_number,intended_class_id,intended_level,intended_program,school_id,schools(name,address,lga,state,phone,email,logo_url,school_type),classes:intended_class_id(id,name,level)';
+    const minSelect   = 'ref_id,full_name,status,submitted_at,school_id,schools(name,logo_url)';
+
+    // Strategy 1: exact ref_id match (full columns)
     ({data,error}=await db.from('student_applications').select(fullSelect).eq('ref_id',ref).maybeSingle());
-    // If column doesn't exist (42703), retry without intended_combo
-    if(error&&(error.code==='42703'||/intended_combo|does not exist/i.test(error.message||''))){
-      ({data,error}=await db.from('student_applications').select(fallbackSelect).eq('ref_id',ref).maybeSingle());
+    console.log('[EduTrack] S1 ref_id exact:',{data:!!data,error:error?.message});
+
+    // Strategy 2: if column missing, retry without intended_combo
+    if(!data&&error&&(error.code==='42703'||/does not exist|intended_combo/i.test(error.message||''))){
+      ({data,error}=await db.from('student_applications').select(safeSelect).eq('ref_id',ref).maybeSingle());
+      console.log('[EduTrack] S2 safe columns:',{data:!!data,error:error?.message});
     }
-    if(error)throw error;
+
+    // Strategy 3: minimal select — isolates RLS vs column issues
+    if(!data&&(error||true)){
+      const{data:d3,error:e3}=await db.from('student_applications').select(minSelect).eq('ref_id',ref).maybeSingle();
+      console.log('[EduTrack] S3 minimal:',{data:!!d3,error:e3?.message,row:d3});
+      if(d3&&!e3){
+        // Minimal worked — RLS ok, just column issues; fetch safe select
+        ({data,error}=await db.from('student_applications').select(safeSelect).eq('ref_id',ref).maybeSingle());
+      } else if(e3){
+        console.warn('[EduTrack] S3 error — likely RLS blocking anon:',e3.message);
+        error=e3;
+      }
+    }
+
+    // Strategy 4: ref_id stored without 'STU-' prefix (legacy)
     if(!data){
-      console.warn('[EduTrack] Tracker: no row found for ref_id=',ref);
+      const shortRef=ref.replace(/^STU-/,'');
+      const{data:d4,error:e4}=await db.from('student_applications').select(safeSelect).eq('ref_id',shortRef).maybeSingle();
+      console.log('[EduTrack] S4 short ref:',{data:!!d4,error:e4?.message});
+      if(d4&&!e4) data=d4;
+    }
+
+    // Strategy 5: ilike — handles case mismatches in DB
+    if(!data){
+      const{data:d5,error:e5}=await db.from('student_applications').select(safeSelect).ilike('ref_id',ref).maybeSingle();
+      console.log('[EduTrack] S5 ilike:',{data:!!d5,error:e5?.message});
+      if(d5&&!e5) data=d5;
+    }
+
+    if(error&&!data) throw error;
+
+    if(!data){
+      console.warn('[EduTrack] All strategies exhausted — ref not in DB:',ref);
       document.getElementById('trackerResult').innerHTML=`
         <p style="font-size:13px;color:#dc2626;margin:8px 0 0;font-weight:700;">No application found for <code style="background:#fee2e2;padding:2px 6px;border-radius:4px;">${ref}</code></p>
-        <p style="font-size:12px;color:#64748b;margin:6px 0 0;">Double-check the reference number on your confirmation screen. It starts with <b>STU-</b> and is case-sensitive. If you just submitted, wait a few seconds and try again.</p>`;
+        <p style="font-size:12px;color:#64748b;margin:6px 0 0;">This reference was not found in our system. It may be from before the latest update — please resubmit your application with a new scratch card, or contact your school admin.</p>`;
       return;
     }
     // Resolve class/level name:
