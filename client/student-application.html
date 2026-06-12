@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -323,8 +324,6 @@ function resetCardValidation(){
   document.getElementById('schoolId').value='';
   const box=document.getElementById('resolvedSchoolBox');
   if(box)box.style.display='none';
-  const logoSlot=document.getElementById('resolvedSchoolLogo');
-  if(logoSlot){logoSlot.innerHTML='&#127979;';logoSlot.style.background='#e2e8f0';}
   // Hide programme/level/combo fields
   ['fieldProgram','fieldLevel','fieldCombo'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.style.display='none';
@@ -404,22 +403,10 @@ async function validateCardAndRevealSchool(){
       window._activeTerm=t||null;
     }catch(_){}
 
-    // Show school badge with logo
+    // Show school badge
     const box=document.getElementById('resolvedSchoolBox');
     document.getElementById('resolvedSchoolName').textContent=school.name;
-    document.getElementById('resolvedSchoolSub').textContent=(school.lga?school.lga+', ':'')+(school.state||'');
-    // Render logo or fallback emoji
-    const logoSlot=document.getElementById('resolvedSchoolLogo');
-    if(logoSlot){
-      if(school.logo_url){
-        logoSlot.innerHTML=`<img src="${school.logo_url}" alt="Logo" style="width:100%;height:100%;object-fit:contain;border-radius:6px;" onerror="this.parentElement.innerHTML='&#127979;'">`;
-      } else {
-        // Generate initials-based avatar as fallback
-        const initials=(school.name||'').split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
-        logoSlot.innerHTML=`<span style="font-size:15px;font-weight:800;color:#166534;font-family:Inter,system-ui,sans-serif;">${initials||'&#127979;'}</span>`;
-        logoSlot.style.background='#dcfce7';
-      }
-    }
+    document.getElementById('resolvedSchoolSub').textContent=(school.lga?school.lga+', ':'')+( school.state||'');
     box.style.display='flex';
 
     // Hide validate button row — card is done
@@ -529,11 +516,16 @@ function onProgramChange(sel){
 
   // Always hide level field — it's admin-assigned
   document.getElementById('fieldLevel').style.display = 'none';
-  document.getElementById('fieldCombo').style.display = 'none';
 
-  if(!progId){ renderDocUploads(); return; }
+  // If no programme selected, hide combo
+  if(!progId){
+    document.getElementById('fieldCombo').style.display = 'none';
+    renderDocUploads();
+    return;
+  }
 
-  // Show combinations for this programme (filtered by program_id if available)
+  // Show combinations immediately after programme is picked
+  // Do NOT hide fieldCombo here — _showCombinations reveals it in-place instantly
   _showCombinations(progId);
   renderDocUploads();
 }
@@ -1245,4 +1237,3 @@ function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&l
 </script>
 </body>
 </html>
-
