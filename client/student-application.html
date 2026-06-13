@@ -289,7 +289,10 @@
           <p class="panel-sub">Awaiting registrar approval. Keep your reference number safe.</p>
           <div class="ref" id="refBox">REF: ...</div>
           <p style="font-size:12px;color:#64748b;margin:14px 0 8px">Use this reference to check your admission status.</p>
-          <button onclick="autoTrack()" style="background:#073d28;color:white;border:0;border-radius:8px;padding:11px 22px;font:700 13px Inter,system-ui,sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:8px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Track My Admission</button>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:4px;">
+            <button onclick="autoTrack()" style="background:#073d28;color:white;border:0;border-radius:8px;padding:11px 22px;font:700 13px Inter,system-ui,sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:8px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Track My Admission</button>
+            <button onclick="printApplicationForm()" style="background:#fff;color:#073d28;border:2px solid #073d28;border-radius:8px;padding:11px 22px;font:700 13px Inter,system-ui,sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:8px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Download / Print Form</button>
+          </div>
         </div>
         <div class="nav" id="nav">
           <button class="btn secondary" id="prevBtn" onclick="prevStep()">Back</button>
@@ -927,8 +930,23 @@ async function submitApplication(){
 
     if(!appId) throw new Error('Application could not be saved. Please try again.');
 
-    // ref is the single source of truth — no second lookup needed
-    const finalRef = ref;
+    // ── Read the ref_id that was ACTUALLY saved in DB (source of truth) ──
+    // The anon role may not be able to UPDATE (RLS), so we always read back
+    // what is stored rather than trusting the client-generated ref.
+    let finalRef = ref; // optimistic default
+    try{
+      const{data:savedRow, error:readErr} = await db
+        .from('student_applications')
+        .select('ref_id')
+        .eq('id', appId)
+        .single();
+      if(!readErr && savedRow?.ref_id){
+        finalRef = savedRow.ref_id;
+        console.log('[EduTrack] DB ref_id confirmed:', finalRef);
+      } else {
+        console.warn('[EduTrack] Could not read back ref_id, using client ref:', ref, readErr?.message);
+      }
+    } catch(e){ console.warn('[EduTrack] ref readback exception:', e.message); }
 
     document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
     document.getElementById('nav').style.display='none';
@@ -1327,6 +1345,137 @@ function handlePassportUpload(input){
 }
 
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+// ── Application Form Print / Download ────────────────────────────────────────
+function printApplicationForm(){
+  const school = selectedSchool() || {};
+  const ref    = lastRef || document.getElementById('refBox').textContent.replace('REF: ','').trim();
+
+  const logoSrc = school.logo_url || 'icons/logo.jpg';
+  const today   = new Date().toLocaleDateString('en-NG',{day:'2-digit',month:'long',year:'numeric'});
+
+  const row = (label, value) => value
+    ? `<tr><td style="padding:7px 12px;font-weight:600;color:#374151;width:38%;border-bottom:1px solid #e5e7eb;white-space:nowrap">${label}</td>
+           <td style="padding:7px 12px;color:#111827;border-bottom:1px solid #e5e7eb">${value}</td></tr>`
+    : '';
+
+  const passportHtml = passportDataUrl
+    ? `<img src="${passportDataUrl}" style="width:110px;height:130px;object-fit:cover;border:2px solid #0a6e3f;border-radius:4px;">`
+    : `<div style="width:110px;height:130px;border:2px dashed #cbd5e1;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:12px;text-align:center;">Passport<br>Photo</div>`;
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Application Form - ${esc(val('fullName') || 'Applicant')}</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:Arial,sans-serif;font-size:13px;color:#111827;background:#fff;padding:24px;}
+    @media print{body{padding:0;} .no-print{display:none!important;} @page{margin:15mm;}}
+    .page{max-width:720px;margin:0 auto;}
+    .header{display:flex;align-items:center;gap:16px;border-bottom:3px solid #0a6e3f;padding-bottom:14px;margin-bottom:18px;}
+    .school-logo{width:64px;height:64px;object-fit:cover;border-radius:8px;flex-shrink:0;}
+    .school-info{flex:1;}
+    .school-name{font-size:18px;font-weight:900;color:#0a6e3f;line-height:1.2;}
+    .school-sub{font-size:11px;color:#6b7280;margin-top:2px;}
+    .form-title{font-size:13px;font-weight:700;text-align:center;background:#0a6e3f;color:#fff;padding:7px;border-radius:4px;margin-bottom:18px;letter-spacing:.05em;text-transform:uppercase;}
+    .section-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#0a6e3f;background:#f0fdf4;padding:6px 12px;border-left:3px solid #0a6e3f;margin:16px 0 0;}
+    table{width:100%;border-collapse:collapse;margin-bottom:4px;}
+    .top-row{display:flex;gap:20px;align-items:flex-start;}
+    .top-details{flex:1;}
+    .passport-box{flex-shrink:0;}
+    .ref-badge{display:inline-block;background:#f0fdf4;border:1.5px solid #0a6e3f;color:#0a6e3f;font-weight:800;font-size:13px;padding:6px 16px;border-radius:6px;letter-spacing:.06em;margin:12px 0;}
+    .footer{margin-top:28px;border-top:1.5px solid #e5e7eb;padding-top:14px;display:flex;justify-content:space-between;font-size:11px;color:#9ca3af;}
+    .sig-block{margin-top:32px;display:flex;gap:40px;}
+    .sig-line{flex:1;border-top:1.5px solid #374151;padding-top:4px;font-size:11px;color:#6b7280;text-align:center;}
+    .print-btn{display:inline-flex;align-items:center;gap:8px;background:#0a6e3f;color:#fff;border:0;border-radius:8px;padding:10px 22px;font:700 13px Arial;cursor:pointer;margin-bottom:20px;}
+  </style>
+</head>
+<body>
+<div class="page">
+  <button class="print-btn no-print" onclick="window.print()">
+    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+    Print / Save as PDF
+  </button>
+
+  <div class="header">
+    <img class="school-logo" src="${logoSrc}" onerror="this.style.display='none'">
+    <div class="school-info">
+      <div class="school-name">${esc(school.name || 'School Name')}</div>
+      <div class="school-sub">${esc([school.address, school.lga, school.state].filter(Boolean).join(', '))}</div>
+      ${school.phone ? `<div class="school-sub">Tel: ${esc(school.phone)}</div>` : ''}
+    </div>
+  </div>
+
+  <div class="form-title">Student Admission Application Form</div>
+
+  <div style="text-align:center">
+    <div class="ref-badge">REF: ${esc(ref)}</div>
+    <div style="font-size:11px;color:#6b7280">Date: ${today} &nbsp;|&nbsp; Status: <b style="color:#d97706">Pending Review</b></div>
+  </div>
+
+  <!-- STUDENT DETAILS -->
+  <div class="section-title">A. Student Information</div>
+  <div class="top-row" style="margin-top:8px">
+    <div class="top-details">
+      <table>
+        ${row('Full Name', val('fullName'))}
+        ${row('Gender', val('gender'))}
+        ${row('Date of Birth', val('dob'))}
+        ${row('Address', val('address'))}
+        ${row('Blood Group', val('bloodGroup'))}
+      </table>
+    </div>
+    <div class="passport-box">${passportHtml}</div>
+  </div>
+
+  <!-- PROGRAMME DETAILS -->
+  <div class="section-title">B. Programme Applied For</div>
+  <table style="margin-top:8px">
+    ${row('Programme', val('intendedProgram'))}
+    ${row('Combination', val('intendedCombo'))}
+    ${row('Level / Class', val('intendedLevel'))}
+  </table>
+
+  <!-- GUARDIAN DETAILS -->
+  <div class="section-title">C. Parent / Guardian Information</div>
+  <table style="margin-top:8px">
+    ${row('Guardian Name', val('parentName'))}
+    ${row('Phone', val('parentPhone'))}
+    ${row('Email', val('parentEmail'))}
+    ${row('Relationship', val('relationship'))}
+    ${row('Emergency Contact', val('emergencyPhone'))}
+  </table>
+
+  <!-- MEDICAL -->
+  ${val('medicalNotes') ? `<div class="section-title">D. Medical / Special Needs</div>
+  <div style="padding:8px 12px;margin-top:8px;background:#fffbeb;border-left:3px solid #f59e0b;font-size:12px;color:#374151">${esc(val('medicalNotes'))}</div>` : ''}
+
+  <!-- DECLARATION -->
+  <div class="section-title" style="margin-top:20px">E. Declaration</div>
+  <div style="padding:10px 12px;margin-top:8px;font-size:11px;color:#374151;line-height:1.6;background:#f8fafc;border-radius:4px">
+    I hereby declare that the information provided in this application form is true and correct to the best of my knowledge. I understand that providing false information may result in cancellation of my admission.
+  </div>
+
+  <div class="sig-block">
+    <div class="sig-line">Applicant / Guardian Signature &amp; Date</div>
+    <div class="sig-line">School Stamp &amp; Authorisation</div>
+  </div>
+
+  <div class="footer">
+    <span>Generated by EduTrack NG &bull; ${today}</span>
+    <span>REF: ${esc(ref)}</span>
+  </div>
+</div>
+</body>
+</html>`;
+
+  const win = window.open('', '_blank', 'width=800,height=900');
+  if(!win){ alert('Please allow popups for this site to print your form.'); return; }
+  win.document.write(html);
+  win.document.close();
+  win.onload = () => { win.focus(); };
+}
+
 </script>
 </body>
 </html>
