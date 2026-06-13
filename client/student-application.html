@@ -57,6 +57,8 @@
     .dl-btn.letter{background:#0a6e3f;color:white;box-shadow:0 4px 10px rgba(10,110,63,.22)}
     .dl-btn.letter:hover{background:#085c33}
     .dl-btn.idcard{background:#1e3a5f;color:white;box-shadow:0 4px 10px rgba(30,58,95,.22)}
+    .dl-btn.appform{background:#f1f5f9;color:#374151;border:1.5px solid #cbd5e1;}
+    .dl-btn.appform:hover{background:#e2e8f0;}
     .dl-btn.idcard:hover{background:#172d4a}
     /* ── ID Card (exact match to students.html) ── */
     .idc-wrap{display:flex;flex-direction:column;align-items:center;gap:20px;padding:24px 16px;background:#e8ecf0}
@@ -1090,7 +1092,24 @@ function renderStatus(d){
       <span>Reviewed: <b>${rev}</b></span>
       ${(s==='approved'||s==='enrolled')?`<span>Adm. No: <b>${esc(d.admission_number||'—')}</b></span>`:''}
     </div>`;
-  if(s==='rejected'&&d.rejection_reason)html+=`<div class="st-reason"><b>Reason:</b> ${esc(d.rejection_reason)}</div>`;
+  if(s==='rejected'){
+    html+=`<div class="st-reason"><b>Reason:</b> ${d.rejection_reason?esc(d.rejection_reason):'The school did not provide a specific reason. Please contact the admissions office.'}</div>`;
+    html+=`<div class="dl-btns">
+      <button class="dl-btn appform" onclick="downloadAppForm()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Application Form
+      </button>
+    </div>
+    <p style="font-size:11px;color:#6b7280;margin:8px 12px 0;font-style:italic;">You may re-apply with a new scratch card or contact the school for reconsideration.</p>`;
+  }
+  if(s==='pending'){
+    html+=`<div class="dl-btns">
+      <button class="dl-btn appform" onclick="downloadAppForm()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Application Form
+      </button>
+    </div>`;
+  }
   if(s==='approved'||s==='enrolled'){
     html+=`<div class="dl-btns">
       <button class="dl-btn letter" onclick="downloadLetter()">
@@ -1100,6 +1119,10 @@ function renderStatus(d){
       <button class="dl-btn idcard" onclick="downloadIDCard()">
         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="9" cy="11" r="2.5"/><path d="M14 9h4M14 13h3"/></svg>
         ID Card
+      </button>
+      <button class="dl-btn appform" onclick="downloadAppForm()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Application Form
       </button>
     </div>`;
   }
@@ -1154,7 +1177,7 @@ body{margin:0;background:#f8f8f4;font-family:Georgia,serif}
       <div class="letter-school">${esc(school.name||'School Name')}</div>
       <div class="letter-addr">${esc(schoolAddr)}</div>
     </div>
-    ${(d.photo_url||passportDataUrl)?`<img src="${d.photo_url||passportDataUrl}" style="width:72px;height:90px;object-fit:cover;border:2px solid #0a6e3f;border-radius:4px;flex-shrink:0;" onerror="this.style.display='none'">`:``}
+    ${d.photo_url?`<img src="${d.photo_url}" style="width:72px;height:90px;object-fit:cover;border:2px solid #0a6e3f;border-radius:4px;flex-shrink:0;" onerror="this.style.display='none'">`:passportDataUrl?`<img src="${passportDataUrl}" style="width:72px;height:90px;object-fit:cover;border:2px solid #0a6e3f;border-radius:4px;flex-shrink:0;">`:``}
   </div>
   <div class="letter-ref">
     <div>Ref: <strong>${esc(admRef)}</strong></div>
@@ -1346,20 +1369,27 @@ function handlePassportUpload(input){
 
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 // ── Application Form Print / Download ────────────────────────────────────────
-function printApplicationForm(){
-  const school = selectedSchool() || {};
-  const ref    = lastRef || document.getElementById('refBox').textContent.replace('REF: ','').trim();
+function printApplicationForm(){ downloadAppForm(); }
+function downloadAppForm(){
+  // Use lastAppData (from tracker) when available, else fall back to form fields
+  const d      = lastAppData || {};
+  const school = d.schools || selectedSchool() || {};
+  const ref    = d.ref_id || lastRef || document.getElementById('refBox').textContent.replace('REF: ','').trim();
+  const photo  = d.photo_url || passportDataUrl || null;
 
   const logoSrc = school.logo_url || 'icons/logo.jpg';
   const today   = new Date().toLocaleDateString('en-NG',{day:'2-digit',month:'long',year:'numeric'});
+
+  // Helper: get value from lastAppData or from live form field
+  const dval = (dbKey, formId) => d[dbKey] || (formId ? val(formId) : '') || '';
 
   const row = (label, value) => value
     ? `<tr><td style="padding:7px 12px;font-weight:600;color:#374151;width:38%;border-bottom:1px solid #e5e7eb;white-space:nowrap">${label}</td>
            <td style="padding:7px 12px;color:#111827;border-bottom:1px solid #e5e7eb">${value}</td></tr>`
     : '';
 
-  const passportHtml = passportDataUrl
-    ? `<img src="${passportDataUrl}" style="width:110px;height:130px;object-fit:cover;border:2px solid #0a6e3f;border-radius:4px;">`
+  const passportHtml = photo
+    ? `<img src="${photo}" style="width:110px;height:130px;object-fit:cover;border:2px solid #0a6e3f;border-radius:4px;" onerror="this.outerHTML='<div style=\'width:110px;height:130px;border:2px dashed #cbd5e1;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:12px;text-align:center;\'>Passport<br>Photo</div>'">`
     : `<div style="width:110px;height:130px;border:2px dashed #cbd5e1;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:12px;text-align:center;">Passport<br>Photo</div>`;
 
   const html = `<!DOCTYPE html>
@@ -1418,11 +1448,11 @@ function printApplicationForm(){
   <div class="top-row" style="margin-top:8px">
     <div class="top-details">
       <table>
-        ${row('Full Name', val('fullName'))}
-        ${row('Gender', val('gender'))}
-        ${row('Date of Birth', val('dob'))}
-        ${row('Address', val('address'))}
-        ${row('Blood Group', val('bloodGroup'))}
+        ${row('Full Name', dval('full_name','fullName'))}
+        ${row('Gender', dval('gender','gender')==='M'?'Male':dval('gender','gender')==='F'?'Female':dval('gender','gender'))}
+        ${row('Date of Birth', dval('date_of_birth','dob')?(new Date(dval('date_of_birth','dob'))).toLocaleDateString('en-NG',{day:'2-digit',month:'long',year:'numeric'}):'')}
+        ${row('Address', dval('address','address'))}
+        ${row('Blood Group', dval('blood_group','bloodGroup'))}
       </table>
     </div>
     <div class="passport-box">${passportHtml}</div>
@@ -1431,24 +1461,34 @@ function printApplicationForm(){
   <!-- PROGRAMME DETAILS -->
   <div class="section-title">B. Programme Applied For</div>
   <table style="margin-top:8px">
-    ${row('Programme', val('intendedProgram'))}
-    ${row('Combination', val('intendedCombo'))}
-    ${row('Level / Class', val('intendedLevel'))}
+    ${row('Programme', dval('intended_program','intendedProgram'))}
+    ${row('Combination', dval('intended_combo','intendedCombo'))}
+    ${row('Level / Class', dval('intended_level','intendedLevel'))}
+    ${row('Class Assigned', d._className||'')}
   </table>
 
   <!-- GUARDIAN DETAILS -->
   <div class="section-title">C. Parent / Guardian Information</div>
   <table style="margin-top:8px">
-    ${row('Guardian Name', val('parentName'))}
-    ${row('Phone', val('parentPhone'))}
-    ${row('Email', val('parentEmail'))}
+    ${row('Guardian Name', dval('parent_name','parentName'))}
+    ${row('Phone', dval('parent_phone','parentPhone'))}
+    ${row('Email', dval('parent_email','parentEmail'))}
     ${row('Relationship', val('relationship'))}
     ${row('Emergency Contact', val('emergencyPhone'))}
   </table>
 
+  <!-- ADMISSION STATUS (from tracker) -->
+  ${d.status?`<div class="section-title">D. Admission Status</div>
+  <table style="margin-top:8px">
+    ${row('Status', d.status==='approved'?'✓ APPROVED':d.status==='pending'?'⏳ Pending Review':d.status==='rejected'?'✗ Rejected':d.status)}
+    ${row('Admission No.', d.admission_number||'')}
+    ${row('Reference No.', d.ref_id||ref)}
+    ${d.rejection_reason?row('Rejection Reason', d.rejection_reason):''}
+  </table>`:''}
+
   <!-- MEDICAL -->
-  ${val('medicalNotes') ? `<div class="section-title">D. Medical / Special Needs</div>
-  <div style="padding:8px 12px;margin-top:8px;background:#fffbeb;border-left:3px solid #f59e0b;font-size:12px;color:#374151">${esc(val('medicalNotes'))}</div>` : ''}
+  ${dval('medical_notes','medicalNotes') ? `<div class="section-title">E. Medical / Special Needs</div>
+  <div style="padding:8px 12px;margin-top:8px;background:#fffbeb;border-left:3px solid #f59e0b;font-size:12px;color:#374151">${esc(dval('medical_notes','medicalNotes'))}</div>` : ''}
 
   <!-- DECLARATION -->
   <div class="section-title" style="margin-top:20px">E. Declaration</div>
