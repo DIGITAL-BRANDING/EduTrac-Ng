@@ -108,7 +108,14 @@ let currentApp = null;
 
 const typeLabels = {
   primary:'Primary School', secondary:'Secondary School', both:'Primary & Secondary',
-  islamiyya:'Islamiyya / Tahfeez', vocational:'Vocational / Technical', other:'Other / Institute'
+  islamiyya:'Islamiyya / Tahfeez',
+  o_level:'Primary / Secondary',
+  tertiary:'Tertiary Institute',
+  vocational:'Vocational Training',
+  islamic:'Islamic Institute',
+  computer_training:'Computer Training Institute',
+  tutorial_center:'Tutorial / Coaching Centre',
+  other:'Other Institute'
 };
 
 (async () => {
@@ -147,7 +154,12 @@ const typeLabels = {
         <option value="secondary">Secondary</option>
         <option value="both">Primary & Secondary</option>
         <option value="islamiyya">Islamiyya / Tahfeez</option>
+        <option value="o_level">Primary / Secondary</option>
+        <option value="tertiary">Tertiary</option>
         <option value="vocational">Vocational</option>
+        <option value="islamic">Islamic Institute</option>
+        <option value="computer_training">Computer Training</option>
+        <option value="tutorial_center">Tutorial / Coaching</option>
         <option value="other">Other</option>
       </select>
     </div>

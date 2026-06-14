@@ -394,8 +394,8 @@ button{font-family:var(--B);cursor:pointer;border:none}
         <span class="sidebar-badge-dot"></span>
         Free to register
       </div>
-      <h2 class="sidebar-h">Register your school on EduTrack NG</h2>
-      <p class="sidebar-p">Complete the form to submit your school for onboarding. Our team reviews every application and responds within 24–48 hours.</p>
+      <h2 class="sidebar-h">Register your institution on EduTrack NG</h2>
+      <p class="sidebar-p">Complete the form to submit your school, institute, or training centre for onboarding. Our team reviews every application and responds within 24-48 hours.</p>
 
       <div class="steps-list">
         <div class="step-item">
@@ -408,8 +408,8 @@ button{font-family:var(--B);cursor:pointer;border:none}
         <div class="step-item">
           <div class="step-num" id="sn2">2</div>
           <div class="step-txt">
-            <div class="step-label">School Profile</div>
-            <div class="step-desc">School name, type & details</div>
+            <div class="step-label">Institution Profile</div>
+            <div class="step-desc">Name, type & details</div>
           </div>
         </div>
         <div class="step-item">
@@ -509,47 +509,52 @@ button{font-family:var(--B);cursor:pointer;border:none}
     <div class="step-panel" id="step2">
       <div class="step-header">
         <div class="step-tag">Step 2 of 4</div>
-        <h2 class="step-h">School Profile</h2>
-        <p class="step-sub">Tell us about your school — its name, type, and key details.</p>
+        <h2 class="step-h">Institution Profile</h2>
+        <p class="step-sub">Tell us about your school, institute, or training centre - its name, type, and key details.</p>
       </div>
       <div class="field-grid">
         <div class="field">
-          <label>School Name <span class="req">*</span></label>
-          <input type="text" id="schoolName" placeholder="e.g. Greenfield Academy">
-          <span class="field-err">School name is required</span>
+          <label>Institution Name <span class="req">*</span></label>
+          <input type="text" id="schoolName" placeholder="e.g. Greenfield Academy, Kano Skills Centre">
+          <span class="field-err">Institution name is required</span>
         </div>
         <div class="field">
-          <label>School Type <span class="req">*</span></label>
+          <label>Institution Type <span class="req">*</span></label>
           <div class="type-grid" id="typeGrid">
-            <div class="type-card" data-val="primary" onclick="selectType(this)">
-              <div class="type-icon">🏫</div>
-              <div class="type-label">Primary School</div>
-              <div class="type-sub">Basic 1–6 / Nursery</div>
+            <div class="type-card" data-val="o_level" onclick="selectType(this)">
+              <div class="type-icon">School</div>
+              <div class="type-label">Primary / Secondary</div>
+              <div class="type-sub">Nursery, Basic, JSS, SSS</div>
             </div>
-            <div class="type-card" data-val="secondary" onclick="selectType(this)">
-              <div class="type-icon">🏛️</div>
-              <div class="type-label">Secondary School</div>
-              <div class="type-sub">JSS / SSS / High School</div>
-            </div>
-            <div class="type-card" data-val="both" onclick="selectType(this)">
-              <div class="type-icon">🏣</div>
-              <div class="type-label">Primary & Secondary</div>
-              <div class="type-sub">Combined / All-through</div>
-            </div>
-            <div class="type-card" data-val="islamiyya" onclick="selectType(this)">
-              <div class="type-icon">🕌</div>
-              <div class="type-label">Islamiyya / Tahfeez</div>
-              <div class="type-sub">Islamic School / Qur'anic</div>
+            <div class="type-card" data-val="tertiary" onclick="selectType(this)">
+              <div class="type-icon">Tertiary</div>
+              <div class="type-label">Tertiary Institute</div>
+              <div class="type-sub">College, Polytechnic, University</div>
             </div>
             <div class="type-card" data-val="vocational" onclick="selectType(this)">
-              <div class="type-icon">🔧</div>
-              <div class="type-label">Vocational / Technical</div>
-              <div class="type-sub">Skills & Trade Training</div>
+              <div class="type-icon">Skills</div>
+              <div class="type-label">Vocational Training</div>
+              <div class="type-sub">Skills, trades, certification</div>
+            </div>
+            <div class="type-card" data-val="islamic" onclick="selectType(this)">
+              <div class="type-icon">Islamic</div>
+              <div class="type-label">Islamic Institute</div>
+              <div class="type-sub">Islamiyya, Tahfeez, Madrasa</div>
+            </div>
+            <div class="type-card" data-val="computer_training" onclick="selectType(this)">
+              <div class="type-icon">ICT</div>
+              <div class="type-label">Computer Training</div>
+              <div class="type-sub">ICT, coding, digital skills</div>
+            </div>
+            <div class="type-card" data-val="tutorial_center" onclick="selectType(this)">
+              <div class="type-icon">Tutors</div>
+              <div class="type-label">Tutorial / Coaching</div>
+              <div class="type-sub">Exam prep, lessons, coaching</div>
             </div>
             <div class="type-card" data-val="other" onclick="selectType(this)">
-              <div class="type-icon">📚</div>
-              <div class="type-label">Other / Institute</div>
-              <div class="type-sub">Tutorial / Coaching etc.</div>
+              <div class="type-icon">Other</div>
+              <div class="type-label">Other Institute</div>
+              <div class="type-sub">Custom academic structure</div>
             </div>
           </div>
           <input type="hidden" id="schoolType">
@@ -844,8 +849,15 @@ function showStep(n){
 
 function buildReview(){
   const typeLabels = {
-    primary:'Primary School',secondary:'Secondary School',both:'Primary & Secondary',
-    islamiyya:'Islamiyya / Tahfeez',vocational:'Vocational / Technical',other:'Other / Institute'
+    primary:'Primary School', secondary:'Secondary School', both:'Primary & Secondary',
+    islamiyya:'Islamiyya / Tahfeez',
+    o_level:'Primary / Secondary',
+    tertiary:'Tertiary Institute',
+    vocational:'Vocational Training',
+    islamic:'Islamic Institute',
+    computer_training:'Computer Training Institute',
+    tutorial_center:'Tutorial / Coaching Centre',
+    other:'Other Institute'
   };
   const html = `
     <div class="review-section">
@@ -858,10 +870,10 @@ function buildReview(){
       </div>
     </div>
     <div class="review-section">
-      <div class="review-section-h">School Profile <span class="review-edit" onclick="goToStep(2)">Edit</span></div>
+      <div class="review-section-h">Institution Profile <span class="review-edit" onclick="goToStep(2)">Edit</span></div>
       <div class="review-rows">
         <div class="review-row"><span class="review-key">Name</span><span class="review-val">${val('schoolName')}</span></div>
-        <div class="review-row"><span class="review-key">Type</span><span class="review-val">${typeLabels[selectedType]||selectedType}</span></div>
+        <div class="review-row"><span class="review-key">Institution Type</span><span class="review-val">${typeLabels[selectedType]||selectedType}</span></div>
         <div class="review-row"><span class="review-key">Ownership</span><span class="review-val">${val('schoolOwnership')}</span></div>
         <div class="review-row"><span class="review-key">Students</span><span class="review-val">${val('schoolSize')}</span></div>
         ${val('schoolYear') ? `<div class="review-row"><span class="review-key">Est.</span><span class="review-val">${val('schoolYear')}</span></div>` : ''}

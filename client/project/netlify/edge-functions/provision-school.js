@@ -114,13 +114,20 @@ export default async function handler(request, context) {
       userId = authResult.id;
     }
 
-    // 3. Create the school record
+    // 3. Create the school/institution record
+    const schoolType = normaliseSchoolType(app.school_type);
     const schoolData = await sb('/schools', 'POST', {
-      name: app.school_name, type: app.school_type,
-      ownership: app.school_ownership, lga: app.school_lga,
-      state: app.school_state, city: app.school_city,
-      address: app.school_address, email: app.school_email,
-      plan: 'free', is_active: true, created_at: new Date().toISOString(),
+      name: app.school_name,
+      school_type: schoolType,
+      ownership: app.school_ownership,
+      lga: app.school_lga,
+      state: app.school_state,
+      city: app.school_city,
+      address: app.school_address,
+      email: app.school_email,
+      plan: 'free',
+      is_active: true,
+      created_at: new Date().toISOString(),
     });
     const school = Array.isArray(schoolData) ? schoolData[0] : schoolData;
     if (!school?.id) throw new Error('Failed to create school');
@@ -142,7 +149,7 @@ export default async function handler(request, context) {
     // 6. Audit log (non-fatal)
     await sb('/saas_audit_log', 'POST', {
       actor_id: caller.id, action: 'school_created', target_id: school.id, target_type: 'school',
-      meta: JSON.stringify({ name: app.school_name, plan: 'free', admin_email: adminEmail, application_id }),
+      meta: JSON.stringify({ name: app.school_name, plan: 'free', school_type: schoolType, admin_email: adminEmail, application_id }),
     }).catch(() => {});
 
     return json({ success: true, login_email: adminEmail, temp_password: tempPassword, school_id: school.id }, 200, corsHeaders);
@@ -171,6 +178,21 @@ async function getCallerProfile(supabaseUrl, serviceKey, callerToken) {
   const user = Array.isArray(data) ? data[0] : null;
   if (!user || user.is_active === false) return null;
   return user;
+}
+
+function normaliseSchoolType(type) {
+  const aliases = {
+    primary: 'o_level',
+    secondary: 'o_level',
+    both: 'o_level',
+    islamiyya: 'islamic',
+    islamic_institute: 'islamic',
+    vocational_training: 'vocational',
+    tertiary_institute: 'tertiary',
+    computer_institute: 'computer_training',
+  };
+  const value = String(type || '').trim().toLowerCase();
+  return aliases[value] || value || 'o_level';
 }
 
 function generateTempPassword() {

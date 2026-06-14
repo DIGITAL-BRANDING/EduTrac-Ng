@@ -360,14 +360,39 @@ document.addEventListener('click', e => {
 });
 
 // ── School-type helpers (available globally once ctx is loaded) ──
+window.normaliseSchoolType = function(type) {
+  const aliases = {
+    primary: 'o_level',
+    secondary: 'o_level',
+    both: 'o_level',
+    islamiyya: 'islamic',
+    islamic_institute: 'islamic',
+    vocational_training: 'vocational',
+    tertiary_institute: 'tertiary',
+    computer_institute: 'computer_training',
+  };
+  const value = String(type || '').trim().toLowerCase();
+  return aliases[value] || value || 'o_level';
+};
 window.getSchoolCtxType = function(ctx) {
-  return (ctx?.school?.school_type) || window._schoolType || 'o_level';
+  return window.normaliseSchoolType((ctx?.school?.school_type) || window._schoolType || 'o_level');
+};
+window.getInstitutionLabelsFor = function(ctxOrType) {
+  const t = typeof ctxOrType === 'string' ? window.normaliseSchoolType(ctxOrType) : window.getSchoolCtxType(ctxOrType);
+  const labels = {
+    o_level: { institution: 'School', learner: 'Student', class: 'Class', subject: 'Subject', period: 'Term', session: 'Academic Session', program: 'Programme' },
+    tertiary: { institution: 'Institution', learner: 'Student', class: 'Level', subject: 'Course', period: 'Semester', session: 'Academic Year', program: 'Department / Programme' },
+    vocational: { institution: 'Training Centre', learner: 'Trainee', class: 'Batch / Level', subject: 'Module', period: 'Training Period', session: 'Session', program: 'Programme' },
+    islamic: { institution: 'Islamic Institute', learner: 'Student', class: 'Level / Class', subject: 'Subject', period: 'Term', session: 'Academic Session', program: 'Programme' },
+    computer_training: { institution: 'Computer Institute', learner: 'Trainee', class: 'Batch', subject: 'Module', period: 'Training Period', session: 'Session', program: 'Course' },
+    tutorial_center: { institution: 'Tutorial Centre', learner: 'Student', class: 'Class / Batch', subject: 'Subject', period: 'Term', session: 'Academic Session', program: 'Programme' },
+    other: { institution: 'Institution', learner: 'Learner', class: 'Level / Group', subject: 'Module', period: 'Period', session: 'Session', program: 'Programme' },
+  };
+  return labels[t] || labels.o_level;
 };
 window.getPeriodLabelFor = function(ctx) {
-  const t = window.getSchoolCtxType(ctx);
-  return (t === 'tertiary' || t === 'vocational') ? 'Semester' : 'Term';
+  return window.getInstitutionLabelsFor(ctx).period;
 };
 window.getSessionLabelFor = function(ctx) {
-  const t = window.getSchoolCtxType(ctx);
-  return t === 'tertiary' ? 'Academic Year' : 'Academic Session';
+  return window.getInstitutionLabelsFor(ctx).session;
 };
