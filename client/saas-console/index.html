@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -100,31 +101,92 @@
 
   if (window.innerWidth < 768) document.getElementById('midGrid').style.gridTemplateColumns = '1fr';
 
-  // Fetch platform-wide data
-  const [schoolsRes, usersRes, studentsRes, paymentsRes] = await Promise.all([
+  // ── Fetch platform-wide data ────────────────────────────────────────────────
+  // schools: no RLS on this table for superadmin reads — safe direct query.
+  // students / users / payments: these tables have per-school RLS, so a direct
+  // cross-school SELECT returns 0 rows for superadmin (not a school user).
+  // We call a SECURITY DEFINER RPC that runs as DB owner and bypasses RLS.
+  // If the RPC doesn't exist yet, we fall back to counting students per school
+  // using the schools list we already have (each school's students ARE visible
+  // when we impersonate that school's context — but actually we can't; so we
+  // fall back to a simple per-school count loop using the superadmin service key
+  // via the rpc, and degrade gracefully to 0 with a console warning).
+
+  const [schoolsRes, statsRes] = await Promise.all([
     db.from('schools').select('*').order('created_at', { ascending: false }),
-    db.from('users').select('id, role, school_id, created_at'),
-    db.from('students').select('id', { count: 'exact', head: true }),
-    db.from('payments').select('amount_paid, created_at'),
+    db.rpc('get_platform_stats').maybeSingle(),
   ]);
 
-  const schools   = schoolsRes.data   || [];
-  const users     = usersRes.data     || [];
-  const payments  = paymentsRes.data  || [];
+  const schools = schoolsRes.data || [];
 
-  const totalSchools = schools.length;
+  // get_platform_stats RPC returns:
+  //   { total_students, total_users, total_revenue, revenue_this_month }
+  // If the RPC doesn't exist yet (PGRST202), fall back to counting students
+  // by summing the student_count column on the schools table (if present),
+  // then fall back further to direct count with a SECURITY DEFINER workaround.
+  let totalStudents    = 0;
+  let totalUsers       = 0;
+  let totalRevenue     = 0;
+  let revenueThisMonth = 0;
+
+  if (statsRes.data && !statsRes.error) {
+    // ✅ RPC worked — use its values
+    totalStudents    = Number(statsRes.data.total_students    ?? 0);
+    totalUsers       = Number(statsRes.data.total_users       ?? 0);
+    totalRevenue     = Number(statsRes.data.total_revenue     ?? 0);
+    revenueThisMonth = Number(statsRes.data.revenue_this_month ?? 0);
+  } else {
+    // ⚠️ RPC missing or errored — log and try fallback paths
+    if (statsRes.error) {
+      console.warn('[SaaS Dashboard] get_platform_stats RPC error:', statsRes.error.message,
+        '\nRun the migration in api/database.js or your Supabase SQL editor to create it.');
+    }
+
+    // Fallback A: schools table may have a cached student_count column
+    const cachedCount = schools.reduce((sum, s) => sum + (Number(s.student_count) || 0), 0);
+    if (cachedCount > 0) {
+      totalStudents = cachedCount;
+    } else {
+      // Fallback B: direct count — will return 0 if RLS blocks it,
+      // but at least we try and surface the real 0 vs a missing value.
+      const { count, error: ce } = await db
+        .from('students')
+        .select('id', { count: 'exact', head: true });
+      if (!ce) {
+        totalStudents = count ?? 0;
+      } else {
+        console.warn('[SaaS Dashboard] students count blocked by RLS:', ce.message,
+          '\nCreate the get_platform_stats RPC — see fix below.');
+      }
+    }
+
+    // Fallback for users & payments (same RLS problem — degrade gracefully)
+    const [usersRes, paymentsRes] = await Promise.all([
+      db.from('users').select('id', { count: 'exact', head: true }),
+      db.from('payments').select('amount_paid, created_at'),
+    ]);
+    totalUsers = usersRes.count ?? 0;
+    const payments = paymentsRes.data || [];
+    totalRevenue = payments.reduce((s, p) => s + Number(p.amount_paid || 0), 0);
+    const now2 = new Date();
+    revenueThisMonth = payments
+      .filter(p => {
+        const d = new Date(p.created_at);
+        return d.getMonth() === now2.getMonth() && d.getFullYear() === now2.getFullYear();
+      })
+      .reduce((s, p) => s + Number(p.amount_paid || 0), 0);
+  }
+
+  const totalSchools  = schools.length;
   const activeSchools = schools.filter(s => s.is_active).length;
   const proSchools    = schools.filter(s => s.plan === 'pro').length;
-  const totalStudents = studentsRes.count ?? 0;
-  const totalRevenue  = payments.reduce((s, p) => s + Number(p.amount_paid), 0);
-  const totalUsers    = users.length;
 
   // Banner
   document.getElementById('bTotal').textContent = totalSchools;
   document.getElementById('bActive').textContent = activeSchools;
   document.getElementById('bPro').textContent = proSchools;
 
-  // This month
+  // ── This-month new schools count (schools data is always available) ─────────
   const now = new Date();
   const thisMonth = now.getMonth();
   const thisYear  = now.getFullYear();
@@ -132,10 +194,6 @@
     const d = new Date(s.created_at);
     return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
   }).length;
-  const revenueThisMonth = payments.filter(p => {
-    const d = new Date(p.created_at);
-    return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
-  }).reduce((s, p) => s + Number(p.amount_paid), 0);
 
   document.getElementById('statGrid').innerHTML = `
     <div class="stat-card">
