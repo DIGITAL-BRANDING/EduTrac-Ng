@@ -1,8 +1,60 @@
+
 // ============================================================
 //  EduTrack NG v2 — api/database.js
 //  Supabase client + all shared query helpers
 //  Single source of truth for every DB call in the app
 // ============================================================
+
+// ┌─────────────────────────────────────────────────────────────────────────┐
+// │  REQUIRED SQL MIGRATION — run once in Supabase SQL Editor               │
+// │                                                                         │
+// │  The SaaS dashboard KPIs (Total Students, Platform Users, Revenue)      │
+// │  query tables that are behind per-school RLS policies.  The superadmin  │
+// │  is NOT a school user, so those queries return 0 without this function. │
+// │                                                                         │
+// │  This SECURITY DEFINER function runs as the DB owner (bypasses RLS)     │
+// │  and returns a single-row aggregate for the SaaS dashboard.             │
+// │                                                                         │
+// │  Paste everything between the dashes into the Supabase SQL Editor       │
+// │  and click Run.                                                         │
+// ├─────────────────────────────────────────────────────────────────────────┤
+// │
+// │  -- Drop any old overload first to avoid 42725 ambiguity errors
+// │  DO $$ DECLARE r RECORD;
+// │  BEGIN
+// │    FOR r IN
+// │      SELECT oid::regprocedure::text AS sig
+// │      FROM   pg_proc
+// │      WHERE  proname = 'get_platform_stats'
+// │    LOOP
+// │      EXECUTE 'DROP FUNCTION IF EXISTS ' || r.sig || ' CASCADE';
+// │    END LOOP;
+// │  END $$;
+// │
+// │  CREATE OR REPLACE FUNCTION get_platform_stats()
+// │  RETURNS TABLE (
+// │    total_students     bigint,
+// │    total_users        bigint,
+// │    total_revenue      numeric,
+// │    revenue_this_month numeric
+// │  )
+// │  LANGUAGE sql
+// │  SECURITY DEFINER
+// │  SET search_path = public
+// │  AS $$
+// │    SELECT
+// │      (SELECT COUNT(*)            FROM students)                           AS total_students,
+// │      (SELECT COUNT(*)            FROM users)                              AS total_users,
+// │      (SELECT COALESCE(SUM(amount_paid), 0) FROM payments)                AS total_revenue,
+// │      (SELECT COALESCE(SUM(amount_paid), 0) FROM payments
+// │         WHERE DATE_TRUNC('month', created_at) = DATE_TRUNC('month', NOW())
+// │      )                                                                    AS revenue_this_month;
+// │  $$;
+// │
+// │  -- Grant execute to the anon and authenticated roles used by the client
+// │  GRANT EXECUTE ON FUNCTION get_platform_stats() TO anon, authenticated;
+// │
+// └─────────────────────────────────────────────────────────────────────────┘
 
 const SUPABASE_URL      = (window.__EDUTRAC_CONFIG__ || {}).SUPABASE_URL;
 const SUPABASE_ANON_KEY = (window.__EDUTRAC_CONFIG__ || {}).SUPABASE_ANON_KEY;
