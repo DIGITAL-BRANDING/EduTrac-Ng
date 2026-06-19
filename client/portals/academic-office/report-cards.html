@@ -631,6 +631,25 @@
 </div>
 
 <script>
+// ── Early, dependency-free watchdog ──────────────────────────────────────────
+// Runs immediately at parse time (does not wait for the deferred Supabase /
+// engine scripts). If the page is still showing the initial loader after 20s
+// — meaning the main DOMContentLoaded handler never even got a chance to take
+// over — show a plain-language error instead of leaving an infinite spinner.
+setTimeout(function(){
+  var loader = document.querySelector('#mainContent .rc-loader');
+  if(loader){
+    document.getElementById('mainContent').innerHTML =
+      '<div class="err-box"><h2>Page failed to load</h2>' +
+      '<p>The report card page took too long to start. This usually means a required script ' +
+      '(Supabase or the report card engine) failed to download — often due to a very slow or ' +
+      'interrupted connection.</p>' +
+      '<div class="err-actions">' +
+      '<button class="err-retry err-retry-primary" onclick="location.reload()">Retry</button>' +
+      '</div></div>';
+  }
+}, 20000);
+
 // Detect going offline mid-load and show a warning banner
 window.addEventListener('offline', () => {
   const existing = document.getElementById('offlineBanner');
@@ -649,10 +668,10 @@ window.addEventListener('online', () => {
   if(msg){ location.reload(); }
 });
 </script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
-<script src="/js/config.js"></script>
-<script src="/js/supabase.js"></script>
-<script src="/js/report-card-engine.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0" defer></script>
+<script src="/js/config.js" defer></script>
+<script src="/js/supabase.js" defer></script>
+<script src="/js/report-card-engine.js" defer></script>
 <script>
 // ── sqSafe ───────────────────────────────────────────────────────────────────
 // Silent version of sq(): logs warnings but never throws and never calls showErr.
@@ -1237,7 +1256,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 </script>
-<script src="/js/pwa-v2.1.js"></script>
-<script src="/js/assistant.js"></script>
+<script src="/js/pwa-v2.1.js" defer></script>
+<script src="/js/assistant.js" defer></script>
 </body>
 </html>
