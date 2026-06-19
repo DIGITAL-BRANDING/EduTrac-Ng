@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Academic Report Card</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=EB+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Playfair+Display:wght@400;700;900&family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&family=Poppins:wght@400;500;600;700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../../assets/css/global.css">
+<link rel="stylesheet" href="/assets/css/global.css">
 <!-- Styles injected by js/report-card-engine.js -->
 <style>
 /* ══════════════════════════════════════════════
@@ -650,9 +650,9 @@ window.addEventListener('online', () => {
 });
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
-<script src="../../js/config.js"></script>
-<script src="../../js/supabase.js"></script>
-<script src="../../js/report-card-engine.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/supabase.js"></script>
+<script src="/js/report-card-engine.js"></script>
 <script>
 // ── sqSafe ───────────────────────────────────────────────────────────────────
 // Silent version of sq(): logs warnings but never throws and never calls showErr.
@@ -1020,13 +1020,13 @@ function _populateTermBar(){
   bar.style.display='flex';
 }
 
-(async()=>{
+document.addEventListener('DOMContentLoaded', async () => {
   // ── Guard: ensure report-card-engine.js loaded (buildCard defined there) ──
   if(typeof buildCard === 'undefined'){
     showErr(
       'Report card engine failed to load',
-      'The file js/report-card-engine.js could not be loaded. This is usually caused by a ' +
-      'network error or missing file. Please ensure the file exists at ../../js/report-card-engine.js and refresh.'
+      'The file /js/report-card-engine.js could not be loaded. This is usually caused by a ' +
+      'network error or missing file. Please ensure the file exists at /js/report-card-engine.js and refresh.'
     );
     return;
   }
@@ -1235,9 +1235,9 @@ function _populateTermBar(){
     }
     console.error('Report card error:',e);
   }
-})();
+});
 </script>
 <script src="/js/pwa-v2.1.js"></script>
-<script src="../../js/assistant.js"></script>
+<script src="/js/assistant.js"></script>
 </body>
 </html>
