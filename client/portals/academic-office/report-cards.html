@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Academic Report Card</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=EB+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Playfair+Display:wght@400;700;900&family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&family=Poppins:wght@400;500;600;700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/global.css">
+<link rel="stylesheet" href="../../assets/css/global.css">
 <!-- Styles injected by js/report-card-engine.js -->
 <style>
 /* ══════════════════════════════════════════════
@@ -631,25 +631,6 @@
 </div>
 
 <script>
-// ── Early, dependency-free watchdog ──────────────────────────────────────────
-// Runs immediately at parse time (does not wait for the deferred Supabase /
-// engine scripts). If the page is still showing the initial loader after 20s
-// — meaning the main DOMContentLoaded handler never even got a chance to take
-// over — show a plain-language error instead of leaving an infinite spinner.
-setTimeout(function(){
-  var loader = document.querySelector('#mainContent .rc-loader');
-  if(loader){
-    document.getElementById('mainContent').innerHTML =
-      '<div class="err-box"><h2>Page failed to load</h2>' +
-      '<p>The report card page took too long to start. This usually means a required script ' +
-      '(Supabase or the report card engine) failed to download — often due to a very slow or ' +
-      'interrupted connection.</p>' +
-      '<div class="err-actions">' +
-      '<button class="err-retry err-retry-primary" onclick="location.reload()">Retry</button>' +
-      '</div></div>';
-  }
-}, 20000);
-
 // Detect going offline mid-load and show a warning banner
 window.addEventListener('offline', () => {
   const existing = document.getElementById('offlineBanner');
@@ -668,10 +649,10 @@ window.addEventListener('online', () => {
   if(msg){ location.reload(); }
 });
 </script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0" defer></script>
-<script src="/js/config.js" defer></script>
-<script src="/js/supabase.js" defer></script>
-<script src="/js/report-card-engine.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
+<script src="../../js/config.js"></script>
+<script src="../../js/supabase.js"></script>
+<script src="../../js/report-card-engine.js"></script>
 <script>
 // ── sqSafe ───────────────────────────────────────────────────────────────────
 // Silent version of sq(): logs warnings but never throws and never calls showErr.
@@ -1039,13 +1020,13 @@ function _populateTermBar(){
   bar.style.display='flex';
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
+(async()=>{
   // ── Guard: ensure report-card-engine.js loaded (buildCard defined there) ──
   if(typeof buildCard === 'undefined'){
     showErr(
       'Report card engine failed to load',
-      'The file /js/report-card-engine.js could not be loaded. This is usually caused by a ' +
-      'network error or missing file. Please ensure the file exists at /js/report-card-engine.js and refresh.'
+      'The file js/report-card-engine.js could not be loaded. This is usually caused by a ' +
+      'network error or missing file. Please ensure the file exists at ../../js/report-card-engine.js and refresh.'
     );
     return;
   }
@@ -1175,13 +1156,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   if(!studentId){
     // No class/student param — show a class picker
     try{
-      const userData = await getCurrentUser();
+      setMsg('Authenticating session…');
+      const userData = await sq('Current user', getCurrentUser());
       const schoolId = userData?.school_id || userData?.schools?.id;
       if(!schoolId){ clearTimeout(_watchdog); window.location.href = '/login.html'; return; }
-      document.getElementById('mainContent').innerHTML='<div class="rc-loader"><div class="rc-spinner"></div><p id="loadMsg">Loading classes…</p></div>';
-      const {data:classes,error}=await db.from('classes').select('id,name,level,section').eq('school_id',schoolId).order('name');
+      document.getElementById('mainContent').innerHTML='<div class="rc-loader"><div class="rc-spinner"></div><p id="loadMsg">Loading classes…</p><div class="rc-loader-steps" id="loadSteps"></div></div>';
+      const classes = await sq('School classes', db.from('classes').select('id,name,level,section').eq('school_id',schoolId).order('name'));
       clearTimeout(_watchdog);
-      if(error||!classes?.length){ showErr('No classes found','Please create classes in the admin panel first.'); return; }
+      if(!classes?.length){ showErr('No classes found','Please create classes in the admin panel first.'); return; }
       const rows=classes.map(c=>{
         const sec=(c.section||c.level||'').toUpperCase();
         const label=sec?`${c.name} — Section ${sec}`:c.name;
@@ -1214,10 +1196,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if(!termId){
       try{
-        const {data:t}=await db.from('terms').select('*,academic_years(label)').eq('school_id',schoolId).eq('is_current',true).maybeSingle();
+        const t = await sqSafe('Current term', db.from('terms').select('*,academic_years(label)').eq('school_id',schoolId).eq('is_current',true).maybeSingle());
         if(t){_term=t;termId=t.id;}
         else{
-          const {data:t2}=await db.from('terms').select('*,academic_years(label)').eq('school_id',schoolId).order('start_date',{ascending:false}).limit(1).maybeSingle();
+          const t2 = await sqSafe('Latest term', db.from('terms').select('*,academic_years(label)').eq('school_id',schoolId).order('start_date',{ascending:false}).limit(1).maybeSingle());
           _term=t2;termId=t2?.id;
         }
       }catch(e){console.error('Term resolution failed:',e);}
@@ -1235,7 +1217,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     _school=schoolData;_scale=scaleData;_exams=examsData;
     if(!_term)_term=termRow;
 
-    const {data:enr}=await db.from('enrollments').select('class_id,classes(id,name,level,section)').eq('student_id',studentId).eq('term_id',_tid).maybeSingle();
+    const enr = await sqSafe('Enrollment', db.from('enrollments').select('class_id,classes(id,name,level,section)').eq('student_id',studentId).eq('term_id',_tid).maybeSingle());
     _classRow=enr?.classes||null;
     updateDetectedBadge(_classRow);
     clearTimeout(_watchdog);
@@ -1254,9 +1236,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     console.error('Report card error:',e);
   }
-});
+})();
 </script>
-<script src="/js/pwa-v2.1.js" defer></script>
-<script src="/js/assistant.js" defer></script>
+<script src="/js/pwa-v2.1.js"></script>
+<script src="../../js/assistant.js"></script>
 </body>
 </html>

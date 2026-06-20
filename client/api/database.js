@@ -1,4 +1,3 @@
-
 // ============================================================
 //  EduTrack NG v2 — api/database.js
 //  Supabase client + all shared query helpers

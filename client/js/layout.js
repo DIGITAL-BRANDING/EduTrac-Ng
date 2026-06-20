@@ -67,8 +67,7 @@ const _ADMIN_GROUPS = [
   // ─ Academics ─
   { type:'group', id:'grp-academics', icon:_SVG.book, label:'Academics',
     children:[
-      { id:'programs',         icon:_SVG.curriculum, label:'Programmes & Levels', href:'programs.html' },
-      { id:'classes',          icon:_SVG.classes,    label:'Classes',           href:'classes.html' },
+      { id:'programs',         icon:_SVG.curriculum, label:'Academic Structure', href:'programs.html' },
       { id:'class-subjects',   icon:_SVG.subjects,   label:'Class Subjects',    href:'class-subjects.html' },
       { id:'sections',         icon:_SVG.sections,   label:'Staff Sections',    href:'sections.html' },
       { id:'results',          icon:_SVG.results,    label:'Results',           href:'results.html' },

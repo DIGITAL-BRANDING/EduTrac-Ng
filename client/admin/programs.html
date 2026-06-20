@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,136 +6,68 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="icon" href="/icons/icon-96.png" type="image/png">
   <meta name="theme-color" content="#0a6e3f">
-  <title>Programs &amp; Levels · EduTrack NG</title>
+  <title>Academic Structure · EduTrack NG</title>
   <link rel="stylesheet" href="../assets/css/global.css">
   <style>
-    .tab-bar{display:flex;gap:4px;padding:4px;background:var(--surface-3);border-radius:10px;width:fit-content;margin-bottom:24px;}
-    .tab-btn{padding:8px 20px;border-radius:7px;border:none;background:transparent;font:600 .875rem var(--font);color:var(--ink-3);cursor:pointer;transition:var(--transition);}
+    .tab-bar{display:flex;gap:4px;padding:4px;background:var(--surface-3);border-radius:10px;width:fit-content;margin-bottom:20px;overflow-x:auto;max-width:100%;}
+    .tab-btn{padding:8px 18px;border-radius:7px;border:none;background:transparent;font:600 .875rem var(--font);color:var(--ink-3);cursor:pointer;transition:var(--transition);white-space:nowrap;display:flex;align-items:center;gap:6px;}
     .tab-btn.active{background:var(--surface);color:var(--primary);font-weight:700;box-shadow:var(--shadow-sm);}
+    .tab-btn svg{flex-shrink:0;}
+
+    .intro-banner{background:var(--info-light,#eff6ff);border:1.5px solid var(--info,#3b82f6);border-radius:var(--radius);padding:13px 16px;margin-bottom:20px;font-size:13px;color:var(--info-dark,#1e3a5f);}
+    .intro-banner strong{font-weight:700;}
+
     .prog-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
-    .prog-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:10px;transition:box-shadow .18s;}
-    .prog-card:hover{box-shadow:var(--shadow);}
+    .prog-summary-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:10px;transition:box-shadow .18s;}
+    .prog-summary-card:hover{box-shadow:var(--shadow);}
     .prog-name{font-size:1.05rem;font-weight:800;color:var(--ink);}
     .prog-desc{font-size:.82rem;color:var(--ink-3);line-height:1.5;flex:1;}
     .prog-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:100px;font-size:.72rem;font-weight:700;}
     .prog-badge.levels{background:var(--primary-light);color:var(--primary);}
     .prog-badge.combos{background:var(--accent-light);color:var(--warning);}
+    .prog-badge.classes{background:var(--info-light,#eff6ff);color:var(--info,#3b82f6);}
     .prog-actions{display:flex;gap:6px;margin-top:4px;}
+
+    .prog-card{border:1.5px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;}
+    .prog-card__head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--surface-3);cursor:pointer;gap:8px;}
+    .prog-card__head:hover{background:var(--primary-light);}
+    .prog-card__body{padding:12px 14px;border-top:1px solid var(--border);display:none;}
+    .prog-card__body.open{display:block;}
+    .level-row{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:6px;margin-bottom:4px;background:var(--surface-3);}
+    .level-row:hover{background:var(--primary-light);}
+    .class-tag{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:100px;font-size:11px;font-weight:600;background:var(--primary-light);color:var(--primary);border:1px solid var(--primary);margin:2px;}
+
+    .combo-card{border:2px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:var(--transition);margin-bottom:10px;}
+    .combo-card:hover{border-color:var(--primary);}
+    .combo-card.selected{background:var(--primary-light);}
+    .combo-dot{width:12px;height:12px;border-radius:50%;display:inline-block;margin-right:6px;flex-shrink:0;}
+    .subject-chip{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:100px;font-size:12px;font-weight:600;margin:3px;border:1.5px solid var(--border);cursor:pointer;transition:var(--transition);user-select:none;}
+    .subject-chip.core{background:var(--primary-light);border-color:var(--primary);color:var(--primary);}
+    .subject-chip.elective{background:var(--info-light,#eff6ff);border-color:var(--info,#3b82f6);color:var(--info,#3b82f6);}
+    .subject-chip.unassigned{background:var(--surface-3);color:var(--ink-3);border-color:var(--border);}
+
     .lvl-table{width:100%;border-collapse:collapse;font-size:.875rem;}
     .lvl-table th{background:var(--surface-3);padding:10px 14px;text-align:left;font-weight:700;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);border-bottom:1px solid var(--border);}
     .lvl-table td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:middle;}
     .lvl-table tr:last-child td{border-bottom:none;}
     .lvl-table tr:hover td{background:var(--surface-2);}
-    .combo-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:100px;font-size:.72rem;font-weight:600;background:var(--surface-3);color:var(--ink-2);margin:2px;}
     .empty-state{text-align:center;padding:48px;color:var(--ink-3);grid-column:1/-1;}
     .empty-state svg{opacity:.3;display:block;margin:0 auto 12px;}
-    .prog-header-row{background:var(--primary-light);border-left:3px solid var(--primary);}
-    .prog-header-row td{font-weight:800;color:var(--primary);padding:8px 14px;}
+
+    .edit-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;display:none;align-items:center;justify-content:center;}
+    .edit-overlay.active{display:flex;}
+    .edit-box{background:var(--surface,#fff);border-radius:14px;padding:24px;width:min(480px,94vw);max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);}
+    .edit-box h3{margin:0 0 16px;font-size:16px;}
+
+    .chip{display:inline-flex;align-items:center;padding:2px 9px;border-radius:100px;font-size:11px;font-weight:600;background:var(--surface-3);color:var(--ink-2);}
   </style>
 </head>
 <body>
 <div id="app"></div>
 
-<!-- ── Program Modal ── -->
-<div class="modal" id="programModal">
-  <div class="modal__box" style="max-width:520px;">
-    <div class="modal__header">
-      <h2 class="modal__title" id="programModalTitle">Add Programme</h2>
-      <button class="modal__close" onclick="closeModal('programModal')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    </div>
-    <div class="modal__body">
-      <input type="hidden" id="programId">
-      <div class="form-grid">
-        <div class="form-group col-full">
-          <label class="form-label">Programme Name <span class="required">*</span></label>
-          <input type="text" id="progName" class="form-control" placeholder="e.g. Science, Arts, Vocational Studies, ND Accountancy">
-        </div>
-        <div class="form-group col-full">
-          <label class="form-label">Description <span style="color:var(--ink-4);font-weight:400;">(optional)</span></label>
-          <textarea id="progDesc" class="form-control" rows="3" placeholder="Brief description visible to applicants on the application form…"></textarea>
-        </div>
-        <div class="form-group col-full">
-          <label class="form-label">Duration</label>
-          <input type="text" id="progDuration" class="form-control" placeholder="e.g. 3 Years, 2 Semesters">
-        </div>
-      </div>
-      <div id="programFormErr" class="form-error" style="display:none;margin-top:8px;"></div>
-    </div>
-    <div class="modal__footer">
-      <button class="btn btn--secondary" onclick="closeModal('programModal')">Cancel</button>
-      <button class="btn btn--primary" id="saveProgramBtn" onclick="saveProgram()">Save Programme</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── Level Modal ── -->
-<div class="modal" id="levelModal">
-  <div class="modal__box" style="max-width:500px;">
-    <div class="modal__header">
-      <h2 class="modal__title" id="levelModalTitle">Add Level</h2>
-      <button class="modal__close" onclick="closeModal('levelModal')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    </div>
-    <div class="modal__body">
-      <input type="hidden" id="levelId">
-      <div class="form-grid">
-        <div class="form-group col-full">
-          <label class="form-label">Programme <span class="required">*</span></label>
-          <select id="levelProgram" class="form-control">
-            <option value="">— Select Programme —</option>
-          </select>
-        </div>
-        <div class="form-group col-full">
-          <label class="form-label">Level Name <span class="required">*</span></label>
-          <input type="text" id="levelName" class="form-control" placeholder="e.g. JSS 1, Year 1, ND1 Semester 1">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Sort Order</label>
-          <input type="number" id="levelSort" class="form-control" placeholder="1" min="1">
-          <span class="form-hint">Lower number appears first in dropdowns</span>
-        </div>
-      </div>
-      <div id="levelFormErr" class="form-error" style="display:none;margin-top:8px;"></div>
-    </div>
-    <div class="modal__footer">
-      <button class="btn btn--secondary" onclick="closeModal('levelModal')">Cancel</button>
-      <button class="btn btn--primary" id="saveLevelBtn" onclick="saveLevel()">Save Level</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── Combination Modal ── -->
-<div class="modal" id="comboModal">
-  <div class="modal__box" style="max-width:520px;">
-    <div class="modal__header">
-      <h2 class="modal__title" id="comboModalTitle">Add Combination</h2>
-      <button class="modal__close" onclick="closeModal('comboModal')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    </div>
-    <div class="modal__body">
-      <input type="hidden" id="comboId">
-      <div class="form-grid">
-        <div class="form-group col-full">
-          <label class="form-label">Programme <span class="required">*</span></label>
-          <select id="comboProgramSel" class="form-control">
-            <option value="">— Select Programme (optional filter) —</option>
-          </select>
-          <span class="form-hint">Applicants in this programme will see this combination.</span>
-        </div>
-        <div class="form-group col-full">
-          <label class="form-label">Combination / Course Name <span class="required">*</span></label>
-          <input type="text" id="comboName" class="form-control" placeholder="e.g. Physics/Chemistry/Biology, Business Studies, Fine Arts">
-        </div>
-        <div class="form-group col-full">
-          <label class="form-label">Description <span style="color:var(--ink-4);font-weight:400;">(optional)</span></label>
-          <textarea id="comboDesc" class="form-control" rows="2" placeholder="Short description shown to applicants…"></textarea>
-        </div>
-      </div>
-      <div id="comboFormErr" class="form-error" style="display:none;margin-top:8px;"></div>
-    </div>
-    <div class="modal__footer">
-      <button class="btn btn--secondary" onclick="closeModal('comboModal')">Cancel</button>
-      <button class="btn btn--primary" id="saveComboBtn" onclick="saveCombo()">Save Combination</button>
-    </div>
-  </div>
+<!-- Edit overlay (used for Classes/Subjects/Combinations quick-edit) -->
+<div class="edit-overlay" id="editOverlay" onclick="if(event.target===this)closeEdit()">
+  <div class="edit-box" id="editBox"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
@@ -144,392 +75,36 @@
 <script src="../js/supabase.js"></script>
 <script src="../js/layout.js"></script>
 <script>
-let currentUser, allPrograms=[], allLevels=[], allCombos=[];
-let activeTab = 'programs'; // 'programs' | 'levels' | 'combos'
+let currentUser;
+let activeTab = 'programs'; // programs | levels | classes | subjects | combinations
+let programs=[], levels=[], classes=[], subjects=[], combinations=[], teachers=[];
+let activeComboId=null;
 
-(async () => {
-  currentUser = await initAdminLayout('programs', 'Programs & Levels');
-  if (!currentUser) return;
+// ── School-type helpers ─────────────────────────────────────────
+function getSchoolType(){ return currentUser?.schools?.school_type || window._schoolType || 'o_level'; }
+function getPeriodLabel(){ const t=getSchoolType(); return (t==='tertiary'||t==='vocational')?'Semester':'Term'; }
 
-  document.getElementById('pageBody').innerHTML = `
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
-      <div>
-        <h1 style="font-size:1.45rem;font-weight:800;margin:0;">Programmes &amp; Levels</h1>
-        <p style="color:var(--ink-3);font-size:.875rem;margin:4px 0 0;">Define programmes applicants select on the admission form, the levels within them, and subject combinations.</p>
-      </div>
-      <button class="btn btn--primary btn--sm" id="addTopBtn" onclick="openAddTop()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Add Programme
-      </button>
-    </div>
-    <div class="tab-bar">
-      <button class="tab-btn active" id="tab-programs" onclick="switchTab('programs')">Programmes</button>
-      <button class="tab-btn" id="tab-levels" onclick="switchTab('levels')">Levels</button>
-      <button class="tab-btn" id="tab-combos" onclick="switchTab('combos')">Combinations</button>
-    </div>
-    <div id="tabContent"><div style="text-align:center;padding:48px;color:var(--ink-3);">Loading…</div></div>
-  `;
+const LEVEL_PRESETS = {
+  o_level:    ['Pre-Primary','Primary 1','Primary 2','Primary 3','Primary 4','Primary 5','Primary 6','JSS 1','JSS 2','JSS 3','SS 1','SS 2','SS 3'],
+  vocational: ['Basic Tech 1','Basic Tech 2','Vocational Level 1','Vocational Level 2','Vocational Level 3'],
+  islamic:    ['Nursery','Primary 1','Primary 2','Primary 3','JSS 1','JSS 2','JSS 3','SS 1','SS 2','SS 3','Tahfiz Year 1','Tahfiz Year 2','Tahfiz Year 3'],
+  tertiary:   ['Pre-ND','ND I','ND II','HND I','HND II','Year 1','Year 2','Year 3','Year 4','Year 5','Postgraduate'],
+};
+function getLevelsForType(){ return LEVEL_PRESETS[getSchoolType()] || LEVEL_PRESETS.o_level; }
 
-  await loadAll();
-  renderTab();
-})();
-
-async function loadAll() {
-  const sid = currentUser.school_id;
-  const [pRes, lRes, cRes] = await Promise.all([
-    db.from('programs').select('id,name,description,duration').eq('school_id', sid).order('name'),
-    db.from('levels').select('id,name,program_id,sort_order').eq('school_id', sid).order('sort_order,name'),
-    db.from('subject_combinations').select('id,name,description,program_id').eq('school_id', sid).order('name'),
-  ]);
-  if (pRes.error) console.error('programs:', pRes.error.message);
-  if (lRes.error) console.error('levels:', lRes.error.message);
-  if (cRes.error) console.error('combos:', cRes.error.message);
-  allPrograms = pRes.data || [];
-  allLevels   = lRes.data || [];
-  allCombos   = cRes.data || [];
-  populateProgramSelects();
-}
-
-function populateProgramSelects() {
-  const opts = '<option value="">— No Programme (school-wide) —</option>' +
-    allPrograms.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
-  document.getElementById('levelProgram').innerHTML = '<option value="">— Select Programme —</option>' +
-    allPrograms.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
-  document.getElementById('comboProgramSel').innerHTML = opts;
-}
-
-function switchTab(tab) {
-  activeTab = tab;
-  ['programs','levels','combos'].forEach(t => {
-    document.getElementById('tab-'+t).classList.toggle('active', t === tab);
-  });
-  const btn = document.getElementById('addTopBtn');
-  if (tab === 'programs') { btn.textContent = ''; btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Programme'; }
-  if (tab === 'levels')   { btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Level'; }
-  if (tab === 'combos')   { btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Combination'; }
-  renderTab();
-}
-
-function openAddTop() {
-  if (activeTab === 'programs') openAddProgram();
-  else if (activeTab === 'levels') openAddLevel();
-  else openAddCombo();
-}
-
-function renderTab() {
-  const el = document.getElementById('tabContent');
-  if (activeTab === 'programs') renderPrograms(el);
-  else if (activeTab === 'levels') renderLevels(el);
-  else renderCombos(el);
-}
-
-// ── PROGRAMS ──────────────────────────────────────────────────
-function renderPrograms(el) {
-  if (!allPrograms.length) {
-    el.innerHTML = `<div class="empty-state"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg><p style="font-weight:700;font-size:1rem;">No programmes yet</p><p style="font-size:.85rem;margin:4px 0 16px;">Programmes group students by study path (e.g. Science, Arts, ND Accounting).</p><button class="btn btn--primary btn--sm" onclick="openAddProgram()">Add First Programme</button></div>`;
-    return;
-  }
-  el.innerHTML = `<div class="prog-grid">${allPrograms.map(p => {
-    const lvlCount = allLevels.filter(l => l.program_id === p.id).length;
-    const comboCount = allCombos.filter(c => c.program_id === p.id).length;
-    return `<div class="prog-card">
-      <div class="prog-name">${esc(p.name)}</div>
-      ${p.description ? `<div class="prog-desc">${esc(p.description)}</div>` : ''}
-      ${p.duration ? `<div style="font-size:.78rem;color:var(--ink-3);">⏱ ${esc(p.duration)}</div>` : ''}
-      <div style="display:flex;gap:6px;flex-wrap:wrap;">
-        <span class="prog-badge levels">${lvlCount} level${lvlCount!==1?'s':''}</span>
-        <span class="prog-badge combos">${comboCount} combination${comboCount!==1?'s':''}</span>
-      </div>
-      <div class="prog-actions">
-        <button class="btn btn--secondary btn--sm" style="flex:1;" onclick="editProgram('${p.id}')"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Edit</button>
-        <button class="btn btn--ghost btn--sm" style="color:var(--danger);" onclick="deleteProgram('${p.id}','${p.name.replace(/'/g,"\\'")}')"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg> Delete</button>
-      </div>
-    </div>`;
-  }).join('')}</div>`;
-}
-
-function openAddProgram() {
-  document.getElementById('programModalTitle').textContent = 'Add Programme';
-  document.getElementById('programId').value = '';
-  ['progName','progDesc','progDuration'].forEach(id => { document.getElementById(id).value = ''; });
-  document.getElementById('programFormErr').style.display = 'none';
-  openModal('programModal');
-}
-
-function editProgram(id) {
-  const p = allPrograms.find(x => x.id === id); if (!p) return;
-  document.getElementById('programModalTitle').textContent = 'Edit Programme';
-  document.getElementById('programId').value = p.id;
-  document.getElementById('progName').value = p.name || '';
-  document.getElementById('progDesc').value = p.description || '';
-  document.getElementById('progDuration').value = p.duration || '';
-  document.getElementById('programFormErr').style.display = 'none';
-  openModal('programModal');
-}
-
-async function saveProgram() {
-  const btn = document.getElementById('saveProgramBtn');
-  const errEl = document.getElementById('programFormErr');
-  const name = document.getElementById('progName').value.trim();
-  if (!name) { errEl.textContent = 'Programme name is required.'; errEl.style.display = 'block'; return; }
-  btn.disabled = true; btn.textContent = 'Saving…';
-  const payload = {
-    school_id: currentUser.school_id, name,
-    description: document.getElementById('progDesc').value.trim() || null,
-    duration: document.getElementById('progDuration').value.trim() || null,
-  };
-  const id = document.getElementById('programId').value;
-  const { error } = id
-    ? await db.from('programs').update(payload).eq('id', id)
-    : await db.from('programs').insert(payload);
-  btn.disabled = false; btn.textContent = 'Save Programme';
-  if (error) { errEl.textContent = friendlyError(error,'program'); errEl.style.display = 'block'; return; }
-  closeModal('programModal');
-  toast(id ? 'Programme updated.' : 'Programme added.', 'success');
-  await loadAll(); renderTab();
-}
-
-async function deleteProgram(id, name) {
-  if (!confirm(`Delete programme "${name}"? All levels and combinations linked to it will also be removed.`)) return;
-  const { error } = await db.from('programs').delete().eq('id', id);
-  if (error) { toast('Error: ' + error.message, 'error'); return; }
-  toast('Programme deleted.', 'success');
-  await loadAll(); renderTab();
-}
-
-// ── LEVELS ────────────────────────────────────────────────────
-function renderLevels(el) {
-  if (!allLevels.length) {
-    el.innerHTML = `<div class="empty-state"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><p style="font-weight:700;font-size:1rem;">No levels yet</p><p style="font-size:.85rem;margin:4px 0 16px;">Levels are the year/class groups within each programme (e.g. JSS 1, Year 2).</p><button class="btn btn--primary btn--sm" onclick="openAddLevel()">Add First Level</button></div>`;
-    return;
-  }
-
-  // Group levels by programme
-  const byProg = {};
-  allLevels.forEach(l => {
-    const pid = l.program_id || '__none__';
-    if (!byProg[pid]) byProg[pid] = [];
-    byProg[pid].push(l);
-  });
-
-  let html = `<div style="overflow-x:auto;"><table class="lvl-table">
-    <thead><tr><th>Programme</th><th>Level Name</th><th>Sort Order</th><th style="text-align:right;">Actions</th></tr></thead><tbody>`;
-
-  allPrograms.forEach(prog => {
-    const levels = byProg[prog.id] || [];
-    if (!levels.length) return;
-    html += `<tr class="prog-header-row"><td colspan="4">${esc(prog.name)}</td></tr>`;
-    levels.forEach(l => {
-      html += `<tr>
-        <td style="color:var(--ink-3);font-size:.8rem;padding-left:28px;">↳</td>
-        <td style="font-weight:600;">${esc(l.name)}</td>
-        <td style="color:var(--ink-3);">${l.sort_order ?? '—'}</td>
-        <td style="text-align:right;">
-          <div style="display:flex;gap:6px;justify-content:flex-end;">
-            <button class="btn btn--secondary btn--sm" onclick="editLevel('${l.id}')"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Edit</button>
-            <button class="btn btn--ghost btn--sm" style="color:var(--danger);" onclick="deleteLevel('${l.id}','${l.name.replace(/'/g,"\\'")}')"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
-          </div>
-        </td>
-      </tr>`;
-    });
-  });
-
-  // Unlinked levels
-  if (byProg['__none__'] && byProg['__none__'].length) {
-    html += `<tr class="prog-header-row"><td colspan="4" style="color:var(--warning);">⚠ Not linked to a programme</td></tr>`;
-    byProg['__none__'].forEach(l => {
-      html += `<tr>
-        <td style="color:var(--ink-3);font-size:.8rem;padding-left:28px;">↳</td>
-        <td style="font-weight:600;">${esc(l.name)}</td>
-        <td style="color:var(--ink-3);">${l.sort_order ?? '—'}</td>
-        <td style="text-align:right;">
-          <div style="display:flex;gap:6px;justify-content:flex-end;">
-            <button class="btn btn--secondary btn--sm" onclick="editLevel('${l.id}')">Edit</button>
-            <button class="btn btn--ghost btn--sm" style="color:var(--danger);" onclick="deleteLevel('${l.id}','${l.name.replace(/'/g,"\\'")}')">
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
-            </button>
-          </div>
-        </td>
-      </tr>`;
-    });
-  }
-
-  html += '</tbody></table></div>';
-  el.innerHTML = html;
-}
-
-function openAddLevel(progId='') {
-  document.getElementById('levelModalTitle').textContent = 'Add Level';
-  document.getElementById('levelId').value = '';
-  document.getElementById('levelName').value = '';
-  document.getElementById('levelSort').value = '';
-  document.getElementById('levelProgram').value = progId;
-  document.getElementById('levelFormErr').style.display = 'none';
-  openModal('levelModal');
-}
-
-function editLevel(id) {
-  const l = allLevels.find(x => x.id === id); if (!l) return;
-  document.getElementById('levelModalTitle').textContent = 'Edit Level';
-  document.getElementById('levelId').value = l.id;
-  document.getElementById('levelName').value = l.name || '';
-  document.getElementById('levelSort').value = l.sort_order ?? '';
-  document.getElementById('levelProgram').value = l.program_id || '';
-  document.getElementById('levelFormErr').style.display = 'none';
-  openModal('levelModal');
-}
-
-async function saveLevel() {
-  const btn = document.getElementById('saveLevelBtn');
-  const errEl = document.getElementById('levelFormErr');
-  const name = document.getElementById('levelName').value.trim();
-  const progId = document.getElementById('levelProgram').value;
-  if (!name) { errEl.textContent = 'Level name is required.'; errEl.style.display = 'block'; return; }
-  if (!progId) { errEl.textContent = 'Please select a programme.'; errEl.style.display = 'block'; return; }
-  btn.disabled = true; btn.textContent = 'Saving…';
-  const payload = {
-    school_id: currentUser.school_id, name,
-    program_id: progId || null,
-    sort_order: parseInt(document.getElementById('levelSort').value) || null,
-  };
-  const id = document.getElementById('levelId').value;
-  const { error } = id
-    ? await db.from('levels').update(payload).eq('id', id)
-    : await db.from('levels').insert(payload);
-  btn.disabled = false; btn.textContent = 'Save Level';
-  if (error) { errEl.textContent = friendlyError(error,'level'); errEl.style.display = 'block'; return; }
-  closeModal('levelModal');
-  toast(id ? 'Level updated.' : 'Level added.', 'success');
-  await loadAll(); renderTab();
-}
-
-async function deleteLevel(id, name) {
-  if (!confirm(`Delete level "${name}"?`)) return;
-  const { error } = await db.from('levels').delete().eq('id', id);
-  if (error) { toast('Error: ' + error.message, 'error'); return; }
-  toast('Level deleted.', 'success');
-  await loadAll(); renderTab();
-}
-
-// ── COMBINATIONS ──────────────────────────────────────────────
-function renderCombos(el) {
-  if (!allCombos.length) {
-    el.innerHTML = `<div class="empty-state"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><p style="font-weight:700;font-size:1rem;">No combinations yet</p><p style="font-size:.85rem;margin:4px 0 16px;">Combinations are subject bundles shown to applicants after they pick a programme (e.g. Physics/Chem/Biology, Business Studies).</p><button class="btn btn--primary btn--sm" onclick="openAddCombo()">Add First Combination</button></div>`;
-    return;
-  }
-
-  // Group by programme
-  const byProg = {};
-  allCombos.forEach(c => {
-    const pid = c.program_id || '__none__';
-    if (!byProg[pid]) byProg[pid] = [];
-    byProg[pid].push(c);
-  });
-
-  let html = `<div style="overflow-x:auto;"><table class="lvl-table">
-    <thead><tr><th>Programme</th><th>Combination / Course</th><th>Description</th><th style="text-align:right;">Actions</th></tr></thead><tbody>`;
-
-  allPrograms.forEach(prog => {
-    const combos = byProg[prog.id] || [];
-    if (!combos.length) return;
-    html += `<tr class="prog-header-row"><td colspan="4">${esc(prog.name)}</td></tr>`;
-    combos.forEach(c => {
-      html += `<tr>
-        <td style="color:var(--ink-3);font-size:.8rem;padding-left:28px;">↳</td>
-        <td style="font-weight:600;">${esc(c.name)}</td>
-        <td style="color:var(--ink-3);font-size:.82rem;">${esc(c.description||'—')}</td>
-        <td style="text-align:right;">
-          <div style="display:flex;gap:6px;justify-content:flex-end;">
-            <button class="btn btn--secondary btn--sm" onclick="editCombo('${c.id}')"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Edit</button>
-            <button class="btn btn--ghost btn--sm" style="color:var(--danger);" onclick="deleteCombo('${c.id}','${c.name.replace(/'/g,"\\'")}')"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
-          </div>
-        </td>
-      </tr>`;
-    });
-  });
-
-  if (byProg['__none__'] && byProg['__none__'].length) {
-    html += `<tr class="prog-header-row"><td colspan="4" style="color:var(--warning);">School-wide (no programme filter)</td></tr>`;
-    byProg['__none__'].forEach(c => {
-      html += `<tr>
-        <td style="color:var(--ink-3);font-size:.8rem;padding-left:28px;">↳</td>
-        <td style="font-weight:600;">${esc(c.name)}</td>
-        <td style="color:var(--ink-3);font-size:.82rem;">${esc(c.description||'—')}</td>
-        <td style="text-align:right;">
-          <div style="display:flex;gap:6px;justify-content:flex-end;">
-            <button class="btn btn--secondary btn--sm" onclick="editCombo('${c.id}')">Edit</button>
-            <button class="btn btn--ghost btn--sm" style="color:var(--danger);" onclick="deleteCombo('${c.id}','${c.name.replace(/'/g,"\\'")}')">
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
-            </button>
-          </div>
-        </td>
-      </tr>`;
-    });
-  }
-
-  html += '</tbody></table></div>';
-  el.innerHTML = html;
-}
-
-function openAddCombo(progId='') {
-  document.getElementById('comboModalTitle').textContent = 'Add Combination';
-  document.getElementById('comboId').value = '';
-  document.getElementById('comboName').value = '';
-  document.getElementById('comboDesc').value = '';
-  document.getElementById('comboProgramSel').value = progId;
-  document.getElementById('comboFormErr').style.display = 'none';
-  openModal('comboModal');
-}
-
-function editCombo(id) {
-  const c = allCombos.find(x => x.id === id); if (!c) return;
-  document.getElementById('comboModalTitle').textContent = 'Edit Combination';
-  document.getElementById('comboId').value = c.id;
-  document.getElementById('comboName').value = c.name || '';
-  document.getElementById('comboDesc').value = c.description || '';
-  document.getElementById('comboProgramSel').value = c.program_id || '';
-  document.getElementById('comboFormErr').style.display = 'none';
-  openModal('comboModal');
-}
-
-async function saveCombo() {
-  const btn = document.getElementById('saveComboBtn');
-  const errEl = document.getElementById('comboFormErr');
-  const name = document.getElementById('comboName').value.trim();
-  if (!name) { errEl.textContent = 'Combination name is required.'; errEl.style.display = 'block'; return; }
-  btn.disabled = true; btn.textContent = 'Saving…';
-  const payload = {
-    school_id: currentUser.school_id, name,
-    description: document.getElementById('comboDesc').value.trim() || null,
-    program_id: document.getElementById('comboProgramSel').value || null,
-  };
-  const id = document.getElementById('comboId').value;
-  const { error } = id
-    ? await db.from('subject_combinations').update(payload).eq('id', id)
-    : await db.from('subject_combinations').insert(payload);
-  btn.disabled = false; btn.textContent = 'Save Combination';
-  if (error) { errEl.textContent = friendlyError(error,'combo'); errEl.style.display = 'block'; return; }
-  closeModal('comboModal');
-  toast(id ? 'Combination updated.' : 'Combination added.', 'success');
-  await loadAll(); renderTab();
-}
-
-async function deleteCombo(id, name) {
-  if (!confirm(`Delete combination "${name}"?`)) return;
-  const { error } = await db.from('subject_combinations').delete().eq('id', id);
-  if (error) { toast('Error: ' + error.message, 'error'); return; }
-  toast('Combination deleted.', 'success');
-  await loadAll(); renderTab();
-}
-
+function openEdit(html){ document.getElementById('editBox').innerHTML=html; document.getElementById('editOverlay').classList.add('active'); }
+function closeEdit(){ document.getElementById('editOverlay').classList.remove('active'); }
+function trashIcon(){ return `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>`; }
+function editIcon(){ return `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`; }
 function esc(v){ return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-// Translate raw Postgres/Supabase errors into plain English
 function friendlyError(error, context='') {
   const msg = error?.message || '';
   if (/duplicate key|unique constraint/i.test(msg)) {
-    if (context==='program') return 'A programme with this name already exists for your school. Please use a different name or edit the existing one.';
+    if (context==='program') return 'A programme with this name already exists for your school.';
     if (context==='level')   return 'A level with this name already exists under that programme.';
+    if (context==='class')   return 'A class with this name already exists for your school.';
+    if (context==='subject') return 'A subject with this name already exists for your school.';
     if (context==='combo')   return 'A combination with this name already exists for your school.';
     return 'A record with this name already exists. Please use a different name.';
   }
@@ -538,6 +113,772 @@ function friendlyError(error, context='') {
   if (/permission denied|rls|policy/i.test(msg))    return 'Permission denied. You may not have access to perform this action.';
   if (/schema cache|column.*not found|does not exist/i.test(msg)) return 'A database column is missing. Please run the latest SQL migration in Supabase and reload the schema cache.';
   return msg || 'An unexpected error occurred. Please try again.';
+}
+
+(async () => {
+  currentUser = await initAdminLayout('programs', 'Academic Structure');
+  if (!currentUser) return;
+
+  // Support deep links like programs.html?tab=classes (e.g. from the old classes.html redirect)
+  const qsTab = new URLSearchParams(window.location.search).get('tab');
+  if (qsTab && ['programs','levels','classes','subjects','combinations'].includes(qsTab)) {
+    activeTab = qsTab;
+  }
+
+  document.getElementById('pageBody').innerHTML = `
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px;">
+      <div>
+        <h1 style="font-size:1.45rem;font-weight:800;margin:0;">Academic Structure</h1>
+        <p style="color:var(--ink-3);font-size:.875rem;margin:4px 0 0;">Everything to do with how your school is organised — programmes, levels, classes, subjects and combinations — all in one place.</p>
+      </div>
+    </div>
+    <div class="tab-bar">
+      <button class="tab-btn" id="tab-programs" onclick="switchTab('programs')">${tabIcon('programs')} Programmes</button>
+      <button class="tab-btn" id="tab-levels" onclick="switchTab('levels')">${tabIcon('levels')} Levels</button>
+      <button class="tab-btn" id="tab-classes" onclick="switchTab('classes')">${tabIcon('classes')} Classes</button>
+      <button class="tab-btn" id="tab-subjects" onclick="switchTab('subjects')">${tabIcon('subjects')} Subjects</button>
+      <button class="tab-btn" id="tab-combinations" onclick="switchTab('combinations')">${tabIcon('combinations')} Combinations</button>
+    </div>
+    <div id="tabContent"><div style="text-align:center;padding:48px;color:var(--ink-3);">Loading…</div></div>
+  `;
+  document.getElementById('tab-'+activeTab).classList.add('active');
+
+  await loadAll();
+  renderTab();
+})();
+
+function tabIcon(id){
+  const icons={
+    programs:`<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>`,
+    levels:`<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
+    classes:`<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2"/><rect x="7" y="7" width="3" height="3"/><rect x="14" y="7" width="3" height="3"/><rect x="7" y="14" width="3" height="3"/><rect x="14" y="14" width="3" height="3"/></svg>`,
+    subjects:`<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`,
+    combinations:`<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><line x1="6" y1="9" x2="6" y2="21"/></svg>`,
+  };
+  return icons[id]||'';
+}
+
+async function loadAll() {
+  const sid = currentUser.school_id;
+  const [pRes, lRes, cRes, sRes, comboRes, tRes] = await Promise.all([
+    db.from('programs').select('id,name,description,duration').eq('school_id', sid).order('name'),
+    db.from('levels').select('id,name,program_id,sort_order').eq('school_id', sid).order('sort_order,name'),
+    db.from('classes').select('id,name,level,level_id,program_id,combination_id,capacity,teacher_id,users(full_name)').eq('school_id', sid).order('name'),
+    db.from('subjects').select('id,name,code').eq('school_id', sid).order('name'),
+    db.from('subject_combinations').select('*').eq('school_id', sid).order('name'),
+    db.from('users').select('id,full_name').eq('school_id', sid).eq('role','teacher').eq('is_active',true).order('full_name'),
+  ]);
+  if (pRes.error) console.error('programs:', pRes.error.message);
+  if (lRes.error) console.error('levels:', lRes.error.message);
+  if (cRes.error) console.error('classes:', cRes.error.message);
+  if (sRes.error) console.error('subjects:', sRes.error.message);
+  if (comboRes.error) console.error('combinations:', comboRes.error.message);
+  programs     = pRes.data || [];
+  levels       = lRes.data || [];
+  classes      = cRes.data || [];
+  subjects     = sRes.data || [];
+  combinations = comboRes.data || [];
+  teachers     = tRes.data || [];
+}
+
+function switchTab(tab) {
+  activeTab = tab;
+  ['programs','levels','classes','subjects','combinations'].forEach(t => {
+    const el = document.getElementById('tab-'+t);
+    if (el) el.classList.toggle('active', t === tab);
+  });
+  renderTab();
+}
+
+function renderTab() {
+  const el = document.getElementById('tabContent');
+  if (activeTab === 'programs')      renderPrograms(el);
+  else if (activeTab === 'levels')   renderLevels(el);
+  else if (activeTab === 'classes')  renderClasses(el);
+  else if (activeTab === 'subjects') renderSubjects(el);
+  else                                renderCombinations(el);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  TAB 1 — PROGRAMMES (with nested level + class preview)
+// ═══════════════════════════════════════════════════════════════
+function renderPrograms(el) {
+  el.innerHTML = `
+    <div class="intro-banner">
+      <strong>How this works:</strong> Create <strong>Programmes</strong> (e.g. "Science Track", "ND Electrical Engineering"), then add <strong>Levels</strong> to each programme (e.g. Year 1, ND I). Go to <strong>Classes</strong> to assign each class to a level, <strong>Subjects</strong> to manage your subject list, and <strong>Combinations</strong> to group subjects into Science/Art/Commercial tracks.
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:14px;">
+      <button class="btn btn--primary btn--sm" onclick="openAddProgram()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Programme
+      </button>
+    </div>
+    <div id="progListWrap"></div>
+  `;
+  renderProgramsList();
+}
+
+function renderProgramsList() {
+  const wrap = document.getElementById('progListWrap');
+  if (!wrap) return;
+  if (!programs.length) {
+    wrap.innerHTML = `<div class="empty-state"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg><p style="font-weight:700;font-size:1rem;">No programmes yet</p><p style="font-size:.85rem;margin:4px 0 16px;">Programmes group students by study path (e.g. Science, Arts, ND Accounting).</p><button class="btn btn--primary btn--sm" onclick="openAddProgram()">Add First Programme</button></div>`;
+    return;
+  }
+  wrap.innerHTML = programs.map(p => {
+    const pLevels  = levels.filter(l => l.program_id === p.id);
+    const pClasses = classes.filter(c => c.program_id === p.id || pLevels.some(l => l.id === c.level_id));
+    const pCombos  = combinations.filter(c => c.program_id === p.id);
+    return `
+      <div class="prog-card">
+        <div class="prog-card__head" onclick="toggleProgCard('pc-${p.id}')">
+          <div>
+            <div style="font-weight:700;font-size:14px;">${esc(p.name)}</div>
+            <div style="font-size:11px;color:var(--ink-3);">${esc(p.description||'')} ${p.description?'&nbsp;·&nbsp;':''}${pLevels.length} level${pLevels.length!==1?'s':''} · ${pClasses.length} class${pClasses.length!==1?'es':''} · ${pCombos.length} combo${pCombos.length!==1?'s':''}</div>
+          </div>
+          <div style="display:flex;gap:4px;flex-shrink:0;">
+            <button class="btn btn--ghost btn--sm" onclick="event.stopPropagation();editProgram('${p.id}')" title="Edit">${editIcon()}</button>
+            <button class="btn btn--ghost btn--sm" onclick="event.stopPropagation();deleteProgram('${p.id}','${esc(p.name).replace(/'/g,"\\'")}')" title="Delete">${trashIcon()}</button>
+          </div>
+        </div>
+        <div class="prog-card__body" id="pc-${p.id}">
+          ${pLevels.length===0
+            ? `<p style="font-size:12px;color:var(--ink-3);">No levels yet for this programme. <a href="#" onclick="event.preventDefault();switchTab('levels');openAddLevel('${p.id}')" style="color:var(--primary);font-weight:600;">Add one →</a></p>`
+            : pLevels.map(l=>{
+                const lClasses = classes.filter(c => c.level_id === l.id);
+                return `<div class="level-row">
+                  <div>
+                    <div style="font-weight:600;font-size:13px;">${esc(l.name)}</div>
+                    <div style="margin-top:3px;">${lClasses.map(c=>`<span class="class-tag">${esc(c.name)}</span>`).join('')||'<span style="font-size:11px;color:var(--ink-3);">No classes assigned</span>'}</div>
+                  </div>
+                </div>`;
+              }).join('')}
+          <button class="btn btn--secondary btn--sm" style="margin-top:8px;" onclick="switchTab('levels');openAddLevel('${p.id}')">+ Add Level to ${esc(p.name)}</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function toggleProgCard(id){
+  const elx = document.getElementById(id);
+  if (elx) elx.classList.toggle('open');
+}
+
+function openAddProgram(){
+  openEdit(`
+    <h3>New Programme</h3>
+    <div class="form-group"><label class="form-label">Programme Name <span class="required">*</span></label>
+      <input id="ep-name" class="form-control" placeholder="e.g. Science Track, ND Electrical Engineering"></div>
+    <div class="form-group"><label class="form-label">Description</label>
+      <input id="ep-desc" class="form-control" placeholder="Optional short description"></div>
+    <div class="form-group"><label class="form-label">Duration</label>
+      <input id="ep-duration" class="form-control" placeholder="e.g. 3 Years, 2 Semesters"></div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn btn--primary" onclick="saveProgram(null)">Save Programme</button>
+      <button class="btn btn--ghost" onclick="closeEdit()">Cancel</button>
+    </div>`);
+}
+function editProgram(id){
+  const p = programs.find(x => x.id === id); if (!p) return;
+  openEdit(`
+    <h3>Edit Programme</h3>
+    <div class="form-group"><label class="form-label">Programme Name <span class="required">*</span></label>
+      <input id="ep-name" class="form-control" value="${esc(p.name)}"></div>
+    <div class="form-group"><label class="form-label">Description</label>
+      <input id="ep-desc" class="form-control" value="${esc(p.description||'')}"></div>
+    <div class="form-group"><label class="form-label">Duration</label>
+      <input id="ep-duration" class="form-control" value="${esc(p.duration||'')}"></div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn btn--primary" onclick="saveProgram('${id}')">Update</button>
+      <button class="btn btn--ghost" onclick="closeEdit()">Cancel</button>
+    </div>`);
+}
+async function saveProgram(id){
+  const name = document.getElementById('ep-name').value.trim();
+  if (!name) { toast('Enter a programme name.','error'); return; }
+  const payload = {
+    name,
+    description: document.getElementById('ep-desc').value.trim() || null,
+    duration: document.getElementById('ep-duration').value.trim() || null,
+  };
+  const { error } = id
+    ? await db.from('programs').update(payload).eq('id', id)
+    : await db.from('programs').insert({ school_id: currentUser.school_id, ...payload });
+  if (error) { toast(friendlyError(error,'program'),'error'); return; }
+  closeEdit(); await loadAll(); renderTab(); toast(id?'Programme updated!':'Programme added!','success');
+}
+async function deleteProgram(id, name){
+  if (!confirm(`Delete programme "${name}"? Levels inside it will become standalone.`)) return;
+  const { error } = await db.from('programs').delete().eq('id', id);
+  if (error) { toast('Error: '+error.message,'error'); return; }
+  await loadAll(); renderTab(); toast('Programme deleted.','success');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  TAB 2 — LEVELS
+// ═══════════════════════════════════════════════════════════════
+function renderLevels(el) {
+  const presetLevels = getLevelsForType();
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+      <div class="card">
+        <div class="card__header">
+          <span class="card__title">All Levels (${levels.length})</span>
+          <button class="btn btn--primary btn--sm" onclick="openAddLevel(null)">+ New Level</button>
+        </div>
+        <p style="font-size:12px;color:var(--ink-3);margin-bottom:10px;">Levels can belong to a programme or stand alone. Classes are assigned to levels.</p>
+        <div id="levelListWrap" style="max-height:420px;overflow-y:auto;"></div>
+      </div>
+      <div class="card" style="background:var(--surface-3);align-self:flex-start;">
+        <div class="card__header"><span class="card__title">Quick Load Levels</span></div>
+        <p style="font-size:12px;color:var(--ink-3);margin-bottom:10px;">Load the standard levels for your school type (<strong>${esc(getSchoolType().replace('_',' '))}</strong>) in one click.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
+          ${presetLevels.map(n=>`<span style="padding:3px 10px;border-radius:100px;font-size:12px;background:var(--primary-light);color:var(--primary);border:1px solid var(--primary);">${esc(n)}</span>`).join('')}
+        </div>
+        <button class="btn btn--secondary btn--sm" onclick="loadPresetLevels()">Load These Levels</button>
+      </div>
+    </div>
+  `;
+  renderLevelsList();
+}
+
+function renderLevelsList(){
+  const wrap = document.getElementById('levelListWrap');
+  if (!wrap) return;
+  if (!levels.length) {
+    wrap.innerHTML = `<div class="empty-state" style="padding:24px;"><svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><p style="font-weight:600;font-size:.9rem;">No levels yet.</p></div>`;
+    return;
+  }
+  wrap.innerHTML = levels.map(l=>{
+    const prog = programs.find(p => p.id === l.program_id);
+    const lClasses = classes.filter(c => c.level_id === l.id);
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+      <div>
+        <span style="font-weight:600;font-size:13px;">${esc(l.name)}</span>
+        ${prog?`<span style="font-size:11px;padding:1px 6px;border-radius:3px;background:var(--primary-light);color:var(--primary);margin-left:6px;">${esc(prog.name)}</span>`:''}
+        <span style="font-size:11px;color:var(--ink-3);margin-left:6px;">${lClasses.length} class${lClasses.length!==1?'es':''}</span>
+      </div>
+      <div style="display:flex;gap:4px;">
+        <button class="btn btn--ghost btn--sm" onclick="editLevel('${l.id}')">${editIcon()}</button>
+        <button class="btn btn--ghost btn--sm" onclick="deleteLevel('${l.id}','${esc(l.name).replace(/'/g,"\\'")}')">${trashIcon()}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openAddLevel(programId){
+  const progOpts = programs.map(p=>`<option value="${p.id}" ${p.id===programId?'selected':''}>${esc(p.name)}</option>`).join('');
+  openEdit(`
+    <h3>New Level</h3>
+    <div class="form-group"><label class="form-label">Level Name <span class="required">*</span></label>
+      <input id="el-name" class="form-control" placeholder="e.g. Year 1, JSS 1, ND I"></div>
+    <div class="form-group"><label class="form-label">Programme (optional)</label>
+      <select id="el-prog" class="form-control"><option value="">— No programme —</option>${progOpts}</select></div>
+    <div class="form-group"><label class="form-label">Sort Order</label>
+      <input type="number" id="el-sort" class="form-control" value="${levels.length+1}" placeholder="1"></div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn btn--primary" onclick="saveLevel(null)">Save Level</button>
+      <button class="btn btn--ghost" onclick="closeEdit()">Cancel</button>
+    </div>`);
+}
+function editLevel(id){
+  const l = levels.find(x => x.id === id); if (!l) return;
+  const progOpts = programs.map(p=>`<option value="${p.id}" ${p.id===l.program_id?'selected':''}>${esc(p.name)}</option>`).join('');
+  openEdit(`
+    <h3>Edit Level</h3>
+    <div class="form-group"><label class="form-label">Level Name <span class="required">*</span></label>
+      <input id="el-name" class="form-control" value="${esc(l.name)}"></div>
+    <div class="form-group"><label class="form-label">Programme</label>
+      <select id="el-prog" class="form-control"><option value="">— No programme —</option>${progOpts}</select></div>
+    <div class="form-group"><label class="form-label">Sort Order</label>
+      <input type="number" id="el-sort" class="form-control" value="${l.sort_order||1}"></div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn btn--primary" onclick="saveLevel('${id}')">Update</button>
+      <button class="btn btn--ghost" onclick="closeEdit()">Cancel</button>
+    </div>`);
+}
+async function saveLevel(id){
+  const name = document.getElementById('el-name').value.trim();
+  if (!name) { toast('Enter a level name.','error'); return; }
+  const payload = {
+    name,
+    program_id: document.getElementById('el-prog').value || null,
+    sort_order: parseInt(document.getElementById('el-sort').value) || 1,
+  };
+  const { error } = id
+    ? await db.from('levels').update(payload).eq('id', id)
+    : await db.from('levels').insert({ school_id: currentUser.school_id, ...payload });
+  if (error) { toast(friendlyError(error,'level'),'error'); return; }
+  closeEdit(); await loadAll(); renderTab(); toast(id?'Level updated!':'Level added!','success');
+}
+async function deleteLevel(id, name){
+  if (!confirm(`Delete level "${name}"? Classes assigned to it will lose their level.`)) return;
+  const { error } = await db.from('levels').delete().eq('id', id);
+  if (error) { toast('Error: '+error.message,'error'); return; }
+  await loadAll(); renderTab(); toast('Level deleted.','success');
+}
+async function loadPresetLevels(){
+  const names = getLevelsForType();
+  if (!confirm(`Load ${names.length} preset levels for your school type? Duplicates will be skipped.`)) return;
+  const rows = names.map((name,i)=>({ school_id: currentUser.school_id, name, sort_order: i+1 }));
+  const { error } = await db.from('levels').upsert(rows, { onConflict: 'school_id,name' });
+  if (error) { toast('Error: '+error.message,'error'); return; }
+  await loadAll(); renderTab(); toast(`${names.length} levels loaded!`,'success');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  TAB 3 — CLASSES
+// ═══════════════════════════════════════════════════════════════
+function renderClasses(el) {
+  const levelOpts = levels.length
+    ? levels.map(l=>{
+        const prog = programs.find(p => p.id === l.program_id);
+        return `<option value="${l.id}" data-name="${esc(l.name)}">${esc(l.name)}${prog?' ('+esc(prog.name)+')':''}</option>`;
+      }).join('')
+    : getLevelsForType().map(n=>`<option value="" data-name="${esc(n)}">${esc(n)}</option>`).join('');
+
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+      <div class="card">
+        <div class="card__header"><span class="card__title">Classes (${classes.length})</span></div>
+        <div id="classListWrap" style="max-height:480px;overflow-y:auto;"></div>
+      </div>
+      <div class="card" style="align-self:flex-start;">
+        <div class="card__header"><span class="card__title">Add Class</span></div>
+        <div class="form-group"><label class="form-label">Class Name <span class="required">*</span></label>
+          <input id="newClassName" class="form-control" placeholder="e.g. JSS 1A, Year 1 Science"></div>
+        <div class="form-group">
+          <label class="form-label">Level</label>
+          <select id="newClassLevel" class="form-control">
+            <option value="">— Select Level —</option>
+            ${levelOpts}
+            <option value="__custom__">+ Type custom level…</option>
+          </select>
+        </div>
+        <div class="form-group" id="customLevelGroup" style="display:none;">
+          <label class="form-label">Custom Level Name</label>
+          <input id="newClassLevelCustom" class="form-control" placeholder="Enter level name">
+        </div>
+        <div class="form-group"><label class="form-label">Combination</label>
+          <select id="newClassCombo" class="form-control">
+            <option value="">— None —</option>
+            ${combinations.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Form Teacher</label>
+          <select id="newClassTeacher" class="form-control">
+            <option value="">— None —</option>
+            ${teachers.map(t=>`<option value="${t.id}">${esc(t.full_name)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Capacity (optional)</label>
+          <input type="number" id="newClassCapacity" class="form-control" placeholder="e.g. 40" min="1"></div>
+        <button class="btn btn--primary" onclick="addClass()">+ Add Class</button>
+        <hr style="margin:16px 0;border-color:var(--border);">
+        <div class="form-group"><label class="form-label">Bulk Add (comma-separated)</label>
+          <input id="bulkClasses" class="form-control" placeholder="JSS 1A, JSS 1B, SS 1A"></div>
+        <button class="btn btn--secondary" onclick="bulkAddClasses()">Bulk Add</button>
+      </div>
+    </div>`;
+
+  renderClassesList();
+
+  const sel = document.getElementById('newClassLevel');
+  if (sel) sel.addEventListener('change', function(){
+    document.getElementById('customLevelGroup').style.display = this.value==='__custom__' ? 'block':'none';
+  });
+}
+
+function renderClassesList(){
+  const wrap = document.getElementById('classListWrap');
+  if (!wrap) return;
+  if (!classes.length) {
+    wrap.innerHTML = `<div class="empty-state" style="padding:24px;"><svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg><p style="font-weight:600;font-size:.9rem;">No classes yet.</p></div>`;
+    return;
+  }
+  wrap.innerHTML = classes.map(c=>{
+    const combo = combinations.find(cb => cb.id === c.combination_id);
+    const lvl = levels.find(l => l.id === c.level_id);
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+      <div>
+        <span style="font-weight:600;">${esc(c.name)}</span>
+        ${lvl?`<span class="chip" style="margin-left:6px;">${esc(lvl.name)}</span>`:c.level?`<span class="chip" style="margin-left:6px;">${esc(c.level)}</span>`:''}
+        ${combo?`<span style="font-size:11px;margin-left:6px;padding:2px 6px;border-radius:3px;background:${combo.color}22;color:${combo.color};font-weight:700;">${esc(combo.name)}</span>`:''}
+        ${c.users?.full_name?`<span style="font-size:11px;color:var(--ink-3);margin-left:6px;">Form: ${esc(c.users.full_name.split(' ')[0])}</span>`:''}
+        ${c.capacity?`<span style="font-size:11px;color:var(--ink-3);margin-left:6px;">Cap. ${c.capacity}</span>`:''}
+      </div>
+      <div style="display:flex;gap:4px;">
+        <button class="btn btn--ghost btn--sm" onclick="editClassModal('${c.id}')">${editIcon()}</button>
+        <button class="btn btn--ghost btn--sm" onclick="deleteClass('${c.id}','${esc(c.name).replace(/'/g,"\\'")}')">${trashIcon()}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function editClassModal(id){
+  const c = classes.find(x => x.id === id); if (!c) return;
+  const levelOpts = levels.map(l=>`<option value="${l.id}" ${l.id===c.level_id?'selected':''}>${esc(l.name)}</option>`).join('');
+  const comboOpts = combinations.map(x=>`<option value="${x.id}" ${x.id===c.combination_id?'selected':''}>${esc(x.name)}</option>`).join('');
+  const teacherOpts = teachers.map(t=>`<option value="${t.id}" ${t.id===c.teacher_id?'selected':''}>${esc(t.full_name)}</option>`).join('');
+  openEdit(`
+    <h3>Edit Class</h3>
+    <div class="form-group"><label class="form-label">Class Name <span class="required">*</span></label>
+      <input id="ec-name" class="form-control" value="${esc(c.name)}"></div>
+    <div class="form-group"><label class="form-label">Level</label>
+      <select id="ec-level" class="form-control"><option value="">— None —</option>${levelOpts}</select></div>
+    <div class="form-group"><label class="form-label">Combination</label>
+      <select id="ec-combo" class="form-control"><option value="">— None —</option>${comboOpts}</select></div>
+    <div class="form-group"><label class="form-label">Form Teacher</label>
+      <select id="ec-teacher" class="form-control"><option value="">— None —</option>${teacherOpts}</select></div>
+    <div class="form-group"><label class="form-label">Capacity</label>
+      <input type="number" id="ec-capacity" class="form-control" value="${c.capacity||''}" min="1"></div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn btn--primary" onclick="updateClass('${id}')">Update</button>
+      <button class="btn btn--ghost" onclick="closeEdit()">Cancel</button>
+    </div>`);
+}
+async function updateClass(id){
+  const name = document.getElementById('ec-name').value.trim();
+  if (!name) { toast('Enter a class name.','error'); return; }
+  const { error } = await db.from('classes').update({
+    name,
+    level_id: document.getElementById('ec-level').value || null,
+    combination_id: document.getElementById('ec-combo').value || null,
+    teacher_id: document.getElementById('ec-teacher').value || null,
+    capacity: parseInt(document.getElementById('ec-capacity').value) || null,
+  }).eq('id', id);
+  if (error) { toast(friendlyError(error,'class'),'error'); return; }
+  closeEdit(); await loadAll(); renderTab(); toast('Class updated!','success');
+}
+async function addClass(){
+  const name = document.getElementById('newClassName').value.trim();
+  if (!name) { toast('Enter a class name.','error'); return; }
+  const levelSel = document.getElementById('newClassLevel');
+  let levelId = levelSel.value || null, levelName = null;
+  if (levelId === '__custom__') { levelId = null; levelName = document.getElementById('newClassLevelCustom').value.trim() || null; }
+  else if (levelId) { levelName = levels.find(l => l.id === levelId)?.name || null; }
+  const { error } = await db.from('classes').insert({
+    school_id: currentUser.school_id, name,
+    level_id: levelId, level: levelName,
+    combination_id: document.getElementById('newClassCombo').value || null,
+    teacher_id: document.getElementById('newClassTeacher').value || null,
+    capacity: parseInt(document.getElementById('newClassCapacity').value) || null,
+  });
+  if (error) { toast(friendlyError(error,'class'),'error'); return; }
+  document.getElementById('newClassName').value = '';
+  document.getElementById('newClassLevel').value = '';
+  document.getElementById('newClassCombo').value = '';
+  document.getElementById('newClassTeacher').value = '';
+  document.getElementById('newClassCapacity').value = '';
+  await loadAll(); renderTab(); toast('Class added!','success');
+}
+async function bulkAddClasses(){
+  const names = document.getElementById('bulkClasses').value.split(',').map(n=>n.trim()).filter(Boolean);
+  if (!names.length) return;
+  const { error } = await db.from('classes').insert(names.map(name=>({ school_id: currentUser.school_id, name })));
+  if (error) { toast('Error: '+error.message,'error'); return; }
+  document.getElementById('bulkClasses').value = '';
+  await loadAll(); renderTab(); toast(`${names.length} classes added!`,'success');
+}
+async function deleteClass(id, name){
+  if (!confirm(`Delete class "${name}"? Enrollments in this class will also be removed.`)) return;
+  const { error } = await db.from('classes').delete().eq('id', id);
+  if (error) { toast('Error: '+error.message,'error'); return; }
+  await loadAll(); renderTab(); toast('Class deleted.','success');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  TAB 4 — SUBJECTS
+// ═══════════════════════════════════════════════════════════════
+function renderSubjects(el) {
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:920px;">
+      <div class="card">
+        <div class="card__header"><span class="card__title">Subjects (${subjects.length})</span></div>
+        <div id="subjectListWrap" style="max-height:420px;overflow-y:auto;"></div>
+        <button class="btn btn--secondary btn--sm btn--full" style="margin-top:12px;" onclick="addDefaultSubjects()">Load 30 Nigerian Standard Subjects</button>
+      </div>
+      <div class="card" style="align-self:flex-start;">
+        <div class="card__header"><span class="card__title">Add Subject</span></div>
+        <div class="form-group"><label class="form-label">Name <span class="required">*</span></label>
+          <input id="newSubName" class="form-control" placeholder="Mathematics"></div>
+        <div class="form-group"><label class="form-label">Code</label>
+          <input id="newSubCode" class="form-control" placeholder="MTH"></div>
+        <button class="btn btn--primary" onclick="addSubject()">+ Add</button>
+        <hr style="margin:16px 0;border-color:var(--border);">
+        <div class="form-group"><label class="form-label">Bulk Add (comma-separated)</label>
+          <textarea id="bulkSubs" class="form-control" rows="3" placeholder="Physics, Chemistry, Biology"></textarea></div>
+        <button class="btn btn--secondary" onclick="bulkAddSubjects()">Bulk Add</button>
+      </div>
+    </div>`;
+  renderSubjectsList();
+}
+
+function renderSubjectsList(){
+  const wrap = document.getElementById('subjectListWrap');
+  if (!wrap) return;
+  if (!subjects.length) { wrap.innerHTML = '<p style="color:var(--ink-3);padding:8px 0;">No subjects yet.</p>'; return; }
+  wrap.innerHTML = subjects.map(s=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+      <div>
+        <span style="font-weight:600;">${esc(s.name)}</span>
+        ${s.code?`<span style="background:var(--primary-light);color:var(--primary);font-size:11px;font-weight:700;padding:2px 6px;border-radius:3px;margin-left:6px;">${esc(s.code)}</span>`:''}
+      </div>
+      <div style="display:flex;gap:4px;">
+        <button class="btn btn--ghost btn--sm" onclick="editSubjectModal('${s.id}')">${editIcon()}</button>
+        <button class="btn btn--ghost btn--sm" onclick="deleteSubject('${s.id}','${esc(s.name).replace(/'/g,"\\'")}')">${trashIcon()}</button>
+      </div>
+    </div>`).join('');
+}
+
+function editSubjectModal(id){
+  const s = subjects.find(x => x.id === id); if (!s) return;
+  openEdit(`
+    <h3>Edit Subject</h3>
+    <div class="form-group"><label class="form-label">Name <span class="required">*</span></label>
+      <input id="es-name" class="form-control" value="${esc(s.name)}"></div>
+    <div class="form-group"><label class="form-label">Code</label>
+      <input id="es-code" class="form-control" value="${esc(s.code||'')}"></div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn btn--primary" onclick="updateSubject('${id}')">Update</button>
+      <button class="btn btn--ghost" onclick="closeEdit()">Cancel</button>
+    </div>`);
+}
+async function updateSubject(id){
+  const name = document.getElementById('es-name').value.trim();
+  if (!name) { toast('Enter a name.','error'); return; }
+  const { error } = await db.from('subjects').update({ name, code: document.getElementById('es-code').value.trim() || null }).eq('id', id);
+  if (error) { toast(friendlyError(error,'subject'),'error'); return; }
+  closeEdit(); await loadAll(); renderTab(); toast('Subject updated!','success');
+}
+async function addSubject(){
+  const name = document.getElementById('newSubName').value.trim();
+  if (!name) { toast('Enter name.','error'); return; }
+  const { error } = await db.from('subjects').insert({ school_id: currentUser.school_id, name, code: document.getElementById('newSubCode').value.trim() || null });
+  if (error) { toast(friendlyError(error,'subject'),'error'); return; }
+  document.getElementById('newSubName').value=''; document.getElementById('newSubCode').value='';
+  await loadAll(); renderTab(); toast('Subject added!','success');
+}
+async function bulkAddSubjects(){
+  const names = document.getElementById('bulkSubs').value.split(',').map(n=>n.trim()).filter(Boolean);
+  if (!names.length) return;
+  const { error } = await db.from('subjects').upsert(names.map(name=>({ school_id: currentUser.school_id, name })), { onConflict: 'school_id,name' });
+  if (error) { toast('Error: '+error.message,'error'); return; }
+  document.getElementById('bulkSubs').value='';
+  await loadAll(); renderTab(); toast(`${names.length} subjects added!`,'success');
+}
+async function addDefaultSubjects(){
+  const defaults=[
+    {name:'English Language',code:'ENG'},{name:'Mathematics',code:'MTH'},{name:'Civic Education',code:'CVE'},
+    {name:'Basic Science',code:'BSC'},{name:'Social Studies',code:'SST'},{name:'Agricultural Science',code:'AGR'},
+    {name:'Computer Studies',code:'CMP'},{name:'Christian Religious Studies',code:'CRS'},{name:'Islamic Studies',code:'ISL'},
+    {name:'Yoruba',code:'YRB'},{name:'Igbo',code:'IGB'},{name:'Hausa',code:'HAS'},
+    {name:'Physics',code:'PHY'},{name:'Chemistry',code:'CHM'},{name:'Biology',code:'BIO'},
+    {name:'Further Mathematics',code:'FMT'},{name:'Literature in English',code:'LIT'},{name:'Government',code:'GOV'},
+    {name:'History',code:'HIS'},{name:'Geography',code:'GEO'},{name:'Economics',code:'ECO'},
+    {name:'Commerce',code:'COM'},{name:'Accounting',code:'ACC'},{name:'Fine Arts',code:'FNA'},
+    {name:'Music',code:'MUS'},{name:'Physical & Health Education',code:'PHE'},{name:'French',code:'FRE'},
+    {name:'Technical Drawing',code:'TDD'},{name:'Food & Nutrition',code:'FDN'},{name:'Home Economics',code:'HEC'},
+  ];
+  if (!confirm('Load 30 standard Nigerian subjects? Duplicates will be skipped.')) return;
+  const { error } = await db.from('subjects').upsert(defaults.map(s=>({ school_id: currentUser.school_id, ...s })), { onConflict: 'school_id,name' });
+  if (error) { toast('Error: '+error.message,'error'); return; }
+  await loadAll(); renderTab(); toast('30 standard subjects loaded!','success');
+}
+async function deleteSubject(id, name){
+  if (!confirm(`Delete subject "${name}"?`)) return;
+  const { error } = await db.from('subjects').delete().eq('id', id);
+  if (error) { toast('Error: '+error.message,'error'); return; }
+  await loadAll(); renderTab(); toast('Subject deleted.','success');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  TAB 5 — COMBINATIONS (with core/elective subject chips)
+// ═══════════════════════════════════════════════════════════════
+function renderCombinations(el) {
+  activeComboId = null;
+  el.innerHTML = `
+    <div style="max-width:980px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+        <div>
+          <h3 style="font-size:16px;font-weight:700;margin:0;">Subject Combinations</h3>
+          <p style="font-size:13px;color:var(--ink-3);margin:2px 0 0;">Group subjects into Science, Art, Commercial tracks. Assign to classes.</p>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn--secondary btn--sm" onclick="loadNigerianCombinations()">Load Nigerian Standard</button>
+          <button class="btn btn--primary btn--sm" onclick="toggleAddCombo()">+ New Combination</button>
+        </div>
+      </div>
+      <div class="card" id="addComboCard" style="display:none;margin-bottom:16px;max-width:500px;">
+        <div class="card__header"><span class="card__title">New Combination</span>
+          <button class="btn btn--ghost btn--sm" onclick="toggleAddCombo()">✕</button></div>
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Name <span class="required">*</span></label>
+            <input id="comboName" class="form-control" placeholder="Science"></div>
+          <div class="form-group"><label class="form-label">Color</label>
+            <input type="color" id="comboColor" class="form-control" value="#2563eb" style="height:42px;padding:4px;"></div>
+          <div class="form-group col-full"><label class="form-label">Description</label>
+            <input id="comboDesc" class="form-control" placeholder="Physics, Chemistry, Biology…"></div>
+        </div>
+        <button class="btn btn--primary" onclick="saveNewCombo()">Save</button>
+      </div>
+      <div id="comboBodyWrap"></div>
+    </div>`;
+  renderComboBody();
+}
+
+function renderComboBody(){
+  const wrap = document.getElementById('comboBodyWrap');
+  if (!wrap) return;
+  if (!combinations.length) {
+    wrap.innerHTML = `<div class="card" style="text-align:center;padding:32px;color:var(--ink-3);"><p>No combinations yet.<br>Click "Load Nigerian Standard" to get started.</p></div>`;
+    return;
+  }
+  wrap.innerHTML = `<div style="display:grid;grid-template-columns:260px 1fr;gap:20px;">
+    <div id="comboList">
+      ${combinations.map(c=>`
+        <div class="combo-card ${activeComboId===c.id?'selected':''}" onclick="selectCombo('${c.id}')" style="border-color:${activeComboId===c.id?c.color:'var(--border)'};">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+            <span class="combo-dot" style="background:${c.color||'#374151'};"></span>
+            <strong>${esc(c.name)}</strong>
+          </div>
+          <div style="font-size:12px;color:var(--ink-3);margin-bottom:8px;">${esc(c.description||'')}</div>
+          <div style="display:flex;gap:4px;">
+            <button class="btn btn--ghost btn--sm" onclick="event.stopPropagation();editComboModal('${c.id}')">${editIcon()}</button>
+            <button class="btn btn--ghost btn--sm" onclick="event.stopPropagation();deleteCombo('${c.id}','${esc(c.name).replace(/'/g,"\\'")}')">${trashIcon()} Delete</button>
+          </div>
+        </div>`).join('')}
+    </div>
+    <div class="card" id="comboSubjects">
+      <div style="text-align:center;padding:32px;color:var(--ink-3);">
+        <p>Select a combination to assign subjects.</p>
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleAddCombo(){ const c=document.getElementById('addComboCard'); c.style.display=c.style.display==='none'?'':'none'; }
+async function saveNewCombo(){
+  const name = document.getElementById('comboName').value.trim();
+  if (!name) { toast('Enter name.','error'); return; }
+  const { error } = await db.from('subject_combinations').insert({
+    school_id: currentUser.school_id, name,
+    color: document.getElementById('comboColor').value,
+    description: document.getElementById('comboDesc').value.trim() || null,
+  });
+  if (error) { toast(friendlyError(error,'combo'),'error'); return; }
+  toggleAddCombo(); await loadAll(); renderTab(); toast('Combination added!','success');
+}
+function editComboModal(id){
+  const c = combinations.find(x => x.id === id); if (!c) return;
+  openEdit(`
+    <h3>Edit Combination</h3>
+    <div class="form-group"><label class="form-label">Name <span class="required">*</span></label>
+      <input id="ec2-name" class="form-control" value="${esc(c.name)}"></div>
+    <div class="form-group"><label class="form-label">Color</label>
+      <input type="color" id="ec2-color" class="form-control" value="${c.color||'#2563eb'}" style="height:42px;padding:4px;"></div>
+    <div class="form-group"><label class="form-label">Description</label>
+      <input id="ec2-desc" class="form-control" value="${esc(c.description||'')}"></div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn btn--primary" onclick="updateCombo('${id}')">Update</button>
+      <button class="btn btn--ghost" onclick="closeEdit()">Cancel</button>
+    </div>`);
+}
+async function updateCombo(id){
+  const name = document.getElementById('ec2-name').value.trim();
+  if (!name) { toast('Enter name.','error'); return; }
+  const { error } = await db.from('subject_combinations').update({
+    name,
+    color: document.getElementById('ec2-color').value,
+    description: document.getElementById('ec2-desc').value.trim() || null,
+  }).eq('id', id);
+  if (error) { toast(friendlyError(error,'combo'),'error'); return; }
+  closeEdit(); await loadAll(); renderTab(); toast('Combination updated!','success');
+}
+async function selectCombo(id){
+  activeComboId = id;
+  const combo = combinations.find(c => c.id === id); if (!combo) return;
+  const { data: assigned } = await db.from('combination_subjects').select('subject_id,is_compulsory').eq('combination_id', id);
+  const aMap = {}; (assigned||[]).forEach(a => aMap[a.subject_id] = a.is_compulsory);
+  document.getElementById('comboSubjects').innerHTML = `
+    <div class="card__header">
+      <div>
+        <span class="card__title"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${combo.color};margin-right:6px;"></span>${esc(combo.name)} Subjects</span>
+        <div style="font-size:12px;color:var(--ink-3);">${esc(combo.description||'')}</div>
+      </div>
+      <button class="btn btn--primary btn--sm" onclick="saveComboSubjects('${id}')">Save</button>
+    </div>
+    <div style="margin-bottom:10px;font-size:13px;color:var(--ink-3);">
+      Tap once = <span style="background:var(--primary-light);color:var(--primary);padding:1px 6px;border-radius:3px;font-weight:700;">Core</span> &nbsp;
+      Tap again = <span style="background:var(--info-light,#eff6ff);color:var(--info,#3b82f6);padding:1px 6px;border-radius:3px;font-weight:700;">Elective</span> &nbsp;
+      Tap again = Remove
+    </div>
+    ${!subjects.length
+      ? `<p style="color:var(--ink-3);font-size:13px;">No subjects yet. <a href="#" onclick="event.preventDefault();switchTab('subjects')" style="color:var(--primary);font-weight:600;">Add subjects first →</a></p>`
+      : `<div id="chipArea" style="display:flex;flex-wrap:wrap;">
+          ${subjects.map(s=>{ const state=s.id in aMap?(aMap[s.id]?'core':'elective'):'unassigned';
+            return `<div class="subject-chip ${state}" id="chip-${s.id}" data-state="${state}" onclick="cycleChip('${s.id}','${esc(s.name).replace(/'/g,"\\'")}','${esc(s.code||'')}')">
+              ${esc(s.code||s.name.substring(0,4))}
+              <span style="font-size:10px;">${state==='core'?'★':state==='elective'?'◆':''}</span>
+            </div>`}).join('')}
+        </div>
+        <div style="margin-top:12px;font-size:12px;color:var(--ink-3);">
+          <span id="coreCount">${Object.values(aMap).filter(v=>v).length}</span> core ·
+          <span id="electiveCount">${Object.values(aMap).filter(v=>!v).length}</span> elective
+        </div>`}
+  `;
+  document.querySelectorAll('.combo-card').forEach(c=>{
+    const isActive = c.onclick?.toString().includes(`'${id}'`);
+    c.classList.toggle('selected', isActive);
+    c.style.borderColor = isActive ? combo.color : 'var(--border)';
+  });
+}
+function cycleChip(subjectId, name, code){
+  const chip = document.getElementById(`chip-${subjectId}`);
+  const state = chip.dataset.state; const display = code || name.substring(0,4);
+  if (state==='unassigned') { chip.dataset.state='core'; chip.className='subject-chip core'; chip.innerHTML=`${esc(display)} <span style="font-size:10px;">★</span>`; }
+  else if (state==='core') { chip.dataset.state='elective'; chip.className='subject-chip elective'; chip.innerHTML=`${esc(display)} <span style="font-size:10px;">◆</span>`; }
+  else { chip.dataset.state='unassigned'; chip.className='subject-chip unassigned'; chip.innerHTML=`${esc(display)} <span style="font-size:10px;"></span>`; }
+  const chips=[...document.querySelectorAll('#chipArea .subject-chip')];
+  const cc=document.getElementById('coreCount'); if (cc) cc.textContent = chips.filter(c=>c.dataset.state==='core').length;
+  const ec=document.getElementById('electiveCount'); if (ec) ec.textContent = chips.filter(c=>c.dataset.state==='elective').length;
+}
+async function saveComboSubjects(comboId){
+  const chips = [...document.querySelectorAll('#chipArea .subject-chip')];
+  const rows = chips.filter(c=>c.dataset.state!=='unassigned').map(c=>({
+    combination_id: comboId,
+    subject_id: c.id.replace('chip-',''),
+    school_id: currentUser.school_id,
+    is_compulsory: c.dataset.state==='core',
+  }));
+  const { error: delErr } = await db.from('combination_subjects').delete().eq('combination_id', comboId);
+  if (delErr) { toast('Save failed: '+delErr.message,'error'); return; }
+  if (rows.length) {
+    const { error } = await db.from('combination_subjects').insert(rows);
+    if (error) { toast('Save failed: '+error.message,'error'); return; }
+  }
+  toast(`${rows.length} subjects saved!`,'success');
+}
+async function deleteCombo(id, name){
+  if (!confirm(`Delete combination "${name}"?`)) return;
+  if (activeComboId === id) activeComboId = null;
+  const { error } = await db.from('subject_combinations').delete().eq('id', id);
+  if (error) { toast('Error: '+error.message,'error'); return; }
+  await loadAll(); renderTab(); toast('Combination deleted.','success');
+}
+async function loadNigerianCombinations(){
+  const presets = [
+    { name:'Science',     color:'#2563eb', description:'Physics, Chemistry, Biology, Further Maths' },
+    { name:'Art',          color:'#db2777', description:'Literature, Government, History, CRS/IRS' },
+    { name:'Commercial',  color:'#16a34a', description:'Commerce, Accounting, Economics' },
+  ];
+  if (!confirm(`Load ${presets.length} standard Nigerian combinations? Duplicates will be skipped.`)) return;
+  const { error } = await db.from('subject_combinations').upsert(
+    presets.map(p=>({ school_id: currentUser.school_id, ...p })),
+    { onConflict: 'school_id,name' }
+  );
+  if (error) { toast('Error: '+error.message,'error'); return; }
+  await loadAll(); renderTab(); toast('Standard combinations loaded!','success');
 }
 </script>
 <script src="/js/pwa-v2.1.js"></script>
