@@ -655,7 +655,7 @@ window.addEventListener('online', () => {
 <script src="../../js/report-card-engine.js"></script>
 <script>
 // ── sqSafe ───────────────────────────────────────────────────────────────────
-// Silent version of sq(): logs warnings but never throws and never calls showErr.
+// Silent version of pageQuery(): logs warnings but never throws and never calls showErr.
 // Defined here as a fallback; report-card-engine.js overwrites this if it loads.
 async function sqSafe(label, queryPromise, timeoutMs=8000){
   const timer=new Promise((_,rej)=>setTimeout(()=>rej(new Error('Timed out')),timeoutMs));
@@ -741,7 +741,7 @@ function renderSteps(){
 }
 function setMsg(m){const el=document.getElementById('loadMsg');if(el)el.textContent=m;}
 
-async function sq(label, queryPromise, timeoutMs=12000){
+async function pageQuery(label, queryPromise, timeoutMs=12000){
   const si=addStep(label);
   const timer=new Promise((_,rej)=>setTimeout(()=>{
     rej(new Error(`Step "${label}" timed out after ${timeoutMs/1000}s. Check your internet connection and try again.`));
@@ -848,7 +848,7 @@ async function _initClassCards(schoolId, classId){
     steps.length=0;
 
     const [scaleData,examsData]=await Promise.all([
-      sq('Grading scale', db.from('grading_scales').select('*').eq('school_id',schoolId).order('min_score',{ascending:false})),
+      pageQuery('Grading scale', db.from('grading_scales').select('*').eq('school_id',schoolId).order('min_score',{ascending:false})),
       sqSafe('Exams list', db.from('exams').select('*').eq('school_id',schoolId).eq('term_id',_tid).order('name')),
     ]);
     _scale=scaleData; _exams=examsData||[];
@@ -868,7 +868,7 @@ async function _initClassCards(schoolId, classId){
     _classSubjects=csData||[];
 
     setMsg('Loading student list…');
-    let enrollments=await sq('Enrollments',
+    let enrollments=await pageQuery('Enrollments',
       db.from('enrollments').select('student_id').eq('class_id',classId).eq('term_id',_tid));
 
     if(!enrollments?.length){
@@ -898,21 +898,21 @@ async function _initClassCards(schoolId, classId){
     const studentIds=enrollments.map(e=>e.student_id).filter(Boolean);
 
     setMsg(`Loading ${studentIds.length} student records…`);
-    const studentsData=await sq('Student records',
+    const studentsData=await pageQuery('Student records',
       db.from('students').select('id,full_name,admission_no,roll_no,mother_name,father_name,guardian_name,scholar_no,dob,date_of_birth,photo_url,passport_url,avatar_url,school_id').in('id',studentIds));
 
     _students=(studentsData||[]).sort((a,b)=>(a.full_name||'').localeCompare(b.full_name||''));
 
     setMsg('Bulk loading results, attendance and affective data…');
     const [allResults, allAtt, allAffective]=await Promise.all([
-      sq('All results (bulk)',
+      pageQuery('All results (bulk)',
          db.from('results')
            .select('score,student_id,subject_id,exam_id,subjects(id,name,code),exams(id,name,max_score,weight)')
            .in('student_id',studentIds).eq('term_id',_tid)),
-      sq('All attendance (bulk)',
+      pageQuery('All attendance (bulk)',
          db.from('attendance')
            .select('status,date,student_id').in('student_id',studentIds).eq('term_id',_tid)),
-      sq('All affective (bulk)',
+      pageQuery('All affective (bulk)',
          db.from('affective_domain')
            .select('*').in('student_id',studentIds).eq('term_id',_tid)),
     ]);
@@ -1101,15 +1101,15 @@ function _populateTermBar(){
   if(classId){
     try{
       setMsg('Loading class info…');
-      _classRow=await sq('Class info', db.from('classes').select('id,name,level,section,school_id').eq('id',classId).single());
+      _classRow=await pageQuery('Class info', db.from('classes').select('id,name,level,section,school_id').eq('id',classId).single());
       if(!_classRow){ clearTimeout(_watchdog); return; }
 
       const schoolId=_classRow.school_id;
 
       setMsg('Loading school and terms…');
       const [schoolData, allTermsData]=await Promise.all([
-        sq('School data', db.from('schools').select('name,logo_url,address,state,lga,phone,email,motto,affiliation_no,school_type,vp_signature_url,exam_officer_signature_url,principal_signature_url,class_teacher_signature_url').eq('id',schoolId).single()),
-        sq('All terms', db.from('terms').select('*,academic_years(label)').eq('school_id',schoolId).order('start_date',{ascending:false})),
+        pageQuery('School data', db.from('schools').select('name,logo_url,address,state,lga,phone,email,motto,affiliation_no,school_type,vp_signature_url,exam_officer_signature_url,principal_signature_url,class_teacher_signature_url').eq('id',schoolId).single()),
+        pageQuery('All terms', db.from('terms').select('*,academic_years(label)').eq('school_id',schoolId).order('start_date',{ascending:false})),
       ]);
       _school=schoolData;
       _allTerms=allTermsData||[];
@@ -1157,11 +1157,11 @@ function _populateTermBar(){
     // No class/student param — show a class picker
     try{
       setMsg('Authenticating session…');
-      const userData = await sq('Current user', getCurrentUser());
+      const userData = await pageQuery('Current user', getCurrentUser());
       const schoolId = userData?.school_id || userData?.schools?.id;
       if(!schoolId){ clearTimeout(_watchdog); window.location.href = '/login.html'; return; }
       document.getElementById('mainContent').innerHTML='<div class="rc-loader"><div class="rc-spinner"></div><p id="loadMsg">Loading classes…</p><div class="rc-loader-steps" id="loadSteps"></div></div>';
-      const classes = await sq('School classes', db.from('classes').select('id,name,level,section').eq('school_id',schoolId).order('name'));
+      const classes = await pageQuery('School classes', db.from('classes').select('id,name,level,section').eq('school_id',schoolId).order('name'));
       clearTimeout(_watchdog);
       if(!classes?.length){ showErr('No classes found','Please create classes in the admin panel first.'); return; }
       const rows=classes.map(c=>{
@@ -1188,7 +1188,7 @@ function _populateTermBar(){
   // ── Single student path ──
   try{
     setMsg('Loading student record…');
-    const student=await sq('Student record',
+    const student=await pageQuery('Student record',
       db.from('students').select('id,full_name,admission_no,roll_no,mother_name,father_name,guardian_name,scholar_no,dob,date_of_birth,photo_url,passport_url,avatar_url,school_id').eq('id',studentId).single());
     if(!student){ clearTimeout(_watchdog); return; }
 
@@ -1209,10 +1209,10 @@ function _populateTermBar(){
 
     setMsg('Loading school data…');
     const [schoolData,scaleData,examsData,termRow]=await Promise.all([
-      sq('School data', db.from('schools').select('name,logo_url,address,state,lga,phone,email,motto,affiliation_no,school_type,vp_signature_url,exam_officer_signature_url,principal_signature_url,class_teacher_signature_url').eq('id',schoolId).single()),
-      sq('Grading scale', db.from('grading_scales').select('*').eq('school_id',schoolId).order('min_score',{ascending:false})),
-      sq('Exams list', db.from('exams').select('*').eq('school_id',schoolId).eq('term_id',_tid).order('name')),
-      !_term?sq('Term info', db.from('terms').select('*,academic_years(label)').eq('id',_tid).single()):Promise.resolve(_term),
+      pageQuery('School data', db.from('schools').select('name,logo_url,address,state,lga,phone,email,motto,affiliation_no,school_type,vp_signature_url,exam_officer_signature_url,principal_signature_url,class_teacher_signature_url').eq('id',schoolId).single()),
+      pageQuery('Grading scale', db.from('grading_scales').select('*').eq('school_id',schoolId).order('min_score',{ascending:false})),
+      pageQuery('Exams list', db.from('exams').select('*').eq('school_id',schoolId).eq('term_id',_tid).order('name')),
+      !_term?pageQuery('Term info', db.from('terms').select('*,academic_years(label)').eq('id',_tid).single()):Promise.resolve(_term),
     ]);
     _school=schoolData;_scale=scaleData;_exams=examsData;
     if(!_term)_term=termRow;
@@ -1242,3 +1242,4 @@ function _populateTermBar(){
 <script src="../../js/assistant.js"></script>
 </body>
 </html>
+
