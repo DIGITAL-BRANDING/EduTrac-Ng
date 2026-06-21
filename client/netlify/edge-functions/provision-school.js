@@ -132,6 +132,15 @@ export default async function handler(request, context) {
     const school = Array.isArray(schoolData) ? schoolData[0] : schoolData;
     if (!school?.id) throw new Error('Failed to create school');
 
+    // 3b. Seed type-appropriate defaults so the admin doesn't land in an empty
+    //     shell — pre-load levels, grading scale, subjects, combinations and
+    //     a starter term/session matched to the institution type they picked.
+    //     Every insert is wrapped so a failure here never blocks provisioning
+    //     (the admin can always add these manually from Academic Structure).
+    await seedSchoolDefaults(sb, school.id, schoolType).catch(err => {
+      console.error('[provision-school] Seeding defaults failed (non-fatal):', err.message);
+    });
+
     // 4. Create the admin user record
     await sb('/users', 'POST', {
       id: userId,
@@ -193,6 +202,153 @@ function normaliseSchoolType(type) {
   };
   const value = String(type || '').trim().toLowerCase();
   return aliases[value] || value || 'o_level';
+}
+
+/**
+ * Per-institution-type starter data. Keep this in sync with:
+ *   - api/database.js          window.getInstitutionLabelsFor()
+ *   - js/report-card-engine.js SCHOOL_TYPE_MAP
+ *   - admin/programs.html      LEVEL_PRESETS
+ * If you add a new school_type anywhere in that trio, add a matching entry here.
+ */
+const TYPE_PRESETS = {
+  o_level: {
+    levels: ['Nursery 1','Nursery 2','Primary 1','Primary 2','Primary 3','Primary 4','Primary 5','Primary 6',
+              'JSS 1','JSS 2','JSS 3','SS 1','SS 2','SS 3'],
+    grading: [
+      {grade:'A1',min_score:75,max_score:100,remark:'Excellent'},{grade:'B2',min_score:70,max_score:74,remark:'Very Good'},
+      {grade:'B3',min_score:65,max_score:69,remark:'Good'},{grade:'C4',min_score:60,max_score:64,remark:'Credit'},
+      {grade:'C5',min_score:55,max_score:59,remark:'Credit'},{grade:'C6',min_score:50,max_score:54,remark:'Credit'},
+      {grade:'D7',min_score:45,max_score:49,remark:'Pass'},{grade:'E8',min_score:40,max_score:44,remark:'Pass'},
+      {grade:'F9',min_score:0,max_score:39,remark:'Fail'},
+    ],
+    subjects: ['English Language','Mathematics','Civic Education','Basic Science','Social Studies',
+               'Agricultural Science','Computer Studies','Christian Religious Studies','Islamic Studies',
+               'Physics','Chemistry','Biology','Further Mathematics','Literature in English','Government',
+               'History','Geography','Economics','Commerce','Accounting','Physical & Health Education'],
+    combinations: [
+      { name:'Science', color:'#2563eb', description:'Physics, Chemistry, Biology, Further Maths' },
+      { name:'Art', color:'#db2777', description:'Literature, Government, History, CRS/IRS' },
+      { name:'Commercial', color:'#16a34a', description:'Commerce, Accounting, Economics' },
+    ],
+    termName: 'First Term', periodLabel: 'term',
+  },
+  tertiary: {
+    levels: ['ND I','ND II','HND I','HND II','Year 1','Year 2','Year 3','Year 4'],
+    grading: [
+      {grade:'A',min_score:70,max_score:100,remark:'Excellent (5.0)'},{grade:'B',min_score:60,max_score:69,remark:'Very Good (4.0)'},
+      {grade:'C',min_score:50,max_score:59,remark:'Good (3.0)'},{grade:'D',min_score:45,max_score:49,remark:'Pass (2.0)'},
+      {grade:'E',min_score:40,max_score:44,remark:'Pass (1.0)'},{grade:'F',min_score:0,max_score:39,remark:'Fail (0.0)'},
+    ],
+    subjects: ['Use of English','Mathematics','Introduction to Computer Science','Principles of Management',
+               'Research Methodology','Entrepreneurship Studies'],
+    combinations: [],
+    termName: 'First Semester', periodLabel: 'semester',
+  },
+  vocational: {
+    levels: ['Basic Level 1','Basic Level 2','Intermediate Level','Advanced Level'],
+    grading: [
+      {grade:'C',min_score:50,max_score:100,remark:'Competent'},
+      {grade:'NYC',min_score:0,max_score:49,remark:'Not Yet Competent'},
+    ],
+    subjects: ['Workshop Practice','Occupational Safety & Health','Tools & Equipment Handling',
+               'Practical Skills Assessment','Entrepreneurship & Business Skills'],
+    combinations: [],
+    termName: 'First Training Period', periodLabel: 'training period',
+  },
+  islamic: {
+    levels: ['Nursery 1','Nursery 2','Primary 1','Primary 2','Primary 3','JSS 1','JSS 2','JSS 3',
+             'SS 1','SS 2','SS 3','Tahfiz Year 1','Tahfiz Year 2','Tahfiz Year 3'],
+    grading: [
+      {grade:'A1',min_score:75,max_score:100,remark:'Excellent'},{grade:'B2',min_score:70,max_score:74,remark:'Very Good'},
+      {grade:'B3',min_score:65,max_score:69,remark:'Good'},{grade:'C4',min_score:60,max_score:64,remark:'Credit'},
+      {grade:'C5',min_score:55,max_score:59,remark:'Credit'},{grade:'C6',min_score:50,max_score:54,remark:'Credit'},
+      {grade:'D7',min_score:45,max_score:49,remark:'Pass'},{grade:'E8',min_score:40,max_score:44,remark:'Pass'},
+      {grade:'F9',min_score:0,max_score:39,remark:'Fail'},
+    ],
+    subjects: ['Qur\'an Memorisation (Tahfiz)','Tafsir','Hadith','Fiqh','Arabic Language','Aqeedah',
+               'English Language','Mathematics','Islamic History (Seerah)','Basic Science'],
+    combinations: [],
+    termName: 'First Term', periodLabel: 'term',
+  },
+  computer_training: {
+    levels: ['Beginner Batch','Intermediate Batch','Advanced Batch','Certification Batch'],
+    grading: [
+      {grade:'A',min_score:80,max_score:100,remark:'Excellent'},{grade:'B',min_score:65,max_score:79,remark:'Good'},
+      {grade:'C',min_score:50,max_score:64,remark:'Satisfactory'},{grade:'F',min_score:0,max_score:49,remark:'Fail / Retake'},
+    ],
+    subjects: ['Computer Appreciation','Microsoft Office Suite','Internet & Email','Web Design (HTML/CSS)',
+               'Programming Fundamentals','Graphics Design','Data Analysis Basics','Digital Marketing'],
+    combinations: [],
+    termName: 'First Cohort', periodLabel: 'training period',
+  },
+  tutorial_center: {
+    levels: ['JSS 1','JSS 2','JSS 3','SS 1','SS 2','SS 3','JAMB/UTME Class','Post-UTME Class'],
+    grading: [
+      {grade:'A1',min_score:75,max_score:100,remark:'Excellent'},{grade:'B2',min_score:70,max_score:74,remark:'Very Good'},
+      {grade:'B3',min_score:65,max_score:69,remark:'Good'},{grade:'C4',min_score:60,max_score:64,remark:'Credit'},
+      {grade:'C5',min_score:55,max_score:59,remark:'Credit'},{grade:'C6',min_score:50,max_score:54,remark:'Credit'},
+      {grade:'D7',min_score:45,max_score:49,remark:'Pass'},{grade:'E8',min_score:40,max_score:44,remark:'Pass'},
+      {grade:'F9',min_score:0,max_score:39,remark:'Fail'},
+    ],
+    subjects: ['English Language','Mathematics','Physics','Chemistry','Biology','Economics','Government'],
+    combinations: [],
+    termName: 'First Term', periodLabel: 'term',
+  },
+  other: {
+    levels: ['Level 1','Level 2','Level 3'],
+    grading: [
+      {grade:'Pass',min_score:50,max_score:100,remark:'Pass'},
+      {grade:'Fail',min_score:0,max_score:49,remark:'Fail'},
+    ],
+    subjects: [],
+    combinations: [],
+    termName: 'First Period', periodLabel: 'period',
+  },
+};
+
+async function seedSchoolDefaults(sb, schoolId, schoolType) {
+  const preset = TYPE_PRESETS[schoolType] || TYPE_PRESETS.o_level;
+  const now = new Date();
+  const sessionLabel = `${now.getFullYear()}/${now.getFullYear() + 1}`;
+
+  // 1) Levels — sequential sort order so they list in the right teaching order
+  if (preset.levels.length) {
+    await sb('/levels', 'POST', preset.levels.map((name, i) => ({
+      school_id: schoolId, name, sort_order: i + 1,
+    })));
+  }
+
+  // 2) Grading scale — matched to the institution type (A1-F9, GPA letters,
+  //    Competent/Not-Yet-Competent, etc.)
+  if (preset.grading.length) {
+    await sb('/grading_scales', 'POST', preset.grading.map(g => ({
+      school_id: schoolId, ...g,
+    })));
+  }
+
+  // 3) Subjects — starter list matched to the institution type
+  if (preset.subjects.length) {
+    await sb('/subjects', 'POST', preset.subjects.map(name => ({
+      school_id: schoolId, name,
+    })));
+  }
+
+  // 4) Subject combinations (Science/Art/Commercial) — only relevant for o_level
+  if (preset.combinations.length) {
+    await sb('/subject_combinations', 'POST', preset.combinations.map(c => ({
+      school_id: schoolId, ...c,
+    })));
+  }
+
+  // 5) First term/semester/session so the dashboard isn't blank on first login
+  await sb('/terms', 'POST', {
+    school_id: schoolId,
+    name: preset.termName,
+    session: sessionLabel,
+    is_current: true,
+    start_date: now.toISOString().slice(0, 10),
+  });
 }
 
 function generateTempPassword() {
