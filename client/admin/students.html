@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -411,32 +410,12 @@
         <input type="hidden" id="sId">
         <input type="hidden" id="sClassId">
         <div id="s1">
-          <div class="form-group col-full">
-            <label>Passport Photograph</label>
-            <div style="display:flex;align-items:center;gap:14px;">
-              <div id="sPhotoPreview" style="width:80px;height:96px;border:2px solid var(--border);border-radius:6px;overflow:hidden;background:var(--surface-3);display:flex;align-items:center;justify-content:center;font-size:32px;flex-shrink:0;">📸</div>
-              <div>
-                <input type="file" id="sPhotoFile" accept="image/*" onchange="handlePhotoSelect(event)" style="display:none;">
-                <button type="button" class="btn btn--secondary btn--sm" onclick="document.getElementById('sPhotoFile').click()">📤 Upload Photo</button>
-                <button type="button" class="btn btn--ghost btn--sm" id="sPhotoRemoveBtn" style="display:none;" onclick="removeSelectedPhoto()">Remove</button>
-                <div style="font-size:11px;color:var(--ink-3);margin-top:4px;">JPG/PNG, max 2MB. Passport-style, face clearly visible.</div>
-              </div>
-            </div>
-          </div>
           <div class="form-grid">
             <div class="form-group col-full"><label>Full Name *</label><input id="sName" class="form-control" required></div>
             <div class="form-group"><label>Date of Birth</label><input type="date" id="sDob" class="form-control"></div>
             <div class="form-group"><label>Gender</label><select id="sGender"><option value="">Select</option><option value="M">Male</option><option value="F">Female</option></select></div>
             <div class="form-group"><label>Admission No.</label><input id="sAdm" class="form-control" placeholder="Auto if blank"></div>
-            <div class="form-group"><label>Blood Group</label>
-              <select id="sBlood" class="form-control">
-                <option value="">Unknown</option>
-                <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
-                <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
-              </select>
-            </div>
             <div class="form-group"><label>Parent Phone</label><input id="sPhone" class="form-control"></div>
-            <div class="form-group"><label>Parent Email</label><input type="email" id="sParentEmail" class="form-control" placeholder="parent@email.com"></div>
             <div class="form-group col-full"><label>Address</label><input id="sAddr" class="form-control"></div>
           </div>
         </div>
@@ -665,8 +644,6 @@ let currentSelectedClass = null;      // { id, name }
 let studentsInClass = [];
 let selCombo = null, curStep = 1, editMode = false;
 let currentStudentForDocs = null;
-let selectedPhotoFile = null;          // currently staged passport photo (not yet uploaded)
-const PHOTO_BUCKET = 'student-photos'; // Supabase Storage bucket — must exist & be public
 
 // Helper functions
 const ICONS = { Science:'🔬', Art:'🎨', Commercial:'💼', General:'📚', default:'📖' };
@@ -725,7 +702,7 @@ async function showClassListView() {
   
   const grid = document.getElementById('classGrid');
   if (!allClasses.length) {
-    grid.innerHTML = '<div class="card" style="padding:40px; text-align:center;">No classes created yet. Go to Settings → Classes to add classes.</div>';
+    grid.innerHTML = '<div class="card" style="padding:40px; text-align:center;">No classes created yet. Go to <a href="programs.html" style="color:var(--primary);font-weight:600;">Academic Structure</a> to add classes.</div>';
     return;
   }
   
@@ -751,7 +728,7 @@ async function selectClass(classId, className) {
   
   // Load students enrolled in this class for current term
   let query = db.from('students')
-    .select(`id, full_name, admission_no, gender, date_of_birth, parent_phone, parent_email, address, is_active, combination_id, photo_url, blood_group,
+    .select(`id, full_name, admission_no, gender, date_of_birth, parent_phone, address, is_active, combination_id, 
              enrollments!inner(class_id, term_id), subject_combinations(name,color)`)
     .eq('school_id', cu.school_id)
     .eq('enrollments.class_id', classId);
@@ -831,7 +808,7 @@ function renderStudentsTable(students) {
           const combo = allCombos.find(c => c.id === s.combination_id);
           return `
           <tr>
-            <td><div class="student-cell"><div class="avatar avatar--sm" style="background:${combo?.color || '#0a6e3f'}20;${s.photo_url ? `background-image:url('${s.photo_url}');background-size:cover;background-position:center;` : ''}">${s.photo_url ? '' : s.full_name.charAt(0)}</div><div><strong>${escapeHtml(s.full_name)}</strong><br><small>${formatDate(s.date_of_birth)}</small></div></div></td>
+            <td><div class="student-cell"><div class="avatar avatar--sm" style="background:${combo?.color || '#0a6e3f'}20;">${s.full_name.charAt(0)}</div><div><strong>${escapeHtml(s.full_name)}</strong><br><small>${formatDate(s.date_of_birth)}</small></div></div></td>
             <td><span style="font-family:monospace;">${s.admission_no || '—'}</span></td>
             <td>${combo ? `<span class="badge" style="background:${combo.color}20; color:${combo.color};">${combo.name}</span>` : '—'}</td>
             <td>${s.gender === 'M' ? '♂ Male' : s.gender === 'F' ? '♀ Female' : '—'}</td>
@@ -861,7 +838,6 @@ function openAddStudentInClass() {
   document.getElementById('sClassId').value = currentSelectedClass.id;
   document.getElementById('sForm').reset();
   document.getElementById('fErr').style.display = 'none';
-  resetPhotoPicker();
   buildCombosForModal();
   showStep(1);
   openModal('studentModal');
@@ -879,11 +855,8 @@ function editStudentInClass(studentId) {
   document.getElementById('sDob').value = s.date_of_birth || '';
   document.getElementById('sGender').value = s.gender || '';
   document.getElementById('sAdm').value = s.admission_no || '';
-  document.getElementById('sBlood').value = s.blood_group || '';
   document.getElementById('sAddr').value = s.address || '';
   document.getElementById('sPhone').value = s.parent_phone || '';
-  document.getElementById('sParentEmail').value = s.parent_email || '';
-  resetPhotoPicker(s.photo_url);
   buildCombosForModal();
   if (selCombo) pickComboInModal(selCombo);
   [1,2,3].forEach(i => document.getElementById(`s${i}`).style.display = i < 3 ? '' : 'none');
@@ -893,60 +866,6 @@ function editStudentInClass(studentId) {
   document.getElementById('bSave').style.display = '';
   document.getElementById('bSave').innerHTML = '💾 Save Changes';
   openModal('studentModal');
-}
-
-// ======================== PASSPORT PHOTO UPLOAD ========================
-function resetPhotoPicker(existingUrl) {
-  selectedPhotoFile = null;
-  const fileInput = document.getElementById('sPhotoFile');
-  if (fileInput) fileInput.value = '';
-  const preview = document.getElementById('sPhotoPreview');
-  const removeBtn = document.getElementById('sPhotoRemoveBtn');
-  if (existingUrl) {
-    preview.innerHTML = `<img src="${existingUrl}" style="width:100%;height:100%;object-fit:cover;">`;
-    removeBtn.style.display = '';
-  } else {
-    preview.innerHTML = '📸';
-    removeBtn.style.display = 'none';
-  }
-}
-
-function handlePhotoSelect(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  if (!file.type.startsWith('image/')) {
-    toast('Please select an image file', 'error');
-    e.target.value = '';
-    return;
-  }
-  if (file.size > 2 * 1024 * 1024) {
-    toast('Image must be under 2MB', 'error');
-    e.target.value = '';
-    return;
-  }
-  selectedPhotoFile = file;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    document.getElementById('sPhotoPreview').innerHTML = `<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover;">`;
-  };
-  reader.readAsDataURL(file);
-  document.getElementById('sPhotoRemoveBtn').style.display = '';
-}
-
-function removeSelectedPhoto() {
-  selectedPhotoFile = null;
-  document.getElementById('sPhotoFile').value = '';
-  document.getElementById('sPhotoPreview').innerHTML = '📸';
-  document.getElementById('sPhotoRemoveBtn').style.display = 'none';
-}
-
-async function uploadStudentPhoto(studentId, file) {
-  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-  const path = `${cu.school_id}/${studentId}_${Date.now()}.${ext}`;
-  const { error: upErr } = await db.storage.from(PHOTO_BUCKET).upload(path, file, { upsert: true, contentType: file.type });
-  if (upErr) throw upErr;
-  const { data } = db.storage.from(PHOTO_BUCKET).getPublicUrl(path);
-  return data?.publicUrl || null;
 }
 
 function buildCombosForModal() {
@@ -1025,8 +944,6 @@ async function saveStudent() {
       admission_no: document.getElementById('sAdm').value.trim() || 'ADM' + Date.now().toString().slice(-6),
       address: document.getElementById('sAddr').value.trim() || null,
       parent_phone: document.getElementById('sPhone').value.trim() || null,
-      parent_email: document.getElementById('sParentEmail').value.trim() || null,
-      blood_group: document.getElementById('sBlood').value || null,
       combination_id: selCombo || null,
     };
     const scratchPin = document.getElementById('sScratchPin')?.value.trim() || '';
@@ -1038,15 +955,6 @@ async function saveStudent() {
       if (scratchPin) await db.from('scratch_cards').update({ student_id: finalId }).eq('pin', scratchPin);
     } else {
       await db.from('students').update(payload).eq('id', studentId);
-    }
-    // Upload passport photo if a new one was staged
-    if (selectedPhotoFile && finalId) {
-      try {
-        const photoUrl = await uploadStudentPhoto(finalId, selectedPhotoFile);
-        if (photoUrl) await db.from('students').update({ photo_url: photoUrl }).eq('id', finalId);
-      } catch (photoErr) {
-        toast('Student saved, but photo upload failed: ' + photoErr.message, 'error');
-      }
     }
     // Enroll in current class + term
     if (currentTerm && classId) {
@@ -1108,22 +1016,7 @@ async function viewStudentDetail(id) {
   const s = studentsInClass.find(x => x.id === id) || allStudents?.find(x => x.id === id);
   if (!s) return;
   const combo = allCombos.find(c => c.id === s.combination_id);
-  document.getElementById('viewBody').innerHTML = `
-    <div style="display:flex;gap:16px;">
-      <div style="width:80px;height:96px;border:2px solid var(--border);border-radius:6px;overflow:hidden;background:var(--surface-3);display:flex;align-items:center;justify-content:center;font-size:32px;flex-shrink:0;">
-        ${s.photo_url ? `<img src="${s.photo_url}" style="width:100%;height:100%;object-fit:cover;">` : '📸'}
-      </div>
-      <div>
-        <strong>${escapeHtml(s.full_name)}</strong><br>
-        Adm: ${s.admission_no || '—'}<br>
-        Class: ${currentSelectedClass?.name || '—'}<br>
-        Section: ${combo?.name || '—'}<br>
-        Blood Group: ${s.blood_group || '—'}<br>
-        Phone: ${s.parent_phone || '—'}<br>
-        Parent Email: ${s.parent_email || '—'}
-      </div>
-    </div>
-    <hr><button onclick="openLink('${s.id}')">Link Parent</button>`;
+  document.getElementById('viewBody').innerHTML = `<div><strong>${s.full_name}</strong><br>Adm: ${s.admission_no}<br>Class: ${currentSelectedClass?.name}<br>Section: ${combo?.name || '—'}<br>Phone: ${s.parent_phone || '—'}</div><hr><button onclick="openLink('${s.id}')">Link Parent</button>`;
   document.getElementById('editBtn').onclick = () => { closeModal('viewModal'); editStudentInClass(s.id); };
   openModal('viewModal');
 }
@@ -1282,8 +1175,6 @@ window.openLink = openLink;
 window.linkParent = linkParent;
 window.goStep = goStep;
 window.pickComboInModal = pickComboInModal;
-window.handlePhotoSelect = handlePhotoSelect;
-window.removeSelectedPhoto = removeSelectedPhoto;
 </script>
 <script src="../js/pwa-v2.1.js"></script>
 <script src="../js/assistant.js"></script>
