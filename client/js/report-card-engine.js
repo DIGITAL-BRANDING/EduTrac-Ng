@@ -784,13 +784,9 @@ const SCHOOL_TYPE_MAP = {
   'o_level':           'secondary',   // refined further below by class name (nursery/primary/jss/sss)
   'tertiary':           'tertiary',
   'vocational':          'vocational',
-  // NOTE: 'islamic' intentionally maps to 'secondary' for now — there is no
-  // dedicated Islamic report card template/builder yet (see buildSecondaryCard
-  // dispatch below). When one is built, change this to 'islamic' and add the
-  // matching buildIslamicCard() + dispatch branch near getCardTheme() usage.
-  'islamic':            'secondary',
-  'computer_training':  'vocational', // closest visual fit: skills/training-centre styling
-  'tutorial_center':    'secondary',  // exam-prep centres mostly serve secondary-level students
+  'islamic':             'islamic',
+  'computer_training':   'computer_training',
+  'tutorial_center':     'tutorial_center',
   'other':              'secondary',
   // ── Nursery / Early childhood (legacy/loose synonyms, kept for old records) ──
   'nursery':        'nursery',
@@ -826,12 +822,12 @@ const SCHOOL_TYPE_MAP = {
   'institute':      'tertiary',
   'institution':    'tertiary',
   'higher_institution':'tertiary',
-  // ── Islamic (legacy/loose synonyms) — maps to 'secondary' builder; see note above ──
-  'islamiyya':       'secondary',
-  'islamic_institute':'secondary',
-  'madrasa':         'secondary',
-  'madrassa':        'secondary',
-  'tahfiz':          'secondary',
+  // ── Islamic (legacy/loose synonyms) — now maps to dedicated 'islamic' theme ──
+  'islamiyya':       'islamic',
+  'islamic_institute':'islamic',
+  'madrasa':         'islamic',
+  'madrassa':        'islamic',
+  'tahfiz':          'islamic',
 };
 
 /* Human-readable theme labels */
@@ -841,6 +837,9 @@ const THEME_LABELS = {
   secondary:  '🏛️ Secondary / High School',
   vocational: '🔧 Vocational / Technical',
   tertiary:   '🎓 Tertiary / Institution',
+  islamic:    '☪️ Islamic / Islamiyyah',
+  computer_training: '💻 Computer Training',
+  tutorial_center:   '📝 Tutorial Centre',
 };
 
 /**
@@ -1384,6 +1383,444 @@ ${affective?.next_term_begins ? `<div class="tc-next"><strong>Next Semester / Te
 }
 
 
+/* ═══ SECONDARY CARD BUILDER (default classes, no prefix) ═══ */
+function buildSecondaryCard(student, results, attData, affective) {
+  const d = prepCardData(student, results, attData, affective);
+  const {classLabel, subRows, avg, raw, og, att, meta, sessLabel, logoH, pp, sid} = d;
+  const eHdrs = d.examList.map(e =>
+    `<th>${e.name}<br><span style="font-weight:400;font-size:7.5px">/${e.max_score}</span></th>`
+  ).join('');
+  const sRows = subRows.map(sub => {
+    const cells = d.examList.map(e => {
+      const r = sub.rows.find(r => r.exam_id === e.id);
+      return `<td>${r !== undefined ? r.score : '—'}</td>`;
+    }).join('');
+    return `<tr><td class="sn">${sub.name}</td>${cells}
+      <td><strong style="color:var(--primary)">${sub.total ?? '—'}</strong></td>
+      <td>${gradeBadge(sub.grade)}</td>
+      <td style="font-size:10px;color:#555;text-align:left">${sub.remark || '—'}</td></tr>`;
+  }).join('') || `<tr><td colspan="99" style="text-align:center;padding:16px;color:#999;font-size:12px">No results recorded for this term.</td></tr>`;
+  const coF = [['work_education','Work Education'],['art_education','Art Education'],
+    ['physical_education','Health & Physical Education'],['social_skills','Social Skills'],['sports','Sports']];
+  const diF = [['punctuality','Regularity & Punctuality'],['sincerity','Sincerity'],
+    ['conduct','Behaviour & Values'],['respect','Respectfulness'],
+    ['attitude_teachers','Attitude to Teachers'],['attitude_society','Attitude to Society']];
+  const scH = (_scale||[]).length
+    ? `<thead><tr><th>Grade</th>${(_scale||[]).map(g=>`<th>${g.grade}</th>`).join('')}</tr></thead>
+       <tbody><tr><td>Marks</td>${(_scale||[]).map(g=>`<td>${g.min_score}–${g.max_score}</td>`).join('')}</tr>
+       <tr><td>Remark</td>${(_scale||[]).map(g=>`<td style="font-size:8px">${g.remark||'—'}</td>`).join('')}</tr></tbody>`
+    : `<thead><tr><th>91–100</th><th>81–90</th><th>71–80</th><th>61–70</th><th>51–60</th><th>41–50</th><th>0–40</th></tr></thead>
+       <tbody><tr><td>A+</td><td>A</td><td>B+</td><td>B</td><td>C+</td><td>C</td><td>F</td></tr></tbody>`;
+  return `
+<div class="card-wrap">
+<div class="report-card"><div class="deco-border"><div class="card-inner">
+<div class="deco-strip"></div>
+<div class="rc-header">
+  <div class="logo-circle">${logoH}</div>
+  <div class="hc">
+    <div class="school-name">${_school?.name || 'School Name'}</div>
+    <div class="school-meta">${meta}</div>
+    <div class="gold-div"></div>
+    <div class="card-title">Academic Report Card</div>
+    <div class="sess-txt">${sessLabel}</div>
+    <div class="cls-line">Class: <span>${classLabel}</span></div>
+  </div>
+  <div class="pp-box">
+    <div class="pp-frame" onclick="document.getElementById('ppInput_${sid}').click()">
+      <img id="ppImg_${sid}" src="${pp}" style="${pp ? '' : 'display:none'}" alt="Student Photo">
+      <div class="pp-ph" id="ppPh_${sid}" ${pp ? 'style="display:none"' : ''}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
+    </div>
+    <input type="file" id="ppInput_${sid}" accept="image/*" onchange="loadPP(event,'${sid}')" style="display:none">
+    <div class="pp-lbl">Passport</div>
+  </div>
+</div>
+<div class="info-strip">
+  <div class="info-row"><span class="il">Name of Student</span><span class="iv">${student.full_name || '—'}</span></div>
+  <div class="info-row"><span class="il">Admission No.</span><span class="iv">${student.admission_no || student.roll_no || '—'}</span></div>
+  <div class="info-row"><span class="il">Class</span><span class="iv">${classLabel}</span></div>
+  <div class="info-row"><span class="il">Date of Birth</span><span class="iv">${fmtDate(student.dob || student.date_of_birth)}</span></div>
+  <div class="info-row"><span class="il">Guardian</span><span class="iv">${student.guardian_name || student.father_name || '—'}</span></div>
+  <div class="info-row"><span class="il">Academic Session</span><span class="iv">${(_term?.academic_years?.label || _term?.name) || '—'}</span></div>
+</div>
+<div class="sec-hdr">Academic Performance</div>
+<div class="aw"><table class="ac">
+  <thead><tr>
+    <th rowspan="2" style="text-align:left;padding-left:10px;min-width:120px">Subject</th>
+    ${eHdrs}
+    <th rowspan="2">Total</th><th rowspan="2">Grade</th><th rowspan="2" style="min-width:60px">Remark</th>
+  </tr><tr></tr></thead>
+  <tbody>${sRows}</tbody>
+</table></div>
+<div class="sum-band">
+  <div class="sum-cell"><span class="sl c1">Total Score</span><span class="sv">${raw ?? '—'}</span></div>
+  <div class="sum-cell"><span class="sl c2">Average</span><span class="sv">${avg !== null ? avg + '%' : '—'}</span></div>
+  <div class="sum-cell"><span class="sl c3">Grade</span><span class="sv">${og.grade}</span></div>
+  <div class="sum-cell"><span class="sl c4">Attendance</span><span class="sv">${att !== null ? att + '%' : '—'}</span></div>
+</div>
+<div class="two-col">
+  <div class="co-col">
+    <div class="co-h">Co-Scholastic Activities</div>
+    <div class="ach"><span>Activity</span><span>Grade</span></div>
+    ${actRows(coF, affective)}
+  </div>
+  <div class="di-col">
+    <div class="di-h">Discipline &amp; Values</div>
+    <div class="ach"><span>Activity</span><span>Grade</span></div>
+    ${actRows(diF, affective)}
+  </div>
+</div>
+${rmHTML("Class Teacher's Remark", affective?.class_teacher_remark, '#f8fafc', 'var(--primary)')}
+${rmHTML("VP Academic's Remark", affective?.vp_academic_remark, '#f0f7ff', '#1a5c9e')}
+${rmHTML("Exam Officer's Remark", affective?.exam_officer_remark, '#faf5ff', '#6b21a8')}
+${rmHTML("Principal's Remark", affective?.principal_remark, '#f5f5f0', '#3d3d00')}
+<div class="promo-band">Promoted to: <span>${affective?.promoted_to || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</span></div>
+${affective?.next_term_begins ? `<div class="nt-row"><strong>Next Term Begins:</strong> ${fmtDate(affective.next_term_begins)}</div>` : ''}
+<div class="gs-wrap">
+  <div class="gs-title">Grading Scale</div>
+  <table class="gs">${scH}</table>
+</div>
+<div class="sig-ft">
+  ${sigHTML('Class Teacher', _school?.class_teacher_signature_url)}
+  ${sigHTML('VP Academic', _school?.vp_signature_url)}
+  ${sigHTML('Exam Officer', _school?.exam_officer_signature_url)}
+  ${sigHTML('Principal', _school?.principal_signature_url)}
+</div>
+<div class="deco-strip"></div>
+<div class="card-stamp">Generated by EduTrack NG &nbsp;·&nbsp; ${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</div>
+</div></div></div></div>`;
+}
+
+/* ═══ ISLAMIC CARD BUILDER — Emerald & Gold, geometric arch motif ═══ */
+function buildIslamicCard(student, results, attData, affective) {
+  const d = prepCardData(student, results, attData, affective);
+  const {classLabel, subRows, avg, raw, og, att, meta, sessLabel, pp, sid} = d;
+  const logoH = _school?.logo_url
+    ? `<img src="${_school.logo_url}" alt="Logo" onerror="this.outerHTML='<div class=is-logo-fb>CREST</div>'">`
+    : `<div class="is-logo-fb">☪<br>CREST</div>`;
+  const eHdrs = d.examList.map(e =>
+    `<th>${e.name}<br><span style="font-weight:400;font-size:7.5px">/${e.max_score}</span></th>`
+  ).join('');
+  const sRows = subRows.map(sub => {
+    const cells = d.examList.map(e => {
+      const r = sub.rows.find(r => r.exam_id === e.id);
+      return `<td>${r !== undefined ? r.score : '—'}</td>`;
+    }).join('');
+    return `<tr><td class="is-sn">${sub.name}</td>${cells}
+      <td><strong style="color:#0b6e4f">${sub.total ?? '—'}</strong></td>
+      <td><span class="is-grade">${sub.grade}</span></td>
+      <td style="font-size:10px;color:#555;text-align:left">${sub.remark || '—'}</td></tr>`;
+  }).join('') || `<tr><td colspan="99" style="text-align:center;padding:16px;color:#999;font-size:12px">No results recorded for this term.</td></tr>`;
+  const coF = [['work_education','Tilawah (Qur\u2019an Recitation)'],['art_education','Tahfiz (Memorisation)'],
+    ['physical_education','Hadith & Seerah'],['social_skills','Arabic Language'],['sports','Islamic Studies']];
+  const diF = [['punctuality','Punctuality to Salah'],['sincerity','Akhlaq (Character)'],
+    ['conduct','Adab & Discipline'],['respect','Respect for Elders'],
+    ['attitude_teachers','Attitude to Ustadh/Ustadhah'],['attitude_society','Community Spirit']];
+  const isActRows = (fields, data) => fields.map(([k,l]) =>
+    `<div class="is-ar"><span>${l}</span><span class="is-grade-box">${data?.[k] || ''}</span></div>`
+  ).join('');
+  const scH = (_scale||[]).length
+    ? `<thead><tr><th>Grade</th>${(_scale||[]).map(g=>`<th>${g.grade}</th>`).join('')}</tr></thead>
+       <tbody><tr><td>Marks</td>${(_scale||[]).map(g=>`<td>${g.min_score}–${g.max_score}</td>`).join('')}</tr>
+       <tr><td>Remark</td>${(_scale||[]).map(g=>`<td style="font-size:8px">${g.remark||'—'}</td>`).join('')}</tr></tbody>`
+    : `<thead><tr><th>91–100</th><th>81–90</th><th>71–80</th><th>61–70</th><th>51–60</th><th>0–50</th></tr></thead>
+       <tbody><tr><td>Mumtaz</td><td>Jayyid Jiddan</td><td>Jayyid</td><td>Maqbul</td><td>Da\u2019if</td><td>Rasib</td></tr></tbody>`;
+  return `
+<div class="card-wrap is-card">
+<div class="report-card"><div class="is-outer"><div class="is-inner">
+<div class="is-top-band"></div>
+<div class="is-bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+<div class="is-header">
+  <div class="is-logo">${logoH}</div>
+  <div class="is-hc">
+    <div class="is-school">${_school?.name || 'School Name'}</div>
+    <div class="is-meta">${meta}</div>
+    <div class="is-rule"></div>
+    <div class="is-title">Islamiyyah Progress Report</div>
+    <div class="is-sess">${sessLabel}</div>
+    <div class="is-class">Class: <span>${classLabel}</span></div>
+  </div>
+  <div class="is-pp-wrap">
+    <div class="is-pp" onclick="document.getElementById('ppInput_${sid}').click()">
+      <img id="ppImg_${sid}" src="${pp}" style="${pp ? '' : 'display:none'}" alt="Photo">
+      <div class="is-pp-ph" id="ppPh_${sid}" ${pp ? 'style="display:none"' : ''}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
+    </div>
+    <input type="file" id="ppInput_${sid}" accept="image/*" onchange="loadPP(event,'${sid}')" style="display:none">
+    <div style="font-size:8px;color:#a8a8a8;margin-top:3px;text-align:center">Passport</div>
+  </div>
+</div>
+<div class="is-info">
+  <div class="is-info-row"><span class="is-il">Student Name</span><span class="is-iv">${student.full_name || '—'}</span></div>
+  <div class="is-info-row"><span class="is-il">Admission No.</span><span class="is-iv">${student.admission_no || student.roll_no || '—'}</span></div>
+  <div class="is-info-row"><span class="is-il">Class</span><span class="is-iv">${classLabel}</span></div>
+  <div class="is-info-row"><span class="is-il">Date of Birth</span><span class="is-iv">${fmtDate(student.dob || student.date_of_birth)}</span></div>
+  <div class="is-info-row"><span class="is-il">Guardian / Wali</span><span class="is-iv">${student.guardian_name || student.father_name || '—'}</span></div>
+  <div class="is-info-row"><span class="is-il">Academic Session</span><span class="is-iv">${(_term?.academic_years?.label || _term?.name) || '—'}</span></div>
+</div>
+<div class="is-sec-hdr">Academic Performance</div>
+<div style="overflow-x:auto"><table class="is-table">
+  <thead><tr>
+    <th rowspan="2" style="text-align:left;padding-left:10px;min-width:120px">Subject</th>
+    ${eHdrs}
+    <th rowspan="2">Total</th><th rowspan="2">Grade</th><th rowspan="2" style="min-width:60px">Remark</th>
+  </tr><tr></tr></thead>
+  <tbody>${sRows}</tbody>
+</table></div>
+<div class="is-sum">
+  <div class="is-sum-cell"><div class="is-sum-lbl">TOTAL SCORE</div><div class="is-sum-val">${raw ?? '—'}</div></div>
+  <div class="is-sum-cell"><div class="is-sum-lbl">AVERAGE</div><div class="is-sum-val">${avg !== null ? avg + '%' : '—'}</div></div>
+  <div class="is-sum-cell is-sum-hi"><div class="is-sum-lbl">GRADE</div><div class="is-sum-val" style="font-size:22px">${og.grade}</div></div>
+  <div class="is-sum-cell"><div class="is-sum-lbl">ATTENDANCE</div><div class="is-sum-val">${att !== null ? att + '%' : '—'}</div></div>
+</div>
+<div class="is-two-col">
+  <div class="is-co-col">
+    <div class="is-col-hdr">Qur\u2019an &amp; Islamic Studies</div>
+    <div class="is-col-sub"><span>Area</span><span>Rating</span></div>
+    ${isActRows(coF, affective)}
+  </div>
+  <div class="is-di-col">
+    <div class="is-col-hdr">Akhlaq &amp; Discipline</div>
+    <div class="is-col-sub"><span>Area</span><span>Rating</span></div>
+    ${isActRows(diF, affective)}
+  </div>
+</div>
+${affective?.class_teacher_remark ? `<div class="is-remark"><span class="is-remark-lbl">Ustadh/Ustadhah's Remark</span>${affective.class_teacher_remark}</div>` : ''}
+${affective?.vp_academic_remark ? `<div class="is-remark" style="background:#fdf9ee"><span class="is-remark-lbl">Head of Islamiyyah Remark</span>${affective.vp_academic_remark}</div>` : ''}
+${affective?.principal_remark ? `<div class="is-remark" style="background:#f3f8f5"><span class="is-remark-lbl">Principal's Remark</span>${affective.principal_remark}</div>` : ''}
+<div class="is-promo">Promoted to: <span>${affective?.promoted_to || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</span></div>
+${affective?.next_term_begins ? `<div class="is-next"><strong>Next Term Begins:</strong> ${fmtDate(affective.next_term_begins)}</div>` : ''}
+<div class="gs-wrap" style="background:#f3f8f5;border-top-color:#cfe6da">
+  <div class="gs-title" style="color:#0b6e4f">Grading Scale</div>
+  <table class="gs">${scH}</table>
+</div>
+<div class="is-sig">
+  ${sigHTML('Ustadh/Ustadhah', _school?.class_teacher_signature_url)}
+  ${sigHTML('Head of Islamiyyah', _school?.vp_signature_url)}
+  ${sigHTML('Exam Officer', _school?.exam_officer_signature_url)}
+  ${sigHTML('Principal', _school?.principal_signature_url)}
+</div>
+<div class="is-top-band"></div>
+<div class="card-stamp">Generated by EduTrack NG &nbsp;·&nbsp; ${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</div>
+</div></div></div></div>`;
+}
+
+/* ═══ COMPUTER TRAINING CARD BUILDER — Dark Tech / Terminal style ═══ */
+function buildComputerTrainingCard(student, results, attData, affective) {
+  const d = prepCardData(student, results, attData, affective);
+  const {classLabel, subRows, avg, raw, og, att, meta, sessLabel, pp, sid} = d;
+  const logoH = _school?.logo_url
+    ? `<img src="${_school.logo_url}" alt="Logo" onerror="this.outerHTML='<div class=ct-logo-fb>CREST</div>'">`
+    : `<div class="ct-logo-fb">&lt;/&gt;</div>`;
+  const eHdrs = d.examList.map(e =>
+    `<th>${e.name}<br><span style="font-weight:400;font-size:7.5px">/${e.max_score}</span></th>`
+  ).join('');
+  const sRows = subRows.map(sub => {
+    const cells = d.examList.map(e => {
+      const r = sub.rows.find(r => r.exam_id === e.id);
+      return `<td>${r !== undefined ? r.score : '—'}</td>`;
+    }).join('');
+    return `<tr><td class="ct-sn">${sub.name}</td>${cells}
+      <td><strong style="color:#0891b2">${sub.total ?? '—'}</strong></td>
+      <td><span class="ct-grade">${sub.grade}</span></td>
+      <td style="font-size:10px;color:#94a3b8;text-align:left">${sub.remark || '—'}</td></tr>`;
+  }).join('') || `<tr><td colspan="99" style="text-align:center;padding:16px;color:#64748b;font-size:12px">No results recorded for this term.</td></tr>`;
+  const coF = [['work_education','Practical / Lab Sessions'],['art_education','Software Proficiency'],
+    ['physical_education','Hardware Handling'],['social_skills','Project / Capstone Work'],['sports','Typing Speed & Accuracy']];
+  const diF = [['punctuality','Punctuality & Attendance'],['sincerity','Work Ethics'],
+    ['conduct','Lab Discipline'],['respect','Respect for Equipment'],
+    ['attitude_teachers','Attitude to Instructors'],['attitude_society','Industry Readiness']];
+  const ctActRows = (fields, data) => fields.map(([k,l]) =>
+    `<div class="ct-ar"><span>${l}</span><span class="ct-grade-box">${data?.[k] || ''}</span></div>`
+  ).join('');
+  const scH = (_scale||[]).length
+    ? `<thead><tr><th>Grade</th>${(_scale||[]).map(g=>`<th>${g.grade}</th>`).join('')}</tr></thead>
+       <tbody><tr><td>Marks</td>${(_scale||[]).map(g=>`<td>${g.min_score}–${g.max_score}</td>`).join('')}</tr>
+       <tr><td>Remark</td>${(_scale||[]).map(g=>`<td style="font-size:8px">${g.remark||'—'}</td>`).join('')}</tr></tbody>`
+    : `<thead><tr><th>91–100</th><th>81–90</th><th>71–80</th><th>61–70</th><th>50–60</th><th>0–49</th></tr></thead>
+       <tbody><tr><td>Expert</td><td>Proficient</td><td>Competent</td><td>Developing</td><td>Beginner</td><td>Fail</td></tr></tbody>`;
+  return `
+<div class="card-wrap ct-card">
+<div class="report-card"><div class="ct-outer"><div class="ct-inner">
+<div class="ct-termbar"><span class="ct-dot" style="background:#ff5f56"></span><span class="ct-dot" style="background:#ffbd2e"></span><span class="ct-dot" style="background:#27c93f"></span><span class="ct-termbar-label">student_report.exe</span></div>
+<div class="ct-header">
+  <div class="ct-logo">${logoH}</div>
+  <div class="ct-hc">
+    <div class="ct-school">${_school?.name || 'Institution Name'}</div>
+    <div class="ct-meta">${meta}</div>
+    <div class="ct-rule"></div>
+    <div class="ct-badge">ICT / COMPUTER TRAINING REPORT</div>
+    <div class="ct-sess">${sessLabel} &nbsp;|&nbsp; Batch: ${_term?.name || '—'}</div>
+  </div>
+  <div class="ct-pp-wrap">
+    <div class="ct-pp" onclick="document.getElementById('ppInput_${sid}').click()">
+      <img id="ppImg_${sid}" src="${pp}" style="${pp ? '' : 'display:none'}" alt="Photo">
+      <div class="ct-pp-ph" id="ppPh_${sid}" ${pp ? 'style="display:none"' : ''}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
+    </div>
+    <input type="file" id="ppInput_${sid}" accept="image/*" onchange="loadPP(event,'${sid}')" style="display:none">
+    <div style="font-size:8px;color:#64748b;margin-top:3px;text-align:center">Photo</div>
+  </div>
+</div>
+<div class="ct-info">
+  <div class="ct-info-row"><span class="ct-il">Trainee Name</span><span class="ct-iv">${student.full_name || '—'}</span></div>
+  <div class="ct-info-row"><span class="ct-il">Reg. No.</span><span class="ct-iv">${student.admission_no || student.roll_no || '—'}</span></div>
+  <div class="ct-info-row"><span class="ct-il">Programme / Track</span><span class="ct-iv">${classLabel}</span></div>
+  <div class="ct-info-row"><span class="ct-il">Date of Birth</span><span class="ct-iv">${fmtDate(student.dob || student.date_of_birth)}</span></div>
+  <div class="ct-info-row"><span class="ct-il">Guardian / Sponsor</span><span class="ct-iv">${student.guardian_name || student.father_name || '—'}</span></div>
+  <div class="ct-info-row"><span class="ct-il">Session / Cohort</span><span class="ct-iv">${(_term?.academic_years?.label || _term?.name) || '—'}</span></div>
+</div>
+<div class="ct-sec-hdr"><span>&gt;_</span> Module / Course Performance</div>
+<div style="overflow-x:auto"><table class="ct-table">
+  <thead><tr>
+    <th rowspan="2" style="text-align:left;padding-left:10px;min-width:120px">Module / Course</th>
+    ${eHdrs}
+    <th rowspan="2">Total</th><th rowspan="2">Grade</th><th rowspan="2" style="min-width:60px">Remark</th>
+  </tr><tr></tr></thead>
+  <tbody>${sRows}</tbody>
+</table></div>
+<div class="ct-sum">
+  <div class="ct-sum-cell"><div class="ct-sum-lbl">TOTAL SCORE</div><div class="ct-sum-val">${raw ?? '—'}</div></div>
+  <div class="ct-sum-cell"><div class="ct-sum-lbl">AVERAGE</div><div class="ct-sum-val">${avg !== null ? avg + '%' : '—'}</div></div>
+  <div class="ct-sum-cell ct-sum-hi"><div class="ct-sum-lbl">GRADE</div><div class="ct-sum-val" style="font-size:22px">${og.grade}</div></div>
+  <div class="ct-sum-cell"><div class="ct-sum-lbl">ATTENDANCE</div><div class="ct-sum-val">${att !== null ? att + '%' : '—'}</div></div>
+</div>
+<div class="ct-two-col">
+  <div class="ct-co-col">
+    <div class="ct-col-hdr">Practical / Lab Skills</div>
+    <div class="ct-col-sub"><span>Area</span><span>Rating</span></div>
+    ${ctActRows(coF, affective)}
+  </div>
+  <div class="ct-di-col">
+    <div class="ct-col-hdr">Conduct &amp; Discipline</div>
+    <div class="ct-col-sub"><span>Area</span><span>Rating</span></div>
+    ${ctActRows(diF, affective)}
+  </div>
+</div>
+${affective?.class_teacher_remark ? `<div class="ct-remark"><span class="ct-remark-lbl">Instructor's Remark</span>${affective.class_teacher_remark}</div>` : ''}
+${affective?.vp_academic_remark ? `<div class="ct-remark"><span class="ct-remark-lbl">HOD's Remark</span>${affective.vp_academic_remark}</div>` : ''}
+${affective?.principal_remark ? `<div class="ct-remark"><span class="ct-remark-lbl">Director's Remark</span>${affective.principal_remark}</div>` : ''}
+<div class="ct-promo">Progressed to: <span>${affective?.promoted_to || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</span></div>
+${affective?.next_term_begins ? `<div class="ct-next"><strong>Next Cohort Begins:</strong> ${fmtDate(affective.next_term_begins)}</div>` : ''}
+<div class="gs-wrap" style="background:#0f172a;border-top-color:#1e293b">
+  <div class="gs-title" style="color:#22d3ee">Grading Scale</div>
+  <table class="gs ct-gs">${scH}</table>
+</div>
+<div class="ct-sig">
+  ${sigHTML('Class Instructor', _school?.class_teacher_signature_url)}
+  ${sigHTML('H.O.D', _school?.vp_signature_url)}
+  ${sigHTML('Exam Officer', _school?.exam_officer_signature_url)}
+  ${sigHTML('Director', _school?.principal_signature_url)}
+</div>
+<div class="card-stamp" style="color:#475569;border-top-color:#1e293b">Generated by EduTrack NG &nbsp;·&nbsp; ${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</div>
+</div></div></div></div>`;
+}
+
+/* ═══ TUTORIAL CENTRE CARD BUILDER — Clean Minimal / Mock-Exam focus ═══ */
+function buildTutorialCenterCard(student, results, attData, affective) {
+  const d = prepCardData(student, results, attData, affective);
+  const {classLabel, subRows, avg, raw, og, att, meta, sessLabel, pp, sid} = d;
+  const logoH = _school?.logo_url
+    ? `<img src="${_school.logo_url}" alt="Logo" onerror="this.outerHTML='<div class=tu-logo-fb>CREST</div>'">`
+    : `<div class="tu-logo-fb">SCORE</div>`;
+  const eHdrs = d.examList.map(e =>
+    `<th>${e.name}<br><span style="font-weight:400;font-size:7.5px">/${e.max_score}</span></th>`
+  ).join('');
+  const sRows = subRows.map(sub => {
+    const cells = d.examList.map(e => {
+      const r = sub.rows.find(r => r.exam_id === e.id);
+      return `<td>${r !== undefined ? r.score : '—'}</td>`;
+    }).join('');
+    return `<tr><td class="tu-sn">${sub.name}</td>${cells}
+      <td><strong style="color:#4338ca">${sub.total ?? '—'}</strong></td>
+      <td><span class="tu-grade">${sub.grade}</span></td>
+      <td style="font-size:10px;color:#555;text-align:left">${sub.remark || '—'}</td></tr>`;
+  }).join('') || `<tr><td colspan="99" style="text-align:center;padding:16px;color:#999;font-size:12px">No results recorded for this session.</td></tr>`;
+  const coF = [['work_education','Mock Exam Discipline'],['art_education','Assignment Completion'],
+    ['physical_education','Class Participation'],['social_skills','Peer Collaboration'],['sports','Revision Consistency']];
+  const diF = [['punctuality','Punctuality & Attendance'],['sincerity','Sincerity'],
+    ['conduct','Conduct in Class'],['respect','Respectfulness'],
+    ['attitude_teachers','Attitude to Tutors'],['attitude_society','Exam Readiness']];
+  const tuActRows = (fields, data) => fields.map(([k,l]) =>
+    `<div class="tu-ar"><span>${l}</span><span class="tu-grade-box">${data?.[k] || ''}</span></div>`
+  ).join('');
+  const scH = (_scale||[]).length
+    ? `<thead><tr><th>Grade</th>${(_scale||[]).map(g=>`<th>${g.grade}</th>`).join('')}</tr></thead>
+       <tbody><tr><td>Marks</td>${(_scale||[]).map(g=>`<td>${g.min_score}–${g.max_score}</td>`).join('')}</tr>
+       <tr><td>Remark</td>${(_scale||[]).map(g=>`<td style="font-size:8px">${g.remark||'—'}</td>`).join('')}</tr></tbody>`
+    : `<thead><tr><th>91–100</th><th>81–90</th><th>71–80</th><th>61–70</th><th>51–60</th><th>0–50</th></tr></thead>
+       <tbody><tr><td>A</td><td>B</td><td>C</td><td>D</td><td>E</td><td>F</td></tr></tbody>`;
+  return `
+<div class="card-wrap tu-card">
+<div class="report-card"><div class="tu-outer"><div class="tu-inner">
+<div class="tu-header">
+  <div class="tu-logo">${logoH}</div>
+  <div class="tu-hc">
+    <div class="tu-school">${_school?.name || 'Tutorial Centre Name'}</div>
+    <div class="tu-meta">${meta}</div>
+    <div class="tu-title">Mock Examination Performance Report</div>
+    <div class="tu-sess">${sessLabel} &nbsp;|&nbsp; ${_term?.name || '—'}</div>
+    <div class="tu-class">Class / Batch: <span>${classLabel}</span></div>
+  </div>
+  <div class="tu-pp-wrap">
+    <div class="tu-pp" onclick="document.getElementById('ppInput_${sid}').click()">
+      <img id="ppImg_${sid}" src="${pp}" style="${pp ? '' : 'display:none'}" alt="Photo">
+      <div class="tu-pp-ph" id="ppPh_${sid}" ${pp ? 'style="display:none"' : ''}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
+    </div>
+    <input type="file" id="ppInput_${sid}" accept="image/*" onchange="loadPP(event,'${sid}')" style="display:none">
+    <div style="font-size:8px;color:#aaa;margin-top:3px;text-align:center">Photo</div>
+  </div>
+</div>
+<div class="tu-score-strip">
+  <div class="tu-score-cell"><div class="tu-score-lbl">Total</div><div class="tu-score-val">${raw ?? '—'}</div></div>
+  <div class="tu-score-cell"><div class="tu-score-lbl">Average</div><div class="tu-score-val">${avg !== null ? avg + '%' : '—'}</div></div>
+  <div class="tu-score-cell tu-score-hi"><div class="tu-score-lbl">Grade</div><div class="tu-score-val">${og.grade}</div></div>
+  <div class="tu-score-cell"><div class="tu-score-lbl">Attendance</div><div class="tu-score-val">${att !== null ? att + '%' : '—'}</div></div>
+</div>
+<div class="tu-info">
+  <div class="tu-info-row"><span class="tu-il">Student Name</span><span class="tu-iv">${student.full_name || '—'}</span></div>
+  <div class="tu-info-row"><span class="tu-il">Reg. No.</span><span class="tu-iv">${student.admission_no || student.roll_no || '—'}</span></div>
+  <div class="tu-info-row"><span class="tu-il">Class / Batch</span><span class="tu-iv">${classLabel}</span></div>
+  <div class="tu-info-row"><span class="tu-il">Date of Birth</span><span class="tu-iv">${fmtDate(student.dob || student.date_of_birth)}</span></div>
+  <div class="tu-info-row"><span class="tu-il">Guardian</span><span class="tu-iv">${student.guardian_name || student.father_name || '—'}</span></div>
+  <div class="tu-info-row"><span class="tu-il">Session</span><span class="tu-iv">${(_term?.academic_years?.label || _term?.name) || '—'}</span></div>
+</div>
+<div class="tu-sec-hdr">Subject-by-Subject Performance</div>
+<div style="overflow-x:auto"><table class="tu-table">
+  <thead><tr>
+    <th rowspan="2" style="text-align:left;padding-left:10px;min-width:120px">Subject</th>
+    ${eHdrs}
+    <th rowspan="2">Total</th><th rowspan="2">Grade</th><th rowspan="2" style="min-width:60px">Remark</th>
+  </tr><tr></tr></thead>
+  <tbody>${sRows}</tbody>
+</table></div>
+<div class="tu-two-col">
+  <div class="tu-co-col">
+    <div class="tu-col-hdr">Study Habits</div>
+    <div class="tu-col-sub"><span>Area</span><span>Rating</span></div>
+    ${tuActRows(coF, affective)}
+  </div>
+  <div class="tu-di-col">
+    <div class="tu-col-hdr">Conduct</div>
+    <div class="tu-col-sub"><span>Area</span><span>Rating</span></div>
+    ${tuActRows(diF, affective)}
+  </div>
+</div>
+${affective?.class_teacher_remark ? `<div class="tu-remark"><span class="tu-remark-lbl">Tutor's Remark</span>${affective.class_teacher_remark}</div>` : ''}
+${affective?.principal_remark ? `<div class="tu-remark" style="background:#f0fdfa"><span class="tu-remark-lbl" style="color:#0d9488">Coordinator's Remark</span>${affective.principal_remark}</div>` : ''}
+<div class="tu-promo">Recommended for: <span>${affective?.promoted_to || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</span></div>
+${affective?.next_term_begins ? `<div class="tu-next"><strong>Next Session Begins:</strong> ${fmtDate(affective.next_term_begins)}</div>` : ''}
+<div class="gs-wrap" style="background:#f5f6ff;border-top-color:#dcdffc">
+  <div class="gs-title" style="color:#4338ca">Grading Scale</div>
+  <table class="gs">${scH}</table>
+</div>
+<div class="tu-sig">
+  ${sigHTML('Tutor', _school?.class_teacher_signature_url)}
+  ${sigHTML('Coordinator', _school?.vp_signature_url)}
+  ${sigHTML('Exam Officer', _school?.exam_officer_signature_url)}
+  ${sigHTML('Centre Director', _school?.principal_signature_url)}
+</div>
+<div class="card-stamp">Generated by EduTrack NG &nbsp;·&nbsp; ${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</div>
+</div></div></div></div>`;
+}
+
 /* ═══ BUILD ONE CARD — routes to section-specific builder ═══ */
 async function buildCard(student, termId, extraClass=''){
   let studentResults = [];
@@ -1426,52 +1863,20 @@ async function buildCard(student, termId, extraClass=''){
     ]);
   }
 
-  const cn=_classRow?.name||'—';
-  const sec=(_classRow?.section||_classRow?.level||'').toUpperCase();
-  const classLabel=sec?`${cn} — Section ${sec}`:cn;
-
-  const examList=_exams?.length
-    ?_exams
-    :[...new Map((studentResults||[]).map(r=>[r.exam_id,r.exams])).values()].filter(Boolean);
-
-  let subjectBase;
-  if(_classSubjects?.length){
-    subjectBase=_classSubjects.map(cs=>({id:cs.subject_id,name:cs.subjects?.name||cs.subject_name||'—'}));
-  } else {
-    const seen=new Map();
-    (studentResults||[]).forEach(r=>{if(!seen.has(r.subject_id))seen.set(r.subject_id,{id:r.subject_id,name:r.subjects?.name||'—'});});
-    subjectBase=[...seen.values()];
+  const theme = getCardTheme(_classRow);
+  let html;
+  switch(theme){
+    case 'nursery':           html = buildNurseryCard(student, studentResults, attData, affective); break;
+    case 'primary':           html = buildPrimaryCard(student, studentResults, attData, affective); break;
+    case 'vocational':        html = buildVocationalCard(student, studentResults, attData, affective); break;
+    case 'tertiary':          html = buildTertiaryCard(student, studentResults, attData, affective); break;
+    case 'islamic':           html = buildIslamicCard(student, studentResults, attData, affective); break;
+    case 'computer_training': html = buildComputerTrainingCard(student, studentResults, attData, affective); break;
+    case 'tutorial_center':   html = buildTutorialCenterCard(student, studentResults, attData, affective); break;
+    case 'secondary':
+    default:                  html = buildSecondaryCard(student, studentResults, attData, affective); break;
   }
-  
-  const subRows=subjectBase.sort((a,b)=>a.name.localeCompare(b.name)).map(sub=>{
-    const subResults=(studentResults||[]).filter(r=>r.subject_id===sub.id);
-    const tw=subResults.reduce((s,r)=>s+(r.exams?.weight||1),0);
-    const ws=subResults.reduce((s,r)=>s+(r.score/(r.exams?.max_score||100))*100*(r.exams?.weight||1),0);
-    const total=tw>0?Math.round(ws/tw*10)/10:null;
-    const g=gradeFromScale(total,_scale||[]);
-    return{name:sub.name,rows:subResults,total,grade:g.grade,remark:g.remark};
-  });
 
-  const ws2=subRows.filter(s=>s.total!==null);
-  const avg=ws2.length?Math.round(ws2.reduce((s,r)=>s+r.total,0)/ws2.length*10)/10:null;
-  const raw=studentResults?.reduce((s,r)=>s+(r.score||0),0)??null;
-  const og=gradeFromScale(avg,_scale||[]);
-  const days=new Set((attData||[]).map(a=>a.date)).size;
-  const pres=(attData||[]).filter(a=>a.status==='P'||a.status==='L').length;
-  const att=days>0?Math.round(pres/days*100):null;
-
-  const parts=[
-    _school?.affiliation_no?`Affiliation No.: ${_school.affiliation_no}`:null,
-    _school?.phone?`Ph: ${_school.phone}`:null,
-    _school?.email?`Email: ${_school.email}`:null,
-  ].filter(Boolean);
-  const meta=parts.length?parts.join(' &nbsp;|&nbsp; '):
-    [_school?.address,_school?.lga,_school?.state].filter(Boolean).join(', ')||'&nbsp;';
-  const sessLabel=(_term?.academic_years?.label||_term?.name)
-    ?`Academic Session — ${_term?.academic_years?.label||_term?.name}`:'Academic Session';
-
-  const logoH=_school?.logo_url
-    ?`<img src="${_school.logo_url}" alt="Logo" onerror="this.outerHTML='<div class=logo-fb>SCHOOL<br>CREST</div>'">`
-    :`<div class="logo-fb">SCHOOL<br>CREST</div>`;
-
-  const pp=student.photo_url||student.passport_url||student.avatar_url||'';
+  _currentStudent = {student, results: studentResults, attData, affective};
+  return html;
+}
