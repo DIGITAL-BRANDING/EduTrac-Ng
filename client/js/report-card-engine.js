@@ -592,6 +592,253 @@ table.gs tr td:first-child{background:var(--grade-row);}
 .tc-foot-rule{height:6px;background:linear-gradient(90deg,#1a2e6e,#c8a832,#1a2e6e);}
 
 /* ══════════════════════════════════════════════
+   ISLAMIC CARD — Emerald & Gold, geometric arch
+   ══════════════════════════════════════════════ */
+.is-card{font-family:'Quicksand',sans-serif;}
+.is-card .report-card{padding:0;box-shadow:0 4px 28px rgba(0,0,0,.18);}
+.is-outer{border:3px solid #0b6e4f;padding:5px;background:white;border-radius:6px 6px 0 0;}
+.is-inner{border:1.5px solid #cfe6da;background:white;overflow:hidden;border-radius:4px 4px 0 0;}
+.is-top-band{height:9px;background:repeating-linear-gradient(45deg,#0b6e4f 0,#0b6e4f 10px,#c9a227 10px,#c9a227 20px);}
+.is-bismillah{text-align:center;padding:8px 10px 4px;font-family:'Cinzel',serif;font-size:14px;color:#0b6e4f;letter-spacing:.5px;}
+.is-header{display:grid;grid-template-columns:74px 1fr 80px;gap:10px;align-items:center;
+  padding:6px 14px 12px;border-bottom:2px solid #0b6e4f;
+  background:linear-gradient(135deg,#f3f8f5 0%,#fdf9ee 100%);}
+.is-logo{width:68px;height:68px;border-radius:50%;border:3px double #0b6e4f;overflow:hidden;
+  background:#f3f8f5;display:flex;align-items:center;justify-content:center;}
+.is-logo img{width:100%;height:100%;object-fit:cover;}
+.is-logo-fb{font-family:'Cinzel',serif;font-size:9px;font-weight:700;color:#0b6e4f;text-align:center;padding:4px;line-height:1.3;}
+.is-hc{text-align:center;}
+.is-school{font-family:'Cinzel',serif;font-size:clamp(12px,2.4vw,20px);font-weight:900;color:#0b6e4f;letter-spacing:.4px;line-height:1.2;}
+.is-meta{font-size:9.5px;color:#666;margin-top:2px;font-style:italic;}
+.is-rule{height:1.5px;background:linear-gradient(90deg,transparent,#c9a227,#0b6e4f,#c9a227,transparent);margin:5px auto;width:65%;}
+.is-title{font-family:'Cinzel',serif;font-size:13px;font-weight:700;color:#7a5d00;letter-spacing:.3px;}
+.is-sess{font-size:10.5px;color:#0b6e4f;font-weight:600;margin-top:3px;}
+.is-class{font-size:11px;color:#444;margin-top:2px;}
+.is-class span{font-weight:700;color:#0b6e4f;}
+.is-pp-wrap{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.is-pp{width:70px;height:86px;border:2px solid #0b6e4f;border-radius:3px;background:#f3f8f5;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;}
+.is-pp img{width:100%;height:100%;object-fit:cover;}
+.is-pp-ph{text-align:center;font-size:8.5px;color:#bbb;font-family:sans-serif;line-height:1.4;padding:4px;}
+
+.is-info{display:grid;grid-template-columns:1fr 1fr;border-bottom:2px solid #0b6e4f;font-size:11.5px;}
+.is-info-row{display:flex;align-items:baseline;padding:5px 12px;border-bottom:1px solid #e4f0ea;gap:5px;}
+.is-info-row:nth-child(odd){background:#f8fbf9;border-right:1px solid #e0eee8;}
+.is-info-row:nth-child(even){background:#fff;}
+.is-info-row:nth-last-child(-n+2){border-bottom:none;}
+.is-il{font-weight:700;color:#0b6e4f;white-space:nowrap;min-width:114px;font-size:10.5px;}
+.is-iv{border-bottom:1px dotted #a8cfba;flex:1;min-height:14px;color:#111;padding-left:2px;font-style:italic;}
+
+.is-sec-hdr{background:linear-gradient(90deg,#0b6e4f,#0e8a63);color:white;padding:5px 14px;
+  font-family:'Cinzel',serif;font-size:8.5px;letter-spacing:2px;text-transform:uppercase;font-weight:600;border-bottom:2px solid #c9a227;}
+
+.is-table{width:100%;border-collapse:collapse;font-size:11px;}
+.is-table th,.is-table td{border:1px solid #d0e8db;padding:4px 5px;text-align:center;vertical-align:middle;}
+.is-table th{background:#0b6e4f;color:white;font-family:'Cinzel',serif;font-size:8px;letter-spacing:.4px;font-weight:600;}
+.is-sn{text-align:left!important;font-weight:700;font-size:11px;color:#0b6e4f;padding-left:12px!important;background:#f3f8f5!important;white-space:nowrap;}
+.is-table tr:nth-child(even) td:not(.is-sn){background:#eff7f2;}
+.is-grade{display:inline-block;padding:1px 8px;background:#eaf6ef;border:1px solid #8fc7ab;
+  border-radius:3px;font-size:10px;font-weight:700;color:#0b6e4f;}
+
+.is-sum{display:grid;grid-template-columns:1fr 1fr 1.3fr 1fr;border-top:2px solid #0b6e4f;border-bottom:1px solid #d0e8db;}
+.is-sum-cell{text-align:center;padding:8px 4px;border-right:1px solid #d0e8db;}
+.is-sum-cell:last-child{border-right:none;}
+.is-sum-hi{background:linear-gradient(180deg,#fdf6e0,#fff);}
+.is-sum-lbl{font-family:'Cinzel',serif;font-size:7px;letter-spacing:1.2px;text-transform:uppercase;color:#888;margin-bottom:3px;}
+.is-sum-val{font-family:'Cinzel',serif;font-size:19px;font-weight:700;line-height:1.1;color:#0b6e4f;}
+
+.is-two-col{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #d0e8db;}
+.is-co-col{border-right:2px solid #0b6e4f;}
+.is-col-hdr{background:#0b6e4f;color:white;text-align:center;padding:4px 8px;
+  font-family:'Cinzel',serif;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;}
+.is-di-col .is-col-hdr{background:#9a7d00;}
+.is-col-sub{display:flex;justify-content:space-between;padding:3px 10px;
+  font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+.is-co-col .is-col-sub{background:rgba(11,110,79,.07);color:#0b6e4f;}
+.is-di-col .is-col-sub{background:rgba(154,125,0,.07);color:#7a5d00;}
+.is-ar{display:flex;align-items:center;justify-content:space-between;padding:3.5px 10px;
+  border-bottom:1px solid rgba(0,0,0,.05);font-size:11px;}
+.is-co-col .is-ar{background:#f3f8f5;}
+.is-di-col .is-ar{background:#fdf9ee;}
+.is-ar:nth-child(even){filter:brightness(.975);}
+.is-grade-box{min-width:36px;height:18px;border:1px solid #8fc7ab;background:white;
+  display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#0b6e4f;}
+
+.is-remark{padding:5px 12px;font-size:11.5px;border-top:1px solid #e4f0ea;background:#f8fbf9;}
+.is-remark-lbl{font-family:'Cinzel',serif;font-size:7.5px;text-transform:uppercase;letter-spacing:.8px;color:#0b6e4f;display:block;margin-bottom:2px;font-weight:700;}
+.is-promo{padding:6px 14px;border-top:1px solid #e4f0ea;background:#f8fbf9;
+  font-family:'Cinzel',serif;font-size:12px;font-weight:700;color:#0b6e4f;}
+.is-promo span{border-bottom:1.5px dotted #c9a227;min-width:70px;display:inline-block;font-style:italic;}
+.is-next{padding:4px 14px;font-size:11px;border-top:1px solid #e4f0ea;background:#f8fbf9;}
+.is-sig{display:grid;grid-template-columns:repeat(4,1fr);padding:8px 14px 6px;
+  border-top:2px solid #0b6e4f;background:#f8fbf9;gap:4px;}
+
+/* ══════════════════════════════════════════════
+   COMPUTER TRAINING CARD — Dark Tech / Terminal
+   ══════════════════════════════════════════════ */
+.ct-card{font-family:'Poppins',sans-serif;}
+.ct-card .report-card{padding:0;box-shadow:0 4px 28px rgba(0,0,0,.3);}
+.ct-outer{border:1px solid #1e293b;background:#0f172a;border-radius:8px;overflow:hidden;}
+.ct-inner{background:#0f172a;color:#e2e8f0;}
+.ct-termbar{display:flex;align-items:center;gap:6px;padding:7px 12px;background:#1e293b;}
+.ct-dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+.ct-termbar-label{margin-left:8px;font-size:10px;color:#64748b;font-family:'Poppins',monospace;}
+
+.ct-header{display:grid;grid-template-columns:72px 1fr 76px;gap:10px;align-items:center;
+  padding:12px 14px 10px;border-bottom:1px solid #1e293b;background:#111e34;}
+.ct-logo{width:64px;height:64px;border-radius:8px;border:2px solid #22d3ee;overflow:hidden;
+  background:#1e293b;display:flex;align-items:center;justify-content:center;color:#22d3ee;font-size:20px;font-weight:700;}
+.ct-logo img{width:100%;height:100%;object-fit:cover;}
+.ct-logo-fb{color:#22d3ee;font-size:20px;font-weight:700;}
+.ct-hc{text-align:center;}
+.ct-school{font-family:'Poppins',sans-serif;font-size:clamp(12px,2.3vw,19px);font-weight:700;color:#f1f5f9;letter-spacing:.3px;line-height:1.2;}
+.ct-meta{font-size:9.5px;color:#64748b;margin-top:2px;}
+.ct-rule{height:1.5px;background:linear-gradient(90deg,transparent,#22d3ee,#0891b2,#22d3ee,transparent);margin:5px auto;width:60%;}
+.ct-badge{display:inline-block;padding:3px 12px;background:#0891b2;color:#f0fdff;
+  font-size:9px;letter-spacing:1.5px;font-weight:700;text-transform:uppercase;border-radius:3px;}
+.ct-sess{font-size:10px;color:#94a3b8;margin-top:5px;}
+.ct-pp-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.ct-pp{width:66px;height:80px;border:2px solid #22d3ee;border-radius:4px;background:#1e293b;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;}
+.ct-pp img{width:100%;height:100%;object-fit:cover;}
+.ct-pp-ph{text-align:center;font-size:8px;color:#475569;font-family:sans-serif;line-height:1.4;padding:4px;}
+
+.ct-info{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #1e293b;font-size:11.5px;}
+.ct-info-row{display:flex;align-items:baseline;padding:4.5px 12px;border-bottom:1px solid #1a2740;gap:5px;}
+.ct-info-row:nth-child(odd){background:#131f38;border-right:1px solid #1a2740;}
+.ct-info-row:nth-child(even){background:#0f1b30;}
+.ct-info-row:nth-last-child(-n+2){border-bottom:none;}
+.ct-il{font-weight:600;color:#22d3ee;white-space:nowrap;min-width:118px;font-size:10.5px;}
+.ct-iv{border-bottom:1px dotted #334155;flex:1;min-height:14px;color:#e2e8f0;padding-left:2px;font-size:12px;}
+
+.ct-sec-hdr{background:#111e34;color:#22d3ee;padding:5px 14px;font-size:9px;letter-spacing:2px;
+  text-transform:uppercase;font-weight:700;border-bottom:1px solid #1e293b;font-family:'Poppins',monospace;}
+.ct-sec-hdr span{opacity:.8;}
+
+.ct-table{width:100%;border-collapse:collapse;font-size:11px;color:#e2e8f0;}
+.ct-table th,.ct-table td{border:1px solid #1e293b;padding:4px 5px;text-align:center;vertical-align:middle;}
+.ct-table th{background:#1e293b;color:#22d3ee;font-size:7.8px;letter-spacing:.4px;font-weight:700;text-transform:uppercase;}
+.ct-sn{text-align:left!important;font-weight:600;font-size:11px;color:#67e8f9;padding-left:10px!important;background:#131f38!important;white-space:nowrap;}
+.ct-table tr:nth-child(even) td:not(.ct-sn){background:#10192c;}
+.ct-grade{display:inline-block;padding:1px 8px;background:#0e2a35;border:1px solid #0891b2;
+  border-radius:3px;font-size:10px;font-weight:700;color:#67e8f9;}
+
+.ct-sum{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid #1e293b;border-bottom:1px solid #1e293b;}
+.ct-sum-cell{text-align:center;padding:8px 4px;border-right:1px solid #1e293b;}
+.ct-sum-cell:last-child{border-right:none;}
+.ct-sum-hi{background:#111e34;}
+.ct-sum-lbl{font-size:7px;letter-spacing:1.2px;text-transform:uppercase;color:#64748b;margin-bottom:4px;font-family:'Poppins',monospace;}
+.ct-sum-val{font-size:19px;font-weight:700;line-height:1.1;color:#22d3ee;}
+
+.ct-two-col{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #1e293b;}
+.ct-co-col{border-right:1px solid #1e293b;}
+.ct-col-hdr{background:#0891b2;color:#f0fdff;text-align:center;padding:4px 8px;
+  font-size:8px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;}
+.ct-di-col .ct-col-hdr{background:#334155;}
+.ct-col-sub{display:flex;justify-content:space-between;padding:3px 10px;
+  font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#94a3b8;}
+.ct-co-col .ct-col-sub{background:#10202a;}
+.ct-di-col .ct-col-sub{background:#161e2e;}
+.ct-ar{display:flex;align-items:center;justify-content:space-between;padding:3.5px 10px;
+  border-bottom:1px solid #1a2740;font-size:11px;color:#cbd5e1;}
+.ct-co-col .ct-ar{background:#0e1c28;}
+.ct-di-col .ct-ar{background:#121a2c;}
+.ct-ar:nth-child(even){filter:brightness(1.12);}
+.ct-grade-box{min-width:36px;height:18px;border:1px solid #334155;background:#0f172a;
+  display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#22d3ee;}
+
+.ct-remark{padding:5px 12px;font-size:11px;border-top:1px solid #1e293b;background:#111e34;color:#cbd5e1;}
+.ct-remark-lbl{font-size:7.5px;text-transform:uppercase;letter-spacing:.8px;color:#22d3ee;display:block;margin-bottom:2px;font-weight:700;font-family:'Poppins',monospace;}
+.ct-promo{padding:6px 14px;border-top:1px solid #1e293b;background:#111e34;
+  font-size:12.5px;font-weight:700;color:#67e8f9;}
+.ct-promo span{border-bottom:1.5px dotted #0891b2;min-width:70px;display:inline-block;}
+.ct-next{padding:4px 14px;font-size:11px;border-top:1px solid #1e293b;background:#111e34;color:#94a3b8;}
+.ct-sig{display:grid;grid-template-columns:repeat(4,1fr);padding:8px 14px 10px;
+  border-top:1px solid #1e293b;background:#111e34;gap:4px;}
+.ct-sig .sig-ln{border-top-color:#334155;}
+.ct-sig .sig-la{color:#94a3b8;}
+.ct-sig .sig-sl{color:#475569;}
+.ct-gs th{background:#1e293b!important;color:#22d3ee!important;}
+.ct-gs td{background:#0f172a!important;color:#cbd5e1!important;border-color:#1e293b!important;}
+
+/* ══════════════════════════════════════════════
+   TUTORIAL CENTRE CARD — Clean Minimal / Score-card
+   ══════════════════════════════════════════════ */
+.tu-card{font-family:'Quicksand',sans-serif;}
+.tu-card .report-card{padding:0;box-shadow:0 4px 24px rgba(0,0,0,.14);}
+.tu-outer{border:1px solid #e0e3fa;border-radius:12px;overflow:hidden;background:white;}
+.tu-inner{background:white;}
+.tu-header{display:grid;grid-template-columns:64px 1fr 70px;gap:12px;align-items:center;
+  padding:14px 16px;background:linear-gradient(135deg,#4338ca 0%,#6366f1 100%);}
+.tu-logo{width:58px;height:58px;border-radius:10px;background:white;display:flex;align-items:center;
+  justify-content:center;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.2);}
+.tu-logo img{width:100%;height:100%;object-fit:cover;}
+.tu-logo-fb{font-family:'Quicksand',sans-serif;font-size:9px;font-weight:800;color:#4338ca;}
+.tu-hc{text-align:center;}
+.tu-school{font-family:'Quicksand',sans-serif;font-size:clamp(13px,2.4vw,19px);font-weight:700;color:white;letter-spacing:.2px;}
+.tu-meta{font-size:9.5px;color:#e0e3fa;margin-top:2px;}
+.tu-title{font-size:11px;font-weight:700;color:#ffe27a;margin-top:4px;letter-spacing:.3px;text-transform:uppercase;}
+.tu-sess{font-size:10px;color:#dadcff;margin-top:3px;}
+.tu-class{font-size:10.5px;color:#e8e9ff;margin-top:2px;}
+.tu-class span{font-weight:700;color:white;}
+.tu-pp-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.tu-pp{width:60px;height:74px;border-radius:6px;background:white;display:flex;align-items:center;
+  justify-content:center;overflow:hidden;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2);}
+.tu-pp img{width:100%;height:100%;object-fit:cover;}
+.tu-pp-ph{text-align:center;font-size:8px;color:#bbb;font-family:sans-serif;}
+
+.tu-score-strip{display:grid;grid-template-columns:repeat(4,1fr);background:#f5f6ff;}
+.tu-score-cell{text-align:center;padding:10px 4px;border-right:1px solid #e0e3fa;}
+.tu-score-cell:last-child{border-right:none;}
+.tu-score-hi{background:#eef0ff;}
+.tu-score-lbl{font-size:9px;letter-spacing:.8px;text-transform:uppercase;color:#6366f1;font-weight:700;margin-bottom:3px;}
+.tu-score-val{font-size:21px;font-weight:700;color:#4338ca;line-height:1.1;}
+
+.tu-info{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #e0e3fa;font-size:11.5px;}
+.tu-info-row{display:flex;align-items:baseline;padding:5px 14px;border-bottom:1px solid #f0f1fc;gap:5px;}
+.tu-info-row:nth-child(odd){background:#fafafe;border-right:1px solid #f0f1fc;}
+.tu-info-row:nth-child(even){background:#fff;}
+.tu-info-row:nth-last-child(-n+2){border-bottom:none;}
+.tu-il{font-weight:700;color:#4338ca;white-space:nowrap;min-width:104px;font-size:10.5px;}
+.tu-iv{border-bottom:1px dotted #c4c7f5;flex:1;min-height:14px;color:#222;padding-left:2px;}
+
+.tu-sec-hdr{background:#eef0ff;color:#4338ca;padding:6px 14px;font-size:10.5px;letter-spacing:.6px;
+  text-transform:uppercase;font-weight:700;border-top:1px solid #e0e3fa;border-bottom:1px solid #e0e3fa;}
+
+.tu-table{width:100%;border-collapse:collapse;font-size:11px;}
+.tu-table th,.tu-table td{border:1px solid #ececff;padding:5px;text-align:center;vertical-align:middle;}
+.tu-table th{background:#f5f6ff;color:#4338ca;font-size:8.5px;letter-spacing:.3px;font-weight:700;text-transform:uppercase;}
+.tu-sn{text-align:left!important;font-weight:700;font-size:11px;color:#322f8f;padding-left:12px!important;background:#fafafe!important;white-space:nowrap;}
+.tu-table tr:nth-child(even) td:not(.tu-sn){background:#f8f8ff;}
+.tu-grade{display:inline-block;padding:1px 9px;background:#eef0ff;border:1px solid #c4c7f5;
+  border-radius:12px;font-size:10px;font-weight:700;color:#4338ca;}
+
+.tu-two-col{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #e0e3fa;}
+.tu-co-col{border-right:1px solid #e0e3fa;}
+.tu-col-hdr{background:#4338ca;color:white;text-align:center;padding:4px 8px;
+  font-size:9px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;}
+.tu-di-col .tu-col-hdr{background:#0d9488;}
+.tu-col-sub{display:flex;justify-content:space-between;padding:3px 12px;
+  font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:#666;}
+.tu-co-col .tu-col-sub{background:#f5f6ff;}
+.tu-di-col .tu-col-sub{background:#f0fdfa;}
+.tu-ar{display:flex;align-items:center;justify-content:space-between;padding:3.5px 12px;
+  border-bottom:1px solid #f0f1fc;font-size:11px;}
+.tu-co-col .tu-ar{background:#fafafe;}
+.tu-di-col .tu-ar{background:#f7fffd;}
+.tu-grade-box{min-width:34px;height:18px;border:1px solid #c4c7f5;background:white;border-radius:9px;
+  display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#4338ca;}
+
+.tu-remark{padding:6px 14px;font-size:11.5px;border-top:1px solid #e0e3fa;background:#fafafe;}
+.tu-remark-lbl{font-size:8px;text-transform:uppercase;letter-spacing:.7px;color:#4338ca;display:block;margin-bottom:2px;font-weight:700;}
+.tu-promo{padding:7px 14px;border-top:1px solid #e0e3fa;background:#f5f6ff;
+  font-size:12.5px;font-weight:700;color:#322f8f;}
+.tu-promo span{border-bottom:1.5px dotted #6366f1;min-width:70px;display:inline-block;}
+.tu-next{padding:4px 14px;font-size:11px;border-top:1px solid #e0e3fa;background:#fafafe;}
+.tu-sig{display:grid;grid-template-columns:repeat(4,1fr);padding:9px 14px 8px;
+  border-top:1px solid #e0e3fa;background:#fafafe;gap:4px;}
+
+/* ══════════════════════════════════════════════
    CERTIFICATE / TESTIMONIAL STYLES
    ══════════════════════════════════════════════ */
 .cert-wrap{max-width:820px;margin:14px auto;}
@@ -769,15 +1016,12 @@ function openTestPage(){
 let _cardThemeOverride = null;   // null = auto; string = manual pick
 
 /* Map school_type DB values → internal theme keys
- * IMPORTANT: this must cover all 7 canonical types from
- * api/database.js's normaliseSchoolType()/getInstitutionLabelsFor():
+ * Covers all 7 canonical institution types from api/database.js's
+ * normaliseSchoolType()/getInstitutionLabelsFor():
  *   o_level | tertiary | vocational | islamic | computer_training | tutorial_center | other
- * Previously this map only recognised loose synonyms (primary/secondary/university/etc.)
- * and had NO entry for 'o_level', 'islamic', 'computer_training', 'tutorial_center', or
- * 'other' — meaning those schools silently fell through to keyword-guessing on the class
- * name, which has no patterns for Islamic or computer-training institutes at all, so they
- * always rendered with the generic 'secondary' theme regardless of what was selected at
- * registration. Mapping the canonical values directly fixes that for every institution type.
+ * Each of these now has its own dedicated visual theme + builder function
+ * (o_level is further refined into nursery/primary/secondary by class name —
+ * see refineOLevelTheme() below — since it spans Nursery through SS3).
  */
 const SCHOOL_TYPE_MAP = {
   // ── Canonical values used by api/database.js normaliseSchoolType() ──
@@ -844,7 +1088,7 @@ const THEME_LABELS = {
 
 /**
  * Detect theme from school_type first, then fall back to class-name keywords.
- * Returns one of: nursery | primary | secondary | vocational | tertiary | islamic
+ * Returns one of: nursery | primary | secondary | vocational | tertiary | islamic | computer_training | tutorial_center
  */
 function detectTheme(schoolTypeRaw, classRow) {
   // 1. school_type from DB — exact canonical match first
@@ -862,10 +1106,14 @@ function detectTheme(schoolTypeRaw, classRow) {
   }
   // 2. Class name / level / section keyword fallback (for legacy records with no school_type)
   const s = (classRow?.level || classRow?.section || classRow?.name || '').toLowerCase();
-  // NOTE: Islamic-pattern class names render with the 'secondary' builder for now —
-  // see the note on the SCHOOL_TYPE_MAP 'islamic' entry above.
   if (/nursery|crèche|creche|toddler|kinder|reception|pre[\s-]?school|early\s*child|playgroup|kg|k\.g|kindergarten/.test(s))
     return 'nursery';
+  if (/islam|madras|madrass|tahfiz|tahfeez|qur'?an|arabic\s*studies/.test(s))
+    return 'islamic';
+  if (/computer|ict|coding|programming|web\s*dev|software|data\s*analy|cybersecurity|graphic\s*design/.test(s))
+    return 'computer_training';
+  if (/tutorial|lesson\s*centre|lesson\s*center|exam\s*prep|jamb|waec\s*prep|coaching/.test(s))
+    return 'tutorial_center';
   if (/vocational|technical|trade|craft|artisan|nce|ond|hnd|diploma|certificate\s*prog|workshop|batch/.test(s))
     return 'vocational';
   if (/university|tertiary|degree|bsc|hnd|college|institution|faculty|department|level\s*[1-9]00/.test(s))
@@ -877,6 +1125,7 @@ function detectTheme(schoolTypeRaw, classRow) {
   // Default for anything else (sss, ss1-3, senior, form, etc.)
   return 'secondary';
 }
+
 
 /**
  * o_level covers nursery through SS3 — use the class name to decide whether
