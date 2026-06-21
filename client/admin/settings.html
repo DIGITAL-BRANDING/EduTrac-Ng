@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -462,8 +463,25 @@ async function deleteTerm(id){
 //  TAB 7 — GRADING
 // ═══════════════════════════════════════════════════════════════
 function renderGrading(){
+  const schoolType = getSchoolType();
+  // Recommend the preset that matches this school's registered type first
+  const presetOrder = {
+    o_level: ['nigerian','gpa','competency','passfail'],
+    tertiary: ['gpa','nigerian','competency','passfail'],
+    vocational: ['competency','passfail','nigerian','gpa'],
+    computer_training: ['gpa','competency','passfail','nigerian'],
+    islamic: ['nigerian','gpa','competency','passfail'],
+    tutorial_center: ['nigerian','gpa','competency','passfail'],
+    other: ['passfail','nigerian','gpa','competency'],
+  }[schoolType] || ['nigerian','gpa','competency','passfail'];
+  const presetMeta = {
+    nigerian:   { label:'Nigerian A1–F9', sub:'Standard for primary/secondary schools' },
+    gpa:        { label:'Tertiary GPA (A–F)', sub:'5.0 / 4.0 scale for colleges &amp; universities' },
+    competency: { label:'Competent / Not Yet', sub:'Common for vocational &amp; skills training' },
+    passfail:   { label:'Pass / Fail', sub:'Simple two-band scale for any institution' },
+  };
   document.getElementById('settingsContent').innerHTML=`
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:700px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:760px;">
       <div class="card">
         <div class="card__header"><span class="card__title">Grading Scale</span></div>
         ${gradingScale.length?`
@@ -477,11 +495,21 @@ function renderGrading(){
                 <button class="btn btn--ghost btn--sm" onclick="deleteGrade('${g.id}')">${trashIcon()}</button>
               </td>
             </tr>`).join('')}</tbody></table>
-          </div>`:'<p style="color:var(--ink-3);">No grading scale yet.</p>'}
-        <button class="btn btn--secondary btn--sm btn--full" style="margin-top:12px;" onclick="addNigerianGrading()">Load Nigerian A1–F9</button>
+          </div>`:'<p style="color:var(--ink-3);">No grading scale yet. Pick a preset on the right to get started quickly.</p>'}
       </div>
       <div class="card">
-        <div class="card__header"><span class="card__title">Add Grade Band</span></div>
+        <div class="card__header"><span class="card__title">Quick Presets</span></div>
+        <p style="font-size:12px;color:var(--ink-3);margin-bottom:10px;">Loading a preset replaces your current grading scale.</p>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;">
+          ${presetOrder.map((key,i)=>`
+            <button class="btn ${i===0?'btn--primary':'btn--secondary'} btn--sm" style="justify-content:flex-start;text-align:left;height:auto;padding:10px 12px;" onclick="loadGradingPreset('${key}')">
+              <span style="display:block;">
+                <span style="display:block;font-weight:700;">${presetMeta[key].label}${i===0?' <span style="font-size:10px;font-weight:700;background:rgba(255,255,255,.25);padding:1px 7px;border-radius:100px;margin-left:6px;">Recommended</span>':''}</span>
+                <span style="display:block;font-size:11px;opacity:.85;font-weight:400;margin-top:2px;">${presetMeta[key].sub}</span>
+              </span>
+            </button>`).join('')}
+        </div>
+        <div class="card__header" style="padding-top:0;"><span class="card__title" style="font-size:13px;">Add Custom Grade Band</span></div>
         <div class="form-grid">
           <div class="form-group"><label class="form-label">Grade</label><input id="gGrade" class="form-control" placeholder="A1"></div>
           <div class="form-group"><label class="form-label">Remark</label><input id="gRemark" class="form-control" placeholder="Excellent"></div>
@@ -512,16 +540,35 @@ async function updateGrade(id){
   if(error){toast(error.message,'error');return;}
   closeEdit(); await loadAll(); renderGrading(); toast('Grade updated!','success');
 }
-async function addNigerianGrading(){
-  await db.from('grading_scales').delete().eq('school_id',currentUser.school_id);
-  await db.from('grading_scales').insert([
+const GRADING_PRESETS = {
+  nigerian: [
     {grade:'A1',min_score:75,max_score:100,remark:'Excellent'},{grade:'B2',min_score:70,max_score:74,remark:'Very Good'},
     {grade:'B3',min_score:65,max_score:69,remark:'Good'},{grade:'C4',min_score:60,max_score:64,remark:'Credit'},
     {grade:'C5',min_score:55,max_score:59,remark:'Credit'},{grade:'C6',min_score:50,max_score:54,remark:'Credit'},
     {grade:'D7',min_score:45,max_score:49,remark:'Pass'},{grade:'E8',min_score:40,max_score:44,remark:'Pass'},
     {grade:'F9',min_score:0,max_score:39,remark:'Fail'},
-  ].map(s=>({school_id:currentUser.school_id,...s})));
-  await loadAll(); renderGrading(); toast('Nigerian A1–F9 grading loaded!','success');
+  ],
+  gpa: [
+    {grade:'A',min_score:70,max_score:100,remark:'Excellent (5.0)'},{grade:'B',min_score:60,max_score:69,remark:'Very Good (4.0)'},
+    {grade:'C',min_score:50,max_score:59,remark:'Good (3.0)'},{grade:'D',min_score:45,max_score:49,remark:'Pass (2.0)'},
+    {grade:'E',min_score:40,max_score:44,remark:'Pass (1.0)'},{grade:'F',min_score:0,max_score:39,remark:'Fail (0.0)'},
+  ],
+  competency: [
+    {grade:'C',min_score:50,max_score:100,remark:'Competent'},
+    {grade:'NYC',min_score:0,max_score:49,remark:'Not Yet Competent'},
+  ],
+  passfail: [
+    {grade:'Pass',min_score:50,max_score:100,remark:'Pass'},
+    {grade:'Fail',min_score:0,max_score:49,remark:'Fail'},
+  ],
+};
+async function loadGradingPreset(key){
+  const preset = GRADING_PRESETS[key];
+  if(!preset){toast('Unknown preset.','error');return;}
+  if(gradingScale.length && !confirm('This will replace your current grading scale. Continue?')) return;
+  await db.from('grading_scales').delete().eq('school_id',currentUser.school_id);
+  await db.from('grading_scales').insert(preset.map(s=>({school_id:currentUser.school_id,...s})));
+  await loadAll(); renderGrading(); toast('Grading scale loaded!','success');
 }
 async function addGrade(){
   const grade=document.getElementById('gGrade').value.trim();
@@ -719,5 +766,4 @@ async function disableAll(){ if(!confirm('Disable all student logins?')) return;
 <script src="../js/assistant.js"></script>
 </body>
 </html>
-
 
