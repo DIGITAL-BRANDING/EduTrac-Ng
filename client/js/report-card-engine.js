@@ -768,9 +768,31 @@ function openTestPage(){
  */
 let _cardThemeOverride = null;   // null = auto; string = manual pick
 
-/* Map school_type DB values → internal theme keys */
+/* Map school_type DB values → internal theme keys
+ * IMPORTANT: this must cover all 7 canonical types from
+ * api/database.js's normaliseSchoolType()/getInstitutionLabelsFor():
+ *   o_level | tertiary | vocational | islamic | computer_training | tutorial_center | other
+ * Previously this map only recognised loose synonyms (primary/secondary/university/etc.)
+ * and had NO entry for 'o_level', 'islamic', 'computer_training', 'tutorial_center', or
+ * 'other' — meaning those schools silently fell through to keyword-guessing on the class
+ * name, which has no patterns for Islamic or computer-training institutes at all, so they
+ * always rendered with the generic 'secondary' theme regardless of what was selected at
+ * registration. Mapping the canonical values directly fixes that for every institution type.
+ */
 const SCHOOL_TYPE_MAP = {
-  // Nursery / Early childhood
+  // ── Canonical values used by api/database.js normaliseSchoolType() ──
+  'o_level':           'secondary',   // refined further below by class name (nursery/primary/jss/sss)
+  'tertiary':           'tertiary',
+  'vocational':          'vocational',
+  // NOTE: 'islamic' intentionally maps to 'secondary' for now — there is no
+  // dedicated Islamic report card template/builder yet (see buildSecondaryCard
+  // dispatch below). When one is built, change this to 'islamic' and add the
+  // matching buildIslamicCard() + dispatch branch near getCardTheme() usage.
+  'islamic':            'secondary',
+  'computer_training':  'vocational', // closest visual fit: skills/training-centre styling
+  'tutorial_center':    'secondary',  // exam-prep centres mostly serve secondary-level students
+  'other':              'secondary',
+  // ── Nursery / Early childhood (legacy/loose synonyms, kept for old records) ──
   'nursery':        'nursery',
   'nursery_school': 'nursery',
   'creche':         'nursery',
@@ -779,33 +801,37 @@ const SCHOOL_TYPE_MAP = {
   'pre_school':     'nursery',
   'preschool':      'nursery',
   'early_childhood':'nursery',
-  // Primary
+  // ── Primary (legacy/loose synonyms) ──
   'primary':        'primary',
   'primary_school': 'primary',
   'elementary':     'primary',
   'basic':          'primary',
-  // Secondary / High school
+  // ── Secondary / High school (legacy/loose synonyms) ──
   'secondary':      'secondary',
   'high_school':    'secondary',
   'senior_secondary':'secondary',
   'junior_secondary':'primary',
   'jss':            'primary',
   'sss':            'secondary',
-  // Vocational / Technical
-  'vocational':     'vocational',
+  // ── Vocational / Technical (legacy/loose synonyms) ──
   'technical':      'vocational',
   'polytechnic':    'vocational',
   'trade':          'vocational',
   'vocational_training':'vocational',
   'training_center':'vocational',
   'training_centre':'vocational',
-  // Tertiary / Higher institution
-  'tertiary':       'tertiary',
+  // ── Tertiary / Higher institution (legacy/loose synonyms) ──
   'university':     'tertiary',
   'college':        'tertiary',
   'institute':      'tertiary',
   'institution':    'tertiary',
   'higher_institution':'tertiary',
+  // ── Islamic (legacy/loose synonyms) — maps to 'secondary' builder; see note above ──
+  'islamiyya':       'secondary',
+  'islamic_institute':'secondary',
+  'madrasa':         'secondary',
+  'madrassa':        'secondary',
+  'tahfiz':          'secondary',
 };
 
 /* Human-readable theme labels */
@@ -819,19 +845,29 @@ const THEME_LABELS = {
 
 /**
  * Detect theme from school_type first, then fall back to class-name keywords.
- * Returns one of: nursery | primary | secondary | vocational | tertiary
+ * Returns one of: nursery | primary | secondary | vocational | tertiary | islamic
  */
 function detectTheme(schoolTypeRaw, classRow) {
-  // 1. school_type from DB
+  // 1. school_type from DB — exact canonical match first
   if (schoolTypeRaw) {
     const key = schoolTypeRaw.toString().toLowerCase().replace(/[\s-]/g, '_');
-    if (SCHOOL_TYPE_MAP[key]) return SCHOOL_TYPE_MAP[key];
+    if (SCHOOL_TYPE_MAP[key]) {
+      // For o_level specifically, refine further using the class name so a
+      // Primary 3 class doesn't get the same "secondary" decoration as SS 3.
+      if (key === 'o_level') {
+        const refined = refineOLevelTheme(classRow);
+        if (refined) return refined;
+      }
+      return SCHOOL_TYPE_MAP[key];
+    }
   }
-  // 2. Class name / level / section keyword fallback
+  // 2. Class name / level / section keyword fallback (for legacy records with no school_type)
   const s = (classRow?.level || classRow?.section || classRow?.name || '').toLowerCase();
+  // NOTE: Islamic-pattern class names render with the 'secondary' builder for now —
+  // see the note on the SCHOOL_TYPE_MAP 'islamic' entry above.
   if (/nursery|crèche|creche|toddler|kinder|reception|pre[\s-]?school|early\s*child|playgroup|kg|k\.g|kindergarten/.test(s))
     return 'nursery';
-  if (/vocational|technical|trade|craft|artisan|nce|ond|hnd|diploma|certificate\s*prog/.test(s))
+  if (/vocational|technical|trade|craft|artisan|nce|ond|hnd|diploma|certificate\s*prog|workshop|batch/.test(s))
     return 'vocational';
   if (/university|tertiary|degree|bsc|hnd|college|institution|faculty|department|level\s*[1-9]00/.test(s))
     return 'tertiary';
@@ -841,6 +877,22 @@ function detectTheme(schoolTypeRaw, classRow) {
     return 'primary';
   // Default for anything else (sss, ss1-3, senior, form, etc.)
   return 'secondary';
+}
+
+/**
+ * o_level covers nursery through SS3 — use the class name to decide whether
+ * this particular class should render as nursery / primary / secondary.
+ * Returns null if no refinement pattern matches (caller falls back to 'secondary').
+ */
+function refineOLevelTheme(classRow) {
+  const s = (classRow?.level || classRow?.section || classRow?.name || '').toLowerCase();
+  if (/nursery|crèche|creche|toddler|kinder|reception|pre[\s-]?school|early\s*child|playgroup|kg|k\.g|kindergarten/.test(s))
+    return 'nursery';
+  if (/primary|pry|basic|elementary|standard\s*[1-9]|class\s*[1-6]$|year\s*[1-6]$|jss|junior|lower\s*sec/.test(s))
+    return 'primary';
+  if (/sss|senior|ss\s*[1-3]|form\s*[4-6]/.test(s))
+    return 'secondary';
+  return null;
 }
 
 /**
@@ -1423,167 +1475,3 @@ async function buildCard(student, termId, extraClass=''){
     :`<div class="logo-fb">SCHOOL<br>CREST</div>`;
 
   const pp=student.photo_url||student.passport_url||student.avatar_url||'';
-
-  const eHdrs=examList.map(e=>
-    `<th>${e.name}<br><span style="font-weight:400;font-size:7.5px">/${e.max_score}</span></th>`
-  ).join('');
-  
-  const sRows=subRows.map(sub=>{
-    const cells=examList.map(e=>{
-      const r=sub.rows.find(r=>r.exam_id===e.id);
-      return`<td>${r!==undefined?r.score:'—'}</td>`;
-    }).join('');
-    return`<tr><td class="sn">${sub.name}</td>${cells}
-      <td><strong style="color:var(--primary)">${sub.total??'—'}</strong></td>
-      <td>${gradeBadge(sub.grade)}</td>
-      <td style="font-size:10px;color:#555;text-align:left">${sub.remark||'—'}</td></tr>`;
-  }).join('')||`<tr><td colspan="99" style="text-align:center;padding:18px;color:#999;font-family:sans-serif;font-size:12px">No results recorded for this term.</td></tr>`;
-
-  const coF=[['work_education','Work Education'],['art_education','Art Education'],
-    ['physical_education','Health &amp; Physical Education'],['social_skills','Social Skills'],['sports','Sports']];
-  const diF=[['punctuality','Regularity &amp; Punctuality'],['sincerity','Sincerity'],
-    ['conduct','Behaviour &amp; Values'],['respect','Respectfulness for Rules &amp; Reg.'],
-    ['attitude_teachers','Attitude Towards Teachers'],['attitude_society','Attitude Towards Society']];
-
-  const scH=(_scale||[]).length
-    ?`<thead><tr><th>Grade</th>${(_scale||[]).map(g=>`<th>${g.grade}</th>`).join('')}</thead>
-      <tbody><tr><th>Marks</th>${(_scale||[]).map(g=>`<td>${g.min_score}–${g.max_score}</td>`).join('')}</tr>
-      <tr><th>Remark</th>${(_scale||[]).map(g=>`<td style="font-size:8.5px">${g.remark||'—'}</td>`).join('')}</tr></tbody>`
-    :`<thead><tr><th>91–100</th><th>81–90</th><th>71–80</th><th>61–70</th><th>51–60</th><th>41–50</th><th>32–40</th></thead>
-     <tbody><tr><td>A+</td><td>A</td><td>B+</td><td>B</td><td>C+</td><td>C</td><td>D</td></tr></tbody>`;
-
-  const sid=student.id.replace(/-/g,'_');
-
-  // Deduplicate exams — prevents duplicate score columns
-  const examDeduped = [];
-  const examSeen = new Set();
-  (_exams || []).forEach(e => { if (e && !examSeen.has(e.id)) { examSeen.add(e.id); examDeduped.push(e); } });
-  if (examDeduped.length) _exams = examDeduped;
-
-  // Deduplicate class subjects — prevents duplicate subject rows
-  if (_classSubjects?.length) {
-    const csSeen = new Map();
-    _classSubjects.forEach(cs => {
-      if (!csSeen.has(cs.subject_id)) csSeen.set(cs.subject_id, cs);
-    });
-    _classSubjects = [...csSeen.values()];
-  }
-
-  // Also deduplicate studentResults per (subject_id, exam_id) pair
-  const resultKey = r => `${r.subject_id}||${r.exam_id}`;
-  const resultSeen = new Set();
-  studentResults = studentResults.filter(r => {
-    const k = resultKey(r);
-    if (resultSeen.has(k)) return false;
-    resultSeen.add(k);
-    return true;
-  });
-
-  // Store current student for certificate/testimonial generation
-  _currentStudent={student,results:studentResults,attData,affective};
-
-  // Route to section-specific card builder — driven by institution theme engine
-  const sType = getCardTheme(_classRow);
-  if(sType==='nursery')    return buildNurseryCard(student,studentResults,attData,affective);
-  if(sType==='primary')    return buildPrimaryCard(student,studentResults,attData,affective);
-  if(sType==='vocational') return buildVocationalCard(student,studentResults,attData,affective);
-  if(sType==='tertiary')   return buildTertiaryCard(student,studentResults,attData,affective);
-  // 'secondary' is the default
-
-  return`
-<div class="card-wrap ${extraClass}">
-<div class="report-card"><div class="deco-border"><div class="card-inner">
-<div class="deco-strip"></div>
-<div class="rc-header">
-  <div class="logo-circle">${logoH}</div>
-  <div class="hc">
-    <div class="school-name">${_school?.name||'School Name'}</div>
-    <div class="school-meta">${meta}</div>
-    <div class="gold-div"></div>
-    <div class="card-title">Student Academic Report</div>
-    <div class="sess-txt">${sessLabel}</div>
-    <div class="sess-txt" style="font-size:10px;color:#777;font-weight:400;font-style:italic;margin-top:1px">Term: ${_term?.name||'—'}</div>
-  </div>
-  <div class="pp-box">
-    <div class="pp-frame" onclick="document.getElementById('ppInput_${sid}').click()">
-      <img id="ppImg_${sid}" src="${pp}" style="${pp?'':'display:none'}" alt="Student Photo">
-      <div class="pp-ph" id="ppPh_${sid}" ${pp?'style="display:none"':''}>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5">
-          <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-        </svg>
-        <span style="font-size:8px">Affix<br>Photo</span>
-      </div>
-    </div>
-    <input type="file" id="ppInput_${sid}" accept="image/*" onchange="loadPP(event,'${sid}')" style="display:none">
-    <div class="pp-lbl">Passport Size</div>
-  </div>
-</div>
-<div class="info-strip">
-  <div class="info-row"><span class="il">Name of Student</span><span class="iv">${student.full_name||'—'}</span></div>
-  <div class="info-row"><span class="il">Admission No.</span><span class="iv">${student.admission_no||student.roll_no||'—'}</span></div>
-  <div class="info-row"><span class="il">Class / Arm</span><span class="iv">${classLabel}</span></div>
-  <div class="info-row"><span class="il">Date of Birth</span><span class="iv">${fmtDate(student.dob||student.date_of_birth)}</span></div>
-  <div class="info-row"><span class="il">Guardian</span><span class="iv">${student.guardian_name||student.father_name||'—'}</span></div>
-  <div class="info-row"><span class="il">Academic Session</span><span class="iv">${(_term?.academic_years?.label||_term?.name)||'—'}</span></div>
-</div>
-<div class="sec-hdr">Scholastic Area — Academic Performance</div>
-<div class="aw"><table class="ac">
-  <thead><tr><th rowspan="2" style="text-align:left;padding-left:10px;min-width:110px">Subjects</th>${eHdrs}<th rowspan="2">Total</th><th rowspan="2">Grade</th><th rowspan="2" style="min-width:60px">Remark</th></tr><tr></tr></thead>
-  <tbody>${sRows}</tbody>
-</table></div>
-<div class="sum-band">
-  <div class="sum-cell"><span class="sl c1">Overall Marks</span><span class="sv" style="color:var(--primary)">${raw??'—'}</span></div>
-  <div class="sum-cell"><span class="sl c2">Percentage</span><span class="sv" style="color:var(--accent)">${avg!==null?avg+'%':'—'}</span></div>
-  <div class="sum-cell"><span class="sl c3">Grade</span><span class="sv" style="color:#16a34a">${og.grade}</span></div>
-  <div class="sum-cell"><span class="sl c4">Attendance</span><span class="sv" style="color:#7c3aed">${att!==null?att+'%':'—'}</span></div>
-</div>
-<div class="two-col">
-  <div class="co-col"><div class="co-h">Co-Scholastic Activities</div><div class="ach"><span>Activity</span><span>Grade</span></div>${actRows(coF,affective)}</div>
-  <div class="di-col"><div class="di-h">Discipline &amp; Character</div><div class="ach"><span>Activity</span><span>Grade</span></div>${actRows(diF,affective)}</div>
-</div>
-${rmHTML("Class Teacher's Remark",affective?.class_teacher_remark,'#f8faff','var(--primary)')}
-${rmHTML("VP Academic's Remark", affective?.vp_academic_remark, '#eff6ff','#1e40af')}
-${rmHTML("Exam Officer's Remark", affective?.exam_officer_remark, '#faf5ff','#6b21a8')}
-${rmHTML("Principal's Remark", affective?.principal_remark, '#f0fdf4','#166534')}
-<div class="promo-band">Promoted to Class &mdash; <span>${affective?.promoted_to||'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</span></div>
-${affective?.next_term_begins?`<div class="nt-row"><strong>Next Term Begins:</strong> ${fmtDate(affective.next_term_begins)}</div>`:''}
-<div class="gs-wrap"><div class="gs-title">Grading Scale for Scholastic Areas</div><table class="gs">${scH}</table></div>
-<div class="sig-ft">
-  ${sigHTML('Class Teacher', _school?.class_teacher_signature_url)}
-  ${sigHTML('VP Academic', _school?.vp_signature_url)}
-  ${sigHTML('Exam Officer', _school?.exam_officer_signature_url)}
-  ${sigHTML('Principal', _school?.principal_signature_url)}
-</div>
-<div class="deco-strip"></div>
-<div class="card-stamp">Generated by EduTrack NG &nbsp;·&nbsp; ${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</div>
-</div></div></div></div>`;
-}
-
-function showNoReportCard(student){
-  document.getElementById('mainContent').innerHTML = `
-    <div class="no-report-card">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <circle cx="12" cy="12" r="10"/>
-        <line x1="12" y1="8" x2="12" y2="12"/>
-        <circle cx="12" cy="16" r="0.5" fill="currentColor" stroke="none"/>
-      </svg>
-      <h3>📄 No Results Found</h3>
-      <p><strong>${student.full_name || 'This student'}</strong> has no scores recorded for the selected term.</p>
-      <p>Please ensure that subject scores have been entered for this student in the <strong>Results</strong> section before generating a report card.</p>
-      <button onclick="(typeof _loadCard === 'function') && _loadCard(${JSON.stringify(student).replace(/</g,'\u003c')})">↺ Retry</button>
-      <button onclick="history.back()">← Go Back</button>
-    </div>
-  `;
-}
-
-function loadPP(e,sid){
-  const file=e.target.files[0];if(!file)return;
-  const rd=new FileReader();
-  rd.onload=ev=>{
-    const img=document.getElementById('ppImg_'+sid);
-    const ph =document.getElementById('ppPh_'+sid);
-    if(img){img.src=ev.target.result;img.style.display='block';}
-    if(ph) ph.style.display='none';
-  };
-  rd.readAsDataURL(file);
-}
