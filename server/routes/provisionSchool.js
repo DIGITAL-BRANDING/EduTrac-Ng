@@ -93,30 +93,52 @@ router.post("/provision-school", async (req, res) => {
 
     const authUserId = authData.id;
 
-    const { data: school, error: schoolError } = await supabase
+    const schoolPayload = {
+      name: cleanString(app.school_name, 180),
+      school_type: normaliseSchoolType(app.school_type),
+      ownership: cleanString(app.school_ownership, 80),
+      address: cleanString(app.school_address, 300),
+      city: cleanString(app.school_city, 100),
+      state: cleanString(app.school_state, 100),
+      lga: cleanString(app.school_lga, 100),
+      postal: cleanString(app.school_postal, 30),
+      email: cleanString(app.school_email || adminEmail, 254),
+      phone: cleanString(app.admin_phone, 40),
+      website: cleanString(app.school_website, 200),
+      is_active: true,
+      plan: "free",
+    };
+
+    let { data: school, error: schoolError } = await supabase
       .from("schools")
-      .insert([{
-        name: cleanString(app.school_name, 180),
-        school_type: cleanString(app.school_type, 80),
-        ownership: cleanString(app.school_ownership, 80),
-        address: cleanString(app.school_address, 300),
-        city: cleanString(app.school_city, 100),
-        state: cleanString(app.school_state, 100),
-        lga: cleanString(app.school_lga, 100),
-        postal: cleanString(app.school_postal, 30),
-        email: cleanString(app.school_email || adminEmail, 254),
-        phone: cleanString(app.admin_phone, 40),
-        website: cleanString(app.school_website, 200),
-        is_active: true,
-        plan: "free",
-        application_id,
-      }])
+      .insert([schoolPayload])
       .select("id,name")
       .single();
 
-    if (schoolError || !school?.id) throw schoolError || new Error("School creation failed");
+    if (isMissingColumnError(schoolError)) {
+      const compatibleSchoolPayload = {
+        name: schoolPayload.name,
+        school_type: schoolPayload.school_type,
+        address: schoolPayload.address,
+        state: schoolPayload.state,
+        lga: schoolPayload.lga,
+        email: schoolPayload.email,
+        phone: schoolPayload.phone,
+        plan: "free",
+      };
 
-    const { error: userError } = await supabase
+      ({ data: school, error: schoolError } = await supabase
+        .from("schools")
+        .insert([compatibleSchoolPayload])
+        .select("id,name")
+        .single());
+    }
+
+    if (schoolError || !school?.id) {
+      throw schoolError || new Error("School creation failed");
+    }
+
+    let { error: userError } = await supabase
       .from("users")
       .upsert([{
         id: authUserId,
@@ -129,9 +151,22 @@ router.post("/provision-school", async (req, res) => {
         must_change_password: true,
       }], { onConflict: "id" });
 
+    if (isMissingColumnError(userError)) {
+      ({ error: userError } = await supabase
+        .from("users")
+        .upsert([{
+          id: authUserId,
+          school_id: school.id,
+          full_name: adminName,
+          phone: cleanString(app.admin_phone, 40),
+          role: "admin",
+          is_active: true,
+        }], { onConflict: "id" }));
+    }
+
     if (userError) throw userError;
 
-    const { error: approveError } = await supabase
+    let { error: approveError } = await supabase
       .from("school_applications")
       .update({
         status: "approved",
@@ -140,6 +175,29 @@ router.post("/provision-school", async (req, res) => {
         provisioned_school_id: school.id,
       })
       .eq("id", application_id);
+
+    if (isMissingColumnError(approveError)) {
+      ({ error: approveError } = await supabase
+        .from("school_applications")
+        .update({
+          status: "approved",
+          admin_note: cleanString(admin_note, 1000) || null,
+          reviewed_at: new Date().toISOString(),
+          school_id: school.id,
+        })
+        .eq("id", application_id));
+    }
+
+    if (isMissingColumnError(approveError)) {
+      ({ error: approveError } = await supabase
+        .from("school_applications")
+        .update({
+          status: "approved",
+          admin_note: cleanString(admin_note, 1000) || null,
+          reviewed_at: new Date().toISOString(),
+        })
+        .eq("id", application_id));
+    }
 
     if (approveError) throw approveError;
 
@@ -161,12 +219,34 @@ router.post("/provision-school", async (req, res) => {
     });
   } catch (err) {
     console.error("[/api/provision-school]", err);
-    res.status(500).json({ error: "School provisioning failed" });
+    res.status(500).json({ error: err.message || "School provisioning failed" });
   }
 });
 
 function generateTempPassword() {
   return `EduTrack@${crypto.randomBytes(9).toString("base64url")}`;
+}
+
+function isMissingColumnError(error) {
+  if (!error) return false;
+  const text = `${error.code || ""} ${error.message || ""} ${error.details || ""}`;
+  return error.code === "PGRST204" ||
+    /column|schema cache|Could not find/i.test(text);
+}
+
+function normaliseSchoolType(type) {
+  const aliases = {
+    primary: "o_level",
+    secondary: "o_level",
+    both: "o_level",
+    islamiyya: "islamic",
+    islamic_institute: "islamic",
+    vocational_training: "vocational",
+    tertiary_institute: "tertiary",
+    computer_institute: "computer_training",
+  };
+  const value = cleanString(type, 80).toLowerCase();
+  return aliases[value] || value || "o_level";
 }
 
 export default router;
