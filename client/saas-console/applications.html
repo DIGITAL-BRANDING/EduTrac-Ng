@@ -290,10 +290,21 @@ async function approveAndProvision(id, adminNote) {
   if (btn) { btn.disabled = true; btn.textContent = 'Provisioning…'; }
 
   try {
+    // The server requires a valid Supabase session token belonging to a
+    // saas_owner — without this header, requireRole() in server/utils/auth.js
+    // always returns 401 "Unauthorized" before any provisioning logic runs.
+    const session = await getSession();
+    if (!session?.access_token) {
+      throw new Error('Your session has expired. Please log in again before approving applications.');
+    }
+
     const _apiBase = (window.__EDUTRAC_CONFIG__ || {}).API_BASE_URL || '';
     const res = await fetch(_apiBase + '/api/provision-school', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+      },
       body: JSON.stringify({ application_id: id, admin_note: adminNote }),
     });
     const data = await res.json();

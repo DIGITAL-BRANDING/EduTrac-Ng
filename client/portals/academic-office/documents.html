@@ -36,7 +36,7 @@ let currentUser, schoolType, vocab, docs;
 let classes = [], terms = [], selectedClassId = '', selectedStudentId = '';
 
 (async () => {
-  currentUser = await initAdminLayout('documents', 'Generate Documents');
+  currentUser = await initPage(['exam_officer', 'vp_academic', 'admin'], 'Generate Documents', 'documents');
   if (!currentUser) return;
 
   schoolType = getSchoolCtxType(currentUser);

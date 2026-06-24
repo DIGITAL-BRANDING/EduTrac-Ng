@@ -464,7 +464,12 @@ window.normaliseSchoolType = function(type) {
   return aliases[value] || value || 'o_level';
 };
 window.getSchoolCtxType = function(ctx) {
-  return window.normaliseSchoolType((ctx?.school?.school_type) || window._schoolType || 'o_level');
+  // Supabase's relational join names this 'schools' (plural) — see the
+  // .select('*, schools(*)') calls in api/auth.js that produce the real
+  // user object. A singular '.school' here would always be undefined,
+  // silently making every school register as the 'o_level' fallback
+  // regardless of what they actually selected at registration.
+  return window.normaliseSchoolType((ctx?.schools?.school_type) || window._schoolType || 'o_level');
 };
 window.getInstitutionLabelsFor = function(ctxOrType) {
   const t = typeof ctxOrType === 'string' ? window.normaliseSchoolType(ctxOrType) : window.getSchoolCtxType(ctxOrType);
