@@ -8,7 +8,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=EB+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Poppins:wght@300;400;500;600;700&family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
 <script src="../js/config.js"></script>
-<script src="../js/supabase.js"></script>
+<!-- Do NOT also load js/supabase.js — see certificate.html for why that
+     causes a page-wide SyntaxError. api/database.js is the canonical client. -->
+<script src="../api/database.js"></script>
+<script src="../js/report-card-engine.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:#dde3ee;font-family:'Poppins',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;}
@@ -222,6 +225,72 @@ const THEMES={
 let _theme='blu',_orient='portrait',_section='primary',_schoolId=null;
 let _lastIds=null,_lastSess=null,_sessions=[];
 
+// ── Guard: ensure report-card-engine.js loaded (detectTheme defined there) ──
+if (typeof detectTheme === 'undefined') {
+  window.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('modalBg').style.display = 'none';
+    document.getElementById('ctrlBar').style.display = 'flex';
+    showErr(
+      'Testimonial engine failed to load',
+      'The file js/report-card-engine.js could not be loaded. This is usually caused by a ' +
+      'network error or missing file. Please ensure the file exists at ../js/report-card-engine.js and refresh.'
+    );
+  });
+}
+
+function showErr(msg, detail = '') {
+  const mc = document.getElementById('MC');
+  if (!mc) return;
+  mc.innerHTML = `
+    <div style="max-width:560px;margin:60px auto;background:#fff;border-radius:14px;padding:36px 40px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25);font-family:system-ui,sans-serif;">
+      <div style="width:48px;height:48px;border-radius:12px;background:#fef2f2;color:#dc2626;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+      </div>
+      <h3 style="font-size:17px;color:#1a1a2e;margin-bottom:8px;">${msg}</h3>
+      ${detail ? `<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px 14px;margin:14px 0;font-size:12px;color:#b91c1c;font-family:monospace;line-height:1.6;text-align:left;">${detail}</div>` : ''}
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:18px;">
+        <button onclick="location.reload()" style="padding:10px 20px;background:#1a1a2e;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;">↻ Retry</button>
+        <button onclick="history.back()" style="padding:10px 20px;background:#f3f4f6;color:#374151;border:none;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;">← Go Back</button>
+      </div>
+    </div>`;
+}
+
+/**
+ * Map a school's actual institution type (school_type) to one of this file's
+ * 4 layout buckets: nursery | primary | junior | senior.
+ *
+ * NOTE — known limitation: this file currently has only 4 visual layouts,
+ * all designed for o_level (primary/secondary) schools. Tertiary, vocational,
+ * computer_training, islamic and tutorial_center schools do NOT yet have a
+ * purpose-built testimonial design of their own (unlike report cards, which
+ * have dedicated buildVocationalCard()/buildTertiaryCard() builders in
+ * report-card-engine.js). Until those are built, every non-o_level school is
+ * routed to the 'senior' layout — the most neutral/generic of the four —
+ * rather than silently defaulting to 'primary' as the old keyword-only logic
+ * did. This is a deliberate stop-gap, not a final design decision.
+ */
+function sectionFromSchoolType(schoolType) {
+  const t = (window.normaliseSchoolType ? window.normaliseSchoolType(schoolType) : schoolType || 'o_level');
+  if (t === 'o_level') return null; // fall through to class-name detection below
+  return 'senior'; // tertiary / vocational / islamic / computer_training / tutorial_center / other
+}
+
+/**
+ * Resolve _section for a given student's class + school. Tries school_type
+ * first (reliable, always present); falls back to guessing from the class
+ * name only when the school is a genuine o_level school or school_type is
+ * unavailable (legacy records).
+ */
+function resolveSection(schoolType, classRow) {
+  const fromType = sectionFromSchoolType(schoolType);
+  if (fromType) return fromType;
+  const tc = [classRow?.section || '', classRow?.level || '', classRow?.name || ''].join(' ').toLowerCase();
+  if (/nur|kg|kinder/.test(tc)) return 'nursery';
+  if (/jss|junior/.test(tc))    return 'junior';
+  if (/sss|senior/.test(tc))    return 'senior';
+  return 'primary';
+}
+
 /* Build modal swatches */
 (()=>{
   document.getElementById('tGrid').innerHTML=Object.entries(THEMES).map(([k,t])=>
@@ -353,7 +422,7 @@ async function showPicker(){
     _schoolId=ud?.school_id||ud?.schools?.id;
     if(!_schoolId){window.location.href='/login.html';return;}
     const[classRes,sessions]=await Promise.all([
-      sq(db.from('classes').select('id,name,level,section').eq('school_id',_schoolId).order('name')),
+      pageQuery(db.from('classes').select('id,name,level,section').eq('school_id',_schoolId).order('name')),
       fetchSessions(_schoolId),
     ]);
     const cls=classRes||[];
@@ -469,13 +538,13 @@ async function genBatch(ids,sessId){
   else if(sm?._isTerm){termIds=[sessId];}
   else{try{const{data:st,error}=await db.from('terms').select('id').eq('academic_year_id',sessId).eq('school_id',_schoolId);if(!error&&st?.length)termIds=st.map(t=>t.id);else{const{data:at}=await db.from('terms').select('id').eq('school_id',_schoolId);termIds=(at||[]).map(t=>t.id);}}catch(e){const{data:at}=await db.from('terms').select('id').eq('school_id',_schoolId);termIds=(at||[]).map(t=>t.id);}}
   const[students,school,scale,session,allRes,affList,enrList]=await Promise.all([
-    sq(db.from('students').select('*').in('id',ids)),
-    sq(db.from('schools').select('name,logo_url,address,state,lga,phone,email,motto,principal_signature_url,class_teacher_signature_url').eq('id',_schoolId).single()),
-    sq(db.from('grading_scales').select('*').eq('school_id',_schoolId).order('min_score',{ascending:false})),
+    pageQuery(db.from('students').select('*').in('id',ids)),
+    pageQuery(db.from('schools').select('name,logo_url,address,state,lga,phone,email,motto,principal_signature_url,class_teacher_signature_url').eq('id',_schoolId).single()),
+    pageQuery(db.from('grading_scales').select('*').eq('school_id',_schoolId).order('min_score',{ascending:false})),
     (async()=>{const c=_sessions.find(s=>s.id===sessId);if(c)return c;try{const{data,error}=await db.from('academic_years').select('*').eq('id',sessId).single();if(!error&&data)return data;}catch(e){}return{label:`Session ${sessId.slice(0,8)}`,id:sessId};})(),
-    sq(db.from('results').select('score,student_id,subject_id,term_id,subjects(name),exams(max_score,weight)').in('student_id',ids).in('term_id',termIds.length?termIds:['_'])),
-    sq(db.from('affective_domain').select('*').in('student_id',ids).in('term_id',termIds.length?termIds:['_']).order('term_id',{ascending:false})),
-    (async()=>{if(termIds.length){const r=await sq(db.from('enrollments').select('student_id,class_id,classes(id,name,level,section)').in('student_id',ids).in('term_id',termIds).order('term_id',{ascending:false}));if(r?.length)return r;}return await sq(db.from('enrollments').select('student_id,class_id,classes(id,name,level,section)').in('student_id',ids).order('student_id'));})(),
+    pageQuery(db.from('results').select('score,student_id,subject_id,term_id,subjects(name),exams(max_score,weight)').in('student_id',ids).in('term_id',termIds.length?termIds:['_'])),
+    pageQuery(db.from('affective_domain').select('*').in('student_id',ids).in('term_id',termIds.length?termIds:['_']).order('term_id',{ascending:false})),
+    (async()=>{if(termIds.length){const r=await pageQuery(db.from('enrollments').select('student_id,class_id,classes(id,name,level,section)').in('student_id',ids).in('term_id',termIds).order('term_id',{ascending:false}));if(r?.length)return r;}return await pageQuery(db.from('enrollments').select('student_id,class_id,classes(id,name,level,section)').in('student_id',ids).order('student_id'));})(),
   ]);
   showProg(`Rendering ${ids.length} testimonial(s)…`,75);
   const parts=(students||[]).map((student,i)=>{
@@ -504,7 +573,7 @@ async function genBatch(ids,sessId){
 /* ════════════════════════════════
    HELPERS
 ════════════════════════════════ */
-async function sq(q){try{const{data,error}=await q;if(error){console.warn(error.message);return null;}return data;}catch(e){console.warn(e);return null;}}
+async function pageQuery(q,label='',timeoutMs=12000){const timer=new Promise((_,rej)=>setTimeout(()=>rej(new Error(`"${label||'query'}" timed out after ${timeoutMs/1000}s.`)),timeoutMs));try{const r=await Promise.race([q,timer]);if(r?.error){console.warn(label,r.error.message);return null;}return r?.data!==undefined?r.data:r;}catch(e){console.warn(label,e.message||e);return null;}}
 function gradeFrom(sc,scale){if(sc==null||!scale?.length)return{grade:'—',remark:''};const g=scale.find(s=>sc>=s.min_score&&sc<=s.max_score);return g?{grade:g.grade,remark:g.remark||''}:{grade:'—',remark:''};}
 function fmtDate(d){if(!d)return'—';try{return new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});}catch{return d;}}
 function sectLbl(){return{nursery:'Nursery Section',primary:'Primary Section',junior:'Junior Secondary School',senior:'Senior Secondary School'}[_section]||'';}
@@ -982,19 +1051,16 @@ window.addEventListener('DOMContentLoaded',async()=>{
     updBadges();setPageCSS();
     document.getElementById('MC').innerHTML='<div class="loading">Fetching data…</div>';
     try{
-      const student=await sq(db.from('students').select('*').eq('id',SID).single());
+      const student=await pageQuery(db.from('students').select('*').eq('id',SID).single(),'Student');
       if(!student)throw new Error('Student not found');
       _schoolId=student.school_id;
-      const{data:ec}=await db.from('enrollments').select('classes(name,level,section)').eq('student_id',SID).limit(1).single();
-      const tc=[ec?.classes?.section||'',ec?.classes?.level||'',ec?.classes?.name||''].join(' ').toLowerCase();
-      if(/nur|kg|kinder/.test(tc))_section='nursery';
-      else if(/jss|junior/.test(tc))_section='junior';
-      else if(/sss|senior/.test(tc))_section='senior';
-      else _section='primary';
+      const ec=await pageQuery(db.from('enrollments').select('classes(name,level,section)').eq('student_id',SID).limit(1).single(),'Enrollment');
+      const schoolRow=await pageQuery(db.from('schools').select('school_type').eq('id',_schoolId).single(),'School type');
+      _section=resolveSection(schoolRow?.school_type, ec?.classes);
       _sessions=await fetchSessions(_schoolId);
       updBadges();
       await genBatch([SID],SESSID);
-    }catch(e){document.getElementById('MC').innerHTML=`<div class="loading" style="color:#ef4444">⚠ ${e.message}</div>`;}
+    }catch(e){showErr('Could not generate testimonial', e.message||String(e));}
   }
 });
 </script>

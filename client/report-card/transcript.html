@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" href="/icons/icon-96.png" type="image/png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#1a2e6e">
+<title>Statement of Result &amp; Transcript · EduTrack NG</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=EB+Garamond:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/global.css">
+<style>
+/* ══════════════════════════════════════════════
+   EDUTRACK NG — TRANSCRIPT / STATEMENT OF RESULT
+   Registrar-grade document for tertiary, vocational
+   and computer-training institutions.
+   ══════════════════════════════════════════════ */
+:root{
+  --tr-bg:#ffffff; --tr-border:#e2e8f0; --tr-text:#1e293b; --tr-muted:#64748b;
+  --tr-accent:#1a2e6e; --tr-accent-light:#eef2ff; --tr-gold:#a16207;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#f1f5f9;font-family:'EB Garamond',Georgia,serif;color:var(--tr-text);}
+
+/* ── Control bar (screen only, hidden on print) ── */
+#ctrlBar{
+  position:sticky;top:0;z-index:50;height:56px;background:#fff;border-bottom:1px solid var(--tr-border);
+  display:flex;align-items:center;justify-content:space-between;padding:0 20px;
+  box-shadow:0 1px 3px rgba(0,0,0,.08);font-family:'Inter',system-ui,sans-serif;
+}
+.cb-group{display:flex;align-items:center;gap:10px}
+.cb-label{font-size:11px;font-weight:700;color:var(--tr-muted);text-transform:uppercase;letter-spacing:.04em}
+.cb-select{font-size:13px;padding:7px 10px;border:1px solid var(--tr-border);border-radius:7px;background:#fff;color:var(--tr-text)}
+.cb-btn{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding:8px 16px;border-radius:7px;border:1px solid var(--tr-border);background:#fff;color:var(--tr-text);cursor:pointer;transition:.15s}
+.cb-btn:hover{background:#f8fafc}
+.cb-btn--primary{background:var(--tr-accent);color:#fff;border-color:var(--tr-accent)}
+.cb-btn--primary:hover{background:#142459}
+@media print{ #ctrlBar{display:none !important} body{background:#fff} }
+
+/* ── Document ── */
+.tr-wrap{max-width:880px;margin:24px auto 60px;background:#fff;box-shadow:0 4px 24px rgba(0,0,0,.08);}
+@media print{ .tr-wrap{margin:0;box-shadow:none;max-width:100%} }
+.tr-page{padding:48px 56px;page-break-after:always}
+.tr-page:last-child{page-break-after:auto}
+
+/* Header */
+.tr-head{display:flex;align-items:center;gap:18px;border-bottom:3px solid var(--tr-accent);padding-bottom:18px;margin-bottom:22px}
+.tr-logo{width:64px;height:64px;border-radius:8px;object-fit:cover;flex-shrink:0}
+.tr-logo-fb{width:64px;height:64px;border-radius:8px;background:var(--tr-accent-light);color:var(--tr-accent);display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-weight:700;font-size:11px;flex-shrink:0}
+.tr-head-text{flex:1}
+.tr-school-name{font-family:'Cinzel',serif;font-weight:700;font-size:21px;color:var(--tr-accent);letter-spacing:.02em}
+.tr-school-meta{font-size:12px;color:var(--tr-muted);margin-top:3px;line-height:1.5}
+.tr-doc-title{text-align:right;flex-shrink:0}
+.tr-doc-title .t1{font-family:'Cinzel',serif;font-weight:700;font-size:15px;color:var(--tr-text);text-transform:uppercase;letter-spacing:.05em}
+.tr-doc-title .t2{font-size:11px;color:var(--tr-gold);font-weight:600;margin-top:2px}
+
+/* Student info block */
+.tr-info{display:grid;grid-template-columns:1fr 1fr;gap:6px 28px;font-size:13px;margin-bottom:24px;padding:16px 18px;background:#f8fafc;border-radius:8px;border:1px solid var(--tr-border)}
+.tr-info-row{display:flex;justify-content:space-between;border-bottom:1px dotted #cbd5e1;padding:4px 0}
+.tr-info-row span:first-child{color:var(--tr-muted);font-weight:600}
+.tr-info-row span:last-child{font-weight:700;color:var(--tr-text)}
+
+/* Semester block */
+.tr-sem{margin-bottom:22px}
+.tr-sem-head{display:flex;align-items:baseline;justify-content:space-between;border-bottom:2px solid var(--tr-accent);padding-bottom:6px;margin-bottom:8px}
+.tr-sem-title{font-family:'Cinzel',serif;font-weight:700;font-size:14px;color:var(--tr-accent)}
+.tr-sem-sub{font-size:11px;color:var(--tr-muted)}
+table.tr-table{width:100%;border-collapse:collapse;font-size:12.5px}
+table.tr-table th{background:var(--tr-accent-light);color:var(--tr-accent);font-weight:700;text-align:left;padding:6px 9px;font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;border-bottom:1.5px solid var(--tr-accent)}
+table.tr-table th.num{text-align:center}
+table.tr-table td{padding:6px 9px;border-bottom:1px solid #eef1f6}
+table.tr-table td.num{text-align:center;font-variant-numeric:tabular-nums}
+table.tr-table tr:last-child td{border-bottom:none}
+.tr-sem-summary{display:flex;justify-content:flex-end;gap:24px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--tr-border);font-size:12.5px}
+.tr-sem-summary b{color:var(--tr-accent);font-weight:700}
+
+/* Cumulative table */
+.tr-cum-wrap{margin-top:28px;padding-top:18px;border-top:3px double var(--tr-accent)}
+.tr-cum-title{font-family:'Cinzel',serif;font-weight:700;font-size:15px;color:var(--tr-accent);margin-bottom:10px;text-align:center;text-transform:uppercase;letter-spacing:.04em}
+table.tr-cum-table{width:100%;border-collapse:collapse;font-size:12.5px}
+table.tr-cum-table th{background:var(--tr-accent);color:#fff;font-weight:700;text-align:center;padding:7px 9px;font-size:10.5px;text-transform:uppercase;letter-spacing:.03em}
+table.tr-cum-table td{padding:7px 9px;text-align:center;border-bottom:1px solid #eef1f6;font-variant-numeric:tabular-nums}
+table.tr-cum-table tr:nth-child(even) td{background:#f8fafc}
+table.tr-cum-table tr.tr-cum-final td{background:var(--tr-accent-light);font-weight:700;color:var(--tr-accent);border-top:2px solid var(--tr-accent)}
+
+/* Final CGPA badge */
+.tr-final-badge{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:24px;padding:18px;background:linear-gradient(135deg,var(--tr-accent-light),#fff);border:2px solid var(--tr-accent);border-radius:10px}
+.tr-final-badge .fb-cgpa{font-family:'Cinzel',serif;font-size:34px;font-weight:900;color:var(--tr-accent);line-height:1}
+.tr-final-badge .fb-label{font-size:10.5px;font-weight:700;color:var(--tr-muted);text-transform:uppercase;letter-spacing:.05em}
+.tr-final-badge .fb-class{font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:var(--tr-gold);text-align:center}
+
+/* Signatures + footer */
+.tr-sig-row{display:flex;justify-content:space-between;margin-top:36px;gap:40px}
+.tr-sig-blk{flex:1;text-align:center}
+.tr-sig-img{height:46px;display:flex;align-items:center;justify-content:center}
+.tr-sig-img img{max-height:42px;max-width:160px;object-fit:contain}
+.tr-sig-line{border-top:1.5px solid var(--tr-text);margin-top:4px}
+.tr-sig-label{font-size:11.5px;font-weight:700;margin-top:5px}
+.tr-sig-sub{font-size:10px;color:var(--tr-muted)}
+.tr-footer{margin-top:30px;padding-top:14px;border-top:1px solid var(--tr-border);display:flex;justify-content:space-between;font-size:10px;color:var(--tr-muted)}
+.tr-watermark{position:fixed;top:45%;left:50%;transform:translate(-50%,-50%) rotate(-30deg);font-family:'Cinzel',serif;font-size:64px;font-weight:900;color:rgba(26,46,110,.04);pointer-events:none;z-index:0;white-space:nowrap}
+
+/* Loading / error states */
+.loading{text-align:center;padding:80px 20px;font-family:'Inter',system-ui,sans-serif;color:var(--tr-muted);font-size:14px}
+</style>
+</head>
+<body>
+
+<div id="ctrlBar">
+  <div class="cb-group">
+    <span class="cb-label">Document</span>
+    <select id="docTypeSel" class="cb-select" onchange="onDocTypeChange()">
+      <option value="statement">Statement of Result (current semester)</option>
+      <option value="transcript">Full Transcript (all semesters)</option>
+    </select>
+  </div>
+  <div class="cb-group">
+    <button class="cb-btn" onclick="history.back()">← Back</button>
+    <button class="cb-btn cb-btn--primary" onclick="window.print()">🖨 Print / Save PDF</button>
+  </div>
+</div>
+
+<div id="mainContent">
+  <div class="loading">Connecting to database…</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
+<script src="../js/config.js"></script>
+<!-- Do NOT also load js/supabase.js — see certificate.html for why that
+     causes a page-wide SyntaxError. api/database.js is the canonical client. -->
+<script src="../api/database.js"></script>
+<script src="../js/report-card-engine.js"></script>
+<script>
+const p = new URLSearchParams(location.search);
+const STUDENT_ID = p.get('student_id');
+const SCHOOL_ID_OVERRIDE = p.get('school_id'); // used by the picker before a student is chosen
+
+let _data = null;
+let _docType = 'statement'; // statement | transcript
+
+// ── Guard: ensure report-card-engine.js loaded ──
+if (typeof detectTheme === 'undefined') {
+  window.addEventListener('DOMContentLoaded', () => {
+    showErr(
+      'Transcript engine failed to load',
+      'The file js/report-card-engine.js could not be loaded. This is usually caused by a ' +
+      'network error or missing file. Please ensure the file exists at ../js/report-card-engine.js and refresh.'
+    );
+  });
+}
+
+function showErr(msg, detail = '') {
+  const mc = document.getElementById('mainContent');
+  if (!mc) return;
+  mc.innerHTML = `
+    <div style="max-width:560px;margin:60px auto;background:#fff;border-radius:14px;padding:36px 40px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.18);font-family:'Inter',system-ui,sans-serif;">
+      <div style="width:48px;height:48px;border-radius:12px;background:#fef2f2;color:#dc2626;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+      </div>
+      <h3 style="font-size:17px;color:#1a2e6e;margin-bottom:8px;">${msg}</h3>
+      ${detail ? `<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px 14px;margin:14px 0;font-size:12px;color:#b91c1c;font-family:monospace;line-height:1.6;text-align:left;">${detail}</div>` : ''}
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:18px;">
+        <button onclick="location.reload()" style="padding:10px 20px;background:#1a2e6e;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;">↻ Retry</button>
+        <button onclick="history.back()" style="padding:10px 20px;background:#f3f4f6;color:#374151;border:none;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;">← Go Back</button>
+      </div>
+    </div>`;
+}
+
+async function pageQuery(label, query, timeoutMs = 12000) {
+  const timer = new Promise((_, rej) =>
+    setTimeout(() => rej(new Error(`"${label}" timed out after ${timeoutMs/1000}s. Check your connection and retry.`)), timeoutMs)
+  );
+  try {
+    const result = await Promise.race([query, timer]);
+    if (result?.error) { console.warn(label, result.error.message); return null; }
+    return result?.data !== undefined ? result.data : result;
+  } catch(e) { console.warn(label, e.message || e); return null; }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof detectTheme === 'undefined') return; // guard above already showed the error
+  if (!STUDENT_ID) { showStudentPicker(); return; }
+  loadData();
+});
+
+function onDocTypeChange() {
+  _docType = document.getElementById('docTypeSel').value;
+  if (_data) renderDocument(_data);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  DATA LOADING
+// ═══════════════════════════════════════════════════════════════
+async function loadData() {
+  try {
+    const student = await pageQuery('Student', db.from('students').select('*').eq('id', STUDENT_ID).single());
+    if (!student) { showErr('Student not found', 'This student record could not be located.'); return; }
+    const schoolId = student.school_id;
+
+    const [school, scale, allTerms, enr] = await Promise.all([
+      pageQuery('School', db.from('schools').select('name,school_type,logo_url,address,state,lga,phone,email,principal_signature_url,class_teacher_signature_url,vp_signature_url').eq('id', schoolId).single()),
+      pageQuery('Grading scale', db.from('grading_scales').select('*').eq('school_id', schoolId)),
+      pageQuery('All terms', db.from('terms').select('*,academic_years(label)').eq('school_id', schoolId).order('start_date', { ascending: true })),
+      pageQuery('Enrollments', db.from('enrollments').select('term_id,classes(id,name,level,section)').eq('student_id', STUDENT_ID)),
+    ]);
+
+    if (!allTerms?.length) { showErr('No semesters found', 'This school has no terms/semesters set up yet.'); return; }
+
+    // Only include semesters this student was actually enrolled in, in
+    // chronological order, so the transcript reflects their real history —
+    // not every semester the school has ever run.
+    const enrolledTermIds = new Set((enr || []).map(e => e.term_id));
+    const studentTerms = allTerms.filter(t => enrolledTermIds.has(t.id));
+    const termsToShow = studentTerms.length ? studentTerms : allTerms.filter(t => t.is_current);
+
+    // Pull every result for this student across all their semesters in one
+    // query rather than one query per semester — far fewer round trips.
+    const allResults = await pageQuery(
+      'All results',
+      db.from('results').select('score,subject_id,term_id,subjects(id,name,credit_unit)').eq('student_id', STUDENT_ID)
+    ) || [];
+
+    const semesters = termsToShow.map(term => {
+      const rows = allResults.filter(r => r.term_id === term.id);
+      const classRow = enr?.find(e => e.term_id === term.id)?.classes || null;
+      return buildSemesterRow(term, rows, scale || [], classRow);
+    }).filter(s => s.subjects.length > 0); // skip semesters with no scores entered yet
+
+    if (!semesters.length) {
+      showErr('No results found', `${student.full_name || 'This student'} has no scores recorded in any semester yet.`);
+      return;
+    }
+
+    const cumulative = buildCumulative(semesters);
+    const theme = (typeof detectTheme === 'function') ? detectTheme(school?.school_type || null, semesters[0]?.classRow) : 'tertiary';
+    const vocab = (typeof getInstitutionLabelsFor === 'function')
+      ? getInstitutionLabelsFor(school?.school_type || 'tertiary')
+      : { institution:'Institution', learner:'Student', class:'Programme', subject:'Course', period:'Semester', session:'Academic Year', program:'Programme' };
+
+    _data = { student, school, semesters, cumulative, vocab, theme };
+    renderDocument(_data);
+  } catch (e) {
+    showErr('Could not generate document', e.message || String(e));
+  }
+}
+
+/**
+ * Build one semester's worth of rows + per-semester GPA.
+ * Grade is resolved by matching score against the school's grading_scales
+ * bands; grade_point and credit_unit drive the GPA math. Schools that have
+ * never set grade_point (o_level/islamic/tutorial_center, or a tertiary
+ * school that hasn't filled it in yet) safely compute a GPA of 0 rather
+ * than throwing — the UI clearly labels this so it's never mistaken for a
+ * real 0.0 academic performance.
+ */
+function buildSemesterRow(term, rows, scale, classRow) {
+  const sortedScale = [...scale].sort((a, b) => b.min_score - a.min_score);
+  const resolveGrade = (score) => sortedScale.find(g => score >= g.min_score && score <= g.max_score) || null;
+
+  let totalCredits = 0, totalQualityPoints = 0, hasAnyGradePoint = false;
+
+  const subjects = rows.map(r => {
+    const grade = resolveGrade(r.score);
+    const credit = r.subjects?.credit_unit || 1;
+    const gp = grade?.grade_point ?? 0;
+    if (grade?.grade_point) hasAnyGradePoint = true;
+    totalCredits += credit;
+    totalQualityPoints += gp * credit;
+    return {
+      name: r.subjects?.name || 'Unknown Subject',
+      score: r.score,
+      grade: grade?.grade || '—',
+      remark: grade?.remark || '',
+      credit,
+      gradePoint: gp,
+      qualityPoints: +(gp * credit).toFixed(2),
+    };
+  }).sort((a, b) => a.name.localeCompare(b.name));
+
+  const gpa = totalCredits > 0 ? +(totalQualityPoints / totalCredits).toFixed(2) : 0;
+  const sessionLabel = term.academic_years?.label || term.session || '';
+
+  return {
+    term, classRow, subjects, totalCredits, totalQualityPoints, gpa,
+    hasAnyGradePoint, sessionLabel,
+    name: term.name, termId: term.id,
+  };
+}
+
+/** Running cumulative CGPA after each semester, in chronological order. */
+function buildCumulative(semesters) {
+  let runCredits = 0, runQuality = 0;
+  const rows = semesters.map(s => {
+    runCredits += s.totalCredits;
+    runQuality += s.totalQualityPoints;
+    const cgpa = runCredits > 0 ? +(runQuality / runCredits).toFixed(2) : 0;
+    return {
+      term: s.name, session: s.sessionLabel,
+      semCredits: s.totalCredits, semGpa: s.gpa,
+      cumCredits: runCredits, cgpa,
+    };
+  });
+  const final = rows.length ? rows[rows.length - 1] : null;
+  return { rows, finalCgpa: final?.cgpa ?? 0, totalCredits: runCredits, classOfDegree: classifyDegree(final?.cgpa ?? 0) };
+}
+
+/** Nigerian tertiary degree classification bands (NUC/NBTE standard). */
+function classifyDegree(cgpa) {
+  if (cgpa >= 4.5) return 'First Class Honours';
+  if (cgpa >= 3.5) return 'Second Class Honours (Upper Division)';
+  if (cgpa >= 2.4) return 'Second Class Honours (Lower Division)';
+  if (cgpa >= 1.5) return 'Third Class Honours';
+  if (cgpa >= 1.0) return 'Pass';
+  return 'Below Pass Mark';
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  RENDERING
+// ═══════════════════════════════════════════════════════════════
+function renderDocument(d) {
+  const mc = document.getElementById('mainContent');
+  const { student, school, semesters, cumulative, vocab: v, theme } = d;
+
+  const isVocational = theme === 'vocational';
+  const docName = isVocational
+    ? (_docType === 'transcript' ? 'COMPETENCY RECORD' : 'STATEMENT OF SKILLS ASSESSMENT')
+    : (_docType === 'transcript' ? 'OFFICIAL TRANSCRIPT' : 'STATEMENT OF RESULT');
+  const gpaLabel = isVocational ? 'Score' : 'GPA';
+  const cgpaLabel = isVocational ? 'Overall Competency Score' : 'CGPA';
+
+  const semestersToRender = _docType === 'transcript' ? semesters : semesters.slice(-1);
+  const logo = school?.logo_url ? `<img class="tr-logo" src="${school.logo_url}">` : `<div class="tr-logo-fb">${(school?.name||'SCH').slice(0,4).toUpperCase()}</div>`;
+  const meta = [school?.address, school?.lga, school?.state].filter(Boolean).join(', ');
+
+  const semHtml = semestersToRender.map(s => `
+    <div class="tr-sem">
+      <div class="tr-sem-head">
+        <span class="tr-sem-title">${s.name}${s.sessionLabel ? ' — ' + s.sessionLabel : ''}</span>
+        <span class="tr-sem-sub">${s.classRow?.name ? v.class + ': ' + s.classRow.name : ''}</span>
+      </div>
+      <table class="tr-table">
+        <thead><tr>
+          <th>${v.subject}</th><th class="num">Score</th><th class="num">Grade</th>
+          <th class="num">${isVocational?'':'Credit Unit'}</th><th class="num">${isVocational?'Status':'Grade Point'}</th>
+          ${isVocational?'':'<th class=\"num\">Quality Points</th>'}
+        </tr></thead>
+        <tbody>
+          ${s.subjects.map(sub => `
+            <tr>
+              <td>${sub.name}</td>
+              <td class="num">${sub.score}</td>
+              <td class="num"><strong>${sub.grade}</strong></td>
+              ${isVocational ? '' : `<td class="num">${sub.credit}</td>`}
+              <td class="num">${isVocational ? (sub.remark || sub.grade) : sub.gradePoint.toFixed(1)}</td>
+              ${isVocational ? '' : `<td class="num">${sub.qualityPoints.toFixed(2)}</td>`}
+            </tr>`).join('')}
+        </tbody>
+      </table>
+      <div class="tr-sem-summary">
+        ${isVocational ? '' : `<span>${v.subject}s: <b>${s.subjects.length}</b></span><span>Credits: <b>${s.totalCredits}</b></span>`}
+        <span>${s.name} ${gpaLabel}: <b>${s.hasAnyGradePoint ? s.gpa.toFixed(2) : '— (no GP set)'}</b></span>
+      </div>
+    </div>`).join('');
+
+  const cumHtml = _docType === 'transcript' ? `
+    <div class="tr-cum-wrap">
+      <div class="tr-cum-title">Cumulative Academic Record</div>
+      <table class="tr-cum-table">
+        <thead><tr><th>${v.period}</th><th>${v.session}</th><th>${v.period} Credits</th><th>${v.period} ${gpaLabel}</th><th>Cumulative Credits</th><th>${cgpaLabel}</th></tr></thead>
+        <tbody>
+          ${cumulative.rows.map((r, i) => `
+            <tr class="${i === cumulative.rows.length - 1 ? 'tr-cum-final' : ''}">
+              <td>${r.term}</td><td>${r.session || '—'}</td><td>${r.semCredits}</td>
+              <td>${r.semGpa.toFixed(2)}</td><td>${r.cumCredits}</td><td>${r.cgpa.toFixed(2)}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div class="tr-final-badge">
+      <div>
+        <div class="fb-cgpa">${cumulative.finalCgpa.toFixed(2)}</div>
+        <div class="fb-label">Final ${cgpaLabel}</div>
+      </div>
+      ${!isVocational ? `<div class="fb-class">${cumulative.classOfDegree}</div>` : ''}
+    </div>` : '';
+
+  mc.innerHTML = `
+    <div class="tr-watermark">${(school?.name || 'EDUTRACK').toUpperCase()}</div>
+    <div class="tr-wrap">
+      <div class="tr-page">
+        <div class="tr-head">
+          ${logo}
+          <div class="tr-head-text">
+            <div class="tr-school-name">${school?.name || 'Institution Name'}</div>
+            <div class="tr-school-meta">${meta}${school?.phone ? ' &nbsp;·&nbsp; Tel: ' + school.phone : ''}</div>
+          </div>
+          <div class="tr-doc-title">
+            <div class="t1">${docName}</div>
+            <div class="t2">${v.institution}</div>
+          </div>
+        </div>
+
+        <div class="tr-info">
+          <div class="tr-info-row"><span>${v.learner} Name</span><span>${student.full_name || '—'}</span></div>
+          <div class="tr-info-row"><span>${isVocational ? 'Trainee ID' : 'Matric / Reg. No'}</span><span>${student.admission_no || student.matric_no || '—'}</span></div>
+          <div class="tr-info-row"><span>${v.program}</span><span>${semestersToRender[0]?.classRow?.name || '—'}</span></div>
+          <div class="tr-info-row"><span>Document Issued</span><span>${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</span></div>
+        </div>
+
+        ${semHtml}
+        ${cumHtml}
+
+        <div class="tr-sig-row">
+          <div class="tr-sig-blk">
+            <div class="tr-sig-img">${school?.vp_signature_url ? `<img src="${school.vp_signature_url}">` : ''}</div>
+            <div class="tr-sig-line"></div>
+            <div class="tr-sig-label">${isVocational ? 'Centre Director' : 'Registrar / Exams Officer'}</div>
+            <div class="tr-sig-sub">Signature &amp; Official Stamp</div>
+          </div>
+          <div class="tr-sig-blk">
+            <div class="tr-sig-img">${school?.principal_signature_url ? `<img src="${school.principal_signature_url}">` : ''}</div>
+            <div class="tr-sig-line"></div>
+            <div class="tr-sig-label">${isVocational ? 'Head Instructor' : 'Dean / Head of Institution'}</div>
+            <div class="tr-sig-sub">Signature &amp; Official Stamp</div>
+          </div>
+        </div>
+
+        <div class="tr-footer">
+          <span>Generated via EduTrack NG · Not valid without official seal</span>
+          <span>Document Ref: TR-${new Date().getFullYear()}-${(student.id||'').slice(0,6).toUpperCase()}</span>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  STUDENT PICKER — shown when no ?student_id= is in the URL
+// ═══════════════════════════════════════════════════════════════
+async function showStudentPicker() {
+  const mc = document.getElementById('mainContent');
+  mc.innerHTML = '<div class="loading">Loading classes…</div>';
+  try {
+    const userData = await pageQuery('Current user', getCurrentUser());
+    const schoolId = userData?.school_id || userData?.schools?.id;
+    if (!schoolId) { window.location.href = '/login.html'; return; }
+
+    const schoolType = userData?.schools?.school_type || window._schoolType || 'o_level';
+    // Transcripts/Statements of Result are only meaningful for institution
+    // types that run credit-bearing, semester-based programmes. Generating
+    // one for a secondary school student would be nonsensical — direct
+    // them to the right document instead of producing a wrong one.
+    if (!['tertiary','vocational','computer_training'].includes(schoolType)) {
+      showErr(
+        'Transcripts aren\'t issued for this institution type',
+        `${window.normaliseSchoolType ? '' : ''}This document is designed for tertiary, vocational, and computer-training institutions running semester or cohort-based programmes. ` +
+        `For this school, generate a <a href="report-cards.html" style="color:#1a2e6e;font-weight:700;">Report Card</a> or <a href="certificate.html" style="color:#1a2e6e;font-weight:700;">Certificate</a> instead.`
+      );
+      return;
+    }
+
+    const v = (typeof getInstitutionLabelsFor === 'function') ? getInstitutionLabelsFor(schoolType) : { learner:'Student', class:'Programme' };
+    const classes = await pageQuery('Classes', db.from('classes').select('id,name,level,section').eq('school_id',schoolId).order('name'));
+    if (!classes?.length) { showErr('No programmes found', `Please set up ${v.class.toLowerCase()}s first in Academic Structure.`); return; }
+
+    const classOpts = classes.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    mc.innerHTML = `
+      <div style="max-width:520px;margin:60px auto;background:#fff;border-radius:14px;padding:32px;box-shadow:0 8px 32px rgba(0,0,0,.1);font-family:'Inter',system-ui,sans-serif;">
+        <h2 style="font-size:18px;color:#1a2e6e;margin-bottom:6px;">Generate Statement / Transcript</h2>
+        <p style="font-size:13px;color:#64748b;margin-bottom:20px;">Select a ${v.class.toLowerCase()}, then choose a ${v.learner.toLowerCase()}.</p>
+        <label style="display:block;font-size:12px;font-weight:600;color:#1a2e6e;margin-bottom:6px;">${v.class}</label>
+        <select id="pickerClass" style="width:100%;padding:10px;border-radius:7px;border:1px solid #e2e8f0;margin-bottom:14px;font-size:13px;">${classOpts}</select>
+        <label style="display:block;font-size:12px;font-weight:600;color:#1a2e6e;margin-bottom:6px;">${v.learner}</label>
+        <select id="pickerStudent" style="width:100%;padding:10px;border-radius:7px;border:1px solid #e2e8f0;margin-bottom:20px;font-size:13px;"><option value="">-- Select ${v.class.toLowerCase()} first --</option></select>
+        <button onclick="pickerLoadStudents()" style="padding:9px 18px;background:#eef2ff;color:#1a2e6e;border:1px solid #1a2e6e;border-radius:7px;cursor:pointer;font-size:13px;font-weight:600;margin-right:10px;">Load ${v.learner}s</button>
+        <button onclick="pickerGo()" style="padding:9px 20px;background:#1a2e6e;color:#fff;border:none;border-radius:7px;cursor:pointer;font-weight:700;font-size:13px;">Generate →</button>
+      </div>`;
+  } catch(e) {
+    showErr('Could not load picker', e.message || String(e));
+  }
+}
+async function pickerLoadStudents() {
+  const classId = document.getElementById('pickerClass')?.value;
+  const sel = document.getElementById('pickerStudent');
+  if (!classId || !sel) return;
+  sel.innerHTML = '<option>Loading…</option>';
+  const enr = await pageQuery('Enrollment', db.from('enrollments').select('student_id').eq('class_id', classId));
+  if (!enr?.length) { sel.innerHTML = '<option>No one enrolled</option>'; return; }
+  const ids = enr.map(e => e.student_id);
+  const studs = await pageQuery('Students', db.from('students').select('id,full_name,admission_no').in('id', ids).order('full_name'));
+  sel.innerHTML = (studs || []).map(s => `<option value="${s.id}">${s.full_name}${s.admission_no ? ' (' + s.admission_no + ')' : ''}</option>`).join('');
+}
+function pickerGo() {
+  const studentId = document.getElementById('pickerStudent')?.value;
+  if (!studentId) { alert('Please select a student.'); return; }
+  window.location.href = `transcript.html?student_id=${studentId}`;
+}
+</script>
+<script src="../js/assistant.js"></script>
+</body>
+</html>

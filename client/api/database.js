@@ -55,6 +55,44 @@
 // │
 // └─────────────────────────────────────────────────────────────────────────┘
 
+// ┌─────────────────────────────────────────────────────────────────────────┐
+// │  REQUIRED SQL MIGRATION #2 — Transcript / CGPA support                  │
+// │                                                                         │
+// │  Powers the new Statement of Result & Transcript generator for         │
+// │  tertiary, vocational, and computer-training institutions              │
+// │  (see /report-card/transcript.html).                                   │
+// │                                                                         │
+// │  Adds two columns with SAFE DEFAULTS, so o_level/islamic/tutorial_center│
+// │  schools — which never use credit units or grade points — are entirely │
+// │  unaffected. Every existing subject gets credit_unit = 1 (so dividing   │
+// │  by total credit units still works correctly even if a school never    │
+// │  sets real values), and every grading_scales row gets grade_point = 0   │
+// │  until a tertiary/vocational admin assigns real GPA values from the    │
+// │  Settings → Grading tab (see the new "Grade Point" field added there).  │
+// │                                                                         │
+// │  Paste everything between the dashes into the Supabase SQL Editor       │
+// │  and click Run. Safe to run multiple times (IF NOT EXISTS guards).      │
+// ├─────────────────────────────────────────────────────────────────────────┤
+// │
+// │  ALTER TABLE subjects
+// │    ADD COLUMN IF NOT EXISTS credit_unit numeric NOT NULL DEFAULT 1;
+// │
+// │  ALTER TABLE grading_scales
+// │    ADD COLUMN IF NOT EXISTS grade_point numeric NOT NULL DEFAULT 0;
+// │
+// │  -- One-time backfill: give the 4 standard GPA-style presets (loaded via
+// │  -- Settings → Grading → "Tertiary GPA" or the provisioning seeder)
+// │  -- sensible default grade points if they were created before this
+// │  -- migration ran. Safe no-op for schools that already set their own.
+// │  UPDATE grading_scales SET grade_point = 5.0 WHERE grade = 'A' AND grade_point = 0;
+// │  UPDATE grading_scales SET grade_point = 4.0 WHERE grade = 'B' AND grade_point = 0;
+// │  UPDATE grading_scales SET grade_point = 3.0 WHERE grade = 'C' AND grade_point = 0;
+// │  UPDATE grading_scales SET grade_point = 2.0 WHERE grade = 'D' AND grade_point = 0;
+// │  UPDATE grading_scales SET grade_point = 1.0 WHERE grade = 'E' AND grade_point = 0;
+// │  UPDATE grading_scales SET grade_point = 0.0 WHERE grade = 'F' AND grade_point = 0;
+// │
+// └─────────────────────────────────────────────────────────────────────────┘
+
 const SUPABASE_URL      = (window.__EDUTRAC_CONFIG__ || {}).SUPABASE_URL;
 const SUPABASE_ANON_KEY = (window.__EDUTRAC_CONFIG__ || {}).SUPABASE_ANON_KEY;
 
@@ -447,3 +485,73 @@ window.getPeriodLabelFor = function(ctx) {
 window.getSessionLabelFor = function(ctx) {
   return window.getInstitutionLabelsFor(ctx).session;
 };
+
+/**
+ * window.getAvailableDocumentsFor(ctxOrType)
+ * ───────────────────────────────────────────────────────────────────────
+ * Single source of truth for which student documents are appropriate for
+ * a given institution type. This is an EDUCATIONAL rule, not a technical
+ * limitation: a "testimonial" (character/conduct reference) makes sense
+ * for a school-age learner moving between schools, but is not something
+ * adult tertiary/vocational/computer-training graduates are issued —
+ * they receive a Statement of Result, Transcript, and Certificate instead.
+ *
+ * Every page that links to a document generator (dashboards, student
+ * profile pages, a future "Generate Documents" menu) should call this
+ * FIRST and only render buttons for documents that come back available:true.
+ * This keeps the gating logic in ONE place instead of being re-implemented
+ * (and risking drifting out of sync) on every page that links to a document.
+ *
+ * Returns an array of:
+ *   { key, label, href, available, reason }
+ * `href` is relative to the project root — callers should prefix it with
+ * the right relative path for their own location (e.g. '../' from /admin/).
+ */
+window.getAvailableDocumentsFor = function(ctxOrType) {
+  const t = typeof ctxOrType === 'string' ? window.normaliseSchoolType(ctxOrType) : window.getSchoolCtxType(ctxOrType);
+  const isAcademicCredit = ['tertiary', 'vocational', 'computer_training'].includes(t);
+
+  const docs = [
+    {
+      key: 'report_card',
+      label: 'Report Card',
+      href: 'portals/academic-office/report-cards.html',
+      available: true, // every institution type grades learners somehow
+      reason: '',
+    },
+    {
+      key: 'statement',
+      label: 'Statement of Result',
+      href: 'report-card/transcript.html',
+      available: isAcademicCredit,
+      reason: isAcademicCredit ? '' : 'Only available for tertiary, vocational, and computer-training institutions running semester or cohort-based programmes.',
+    },
+    {
+      key: 'transcript',
+      label: 'Full Transcript',
+      href: 'report-card/transcript.html?doc=transcript',
+      available: isAcademicCredit,
+      reason: isAcademicCredit ? '' : 'Only available for tertiary, vocational, and computer-training institutions running semester or cohort-based programmes.',
+    },
+    {
+      key: 'certificate',
+      label: 'Certificate',
+      href: 'report-card/certificate.html',
+      available: true, // every institution type issues a final certificate of some kind
+      reason: '',
+    },
+    {
+      key: 'testimonial',
+      label: 'Testimonial',
+      href: 'report-card/testimonial.html',
+      // Character/conduct references are appropriate for school-age learners,
+      // not adult tertiary/vocational/computer-training graduates. 'other' is
+      // a deliberately flexible catch-all, so we allow it there too.
+      available: !isAcademicCredit,
+      reason: isAcademicCredit ? 'Testimonials are character references for school-age learners. This institution type issues a Statement of Result, Transcript, and Certificate instead.' : '',
+    },
+  ];
+
+  return docs;
+};
+

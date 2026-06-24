@@ -236,20 +236,28 @@ const TYPE_PRESETS = {
   tertiary: {
     levels: ['ND I','ND II','HND I','HND II','Year 1','Year 2','Year 3','Year 4'],
     grading: [
-      {grade:'A',min_score:70,max_score:100,remark:'Excellent (5.0)'},{grade:'B',min_score:60,max_score:69,remark:'Very Good (4.0)'},
-      {grade:'C',min_score:50,max_score:59,remark:'Good (3.0)'},{grade:'D',min_score:45,max_score:49,remark:'Pass (2.0)'},
-      {grade:'E',min_score:40,max_score:44,remark:'Pass (1.0)'},{grade:'F',min_score:0,max_score:39,remark:'Fail (0.0)'},
+      {grade:'A',min_score:70,max_score:100,remark:'Excellent',grade_point:5.0},
+      {grade:'B',min_score:60,max_score:69,remark:'Very Good',grade_point:4.0},
+      {grade:'C',min_score:50,max_score:59,remark:'Good',grade_point:3.0},
+      {grade:'D',min_score:45,max_score:49,remark:'Pass',grade_point:2.0},
+      {grade:'E',min_score:40,max_score:44,remark:'Pass',grade_point:1.0},
+      {grade:'F',min_score:0,max_score:39,remark:'Fail',grade_point:0.0},
     ],
-    subjects: ['Use of English','Mathematics','Introduction to Computer Science','Principles of Management',
-               'Research Methodology','Entrepreneurship Studies'],
+    // credit_unit set per subject — Use of English & Maths are typically 2 units,
+    // electives/seminars 1 unit. Admins can adjust per-subject in Academic Structure.
+    subjects: [
+      {name:'Use of English', credit_unit:2}, {name:'Mathematics', credit_unit:2},
+      {name:'Introduction to Computer Science', credit_unit:2}, {name:'Principles of Management', credit_unit:3},
+      {name:'Research Methodology', credit_unit:2}, {name:'Entrepreneurship Studies', credit_unit:1},
+    ],
     combinations: [],
     termName: 'First Semester', periodLabel: 'semester',
   },
   vocational: {
     levels: ['Basic Level 1','Basic Level 2','Intermediate Level','Advanced Level'],
     grading: [
-      {grade:'C',min_score:50,max_score:100,remark:'Competent'},
-      {grade:'NYC',min_score:0,max_score:49,remark:'Not Yet Competent'},
+      {grade:'C',min_score:50,max_score:100,remark:'Competent',grade_point:1.0},
+      {grade:'NYC',min_score:0,max_score:49,remark:'Not Yet Competent',grade_point:0.0},
     ],
     subjects: ['Workshop Practice','Occupational Safety & Health','Tools & Equipment Handling',
                'Practical Skills Assessment','Entrepreneurship & Business Skills'],
@@ -274,8 +282,10 @@ const TYPE_PRESETS = {
   computer_training: {
     levels: ['Beginner Batch','Intermediate Batch','Advanced Batch','Certification Batch'],
     grading: [
-      {grade:'A',min_score:80,max_score:100,remark:'Excellent'},{grade:'B',min_score:65,max_score:79,remark:'Good'},
-      {grade:'C',min_score:50,max_score:64,remark:'Satisfactory'},{grade:'F',min_score:0,max_score:49,remark:'Fail / Retake'},
+      {grade:'A',min_score:80,max_score:100,remark:'Excellent',grade_point:4.0},
+      {grade:'B',min_score:65,max_score:79,remark:'Good',grade_point:3.0},
+      {grade:'C',min_score:50,max_score:64,remark:'Satisfactory',grade_point:2.0},
+      {grade:'F',min_score:0,max_score:49,remark:'Fail / Retake',grade_point:0.0},
     ],
     subjects: ['Computer Appreciation','Microsoft Office Suite','Internet & Email','Web Design (HTML/CSS)',
                'Programming Fundamentals','Graphics Design','Data Analysis Basics','Digital Marketing'],
@@ -327,11 +337,19 @@ async function seedSchoolDefaults(sb, schoolId, schoolType) {
     })));
   }
 
-  // 3) Subjects — starter list matched to the institution type
+  // 3) Subjects — starter list matched to the institution type.
+  //    Most types use a plain string array; tertiary uses {name, credit_unit}
+  //    objects so the transcript engine can compute an honest credit-weighted
+  //    CGPA from day one. Handle both shapes here.
   if (preset.subjects.length) {
-    await sb('/subjects', 'POST', preset.subjects.map(name => ({
-      school_id: schoolId, name,
-    })));
+    await sb('/subjects', 'POST', preset.subjects.map(s => {
+      const isObj = typeof s === 'object' && s !== null;
+      return {
+        school_id: schoolId,
+        name: isObj ? s.name : s,
+        credit_unit: isObj && s.credit_unit ? s.credit_unit : 1,
+      };
+    }));
   }
 
   // 4) Subject combinations (Science/Art/Commercial) — only relevant for o_level

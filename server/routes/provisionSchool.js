@@ -69,25 +69,29 @@ router.post("/provision-school", async (req, res) => {
       }),
     });
 
-    let authData = await authRes.json();
-    if (authData.error || !authData.id) {
-      if (authData.msg?.includes("already") || authData.code === "email_exists") {
-        const existRes = await fetch(
-          `${SUPABASE_URL}/auth/v1/admin/users?email=${encodeURIComponent(adminEmail)}`,
-          { headers },
-        );
-        const existData = await existRes.json();
-        if (!existData.users?.length) {
-          return res.status(500).json({ error: "Auth user lookup failed" });
+    let authData = await readJson(authRes);
+    if (!authRes.ok || authData.error || !authData.id) {
+      if (isEmailExistsAuthError(authData)) {
+        authData = await findAuthUserByEmail(SUPABASE_URL, headers, adminEmail);
+        if (!authData?.id) {
+          return res.status(500).json({ error: "Auth user lookup failed for existing admin email" });
         }
-        authData = existData.users[0];
-        await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${authData.id}`, {
+
+        const updateAuthRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${authData.id}`, {
           method: "PUT",
           headers,
           body: JSON.stringify({ password: tempPassword, email_confirm: true }),
         });
+        const updateAuthData = await readJson(updateAuthRes);
+        if (!updateAuthRes.ok || updateAuthData.error) {
+          return res.status(500).json({
+            error: `Auth user update failed: ${getSupabaseErrorMessage(updateAuthData)}`,
+          });
+        }
       } else {
-        return res.status(500).json({ error: "Auth user creation failed" });
+        return res.status(500).json({
+          error: `Auth user creation failed: ${getSupabaseErrorMessage(authData)}`,
+        });
       }
     }
 
@@ -201,13 +205,13 @@ router.post("/provision-school", async (req, res) => {
 
     if (approveError) throw approveError;
 
-    await supabase.from("saas_audit_log").insert([{
+    await writeAuditLog({
       actor_id: auth.user.id,
       action: "school_created",
       target_id: school.id,
       target_type: "school",
       meta: { application_id, school_name: school.name, admin_email: adminEmail },
-    }]).catch(() => {});
+    });
 
     res.json({
       success: true,
@@ -247,6 +251,52 @@ function normaliseSchoolType(type) {
   };
   const value = cleanString(type, 80).toLowerCase();
   return aliases[value] || value || "o_level";
+}
+
+async function writeAuditLog(entry) {
+  const { error } = await supabase.from("saas_audit_log").insert([entry]);
+  if (error) {
+    console.warn("[/api/provision-school] Audit log skipped:", error.message || error);
+  }
+}
+
+async function readJson(response) {
+  try {
+    return await response.json();
+  } catch {
+    return {};
+  }
+}
+
+function getSupabaseErrorMessage(data) {
+  if (!data) return "Unknown error";
+  if (typeof data.error === "string") return data.error;
+  if (data.error?.message) return data.error.message;
+  return data.msg || data.message || data.error_description || "Unknown error";
+}
+
+function isEmailExistsAuthError(data) {
+  const text = `${data?.code || ""} ${data?.msg || ""} ${data?.message || ""} ${getSupabaseErrorMessage(data)}`;
+  return /email.*(exists|registered)|already.*registered|already.*exists|email_exists/i.test(text);
+}
+
+async function findAuthUserByEmail(supabaseUrl, headers, email) {
+  const targetEmail = String(email || "").toLowerCase();
+
+  for (let page = 1; page <= 10; page += 1) {
+    const res = await fetch(`${supabaseUrl}/auth/v1/admin/users?page=${page}&per_page=1000`, { headers });
+    const data = await readJson(res);
+    if (!res.ok || data.error) {
+      throw new Error(`Auth user lookup failed: ${getSupabaseErrorMessage(data)}`);
+    }
+
+    const users = Array.isArray(data.users) ? data.users : [];
+    const match = users.find((user) => String(user.email || "").toLowerCase() === targetEmail);
+    if (match) return match;
+    if (users.length < 1000) break;
+  }
+
+  return null;
 }
 
 export default router;

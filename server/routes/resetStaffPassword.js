@@ -65,13 +65,16 @@ router.post("/reset-staff-password", async (req, res) => {
       throw new Error(data.error?.message || data.msg || "Supabase admin update failed");
     }
 
-    await supabase.from("saas_audit_log").insert([{
+    const { error: auditError } = await supabase.from("saas_audit_log").insert([{
       actor_id: auth.user.id,
       action: "staff_password_reset",
       target_id: user_id,
       target_type: "user",
       meta: { target_role: target.role, school_id: target.school_id },
-    }]).catch(() => {});
+    }]);
+    if (auditError) {
+      console.warn("[/api/reset-staff-password] Audit log skipped:", auditError.message || auditError);
+    }
 
     res.json({ success: true, user_id });
 

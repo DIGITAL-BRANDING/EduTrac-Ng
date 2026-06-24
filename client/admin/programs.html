@@ -591,6 +591,11 @@ async function deleteClass(id, name){
 //  TAB 4 — SUBJECTS
 // ═══════════════════════════════════════════════════════════════
 function renderSubjects(el) {
+  // Credit units only matter for institution types that compute a credit-
+  // weighted CGPA (tertiary, vocational, computer_training). Showing the
+  // field to o_level/islamic/tutorial_center admins would be confusing
+  // noise for a concept their grading system never uses.
+  const usesCreditUnits = ['tertiary','vocational','computer_training'].includes(getSchoolType());
   el.innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:920px;">
       <div class="card">
@@ -604,6 +609,9 @@ function renderSubjects(el) {
           <input id="newSubName" class="form-control" placeholder="Mathematics"></div>
         <div class="form-group"><label class="form-label">Code</label>
           <input id="newSubCode" class="form-control" placeholder="MTH"></div>
+        ${usesCreditUnits ? `
+        <div class="form-group"><label class="form-label">Credit Unit <span style="color:var(--ink-3);font-weight:400;">(for CGPA)</span></label>
+          <input type="number" min="1" id="newSubCredit" class="form-control" placeholder="2" value="1"></div>` : ''}
         <button class="btn btn--primary" onclick="addSubject()">+ Add</button>
         <hr style="margin:16px 0;border-color:var(--border);">
         <div class="form-group"><label class="form-label">Bulk Add (comma-separated)</label>
@@ -617,12 +625,14 @@ function renderSubjects(el) {
 function renderSubjectsList(){
   const wrap = document.getElementById('subjectListWrap');
   if (!wrap) return;
+  const usesCreditUnits = ['tertiary','vocational','computer_training'].includes(getSchoolType());
   if (!subjects.length) { wrap.innerHTML = '<p style="color:var(--ink-3);padding:8px 0;">No subjects yet.</p>'; return; }
   wrap.innerHTML = subjects.map(s=>`
     <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
       <div>
         <span style="font-weight:600;">${esc(s.name)}</span>
         ${s.code?`<span style="background:var(--primary-light);color:var(--primary);font-size:11px;font-weight:700;padding:2px 6px;border-radius:3px;margin-left:6px;">${esc(s.code)}</span>`:''}
+        ${usesCreditUnits?`<span style="background:var(--s2);color:var(--ink-2);font-size:11px;font-weight:700;padding:2px 6px;border-radius:3px;margin-left:6px;">${s.credit_unit||1} unit${(s.credit_unit||1)!=1?'s':''}</span>`:''}
       </div>
       <div style="display:flex;gap:4px;">
         <button class="btn btn--ghost btn--sm" onclick="editSubjectModal('${s.id}')">${editIcon()}</button>
@@ -633,12 +643,16 @@ function renderSubjectsList(){
 
 function editSubjectModal(id){
   const s = subjects.find(x => x.id === id); if (!s) return;
+  const usesCreditUnits = ['tertiary','vocational','computer_training'].includes(getSchoolType());
   openEdit(`
     <h3>Edit Subject</h3>
     <div class="form-group"><label class="form-label">Name <span class="required">*</span></label>
       <input id="es-name" class="form-control" value="${esc(s.name)}"></div>
     <div class="form-group"><label class="form-label">Code</label>
       <input id="es-code" class="form-control" value="${esc(s.code||'')}"></div>
+    ${usesCreditUnits ? `
+    <div class="form-group"><label class="form-label">Credit Unit <span style="color:var(--ink-3);font-weight:400;">(for CGPA)</span></label>
+      <input type="number" min="1" id="es-credit" class="form-control" value="${s.credit_unit||1}"></div>` : ''}
     <div style="display:flex;gap:8px;margin-top:16px;">
       <button class="btn btn--primary" onclick="updateSubject('${id}')">Update</button>
       <button class="btn btn--ghost" onclick="closeEdit()">Cancel</button>
@@ -647,16 +661,23 @@ function editSubjectModal(id){
 async function updateSubject(id){
   const name = document.getElementById('es-name').value.trim();
   if (!name) { toast('Enter a name.','error'); return; }
-  const { error } = await db.from('subjects').update({ name, code: document.getElementById('es-code').value.trim() || null }).eq('id', id);
+  const creditEl = document.getElementById('es-credit');
+  const payload = { name, code: document.getElementById('es-code').value.trim() || null };
+  if (creditEl) payload.credit_unit = Number(creditEl.value) || 1;
+  const { error } = await db.from('subjects').update(payload).eq('id', id);
   if (error) { toast(friendlyError(error,'subject'),'error'); return; }
   closeEdit(); await loadAll(); renderTab(); toast('Subject updated!','success');
 }
 async function addSubject(){
   const name = document.getElementById('newSubName').value.trim();
   if (!name) { toast('Enter name.','error'); return; }
-  const { error } = await db.from('subjects').insert({ school_id: currentUser.school_id, name, code: document.getElementById('newSubCode').value.trim() || null });
+  const creditEl = document.getElementById('newSubCredit');
+  const payload = { school_id: currentUser.school_id, name, code: document.getElementById('newSubCode').value.trim() || null };
+  if (creditEl) payload.credit_unit = Number(creditEl.value) || 1;
+  const { error } = await db.from('subjects').insert(payload);
   if (error) { toast(friendlyError(error,'subject'),'error'); return; }
   document.getElementById('newSubName').value=''; document.getElementById('newSubCode').value='';
+  if (creditEl) creditEl.value = '1';
   await loadAll(); renderTab(); toast('Subject added!','success');
 }
 async function bulkAddSubjects(){

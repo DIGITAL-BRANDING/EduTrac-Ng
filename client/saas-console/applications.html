@@ -290,22 +290,13 @@ async function approveAndProvision(id, adminNote) {
   if (btn) { btn.disabled = true; btn.textContent = 'Provisioning…'; }
 
   try {
-    const { data: { session } } = await db.auth.getSession();
-    const token = session?.access_token;
-    if (!token) {
-      throw new Error('Your session has expired. Please sign in again.');
-    }
-
     const _apiBase = (window.__EDUTRAC_CONFIG__ || {}).API_BASE_URL || '';
     const res = await fetch(_apiBase + '/api/provision-school', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ application_id: id, admin_note: adminNote }),
     });
-    const data = await res.json().catch(() => ({}));
+    const data = await res.json();
 
     if (!res.ok || data.error) {
       throw new Error(data.error || 'Provisioning failed');

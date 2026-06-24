@@ -112,7 +112,7 @@ function renderSteps(){
 }
 function setMsg(m){const el=document.getElementById('loadMsg');if(el)el.textContent=m;}
 
-async function sq(label, queryPromise, timeoutMs=20000){
+async function pageQuery(label, queryPromise, timeoutMs=20000){
   const si=addStep(label);
   const timer=new Promise((_,rej)=>setTimeout(()=>{rej(new Error(`Timed out after ${timeoutMs/1000}s`));},timeoutMs));
   try{
@@ -198,7 +198,7 @@ async function _initClassCards(schoolId, classId){
     steps.length=0;
 
     const [scaleData,examsData]=await Promise.all([
-      sq('Grading scale', db.from('grading_scales').select('*').eq('school_id',schoolId).order('min_score',{ascending:false})),
+      pageQuery('Grading scale', db.from('grading_scales').select('*').eq('school_id',schoolId).order('min_score',{ascending:false})),
       sqSafe('Exams list', db.from('exams').select('*').eq('school_id',schoolId).eq('term_id',_tid).order('name')),
     ]);
     _scale=scaleData; _exams=examsData||[];
@@ -218,7 +218,7 @@ async function _initClassCards(schoolId, classId){
     _classSubjects=csData||[];
 
     setMsg('Loading student list…');
-    let enrollments=await sq('Enrollments',
+    let enrollments=await pageQuery('Enrollments',
       db.from('enrollments').select('student_id').eq('class_id',classId).eq('term_id',_tid));
 
     if(!enrollments?.length){
@@ -248,21 +248,21 @@ async function _initClassCards(schoolId, classId){
     const studentIds=enrollments.map(e=>e.student_id).filter(Boolean);
 
     setMsg(`Loading ${studentIds.length} student records…`);
-    const studentsData=await sq('Student records',
+    const studentsData=await pageQuery('Student records',
       db.from('students').select('id,full_name,admission_no,roll_no,mother_name,father_name,guardian_name,scholar_no,dob,date_of_birth,photo_url,passport_url,avatar_url,school_id').in('id',studentIds));
 
     _students=(studentsData||[]).sort((a,b)=>(a.full_name||'').localeCompare(b.full_name||''));
 
     setMsg('Bulk loading results, attendance and affective data…');
     const [allResults, allAtt, allAffective]=await Promise.all([
-      sq('All results (bulk)',
+      pageQuery('All results (bulk)',
          db.from('results')
            .select('score,student_id,subject_id,exam_id,subjects(id,name,code),exams(id,name,max_score,weight)')
            .in('student_id',studentIds).eq('term_id',_tid)),
-      sq('All attendance (bulk)',
+      pageQuery('All attendance (bulk)',
          db.from('attendance')
            .select('status,date,student_id').in('student_id',studentIds).eq('term_id',_tid)),
-      sq('All affective (bulk)',
+      pageQuery('All affective (bulk)',
          db.from('affective_domain')
            .select('*').in('student_id',studentIds).eq('term_id',_tid)),
     ]);
@@ -379,15 +379,15 @@ function _populateTermBar(){
   if(classId){
     try{
       setMsg('Loading class info…');
-      _classRow=await sq('Class info', db.from('classes').select('id,name,level,section,school_id').eq('id',classId).single());
+      _classRow=await pageQuery('Class info', db.from('classes').select('id,name,level,section,school_id').eq('id',classId).single());
       if(!_classRow) return;
 
       const schoolId=_classRow.school_id;
 
       setMsg('Loading school and terms…');
       const [schoolData, allTermsData]=await Promise.all([
-        sq('School data', db.from('schools').select('name,logo_url,address,state,lga,phone,email,motto,affiliation_no,vp_signature_url,exam_officer_signature_url,principal_signature_url,class_teacher_signature_url').eq('id',schoolId).single()),
-        sq('All terms', db.from('terms').select('*,academic_years(label)').eq('school_id',schoolId).order('start_date',{ascending:false})),
+        pageQuery('School data', db.from('schools').select('name,logo_url,address,state,lga,phone,email,motto,affiliation_no,vp_signature_url,exam_officer_signature_url,principal_signature_url,class_teacher_signature_url').eq('id',schoolId).single()),
+        pageQuery('All terms', db.from('terms').select('*,academic_years(label)').eq('school_id',schoolId).order('start_date',{ascending:false})),
       ]);
       _school=schoolData;
       _allTerms=allTermsData||[];
@@ -460,7 +460,7 @@ function _populateTermBar(){
 
   try{
     setMsg('Loading student…');
-    const student=await sq('Student record',
+    const student=await pageQuery('Student record',
       db.from('students').select('id,full_name,admission_no,roll_no,mother_name,father_name,guardian_name,scholar_no,dob,date_of_birth,photo_url,passport_url,avatar_url,school_id').eq('id',studentId).single());
     if(!student) return;
 
@@ -481,10 +481,10 @@ function _populateTermBar(){
 
     setMsg('Loading school data…');
     const [schoolData,scaleData,examsData,termRow]=await Promise.all([
-      sq('School data', db.from('schools').select('name,logo_url,address,state,lga,phone,email,motto,affiliation_no,vp_signature_url,exam_officer_signature_url,principal_signature_url,class_teacher_signature_url').eq('id',schoolId).single()),
-      sq('Grading scale', db.from('grading_scales').select('*').eq('school_id',schoolId).order('min_score',{ascending:false})),
-      sq('Exams list', db.from('exams').select('*').eq('school_id',schoolId).eq('term_id',_tid).order('name')),
-      !_term?sq('Term info', db.from('terms').select('*,academic_years(label)').eq('id',_tid).single()):Promise.resolve(_term),
+      pageQuery('School data', db.from('schools').select('name,logo_url,address,state,lga,phone,email,motto,affiliation_no,vp_signature_url,exam_officer_signature_url,principal_signature_url,class_teacher_signature_url').eq('id',schoolId).single()),
+      pageQuery('Grading scale', db.from('grading_scales').select('*').eq('school_id',schoolId).order('min_score',{ascending:false})),
+      pageQuery('Exams list', db.from('exams').select('*').eq('school_id',schoolId).eq('term_id',_tid).order('name')),
+      !_term?pageQuery('Term info', db.from('terms').select('*,academic_years(label)').eq('id',_tid).single()):Promise.resolve(_term),
     ]);
     _school=schoolData;_scale=scaleData;_exams=examsData;
     if(!_term)_term=termRow;
