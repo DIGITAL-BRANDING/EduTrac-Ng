@@ -32,7 +32,8 @@
     const ctx = await initStudentLayout('dashboard', 'Dashboard');
     if (!ctx) return;
 
-    const { session, student, school, dashSettings, term, currentEnrollment, classId } = ctx;
+    const { session, student, school, dashSettings, term, currentEnrollment, classId, labels } = ctx;
+    const vocab = labels || { learner: 'Student', class: 'Class', subject: 'Subject', period: 'Term', fees: 'Fees', results: 'Results' };
 
     // ── Class name from enrollment ──────────────────────────────
     const className = currentEnrollment?.classes?.name
@@ -50,22 +51,33 @@
     }
 
     // ── Fetch attendance + fees in parallel ────────────────────
-    const [attRes, feeTypesRes, paymentsRes] = await Promise.all([
-      db.from('attendance')
-        .select('status')
-        .eq('student_id', session.id)
-        .eq('school_id', session.school_id),
-      db.from('fee_types')
-        .select('amount,term_id')
-        .eq('school_id', session.school_id),
-      db.from('payments')
-        .select('amount_paid,term_id')
-        .eq('student_id', session.id)
-        .eq('school_id', session.school_id),
+    const [attRecs, feeTypes, payments] = await Promise.all([
+      studentCachedQuery(session, 'dashboard_attendance', async function() {
+        const res = await db.from('attendance')
+          .select('status')
+          .eq('student_id', session.id)
+          .eq('school_id', session.school_id);
+        if (res.error) throw res.error;
+        return res.data || [];
+      }, []),
+      studentCachedQuery(session, 'dashboard_fee_types', async function() {
+        const res = await db.from('fee_types')
+          .select('amount,term_id')
+          .eq('school_id', session.school_id);
+        if (res.error) throw res.error;
+        return res.data || [];
+      }, []),
+      studentCachedQuery(session, 'dashboard_payments', async function() {
+        const res = await db.from('payments')
+          .select('amount_paid,term_id')
+          .eq('student_id', session.id)
+          .eq('school_id', session.school_id);
+        if (res.error) throw res.error;
+        return res.data || [];
+      }, []),
     ]);
 
     // Attendance %
-    const attRecs = attRes.data || [];
     const totalDays = attRecs.length;
     const presentDays = attRecs.filter(a => a.status === 'P' || a.status === 'present').length;
     const lateDays    = attRecs.filter(a => a.status === 'L' || a.status === 'late').length;
@@ -73,8 +85,8 @@
 
     // Fee balance (current term if available, else all-term)
     const termId = term?.id;
-    const relevantFees = (feeTypesRes.data || []).filter(f => !termId || !f.term_id || f.term_id === termId);
-    const relevantPays = (paymentsRes.data || []).filter(p => !termId || !p.term_id || p.term_id === termId);
+    const relevantFees = (feeTypes || []).filter(f => !termId || !f.term_id || f.term_id === termId);
+    const relevantPays = (payments || []).filter(p => !termId || !p.term_id || p.term_id === termId);
     const totalExpected = relevantFees.reduce((s, f) => s + Number(f.amount || 0), 0);
     const totalPaid     = relevantPays.reduce((s, p) => s + Number(p.amount_paid || 0), 0);
     const feeBalance    = Math.max(0, totalExpected - totalPaid);
@@ -98,7 +110,7 @@
         </div>
         <div style="flex:1;min-width:0;">
           <div style="font-size:1rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${session.full_name}</div>
-          <div style="font-size:.8rem;color:var(--ink-3);margin-top:2px;">${className}</div>
+          <div style="font-size:.8rem;color:var(--ink-3);margin-top:2px;">${vocab.class}: ${className}</div>
           <div style="font-size:.78rem;color:var(--ink-3);">Adm. No: <strong>${session.admission_no || '—'}</strong></div>
         </div>
         <a href="profile.html" style="font-size:.75rem;color:var(--primary);font-weight:600;text-decoration:none;white-space:nowrap;">Profile →</a>
@@ -108,7 +120,7 @@
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">
         <div style="background:linear-gradient(135deg,#667eea,#764ba2);color:white;padding:14px 10px;border-radius:12px;text-align:center;">
           <div style="font-size:1.6rem;font-weight:900;line-height:1;">${subjectsCount || '—'}</div>
-          <div style="font-size:.68rem;opacity:.9;margin-top:4px;font-weight:600;">SUBJECTS</div>
+          <div style="font-size:.68rem;opacity:.9;margin-top:4px;font-weight:600;">${vocab.subject.toUpperCase()}S</div>
         </div>
         <div style="background:linear-gradient(135deg,${attendancePct === null ? '#94a3b8,#64748b' : attendancePct >= 75 ? '#22c55e,#16a34a' : attendancePct >= 50 ? '#f59e0b,#d97706' : '#ef4444,#dc2626'});color:white;padding:14px 10px;border-radius:12px;text-align:center;">
           <div style="font-size:1.6rem;font-weight:900;line-height:1;">${attendancePct !== null ? attendancePct + '%' : '—'}</div>
@@ -116,7 +128,7 @@
         </div>
         <div style="background:linear-gradient(135deg,${feeBalance === 0 ? '#22c55e,#16a34a' : '#ef4444,#dc2626'});color:white;padding:14px 10px;border-radius:12px;text-align:center;">
           <div style="font-size:1.6rem;font-weight:900;line-height:1;">₦${feeBalance >= 1000 ? (feeBalance/1000).toFixed(0)+'K' : feeBalance}</div>
-          <div style="font-size:.68rem;opacity:.9;margin-top:4px;font-weight:600;">FEE BALANCE</div>
+          <div style="font-size:.68rem;opacity:.9;margin-top:4px;font-weight:600;">${vocab.fees.toUpperCase()}</div>
         </div>
       </div>
 
@@ -124,7 +136,7 @@
       <!-- Fee progress bar -->
       <div class="card" style="margin-bottom:16px;padding:14px 16px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-          <span style="font-size:.8rem;font-weight:700;color:var(--ink-2);">Fee Payment</span>
+          <span style="font-size:.8rem;font-weight:700;color:var(--ink-2);">${vocab.fees} Payment</span>
           <span style="font-size:.8rem;font-weight:800;color:${feeBalance === 0 ? 'var(--success)' : 'var(--ink)'};">${feePct !== null ? feePct + '%' : '—'} paid</span>
         </div>
         <div style="height:8px;background:var(--surface-3);border-radius:100px;overflow:hidden;">
@@ -137,7 +149,7 @@
       <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">
         ${seeResults ? `<a href="results.html" class="card" style="text-decoration:none;color:inherit;padding:16px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:transform .15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
           <span style="font-size:2rem;">📊</span>
-          <span style="font-weight:700;font-size:.875rem;">My Results</span>
+          <span style="font-weight:700;font-size:.875rem;">My ${vocab.results}</span>
         </a>` : ''}
         ${seeAttendance ? `<a href="attendance.html" class="card" style="text-decoration:none;color:inherit;padding:16px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:transform .15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
           <span style="font-size:2rem;">📋</span>
@@ -145,7 +157,7 @@
         </a>` : ''}
         ${seeFees ? `<a href="fees.html" class="card" style="text-decoration:none;color:inherit;padding:16px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:transform .15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
           <span style="font-size:2rem;">💰</span>
-          <span style="font-weight:700;font-size:.875rem;">My Fees</span>
+          <span style="font-weight:700;font-size:.875rem;">My ${vocab.fees}</span>
         </a>` : ''}
         <a href="notifications.html" class="card" style="text-decoration:none;color:inherit;padding:16px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:transform .15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
           <span style="font-size:2rem;">🔔</span>
@@ -165,5 +177,6 @@
 })();
 </script>
 <script src="../../js/assistant.js"></script>
+<script src="/js/pwa-v2.1.js"></script>
 </body>
 </html>

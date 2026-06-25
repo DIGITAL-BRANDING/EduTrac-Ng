@@ -268,7 +268,7 @@ async function studentLogin() {
     if (error) throw new Error('Server error: ' + error.message);
     if (!result.ok) throw new Error(result.error || 'Login failed. Contact your school admin.');
 
-    sessionStorage.setItem('et_student_session', JSON.stringify({
+    const studentSession = {
       id:           result.id,
       full_name:    result.full_name,
       school_id:    result.school_id,
@@ -276,7 +276,9 @@ async function studentLogin() {
       photo_url:    result.photo_url || null,
       gender:       result.gender    || null,
       logged_in_at: new Date().toISOString()
-    }));
+    };
+    sessionStorage.setItem('et_student_session', JSON.stringify(studentSession));
+    localStorage.setItem('et_student_session', JSON.stringify(studentSession));
 
     window.location.href = 'index.html';
 

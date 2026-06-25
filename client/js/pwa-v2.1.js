@@ -145,7 +145,7 @@ if ('serviceWorker' in navigator) {
 
       // Listen for messages from SW
       navigator.serviceWorker.addEventListener('message', event => {
-        const { type, version } = event.data || {};
+        const { type, version, isOffline } = event.data || {};
         
         if (type === 'BACKGROUND_SYNC') {
           console.log('[PWA] Background sync triggered by SW');
@@ -154,6 +154,11 @@ if ('serviceWorker' in navigator) {
         
         if (type === 'PONG') {
           console.log('[PWA] SW is alive, version:', version);
+        }
+
+        if (type === 'OFFLINE_STATE_CHANGED') {
+          if (isOffline) showOfflinePill();
+          else hideOfflinePill();
         }
       });
 
@@ -173,11 +178,28 @@ if ('serviceWorker' in navigator) {
           navigator.serviceWorker.controller.postMessage({ type: 'PING' });
         }
       }, 30000);
+
+      cacheCurrentPageForOffline();
       
     } catch (err) {
       console.warn('[PWA] SW registration failed:', err);
     }
   });
+}
+
+function cacheCurrentPageForOffline() {
+  try {
+    const url = location.pathname + location.search;
+    const message = { type: 'CACHE_URLS', urls: [url] };
+    const send = reg => (navigator.serviceWorker.controller || reg?.active)?.postMessage(message);
+    if (navigator.serviceWorker.controller) {
+      send();
+    } else {
+      navigator.serviceWorker.ready.then(reg => send(reg)).catch(() => {});
+    }
+  } catch (e) {
+    console.warn('[PWA] Could not request current page cache:', e);
+  }
 }
 
 // ── IndexedDB Validation ──────────────────────���────────────────

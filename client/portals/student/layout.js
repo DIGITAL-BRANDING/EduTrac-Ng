@@ -6,7 +6,7 @@
 
 function getStudentSession() {
   try {
-    const s = sessionStorage.getItem('et_student_session');
+    const s = sessionStorage.getItem('et_student_session') || localStorage.getItem('et_student_session');
     return s ? JSON.parse(s) : null;
   } catch { return null; }
 }
@@ -17,15 +17,87 @@ function requireStudentAuth() {
   const loginTime = new Date(s.logged_in_at);
   if (Date.now() - loginTime.getTime() > 8 * 60 * 60 * 1000) {
     sessionStorage.removeItem('et_student_session');
+    localStorage.removeItem('et_student_session');
     window.location.href = 'login.html';
     return null;
   }
+  try { sessionStorage.setItem('et_student_session', JSON.stringify(s)); } catch {}
   return s;
 }
 
 function studentLogout() {
   sessionStorage.removeItem('et_student_session');
+  localStorage.removeItem('et_student_session');
   window.location.href = 'login.html';
+}
+
+function normaliseStudentSchoolType(type) {
+  const aliases = {
+    primary: 'o_level',
+    secondary: 'o_level',
+    both: 'o_level',
+    islamiyya: 'islamic',
+    islamic_institute: 'islamic',
+    vocational_training: 'vocational',
+    technical: 'vocational',
+    technical_college: 'vocational',
+    tertiary_institute: 'tertiary',
+    university: 'tertiary',
+    polytechnic: 'tertiary',
+    college: 'tertiary',
+    computer_institute: 'computer_training',
+    computer_training_centre: 'computer_training',
+  };
+  const value = String(type || '').trim().toLowerCase().replace(/[\s-]+/g, '_');
+  return aliases[value] || value || 'o_level';
+}
+
+function getStudentInstitutionLabels(type) {
+  const t = normaliseStudentSchoolType(type);
+  const labels = {
+    o_level: { learner: 'Student', class: 'Class', subject: 'Subject', period: 'Term', fees: 'Fees', results: 'Results' },
+    tertiary: { learner: 'Student', class: 'Level', subject: 'Course', period: 'Semester', fees: 'Fees', results: 'Results' },
+    vocational: { learner: 'Trainee', class: 'Batch / Level', subject: 'Module', period: 'Training Period', fees: 'Training Fees', results: 'Assessments' },
+    islamic: { learner: 'Student', class: 'Level / Class', subject: 'Subject', period: 'Term', fees: 'Fees', results: 'Results' },
+    computer_training: { learner: 'Trainee', class: 'Batch', subject: 'Module', period: 'Training Period', fees: 'Training Fees', results: 'Assessments' },
+    tutorial_center: { learner: 'Student', class: 'Class / Batch', subject: 'Subject', period: 'Term', fees: 'Fees', results: 'Results' },
+    other: { learner: 'Learner', class: 'Level / Group', subject: 'Module', period: 'Period', fees: 'Fees', results: 'Records' },
+  };
+  return labels[t] || labels.o_level;
+}
+
+function studentCacheKey(session, name) {
+  return 'et_student_cache_v2_' + session.school_id + '_' + session.id + '_' + name;
+}
+
+function saveStudentCache(session, name, data) {
+  try {
+    localStorage.setItem(studentCacheKey(session, name), JSON.stringify({ saved_at: Date.now(), data: data }));
+  } catch {}
+}
+
+function loadStudentCache(session, name) {
+  try {
+    const raw = localStorage.getItem(studentCacheKey(session, name));
+    return raw ? JSON.parse(raw).data : null;
+  } catch { return null; }
+}
+
+async function studentCachedQuery(session, name, fetcher, fallback) {
+  if (!navigator.onLine) {
+    const cached = loadStudentCache(session, name);
+    if (cached !== null) return cached;
+  }
+  try {
+    const data = await fetcher();
+    saveStudentCache(session, name, data);
+    return data;
+  } catch (err) {
+    const cached = loadStudentCache(session, name);
+    if (cached !== null) return cached;
+    if (fallback !== undefined) return fallback;
+    throw err;
+  }
 }
 
 // ── Sidebar toggle (required by topbar hamburger & overlay) ──
@@ -42,13 +114,15 @@ function closeSidebar() {
   if (ov) ov.classList.remove('active');
 }
 
-function renderStudentLayout(activePage, pageTitle, unreadCount) {
+function renderStudentLayout(activePage, pageTitle, unreadCount, options) {
   unreadCount = unreadCount || 0;
+  options = options || {};
+  const labels = getStudentInstitutionLabels(options.schoolType);
   const navItems = [
     { id: 'dashboard',     icon: '&#127968;', label: 'Home',          href: 'index.html' },
-    { id: 'results',       icon: '&#128202;', label: 'Results',       href: 'results.html' },
+    { id: 'results',       icon: '&#128202;', label: labels.results,  href: 'results.html' },
     { id: 'attendance',    icon: '&#128203;', label: 'Attendance',    href: 'attendance.html' },
-    { id: 'fees',          icon: '&#128176;', label: 'Fees',          href: 'fees.html' },
+    { id: 'fees',          icon: '&#128176;', label: labels.fees,     href: 'fees.html' },
     { id: 'notifications', icon: '&#128276;', label: 'Notifications', href: 'notifications.html' },
     { id: 'profile',       icon: '&#128100;', label: 'Profile',       href: 'profile.html' },
   ];
@@ -82,7 +156,7 @@ function renderStudentLayout(activePage, pageTitle, unreadCount) {
       '<div class="sidebar__footer">' +
         '<div class="sidebar__user">' +
           '<div class="sidebar__avatar" id="stuInitial">?</div>' +
-          '<div><div class="sidebar__user-name" id="stuName">...</div><div class="sidebar__user-role">Student</div></div>' +
+          '<div><div class="sidebar__user-name" id="stuName">...</div><div class="sidebar__user-role">' + labels.learner + '</div></div>' +
           '<button class="sidebar__logout" onclick="studentLogout()" title="Logout">&#8651;</button>' +
         '</div>' +
       '</div>' +
@@ -128,12 +202,15 @@ async function initStudentLayout(activePage, pageTitle) {
   // dashboard_settings, terms, subject_combinations, combination_subjects, class_subjects)
   var data, error;
   try {
-    var rpcResult = await db.rpc('get_student_init', {
-      p_student_id: session.id,
-      p_school_id:  session.school_id
+    data = await studentCachedQuery(session, 'init', async function() {
+      var rpcResult = await db.rpc('get_student_init', {
+        p_student_id: session.id,
+        p_school_id:  session.school_id
+      });
+      if (rpcResult.error) throw rpcResult.error;
+      if (!rpcResult.data || !rpcResult.data.ok) throw new Error((rpcResult.data && rpcResult.data.error) || 'Student init failed');
+      return rpcResult.data;
     });
-    data  = rpcResult.data;
-    error = rpcResult.error;
   } catch (ex) {
     error = { message: ex && ex.message || String(ex) };
   }
@@ -149,6 +226,10 @@ async function initStudentLayout(activePage, pageTitle) {
 
   var { student, school, dash_settings, unread_count, combos, combo_subs, class_subs } = data;
   var term = data.term || null;
+  var schoolType = normaliseStudentSchoolType(school && school.school_type);
+  var labels = getStudentInstitutionLabels(schoolType);
+  window._studentSchoolType = schoolType;
+  window._studentLabels = labels;
 
   // Fallback: if the RPC didn't return a term, query directly for is_current=true
   if (!term && session && session.school_id) {
@@ -181,7 +262,7 @@ async function initStudentLayout(activePage, pageTitle) {
 
   // Render the layout shell
   document.getElementById('app').innerHTML =
-    renderStudentLayout(activePage, pageTitle, unread_count || 0);
+    renderStudentLayout(activePage, pageTitle, unread_count || 0, { schoolType: schoolType });
 
   // Populate sidebar
   document.getElementById('stuSchoolName').textContent = school && school.name ? school.name : 'My School';
@@ -222,5 +303,7 @@ async function initStudentLayout(activePage, pageTitle) {
     term:              term,
     currentEnrollment: currentEnrollment,
     classId:           classId,
+    schoolType:        schoolType,
+    labels:            labels,
   };
 }

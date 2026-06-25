@@ -428,8 +428,12 @@ self.addEventListener('message', event => {
     const safe = urls.filter(u => {
       try { return !isSupabase(new URL(u, self.location.origin)); } catch { return false; }
     });
-    caches.open(SHELL_CACHE)
-      .then(c => Promise.allSettled(safe.map(u => c.add(u).catch(() => {}))));
+    Promise.allSettled(safe.map(u => {
+      const url = new URL(u, self.location.origin);
+      const cacheName = isPortalPage(url) ? PORTAL_CACHE : SHELL_CACHE;
+      const key = isPortalPage(url) ? portalCacheKey(url) : url.pathname + url.search;
+      return caches.open(cacheName).then(c => c.add(key).catch(() => {}));
+    }));
     return;
   }
 

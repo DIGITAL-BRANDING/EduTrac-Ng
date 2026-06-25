@@ -110,13 +110,21 @@ function renderAttendance(termId) {
     if (!ctx) return;
     session = ctx.session;
 
-    const [termsRes, attendRes] = await Promise.all([
-      db.from('terms').select('id,name,is_current').eq('school_id', session.school_id).order('created_at', { ascending: false }),
-      db.from('attendance').select('date,status,term_id,class_id,classes(name)').eq('student_id', session.id).eq('school_id', session.school_id).order('date', { ascending: false }),
+    const [termsData, attendData] = await Promise.all([
+      studentCachedQuery(session, 'attendance_terms', async function() {
+        const res = await db.from('terms').select('id,name,is_current').eq('school_id', session.school_id).order('created_at', { ascending: false });
+        if (res.error) throw res.error;
+        return res.data || [];
+      }, []),
+      studentCachedQuery(session, 'attendance_records', async function() {
+        const res = await db.from('attendance').select('date,status,term_id,class_id,classes(name)').eq('student_id', session.id).eq('school_id', session.school_id).order('date', { ascending: false });
+        if (res.error) throw res.error;
+        return res.data || [];
+      }, []),
     ]);
 
-    allTerms = termsRes.data || [];
-    allAttendance = attendRes.data || [];
+    allTerms = termsData || [];
+    allAttendance = attendData || [];
     const currentTerm = ctx.term || allTerms.find(t => t.is_current) || allTerms[0];
     const defaultTermId = currentTerm?.id || '';
 
@@ -139,5 +147,6 @@ function renderAttendance(termId) {
 })();
 </script>
 <script src="../../js/assistant.js"></script>
+<script src="/js/pwa-v2.1.js"></script>
 </body>
 </html>

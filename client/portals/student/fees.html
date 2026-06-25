@@ -23,18 +23,27 @@ function formatDate(d) { if(!d) return '—'; try { return new Date(d).toLocaleD
 (async () => {
   const ctx = await initStudentLayout('fees', 'My Fees');
   if (!ctx) return;
-  const { session, term } = ctx;
+  const { session, term, labels } = ctx;
+  const vocab = labels || { period: 'Term', fees: 'Fees' };
 
   try {
-    const [termsRes, feeTypesRes, paymentsRes] = await Promise.all([
-      db.from('terms').select('id,name,is_current,academic_year').eq('school_id', session.school_id).order('created_at', { ascending: false }),
-      db.from('fee_types').select('id,name,amount,term_id,class_id,terms(name)').eq('school_id', session.school_id),
-      db.from('payments').select('id,amount_paid,payment_method,paid_at,term_id,fee_type_id,fee_types(name)').eq('student_id', session.id).eq('school_id', session.school_id).order('paid_at', { ascending: false }),
+    const [terms, allFees, payments] = await Promise.all([
+      studentCachedQuery(session, 'fees_terms', async function() {
+        const res = await db.from('terms').select('id,name,is_current,academic_year').eq('school_id', session.school_id).order('created_at', { ascending: false });
+        if (res.error) throw res.error;
+        return res.data || [];
+      }, []),
+      studentCachedQuery(session, 'fees_types', async function() {
+        const res = await db.from('fee_types').select('id,name,amount,term_id,class_id,terms(name)').eq('school_id', session.school_id);
+        if (res.error) throw res.error;
+        return res.data || [];
+      }, []),
+      studentCachedQuery(session, 'fees_payments', async function() {
+        const res = await db.from('payments').select('id,amount_paid,payment_method,paid_at,term_id,fee_type_id,fee_types(name)').eq('student_id', session.id).eq('school_id', session.school_id).order('paid_at', { ascending: false });
+        if (res.error) throw res.error;
+        return res.data || [];
+      }, []),
     ]);
-
-    const terms    = termsRes.data    || [];
-    const allFees  = feeTypesRes.data || [];
-    const payments = paymentsRes.data || [];
 
     const currentTerm = term || terms.find(t => t.is_current) || terms[0] || {};
     let selectedTermId = currentTerm.id;
@@ -75,7 +84,7 @@ function formatDate(d) { if(!d) return '—'; try { return new Date(d).toLocaleD
 
         ${termFees.length ? `
         <div class="card" style="margin-bottom:16px;padding:0;">
-          <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-weight:700;font-size:.875rem;">Fee Breakdown</div>
+          <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-weight:700;font-size:.875rem;">${vocab.fees} Breakdown</div>
           <table style="width:100%;border-collapse:collapse;font-size:.845rem;">
             <thead><tr>
               ${['Fee','Amount','Status'].map(h=>`<th style="padding:8px 14px;text-align:left;font-size:.68rem;font-weight:700;text-transform:uppercase;color:var(--ink-3);background:var(--surface-2);border-bottom:1px solid var(--border);">${h}</th>`).join('')}
@@ -99,7 +108,7 @@ function formatDate(d) { if(!d) return '—'; try { return new Date(d).toLocaleD
               }).join('')}
             </tbody>
           </table>
-        </div>` : '<div class="card" style="margin-bottom:16px;padding:20px;text-align:center;color:var(--ink-3);">No fee types set for this term.</div>'}
+        </div>` : `<div class="card" style="margin-bottom:16px;padding:20px;text-align:center;color:var(--ink-3);">No ${vocab.fees.toLowerCase()} set for this ${vocab.period.toLowerCase()}.</div>`}
 
         <div class="card" style="padding:0;">
           <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-weight:700;font-size:.875rem;">Payment History</div>
@@ -121,7 +130,7 @@ function formatDate(d) { if(!d) return '—'; try { return new Date(d).toLocaleD
     }
 
     document.getElementById('pageBody').innerHTML = `
-      <div class="page-header"><h1>Fee Status</h1></div>
+      <div class="page-header"><h1>${vocab.fees} Status</h1></div>
       <div style="margin-bottom:16px;">
         <select class="form-control" style="max-width:240px;" onchange="selectedTermId=this.value;render(this.value)">
           ${terms.map(t => `<option value="${t.id}" ${t.id===selectedTermId?'selected':''}>${t.name}${t.is_current?' (Current)':''}</option>`).join('')}
@@ -140,5 +149,6 @@ function formatDate(d) { if(!d) return '—'; try { return new Date(d).toLocaleD
 })();
 </script>
 <script src="../../js/assistant.js"></script>
+<script src="/js/pwa-v2.1.js"></script>
 </body>
 </html>

@@ -457,10 +457,19 @@ window.normaliseSchoolType = function(type) {
     islamiyya: 'islamic',
     islamic_institute: 'islamic',
     vocational_training: 'vocational',
+    technical: 'vocational',
+    technical_college: 'vocational',
+    trade_school: 'vocational',
     tertiary_institute: 'tertiary',
+    university: 'tertiary',
+    polytechnic: 'tertiary',
+    college: 'tertiary',
+    higher_institution: 'tertiary',
     computer_institute: 'computer_training',
+    computer_training_centre: 'computer_training',
+    computer_training_center: 'computer_training',
   };
-  const value = String(type || '').trim().toLowerCase();
+  const value = String(type || '').trim().toLowerCase().replace(/[\s-]+/g, '_');
   return aliases[value] || value || 'o_level';
 };
 window.getSchoolCtxType = function(ctx) {
