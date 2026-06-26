@@ -341,9 +341,9 @@ img{display:block;max-width:100%}
   position:relative;overflow:hidden;
   display:flex;flex-direction:column;
   align-items:center;justify-content:center;
-  padding:100px 20px 80px;
-  padding:100px clamp(20px,5vw,72px) 80px;
-  text-align:center;
+  padding:112px 20px 86px;
+  padding:112px clamp(20px,5vw,72px) 86px;
+  text-align:left;
 }
 
 .hero-bg{
@@ -373,7 +373,12 @@ img{display:block;max-width:100%}
   background-size:32px 32px;
   mask-image:radial-gradient(ellipse 70% 70% at 50% 50%,black 20%,transparent 90%);
 }
-.hero-content{position:relative;z-index:5;max-width:900px;margin:0 auto;width:100%}
+.hero-content{
+  position:relative;z-index:5;width:100%;max-width:1220px;margin:0 auto;
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,520px);
+  gap:clamp(34px,5vw,76px);align-items:center;
+}
+.hero-copy{max-width:690px}
 .hero-eyebrow{
   display:inline-flex;align-items:center;gap:9px;
   background:rgba(10,110,63,.16);border:1px solid rgba(10,110,63,.5);
@@ -394,9 +399,9 @@ img{display:block;max-width:100%}
 .hero h1{
   font-family:var(--H);
   font-size:42px;
-  font-size:clamp(42px,7vw,90px);
+  font-size:clamp(42px,6vw,76px);
   font-weight:900;line-height:1.0;
-  letter-spacing:-3px;color:white;
+  letter-spacing:0;color:white;
   margin-bottom:28px;
 }
 .hero h1 .line2{display:block}
@@ -413,13 +418,24 @@ img{display:block;max-width:100%}
 .hero-sub{
   font-size:16px;
   font-size:clamp(16px,2vw,20px);
-  color:rgba(255,255,255,.58);
-  line-height:1.8;max-width:600px;
-  margin:0 auto 44px;
+  color:rgba(255,255,255,.72);
+  line-height:1.75;max-width:620px;
+  margin:0 0 30px;
+}
+.hero-proof{
+  display:flex;flex-wrap:wrap;gap:9px;margin:0 0 34px;
+}
+.hero-proof span{
+  display:inline-flex;align-items:center;gap:7px;
+  color:rgba(255,255,255,.82);
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.13);
+  border-radius:999px;padding:8px 12px;
+  font-size:12px;font-weight:700;
 }
 .hero-btns{
-  display:flex;gap:12px;justify-content:center;
-  flex-wrap:wrap;margin-bottom:60px;
+  display:flex;gap:12px;justify-content:flex-start;
+  flex-wrap:wrap;margin-bottom:36px;
 }
 .hbtn-p{
   padding:15px 32px;border-radius:14px;
@@ -467,6 +483,40 @@ img{display:block;max-width:100%}
 }
 .hs-v .a{color:var(--AU)}
 .hs-l{font-size:10px;font-weight:700;color:rgba(255,255,255,.32);text-transform:uppercase;letter-spacing:1.5px}
+.hero-visual{
+  position:relative;z-index:5;
+}
+.hero-console{
+  background:rgba(7,13,18,.88);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:20px;
+  box-shadow:0 30px 90px rgba(0,0,0,.45),0 0 0 1px rgba(10,110,63,.08);
+  overflow:hidden;
+}
+.hero-console-top{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.04);
+}
+.hero-dash-title{font-family:var(--H);font-size:13px;font-weight:800;color:white}
+.hero-live{font-size:11px;font-weight:800;color:#4ade80;background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.25);border-radius:999px;padding:5px 9px}
+.hero-console-body{padding:18px}
+.dash-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.dash-kpi{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:13px}
+.dash-kpi b{display:block;font-family:var(--H);font-size:22px;color:white;line-height:1}
+.dash-kpi span{display:block;margin-top:6px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.45)}
+.dash-panel{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px;margin-top:10px}
+.dash-panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.dash-panel-head strong{font-size:13px;color:white}
+.dash-panel-head span{font-size:11px;color:rgba(255,255,255,.48)}
+.dash-row{display:grid;grid-template-columns:1.2fr .8fr .8fr;gap:10px;align-items:center;padding:9px 0;border-top:1px solid rgba(255,255,255,.07);font-size:12px;color:rgba(255,255,255,.74)}
+.dash-row:first-of-type{border-top:none}
+.dash-row b{color:white;font-size:12px}
+.dash-status{justify-self:start;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:800}
+.dash-status.ok{background:rgba(74,222,128,.12);color:#65e99b}
+.dash-status.warn{background:rgba(240,165,0,.14);color:#ffd36a}
+.dash-flow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}
+.dash-flow span{background:rgba(10,110,63,.24);border:1px solid rgba(74,222,128,.2);border-radius:10px;padding:10px 8px;text-align:center;color:#bff5d3;font-size:11px;font-weight:800}
 .hero-scroll{
   position:absolute;bottom:32px;left:50%;
   -webkit-transform:translateX(-50%);
@@ -1054,6 +1104,12 @@ footer{background:var(--INK);padding:68px clamp(20px,5vw,72px) 32px}
 .reveal-r{opacity:0;transform:translateX(30px);transition:opacity .6s ease,transform .6s ease}
 .reveal-r.in{opacity:1;transform:none}
 @media(max-width:1024px){
+  .hero{padding-top:100px;text-align:center}
+  .hero-content{grid-template-columns:1fr;max-width:900px}
+  .hero-copy{max-width:760px;margin:0 auto}
+  .hero-sub{margin-left:auto;margin-right:auto}
+  .hero-proof,.hero-btns{justify-content:center}
+  .hero-visual{max-width:620px;margin:0 auto;width:100%}
   .feat-grid{grid-template-columns:repeat(2,1fr)}
   .fc.featured{grid-column:span 2}
   .learning-grid,.auto-grid,.nga-grid,.split-grid{grid-template-columns:1fr;gap:40px}
@@ -1071,11 +1127,17 @@ footer{background:var(--INK);padding:68px clamp(20px,5vw,72px) 32px}
   .foot-grid{grid-template-columns:1fr 1fr}
   .hero-stats{flex-wrap:wrap}
   .hs{min-width:50%}
+  .dash-kpis{grid-template-columns:1fr 1fr}
+  .dash-kpi:last-child{grid-column:1 / -1}
+  .dash-flow{grid-template-columns:1fr 1fr}
   .strip-photo{width:260px;height:160px}
 }
 @media(max-width:480px){
   .hero h1{letter-spacing:-1.5px}
   .hero-btns{flex-direction:column;align-items:center}
+  .hero-btns .hbtn-p,.hero-btns .hbtn-s{width:100%;justify-content:center}
+  .hero-console-body{padding:12px}
+  .dash-row{grid-template-columns:1fr;gap:5px}
   .how-steps{grid-template-columns:1fr}
   .foot-grid{grid-template-columns:1fr}
   .hs{min-width:100%}
@@ -1421,7 +1483,7 @@ body[data-theme="dark"]{
 </div>
 
 <!-- ═══ HERO (unchanged) ══════════════════════════════════════════════ -->
-<section class="hero" id="hero"><div class="hero-stripe"></div><div class="hero-bg"></div><div class="hero-dots"></div><div class="hero-content"><div class="hero-eyebrow reveal"><span class="hero-eyebrow-dot"></span>Built exclusively for Nigerian Schools &#127475;&#127468;</div><h1 class="reveal">The Smartest Way to <br><span class="line2"> <span class="accent">Manage Your School</span> <span class="dim"></span></span></h1><p class="hero-sub reveal">One powerful system for student records, results, attendance, and fees &mdash; built from the ground up for Nigerian primary and secondary schools.</p><div class="hero-btns reveal"><button class="hbtn-p" onclick="location.href='login.html?demo=1'"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 10l4.553-2.069A1 1 0 0121 8.876V15.124a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>Demo</button><button class="hbtn-s hbtn-register" onclick="location.href='register.html'">Register Your School</button><button class="hbtn-s" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})"><svg width="14" height="14" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor"/><path d="M10 8l6 4-6 4V8z" fill="currentColor"/></svg>See How It Works</button></div><div class="hero-stats reveal"><div class="hs"><div class="hs-v">A1<span class="a">&ndash;F9</span></div><div class="hs-l">Nigerian Grading</div></div><div class="hs"><div class="hs-v"><span class="a">5</span>+</div><div class="hs-l">User Portals</div></div><div class="hs"><div class="hs-v">100<span class="a">%</span></div><div class="hs-l">Mobile Ready</div></div><div class="hs"><div class="hs-v">&#8358;<span class="a">0</span></div><div class="hs-l">To Start</div></div><div class="hs"><div class="hs-v"><span class="a">30</span>s</div><div class="hs-l">Per Attendance</div></div></div></div><div class="hero-scroll"><span>Scroll</span><div class="hero-scroll-line"></div></div></section>
+<section class="hero" id="hero"><div class="hero-stripe"></div><div class="hero-bg"></div><div class="hero-dots"></div><div class="hero-content"><div class="hero-copy"><div class="hero-eyebrow reveal"><span class="hero-eyebrow-dot"></span>Built for Nigerian schools and multi-campus teams</div><h1 class="reveal">Run admissions, fees, attendance and results <span class="line2"><span class="accent">from one school OS</span></span></h1><p class="hero-sub reveal">EduTrack NG gives proprietors, administrators, teachers, parents and students a single mobile-ready platform for the daily work of running a school.</p><div class="hero-proof reveal"><span>WAEC-style A1-F9 grading</span><span>Offline-ready PWA</span><span>SMS and WhatsApp reminders</span><span>Role-based portals</span></div><div class="hero-btns reveal"><button class="hbtn-p" onclick="location.href='login.html?demo=1'"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 10l4.553-2.069A1 1 0 0121 8.876V15.124a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>View Demo</button><button class="hbtn-s hbtn-register" onclick="location.href='register.html'">Register Your School</button><button class="hbtn-s" onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})"><svg width="14" height="14" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor"/><path d="M10 8l6 4-6 4V8z" fill="currentColor"/></svg>Explore Features</button></div><div class="hero-stats reveal"><div class="hs"><div class="hs-v">A1<span class="a">&ndash;F9</span></div><div class="hs-l">Nigerian Grading</div></div><div class="hs"><div class="hs-v"><span class="a">5</span>+</div><div class="hs-l">User Portals</div></div><div class="hs"><div class="hs-v">100<span class="a">%</span></div><div class="hs-l">Mobile Ready</div></div><div class="hs"><div class="hs-v">&#8358;<span class="a">0</span></div><div class="hs-l">To Start</div></div><div class="hs"><div class="hs-v"><span class="a">30</span>s</div><div class="hs-l">Per Attendance</div></div></div></div><div class="hero-visual reveal-r" aria-label="EduTrack NG dashboard preview"><div class="hero-console"><div class="hero-console-top"><div class="hero-dash-title">EduTrack NG Command Centre</div><div class="hero-live">Live term view</div></div><div class="hero-console-body"><div class="dash-kpis"><div class="dash-kpi"><b>1,248</b><span>Active students</span></div><div class="dash-kpi"><b>94%</b><span>Attendance today</span></div><div class="dash-kpi"><b>&#8358;8.4m</b><span>Fees tracked</span></div></div><div class="dash-panel"><div class="dash-panel-head"><strong>Today in school</strong><span>Friday, 26 Jun</span></div><div class="dash-row"><b>JSS 2 Gold</b><span>Mathematics scores</span><span class="dash-status ok">Published</span></div><div class="dash-row"><b>SS 1 Science</b><span>Fee reminders</span><span class="dash-status warn">12 pending</span></div><div class="dash-row"><b>Primary 5</b><span>Attendance register</span><span class="dash-status ok">Marked</span></div></div><div class="dash-flow"><span>Admit</span><span>Teach</span><span>Assess</span><span>Inform</span></div></div></div></div></div><div class="hero-scroll"><span>Scroll</span><div class="hero-scroll-line"></div></div></section>
 
 <!-- ═══ PHOTO STRIP (unchanged) ═══════════════════════════════════════ -->
 <div class="photo-strip"><div class="strip-track" id="stripTrack"><div class="strip-photo" data-label="Nigerian Schools"><img src="icons/student_2.jpg" alt="Nigerian school building" loading="lazy"></div><div class="strip-photo" data-label="School Life"><img src="icons/student_1.jpg" alt="School courtyard" loading="lazy"></div><div class="strip-photo" data-label="The Old Problem"><img src="icons/school_4.jpg" alt="Paper records" loading="lazy"></div><div class="strip-photo" data-label="The Old Way"><img src="icons/school_5.jpg" alt="Messy office" loading="lazy"></div><div class="strip-photo" data-label="Nigerian Schools"><img src="icons/Lagos-schools-1.jpg" alt="Nigerian school building" loading="lazy"></div><div class="strip-photo" data-label="School Life"><img src="icons/student_2.jpg" alt="School courtyard" loading="lazy"></div><div class="strip-photo" data-label="The Old Problem"><img src="icons/school_4.jpg" alt="Paper records" loading="lazy"></div><div class="strip-photo" data-label="The Old Way"><img src="icons/school_5.jpg" alt="Messy office" loading="lazy"></div></div></div>
