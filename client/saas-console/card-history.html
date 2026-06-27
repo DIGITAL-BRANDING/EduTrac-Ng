@@ -298,7 +298,8 @@ function printBatchPins(schoolId, batchName) {
         }).join('')}
       </tbody>
     </table>
-  </body></html>`;
+  <script src="../assets/js/theme-switcher.js"></script>
+</body></html>`;
   const blob = new Blob([html], { type:'text/html' });
   const url  = URL.createObjectURL(blob);
   const w    = window.open(url, '_blank', 'width=900,height=700');

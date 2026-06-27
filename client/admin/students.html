@@ -1132,7 +1132,8 @@ function printStudentIDCard() {
       body { margin:0; padding:24px; background:#e8ecf0; display:flex; flex-direction:column; align-items:center; gap:20px; }
       @media print { body { background:#e8ecf0; } @page { size: portrait; margin: 8mm; } }
     </style>
-    </head><body>${wrap.innerHTML}</body></html>`;
+    </head><body>${wrap.innerHTML}<script src="../assets/js/theme-switcher.js"></script>
+</body></html>`;
   const blob = new Blob([html], { type: 'text/html' });
   const url  = URL.createObjectURL(blob);
   const w    = window.open(url, '_blank', 'width=480,height=800');

@@ -332,3 +332,29 @@ async function initStudentPage(pageTitle, activePage = '') {
   } catch {}
   return session;
 }
+
+// ── Auto-load Theme Switcher on every inner page ───────────────
+(function () {
+  function loadThemeSwitcher() {
+    if (document.getElementById('etSwitcher')) return; // already loaded
+    // Resolve path relative to /assets/js/sidebar.js → /assets/js/theme-switcher.js
+    var scripts = document.querySelectorAll('script[src]');
+    var base = '/assets/js/';
+    for (var i = 0; i < scripts.length; i++) {
+      var src = scripts[i].getAttribute('src');
+      if (src && src.indexOf('sidebar.js') !== -1) {
+        base = src.replace('sidebar.js', '');
+        break;
+      }
+    }
+    var s = document.createElement('script');
+    s.src = base + 'theme-switcher.js';
+    s.defer = true;
+    document.head.appendChild(s);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadThemeSwitcher);
+  } else {
+    loadThemeSwitcher();
+  }
+})();
