@@ -206,19 +206,54 @@ async function loadData() {
 
     if (!allTerms?.length) { showErr('No semesters found', 'This school has no terms/semesters set up yet.'); return; }
 
-    // Only include semesters this student was actually enrolled in, in
-    // chronological order, so the transcript reflects their real history —
-    // not every semester the school has ever run.
-    const enrolledTermIds = new Set((enr || []).map(e => e.term_id));
-    const studentTerms = allTerms.filter(t => enrolledTermIds.has(t.id));
-    const termsToShow = studentTerms.length ? studentTerms : allTerms.filter(t => t.is_current);
-
     // Pull every result for this student across all their semesters in one
     // query rather than one query per semester — far fewer round trips.
-    const allResults = await pageQuery(
+    // Joins exams() so multiple exam-component rows per subject (CA1, CA2,
+    // Final Exam, etc.) can be combined into one weighted subject score —
+    // the same calculation already proven in report-card-engine.js — rather
+    // than each component row being mistaken for its own separate subject.
+    let allResults = await pageQuery(
       'All results',
-      db.from('results').select('score,subject_id,term_id,subjects(id,name,credit_unit)').eq('student_id', STUDENT_ID)
-    ) || [];
+      db.from('results').select('score,subject_id,term_id,exam_id,subjects(id,name,credit_unit),exams(id,name,max_score,weight)').eq('student_id', STUDENT_ID)
+    );
+
+    // credit_unit may not exist yet on this school's subjects table if the
+    // Settings → Grading / Academic Structure schema migration hasn't been
+    // run in Supabase. Retry without it rather than letting the whole
+    // transcript silently show "no scores" for every student at this school.
+    let resultsQueryFailed = false;
+    if (allResults === null) {
+      allResults = await pageQuery(
+        'All results (no credit_unit)',
+        db.from('results').select('score,subject_id,term_id,exam_id,subjects(id,name),exams(id,name,max_score,weight)').eq('student_id', STUDENT_ID)
+      );
+      if (allResults === null) resultsQueryFailed = true; // both attempts failed — a real DB/network error, not "no scores"
+    }
+    allResults = allResults || [];
+    if (resultsQueryFailed) {
+      console.error('[transcript.html] Both results queries failed — check the browser console above for the actual Supabase error. This is NOT the same as a student genuinely having no scores.');
+    }
+
+    // Decide which terms to show using THREE fallbacks, in order of trust:
+    //   1. Terms this student has an enrollment record for (most accurate
+    //      when enrollment data is kept up to date).
+    //   2. Terms this student actually HAS RESULTS IN — derived directly from
+    //      the results we just pulled. This is the most reliable source of
+    //      truth because it can never drift out of sync with enrollment
+    //      records created by a different admin screen (there are 4 separate
+    //      places in this codebase that create enrollment rows, and a gap or
+    //      mismatch in any of them previously caused the transcript to show
+    //      "no scores" for students who clearly had scores — confirmed by
+    //      certificate.html working for the same student when given an
+    //      explicit term_id, since it never depended on enrollment matching).
+    //   3. The school's current term, purely as a last resort so a brand
+    //      new student with zero data yet doesn't see a confusing error.
+    const enrolledTermIds = new Set((enr || []).map(e => e.term_id));
+    const resultTermIds = new Set(allResults.map(r => r.term_id));
+
+    let termsToShow = allTerms.filter(t => enrolledTermIds.has(t.id));
+    if (!termsToShow.length) termsToShow = allTerms.filter(t => resultTermIds.has(t.id));
+    if (!termsToShow.length) termsToShow = allTerms.filter(t => t.is_current);
 
     const semesters = termsToShow.map(term => {
       const rows = allResults.filter(r => r.term_id === term.id);
@@ -246,29 +281,53 @@ async function loadData() {
 
 /**
  * Build one semester's worth of rows + per-semester GPA.
- * Grade is resolved by matching score against the school's grading_scales
- * bands; grade_point and credit_unit drive the GPA math. Schools that have
- * never set grade_point (o_level/islamic/tutorial_center, or a tertiary
- * school that hasn't filled it in yet) safely compute a GPA of 0 rather
- * than throwing — the UI clearly labels this so it's never mistaken for a
- * real 0.0 academic performance.
+ *
+ * IMPORTANT: `rows` here is raw `results` data — and a single subject in a
+ * single term can have MULTIPLE rows (CA1, CA2, Final Exam, etc.), keyed by
+ * (student_id, subject_id, exam_id, term_id). This groups those rows by
+ * subject first and computes a weighted percentage score per subject —
+ * Σ(score/max_score × 100 × weight) ÷ Σ(weight) — the exact same method
+ * already proven in report-card-engine.js's prepCardData(), so a subject's
+ * transcript score always matches what the student's report card shows.
+ *
+ * Grade is then resolved by matching that percentage against the school's
+ * grading_scales bands; grade_point and credit_unit drive the GPA math.
+ * Schools that have never set grade_point (o_level/islamic/tutorial_center,
+ * or a tertiary school that hasn't filled it in yet) safely compute a GPA
+ * of 0 rather than throwing — the UI clearly labels this so it's never
+ * mistaken for a real 0.0 academic performance.
  */
-function buildSemesterRow(term, rows, scale, classRow) {
+function buildSemesterRow(term, rawRows, scale, classRow) {
   const sortedScale = [...scale].sort((a, b) => b.min_score - a.min_score);
   const resolveGrade = (score) => sortedScale.find(g => score >= g.min_score && score <= g.max_score) || null;
 
+  // Group raw result rows by subject_id first.
+  const bySubject = new Map();
+  rawRows.forEach(r => {
+    if (!bySubject.has(r.subject_id)) {
+      bySubject.set(r.subject_id, { subjectInfo: r.subjects, components: [] });
+    }
+    bySubject.get(r.subject_id).components.push(r);
+  });
+
   let totalCredits = 0, totalQualityPoints = 0, hasAnyGradePoint = false;
 
-  const subjects = rows.map(r => {
-    const grade = resolveGrade(r.score);
-    const credit = r.subjects?.credit_unit || 1;
+  const subjects = [...bySubject.values()].map(({ subjectInfo, components }) => {
+    // Weighted percentage across all exam components for this subject —
+    // same formula as report-card-engine.js's prepCardData().
+    const totalWeight = components.reduce((s, r) => s + (r.exams?.weight || 1), 0);
+    const weightedSum = components.reduce((s, r) => s + (r.score / (r.exams?.max_score || 100)) * 100 * (r.exams?.weight || 1), 0);
+    const pct = totalWeight > 0 ? Math.round((weightedSum / totalWeight) * 10) / 10 : 0;
+
+    const grade = resolveGrade(pct);
+    const credit = subjectInfo?.credit_unit || 1;
     const gp = grade?.grade_point ?? 0;
     if (grade?.grade_point) hasAnyGradePoint = true;
     totalCredits += credit;
     totalQualityPoints += gp * credit;
     return {
-      name: r.subjects?.name || 'Unknown Subject',
-      score: r.score,
+      name: subjectInfo?.name || 'Unknown Subject',
+      score: pct,
       grade: grade?.grade || '—',
       remark: grade?.remark || '',
       credit,
