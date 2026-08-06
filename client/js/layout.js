@@ -50,6 +50,19 @@ const _SVG = {
   cbt:          '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
 };
 
+// Maps each secondary role a user might additionally hold to the portal
+// they land in after switching. Used ONLY to build links to the caller's
+// OWN other roles — see switchToRole().
+const ROLE_PORTAL_LINKS = {
+  teacher:      { icon:_SVG.students, label:'Teacher Portal',         portalUrl:'../portals/staff/index.html' },
+  exam_officer: { icon:_SVG.results,  label:'Exam Officer Portal',    portalUrl:'../portals/academic-office/index.html' },
+  vp_academic:  { icon:_SVG.book,     label:'VP Academic Portal',     portalUrl:'../portals/academic-office/index.html' },
+  vp_admin:     { icon:_SVG.staff,    label:'VP Admin Portal',        portalUrl:'../portals/admin-office/index.html' },
+  registrar:    { icon:_SVG.idcard,   label:'Registrar Portal',       portalUrl:'../portals/admin-office/index.html' },
+  accountant:   { icon:_SVG.payment,  label:'Accountant Portal',      portalUrl:'../portals/bursary/index.html' },
+  bursary:      { icon:_SVG.money,    label:'Bursary Officer Portal', portalUrl:'../portals/bursary/index.html' },
+};
+
 // Admin nav group definitions
 const _ADMIN_GROUPS = [
   // ─ Top-level direct links ─
@@ -92,17 +105,16 @@ const _ADMIN_GROUPS = [
   },
 
 
-  // ─ Staff Portals (Impersonation) ─
-  { type:'group', id:'grp-staff-portals', icon:'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>', label:'Staff Activities',
-    children:[
-      { id:'sp-teacher',     icon:_SVG.students,  label:'Teacher Portal',        href:'#', onclick:'openImpersonateModal(\'teacher\',\'../portals/staff/index.html\')' },
-      { id:'sp-exam-officer',icon:_SVG.results,   label:'Exam Officer Portal',   href:'#', onclick:'openImpersonateModal(\'exam_officer\',\'../portals/staff/index.html\')' },
-      { id:'sp-vp-academic', icon:_SVG.book,      label:'VP Academic Portal',    href:'#', onclick:'openImpersonateModal(\'vp_academic\',\'../portals/academic-office/index.html\')' },
-      { id:'sp-vp-admin',    icon:_SVG.staff,     label:'VP Admin Portal',       href:'#', onclick:'openImpersonateModal(\'vp_admin\',\'../portals/admin-office/index.html\')' },
-      { id:'sp-registrar',   icon:_SVG.idcard,    label:'Registrar Portal',      href:'#', onclick:'openImpersonateModal(\'registrar\',\'../portals/admin-office/index.html\')' },
-      { id:'sp-accountant',  icon:_SVG.payment,   label:'Accountant Portal',     href:'#', onclick:'openImpersonateModal(\'accountant\',\'../portals/bursary/index.html\')' },
-      { id:'sp-bursar',      icon:_SVG.money,     label:'Bursary Officer Portal',href:'#', onclick:'openImpersonateModal(\'bursary\',\'../portals/bursary/index.html\')' },
-    ]
+  // ─ Staff Portals (Multi-Role Switch) ─
+  // SECURITY: this group's children are no longer static. They are built
+  // dynamically at render time from the CALLER's OWN `roles` array (see
+  // ROLE_PORTAL_LINKS + _renderAdminNav below), never from a list of other
+  // staff members. There is no way to view or act as a different account —
+  // only to switch which of *your own* assigned roles is currently active.
+  { type:'group', id:'grp-staff-portals', dynamicRoleLinks:true,
+    icon:'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+    label:'My Other Roles',
+    children:[] // populated per-user in _renderAdminNav
   },
 
   // ─ Finance ─
@@ -151,13 +163,30 @@ const _ADMIN_GROUPS = [
   },
 ];
 
-function _renderAdminNav(activePage) {
+function _renderAdminNav(activePage, userRoles = []) {
+  // Build this user's own "other roles" links (if any) for the
+  // dynamicRoleLinks group. Never includes anyone else's account.
+  const myOtherRoleLinks = (userRoles || [])
+    .filter(r => r !== 'admin' && ROLE_PORTAL_LINKS[r])
+    .map(r => ({
+      id: 'sp-' + r,
+      icon: ROLE_PORTAL_LINKS[r].icon,
+      label: ROLE_PORTAL_LINKS[r].label,
+      href: '#',
+      onclick: `switchToRole('${r}','${ROLE_PORTAL_LINKS[r].portalUrl}')`
+    }));
+
+  const groups = _ADMIN_GROUPS
+    .map(item => item.dynamicRoleLinks ? { ...item, children: myOtherRoleLinks } : item)
+    // Hide the "My Other Roles" group entirely for users who only hold one role
+    .filter(item => !(item.dynamicRoleLinks && item.children.length === 0));
+
   // Find which group contains the active page
-  const activeGroup = _ADMIN_GROUPS.find(g =>
+  const activeGroup = groups.find(g =>
     g.type === 'group' && g.children.some(c => c.id === activePage)
   );
 
-  return _ADMIN_GROUPS.map(item => {
+  return groups.map(item => {
     if (item.type === 'link') {
       const isActive = activePage === item.id;
       return `<a href="${item.href}" class="nav-item${isActive ? ' active' : ''}">
@@ -192,6 +221,22 @@ function _renderAdminNav(activePage) {
   }).join('');
 }
 
+// ── Safe role switch ────────────────────────────────────────────
+// Replaces the old impersonation flow. Always operates on the
+// CALLER's own row via the switch_active_role RPC (server-verified:
+// the DB function checks new_role is actually in the caller's own
+// `roles` array before allowing the change — see
+// supabase/migrations/0001_multi_role_support.sql).
+async function switchToRole(role, portalUrl) {
+  try {
+    const { error } = await db.rpc('switch_active_role', { new_role: role });
+    if (error) { alert('Could not switch role: ' + error.message); return; }
+    window.location.href = portalUrl;
+  } catch (e) {
+    alert('Could not switch role: ' + (e.message || 'Unknown error'));
+  }
+}
+
 function toggleNavGroup(id) {
   const el = document.getElementById(id);
   if (!el) return;
@@ -204,99 +249,12 @@ function toggleNavGroup(id) {
 }
 
 
-// ── Staff Impersonation Modal ─────────────────────────────────
-function openImpersonateModal(role, portalUrl) {
-  // Remove existing modal if any
-  const existing = document.getElementById('impersonateModal');
-  if (existing) existing.remove();
-
-  const roleLabels = {
-    teacher: 'Teacher', exam_officer: 'Exam Officer',
-    vp_academic: 'VP Academic', vp_admin: 'VP Admin',
-    registrar: 'Registrar', accountant: 'Accountant',
-    bursary: 'Bursary Officer'
-  };
-
-  const modal = document.createElement('div');
-  modal.id = 'impersonateModal';
-  modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:16px;';
-  modal.innerHTML = `
-    <div style="background:#fff;border-radius:16px;width:100%;max-width:480px;max-height:80vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-      <div style="padding:20px 24px 16px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;">
-        <div>
-          <div style="font-size:18px;font-weight:700;color:#1a1a2e;">👤 Access as ${roleLabels[role] || role}</div>
-          <div style="font-size:13px;color:#888;margin-top:2px;">Select a staff member to view their portal</div>
-        </div>
-        <button onclick="document.getElementById('impersonateModal').remove()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#999;line-height:1;">×</button>
-      </div>
-      <div style="padding:12px 16px;border-bottom:1px solid #f5f5f5;">
-        <input id="impersonateSearch" type="text" placeholder="Search by name…" oninput="filterImpersonateList()" style="width:100%;padding:8px 12px;border:1px solid #e0e0e0;border-radius:8px;font-size:14px;box-sizing:border-box;outline:none;">
-      </div>
-      <div id="impersonateList" style="flex:1;overflow-y:auto;padding:8px;">
-        <div style="text-align:center;padding:32px;color:#888;">Loading staff…</div>
-      </div>
-    </div>`;
-
-  document.body.appendChild(modal);
-  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
-
-  // Load staff by role
-  (async () => {
-    const user = window._layoutUser || {};
-    const { data, error } = await db.from('users')
-      .select('id, full_name, email, role')
-      .eq('school_id', user.school_id)
-      .eq('role', role)
-      .eq('is_active', true)
-      .order('full_name');
-
-    const list = document.getElementById('impersonateList');
-    if (!list) return;
-
-    if (error || !data || data.length === 0) {
-      list.innerHTML = `<div style="text-align:center;padding:32px;color:#888;">No ${roleLabels[role] || role} staff found.</div>`;
-      return;
-    }
-
-    window._impersonateStaffList = data;
-    window._impersonatePortalUrl = portalUrl;
-    renderImpersonateList(data, portalUrl);
-  })();
-}
-
-function renderImpersonateList(staffList, portalUrl) {
-  const list = document.getElementById('impersonateList');
-  if (!list) return;
-  list.innerHTML = staffList.map(s => {
-    const initials = s.full_name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
-    const colors = ['#4f46e5','#0891b2','#059669','#d97706','#dc2626','#7c3aed'];
-    const color = colors[initials.charCodeAt(0) % colors.length];
-    return `
-      <div onclick="goImpersonate('${s.id}','${portalUrl}')"
-        style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:background 0.15s;"
-        onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='transparent'">
-        <div style="width:40px;height:40px;border-radius:50%;background:${color};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;">${initials}</div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-weight:600;font-size:14px;color:#1a1a2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.full_name}</div>
-          <div style="font-size:12px;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.email || ''}</div>
-        </div>
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-      </div>`;
-  }).join('');
-}
-
-function filterImpersonateList() {
-  const q = document.getElementById('impersonateSearch')?.value.toLowerCase() || '';
-  const filtered = (window._impersonateStaffList || []).filter(s =>
-    s.full_name.toLowerCase().includes(q) || (s.email||'').toLowerCase().includes(q)
-  );
-  renderImpersonateList(filtered, window._impersonatePortalUrl);
-}
-
-function goImpersonate(staffId, portalUrl) {
-  sessionStorage.setItem('impersonate_id', staffId);
-  window.location.href = portalUrl + '?impersonate=' + staffId;
-}
+// NOTE: The old "Staff Impersonation Modal" (pick any staff member, view
+// as them via a `?impersonate=<id>` URL param with no server-side check)
+// has been removed. It's replaced by switchToRole() above, which only
+// ever switches the CALLER's own active role and is verified server-side
+// by the switch_active_role RPC. See supabase/migrations/0001_multi_role_support.sql
+// and the "My Other Roles" nav group in _ADMIN_GROUPS.
 
 function renderAdminLayout(activePage, pageTitle) {
   const bottomItems = [
@@ -354,7 +312,11 @@ async function initAdminLayout(activePage, pageTitle) {
   document.getElementById('app').innerHTML = renderAdminLayout(activePage, pageTitle);
   const user = await requireAuth(['admin']);
   if (!user) return null;
-  window._layoutUser = user; // make available to impersonation modal
+  window._layoutUser = user;
+  // Rebuild the sidebar nav now that we know this user's own roles,
+  // so "My Other Roles" shows only roles actually assigned to them.
+  const navEl = document.querySelector('.sidebar__nav');
+  if (navEl) navEl.innerHTML = _renderAdminNav(activePage, user.roles || []);
   // Update school info
   document.getElementById('schoolName').textContent = user.schools?.name || 'My School';
   document.getElementById('userName').textContent = user.full_name;

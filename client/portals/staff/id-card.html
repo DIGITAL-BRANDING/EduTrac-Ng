@@ -467,6 +467,7 @@
 <script src="../../api/database.js"></script>
 <script src="../../api/auth.js"></script>
 <script src="../../assets/js/sidebar.js"></script>
+<script src="../../assets/js/print-helper.js"></script>
 <script>
 let user, term, classes = [], students = [], schoolInfo = null, idCardConfig = null, allTerms = [];
 let selectedIds = new Set();
@@ -998,13 +999,17 @@ function printSelected() {
 </body>
 </html>`;
 
-  const blob = new Blob([html], { type: 'text/html' });
-  const url  = URL.createObjectURL(blob);
-  const w    = window.open(url, '_blank', 'width=900,height=700');
-  setTimeout(() => {
-    if (w) { w.focus(); w.print(); }
-    URL.revokeObjectURL(url);
-  }, 800);
+  if (window.openPrintWindow) {
+    window.openPrintWindow(html, { features: 'width=900,height=700' });
+  } else {
+    const blob = new Blob([html], { type: 'text/html' });
+    const url  = URL.createObjectURL(blob);
+    const w    = window.open(url, '_blank', 'width=900,height=700');
+    setTimeout(() => {
+      if (w) { w.focus(); w.print(); }
+      URL.revokeObjectURL(url);
+    }, 800);
+  }
 }
 
 function selectAll() {
@@ -1062,7 +1067,6 @@ function lightenHex(hex, amount) {
   } catch { return hex; }
 }
 </script>
-
 
 <script src="../../js/assistant.js"></script>
 

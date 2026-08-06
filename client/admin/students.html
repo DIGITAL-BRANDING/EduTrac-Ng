@@ -637,6 +637,7 @@
 <script src="../js/config.js"></script>
 <script src="../js/supabase.js"></script>
 <script src="../js/layout.js"></script>
+<script src="../assets/js/print-helper.js"></script>
 <script>
 // ======================== GLOBAL STATE ========================
 let cu, allClasses = [], allCombos = [], comboSubMap = {}, currentTerm = null;
@@ -1126,35 +1127,37 @@ function openAdmissionLetter() {
 function printStudentIDCard() {
   const wrap = document.querySelector('#studentIDCardModal .idc-wrap');
   if (!wrap) return;
-  const styles = [...document.querySelectorAll('style, link[rel="stylesheet"]')].map(el => el.outerHTML).join('');
-  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">${styles}
-    <style>
-      body { margin:0; padding:24px; background:#e8ecf0; display:flex; flex-direction:column; align-items:center; gap:20px; }
-      @media print { body { background:#e8ecf0; } @page { size: portrait; margin: 8mm; } }
-    </style>
-    </head><body>${wrap.innerHTML}<script src="../assets/js/theme-switcher.js"></script>
+  if (window.openPrintWindowFromElement) {
+    window.openPrintWindowFromElement(wrap, { features: 'width=480,height=800' });
+  } else {
+    const styles = [...document.querySelectorAll('style, link[rel="stylesheet"]')].map(el => el.outerHTML).join('');
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">${styles}
+      <style>
+        body { margin:0; padding:24px; background:#e8ecf0; display:flex; flex-direction:column; align-items:center; gap:20px; }
+        @media print { body { background:#e8ecf0; } @page { size: portrait; margin: 8mm; } }
+      </style>
+      </head><body>${wrap.innerHTML}<script src="../assets/js/theme-switcher.js"><\/script>
 </body></html>`;
-  const blob = new Blob([html], { type: 'text/html' });
-  const url  = URL.createObjectURL(blob);
-  const w    = window.open(url, '_blank', 'width=480,height=800');
-  setTimeout(() => { if (w) { w.focus(); w.print(); } URL.revokeObjectURL(url); }, 700);
+    openPrintWindow(html, { features: 'width=480,height=800' });
+  }
 }
 
 function printAdmissionLetter() {
   const doc = document.getElementById('admissionLetterDoc');
   if (!doc) return;
-  const styles = [...document.querySelectorAll('style, link[rel="stylesheet"]')].map(el => el.outerHTML).join('');
-  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">${styles}
-    <style>
-      body { margin:0; background:#f8f8f4; }
-      .letter-wrap { padding:20px; }
-      @media print { body { background:white; } @page { margin: 20mm; } }
-    </style>
-    </head><body><div class="letter-wrap"><div class="letter-doc">${doc.innerHTML}</div></div></body></html>`;
-  const blob = new Blob([html], { type: 'text/html' });
-  const url  = URL.createObjectURL(blob);
-  const w    = window.open(url, '_blank', 'width=800,height=900');
-  setTimeout(() => { if (w) { w.focus(); w.print(); } URL.revokeObjectURL(url); }, 700);
+  if (window.openPrintWindowFromElement) {
+    window.openPrintWindowFromElement(doc, { features: 'width=800,height=900' });
+  } else {
+    const styles = [...document.querySelectorAll('style, link[rel="stylesheet"]')].map(el => el.outerHTML).join('');
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">${styles}
+      <style>
+        body { margin:0; background:#f8f8f4; }
+        .letter-wrap { padding:20px; }
+        @media print { body { background:white; } @page { margin: 20mm; } }
+      </style>
+      </head><body><div class="letter-wrap"><div class="letter-doc">${doc.innerHTML}</div></div></body></html>`;
+    openPrintWindow(html, { features: 'width=800,height=900' });
+  }
 }
 async function openLink(studentId) { document.getElementById('lStudentId').value = studentId; openModal('linkModal'); }
 async function linkParent() { const email = document.getElementById('parentEmailInput')?.value; if (!email) return; alert('Parent linking simulation: ' + email); closeModal('linkModal'); }
