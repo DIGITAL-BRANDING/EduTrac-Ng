@@ -1,0 +1,777 @@
+diff --git a/client/admin/staff.html b/client/admin/staff.html
+index 8f8c893..4745460 100644
+--- a/client/admin/staff.html
++++ b/client/admin/staff.html
+@@ -177,6 +177,21 @@
+               <option value="bursary">Bursary Officer</option>
+             </optgroup>
+           </select>
++          <div class="form-hint">This is the role they land in right after login.</div>
++        </div>
++        <div class="form-group">
++          <label class="form-label">Additional Roles</label>
++          <div id="staffExtraRoles" style="display:flex;flex-wrap:wrap;gap:10px 18px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;">
++            <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;"><input type="checkbox" value="teacher" class="staff-extra-role-cb"> Teacher</label>
++            <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;"><input type="checkbox" value="exam_officer" class="staff-extra-role-cb"> Exam Officer</label>
++            <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;"><input type="checkbox" value="vp_academic" class="staff-extra-role-cb"> VP Academic</label>
++            <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;"><input type="checkbox" value="admin" class="staff-extra-role-cb"> Administrator</label>
++            <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;"><input type="checkbox" value="vp_admin" class="staff-extra-role-cb"> VP Admin</label>
++            <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;"><input type="checkbox" value="registrar" class="staff-extra-role-cb"> Registrar</label>
++            <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;"><input type="checkbox" value="accountant" class="staff-extra-role-cb"> Accountant</label>
++            <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;"><input type="checkbox" value="bursary" class="staff-extra-role-cb"> Bursary Officer</label>
++          </div>
++          <div class="form-hint">Tick every office this person also holds (e.g. a small school where one person is Admin + Exam Officer + Registrar). They'll get a "My Other Roles" menu to switch between them — safely, with no impersonation involved.</div>
+         </div>
+         <div class="form-group" id="formClassGroup">
+           <label class="form-label">Form Class (Form Master assignment)</label>
+@@ -528,7 +543,7 @@ const PORTAL_LINKS = {
+ // ══════════════════════════════════════════════════════
+ async function loadStaff() {
+   const { data, error } = await db.from('users')
+-    .select('id,full_name,phone,email,role,is_active,photo_url,created_at')
++    .select('id,full_name,phone,email,role,roles,is_active,photo_url,created_at')
+     .eq('school_id', currentUser.school_id)
+     .not('role', 'in', '(saas_owner,parent,student)')
+     .order('full_name');
+@@ -937,6 +952,7 @@ function openAddStaff() {
+   document.getElementById('staffEmail').value = '';
+   document.getElementById('staffPhone').value = '';
+   document.getElementById('staffRole').value = 'teacher';
++  document.querySelectorAll('.staff-extra-role-cb').forEach(cb => cb.checked = false);
+   document.getElementById('staffPassword').value = 'School@123';
+   document.getElementById('staffFormError').style.display = 'none';
+   document.getElementById('passwordGroup').style.display = '';
+@@ -966,6 +982,8 @@ function editStaff(id) {
+   document.getElementById('staffName').value  = s.full_name;
+   document.getElementById('staffPhone').value = s.phone || '';
+   document.getElementById('staffRole').value  = s.role;
++  const existingRoles = s.roles && s.roles.length ? s.roles : [s.role];
++  document.querySelectorAll('.staff-extra-role-cb').forEach(cb => { cb.checked = existingRoles.includes(cb.value); });
+   document.getElementById('passwordGroup').style.display = 'none';
+   document.getElementById('staffEmail').closest('.form-group').style.display = 'none';
+   document.getElementById('staffFormError').style.display = 'none';
+@@ -1021,6 +1039,8 @@ async function saveStaff() {
+   const email    = document.getElementById('staffEmail').value.trim();
+   const phone    = document.getElementById('staffPhone').value.trim();
+   const role     = document.getElementById('staffRole').value;
++  const extraRoles = Array.from(document.querySelectorAll('.staff-extra-role-cb:checked')).map(cb => cb.value);
++  const roles = Array.from(new Set([role, ...extraRoles])); // primary role always included
+   const password = document.getElementById('staffPassword').value;
+   const formClassId = document.getElementById('formClass').value || null;
+   const sectionId   = document.getElementById('staffSection').value || null;
+@@ -1050,10 +1070,10 @@ async function saveStaff() {
+       }
+ 
+       btn.textContent = 'Creating profile…';
+-      const profileError = await insertProfileWithRetry({ id:staffId, school_id:currentUser.school_id, full_name:name, phone:phone||null, email:email||null, role, is_active:true, photo_url:photoUrl });
++      const profileError = await insertProfileWithRetry({ id:staffId, school_id:currentUser.school_id, full_name:name, phone:phone||null, email:email||null, role, roles, is_active:true, photo_url:photoUrl });
+       if (profileError) throw profileError;
+     } else {
+-      const { error } = await db.from('users').update({ full_name:name, phone:phone||null, role }).eq('id', id);
++      const { error } = await db.from('users').update({ full_name:name, phone:phone||null, role, roles }).eq('id', id);
+       if (error) throw error;
+     }
+ 
+diff --git a/client/js/impersonate.js b/client/js/impersonate.js
+deleted file mode 100644
+index f6fd525..0000000
+--- a/client/js/impersonate.js
++++ /dev/null
+@@ -1,90 +0,0 @@
+-// ============================================================
+-//  EduTrack NG — Admin Impersonation Helper
+-//  Drop this script into any staff portal page AFTER supabase.js:
+-//  <script src="../../js/impersonate.js"></script>
+-//  No other changes needed in the portal files.
+-// ============================================================
+-
+-(async function initImpersonation() {
+-  const params       = new URLSearchParams(window.location.search);
+-  const impersonateId = params.get('impersonate');
+-  if (!impersonateId) return; // Not impersonating — behave normally
+-
+-  // ── Override getCurrentUser so every portal page gets the impersonated user ──
+-  window.getCurrentUser = async function () {
+-    if (window._impersonatedUser) return window._impersonatedUser;
+-    const { data } = await db.from('users')
+-      .select('*, schools(*)')
+-      .eq('id', impersonateId)
+-      .single();
+-    window._impersonatedUser = data;
+-    return data;
+-  };
+-
+-  // ── Override requireAuth so portals don't redirect to login ──
+-  window.requireAuth = async function (allowedRoles = []) {
+-    const user = await window.getCurrentUser();
+-    if (!user) { window.location.href = '/login.html'; return null; }
+-    // Skip role check — admin can access any portal
+-    return user;
+-  };
+-
+-  // ── Inject the warning banner once DOM is ready ──
+-  document.addEventListener('DOMContentLoaded', async () => {
+-    const user = await window.getCurrentUser();
+-    if (!user) return;
+-
+-    const roleLabels = {
+-      teacher: 'Teacher', exam_officer: 'Exam Officer',
+-      vp_academic: 'VP Academic', vp_admin: 'VP Admin',
+-      registrar: 'Registrar', accountant: 'Accountant',
+-      bursary: 'Bursary Officer', admin: 'Admin', staff: 'Staff'
+-    };
+-    const roleLabel = roleLabels[user.role] || user.role;
+-
+-    // Detect how many levels deep we are to build the back link
+-    const depth = window.location.pathname.split('/').filter(Boolean).length;
+-    const backPath = depth <= 2 ? './admin/index.html' : '../'.repeat(depth - 1) + 'admin/index.html';
+-
+-    const initials = user.full_name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+-
+-    const banner = document.createElement('div');
+-    banner.id = 'impersonate-banner';
+-    banner.style.cssText = [
+-      'position:fixed', 'top:0', 'left:0', 'right:0', 'z-index:99999',
+-      'background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%)',
+-      'color:#fff', 'font-family:inherit',
+-      'padding:0 20px', 'height:48px',
+-      'display:flex', 'align-items:center', 'justify-content:space-between', 'gap:16px',
+-      'box-shadow:0 2px 12px rgba(0,0,0,0.35)'
+-    ].join(';');
+-
+-    banner.innerHTML = `
+-      <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+-        <div style="width:8px;height:8px;border-radius:50%;background:#f59e0b;flex-shrink:0;box-shadow:0 0 6px #f59e0b;animation:et-pulse 2s infinite;"></div>
+-        <span style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#f59e0b;flex-shrink:0;">Impersonating</span>
+-        <div style="width:1px;height:16px;background:rgba(255,255,255,0.15);flex-shrink:0;"></div>
+-        <div style="width:28px;height:28px;border-radius:50%;background:#f59e0b;color:#1a1a2e;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0;">${initials}</div>
+-        <div style="min-width:0;">
+-          <div style="font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${user.full_name}</div>
+-          <div style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:1px;">${roleLabel}</div>
+-        </div>
+-      </div>
+-      <button id="impersonate-back-btn"
+-        style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background 0.2s;"
+-        onmouseover="this.style.background='rgba(255,255,255,0.16)'"
+-        onmouseout="this.style.background='rgba(255,255,255,0.08)'">
+-        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+-        Back to Admin
+-      </button>
+-      <style>
+-        @keyframes et-pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+-      </style>`;
+-
+-    document.getElementById('impersonate-back-btn')?.addEventListener('click', () => window.location.href = backPath);
+-    document.body.prepend(banner);
+-
+-    // Push content down so banner doesn't cover the top of the page
+-    document.body.style.paddingTop = ((parseInt(document.body.style.paddingTop) || 0) + 48) + 'px';
+-  });
+-})();
+diff --git a/client/js/layout.js b/client/js/layout.js
+index fbdba9b..3d864a7 100644
+--- a/client/js/layout.js
++++ b/client/js/layout.js
+@@ -50,6 +50,19 @@ const _SVG = {
+   cbt:          '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
+ };
+ 
++// Maps each secondary role a user might additionally hold to the portal
++// they land in after switching. Used ONLY to build links to the caller's
++// OWN other roles — see switchToRole().
++const ROLE_PORTAL_LINKS = {
++  teacher:      { icon:_SVG.students, label:'Teacher Portal',         portalUrl:'../portals/staff/index.html' },
++  exam_officer: { icon:_SVG.results,  label:'Exam Officer Portal',    portalUrl:'../portals/academic-office/index.html' },
++  vp_academic:  { icon:_SVG.book,     label:'VP Academic Portal',     portalUrl:'../portals/academic-office/index.html' },
++  vp_admin:     { icon:_SVG.staff,    label:'VP Admin Portal',        portalUrl:'../portals/admin-office/index.html' },
++  registrar:    { icon:_SVG.idcard,   label:'Registrar Portal',       portalUrl:'../portals/admin-office/index.html' },
++  accountant:   { icon:_SVG.payment,  label:'Accountant Portal',      portalUrl:'../portals/bursary/index.html' },
++  bursary:      { icon:_SVG.money,    label:'Bursary Officer Portal', portalUrl:'../portals/bursary/index.html' },
++};
++
+ // Admin nav group definitions
+ const _ADMIN_GROUPS = [
+   // ─ Top-level direct links ─
+@@ -92,17 +105,16 @@ const _ADMIN_GROUPS = [
+   },
+ 
+ 
+-  // ─ Staff Portals (Impersonation) ─
+-  { type:'group', id:'grp-staff-portals', icon:'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>', label:'Staff Activities',
+-    children:[
+-      { id:'sp-teacher',     icon:_SVG.students,  label:'Teacher Portal',        href:'#', onclick:'openImpersonateModal(\'teacher\',\'../portals/staff/index.html\')' },
+-      { id:'sp-exam-officer',icon:_SVG.results,   label:'Exam Officer Portal',   href:'#', onclick:'openImpersonateModal(\'exam_officer\',\'../portals/staff/index.html\')' },
+-      { id:'sp-vp-academic', icon:_SVG.book,      label:'VP Academic Portal',    href:'#', onclick:'openImpersonateModal(\'vp_academic\',\'../portals/academic-office/index.html\')' },
+-      { id:'sp-vp-admin',    icon:_SVG.staff,     label:'VP Admin Portal',       href:'#', onclick:'openImpersonateModal(\'vp_admin\',\'../portals/admin-office/index.html\')' },
+-      { id:'sp-registrar',   icon:_SVG.idcard,    label:'Registrar Portal',      href:'#', onclick:'openImpersonateModal(\'registrar\',\'../portals/admin-office/index.html\')' },
+-      { id:'sp-accountant',  icon:_SVG.payment,   label:'Accountant Portal',     href:'#', onclick:'openImpersonateModal(\'accountant\',\'../portals/bursary/index.html\')' },
+-      { id:'sp-bursar',      icon:_SVG.money,     label:'Bursary Officer Portal',href:'#', onclick:'openImpersonateModal(\'bursary\',\'../portals/bursary/index.html\')' },
+-    ]
++  // ─ Staff Portals (Multi-Role Switch) ─
++  // SECURITY: this group's children are no longer static. They are built
++  // dynamically at render time from the CALLER's OWN `roles` array (see
++  // ROLE_PORTAL_LINKS + _renderAdminNav below), never from a list of other
++  // staff members. There is no way to view or act as a different account —
++  // only to switch which of *your own* assigned roles is currently active.
++  { type:'group', id:'grp-staff-portals', dynamicRoleLinks:true,
++    icon:'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
++    label:'My Other Roles',
++    children:[] // populated per-user in _renderAdminNav
+   },
+ 
+   // ─ Finance ─
+@@ -151,13 +163,30 @@ const _ADMIN_GROUPS = [
+   },
+ ];
+ 
+-function _renderAdminNav(activePage) {
++function _renderAdminNav(activePage, userRoles = []) {
++  // Build this user's own "other roles" links (if any) for the
++  // dynamicRoleLinks group. Never includes anyone else's account.
++  const myOtherRoleLinks = (userRoles || [])
++    .filter(r => r !== 'admin' && ROLE_PORTAL_LINKS[r])
++    .map(r => ({
++      id: 'sp-' + r,
++      icon: ROLE_PORTAL_LINKS[r].icon,
++      label: ROLE_PORTAL_LINKS[r].label,
++      href: '#',
++      onclick: `switchToRole('${r}','${ROLE_PORTAL_LINKS[r].portalUrl}')`
++    }));
++
++  const groups = _ADMIN_GROUPS
++    .map(item => item.dynamicRoleLinks ? { ...item, children: myOtherRoleLinks } : item)
++    // Hide the "My Other Roles" group entirely for users who only hold one role
++    .filter(item => !(item.dynamicRoleLinks && item.children.length === 0));
++
+   // Find which group contains the active page
+-  const activeGroup = _ADMIN_GROUPS.find(g =>
++  const activeGroup = groups.find(g =>
+     g.type === 'group' && g.children.some(c => c.id === activePage)
+   );
+ 
+-  return _ADMIN_GROUPS.map(item => {
++  return groups.map(item => {
+     if (item.type === 'link') {
+       const isActive = activePage === item.id;
+       return `<a href="${item.href}" class="nav-item${isActive ? ' active' : ''}">
+@@ -192,6 +221,22 @@ function _renderAdminNav(activePage) {
+   }).join('');
+ }
+ 
++// ── Safe role switch ────────────────────────────────────────────
++// Replaces the old impersonation flow. Always operates on the
++// CALLER's own row via the switch_active_role RPC (server-verified:
++// the DB function checks new_role is actually in the caller's own
++// `roles` array before allowing the change — see
++// supabase/migrations/0001_multi_role_support.sql).
++async function switchToRole(role, portalUrl) {
++  try {
++    const { error } = await db.rpc('switch_active_role', { new_role: role });
++    if (error) { alert('Could not switch role: ' + error.message); return; }
++    window.location.href = portalUrl;
++  } catch (e) {
++    alert('Could not switch role: ' + (e.message || 'Unknown error'));
++  }
++}
++
+ function toggleNavGroup(id) {
+   const el = document.getElementById(id);
+   if (!el) return;
+@@ -204,99 +249,12 @@ function toggleNavGroup(id) {
+ }
+ 
+ 
+-// ── Staff Impersonation Modal ─────────────────────────────────
+-function openImpersonateModal(role, portalUrl) {
+-  // Remove existing modal if any
+-  const existing = document.getElementById('impersonateModal');
+-  if (existing) existing.remove();
+-
+-  const roleLabels = {
+-    teacher: 'Teacher', exam_officer: 'Exam Officer',
+-    vp_academic: 'VP Academic', vp_admin: 'VP Admin',
+-    registrar: 'Registrar', accountant: 'Accountant',
+-    bursary: 'Bursary Officer'
+-  };
+-
+-  const modal = document.createElement('div');
+-  modal.id = 'impersonateModal';
+-  modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:16px;';
+-  modal.innerHTML = `
+-    <div style="background:#fff;border-radius:16px;width:100%;max-width:480px;max-height:80vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+-      <div style="padding:20px 24px 16px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;">
+-        <div>
+-          <div style="font-size:18px;font-weight:700;color:#1a1a2e;">👤 Access as ${roleLabels[role] || role}</div>
+-          <div style="font-size:13px;color:#888;margin-top:2px;">Select a staff member to view their portal</div>
+-        </div>
+-        <button onclick="document.getElementById('impersonateModal').remove()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#999;line-height:1;">×</button>
+-      </div>
+-      <div style="padding:12px 16px;border-bottom:1px solid #f5f5f5;">
+-        <input id="impersonateSearch" type="text" placeholder="Search by name…" oninput="filterImpersonateList()" style="width:100%;padding:8px 12px;border:1px solid #e0e0e0;border-radius:8px;font-size:14px;box-sizing:border-box;outline:none;">
+-      </div>
+-      <div id="impersonateList" style="flex:1;overflow-y:auto;padding:8px;">
+-        <div style="text-align:center;padding:32px;color:#888;">Loading staff…</div>
+-      </div>
+-    </div>`;
+-
+-  document.body.appendChild(modal);
+-  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+-
+-  // Load staff by role
+-  (async () => {
+-    const user = window._layoutUser || {};
+-    const { data, error } = await db.from('users')
+-      .select('id, full_name, email, role')
+-      .eq('school_id', user.school_id)
+-      .eq('role', role)
+-      .eq('is_active', true)
+-      .order('full_name');
+-
+-    const list = document.getElementById('impersonateList');
+-    if (!list) return;
+-
+-    if (error || !data || data.length === 0) {
+-      list.innerHTML = `<div style="text-align:center;padding:32px;color:#888;">No ${roleLabels[role] || role} staff found.</div>`;
+-      return;
+-    }
+-
+-    window._impersonateStaffList = data;
+-    window._impersonatePortalUrl = portalUrl;
+-    renderImpersonateList(data, portalUrl);
+-  })();
+-}
+-
+-function renderImpersonateList(staffList, portalUrl) {
+-  const list = document.getElementById('impersonateList');
+-  if (!list) return;
+-  list.innerHTML = staffList.map(s => {
+-    const initials = s.full_name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+-    const colors = ['#4f46e5','#0891b2','#059669','#d97706','#dc2626','#7c3aed'];
+-    const color = colors[initials.charCodeAt(0) % colors.length];
+-    return `
+-      <div onclick="goImpersonate('${s.id}','${portalUrl}')"
+-        style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:background 0.15s;"
+-        onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='transparent'">
+-        <div style="width:40px;height:40px;border-radius:50%;background:${color};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;">${initials}</div>
+-        <div style="flex:1;min-width:0;">
+-          <div style="font-weight:600;font-size:14px;color:#1a1a2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.full_name}</div>
+-          <div style="font-size:12px;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.email || ''}</div>
+-        </div>
+-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+-      </div>`;
+-  }).join('');
+-}
+-
+-function filterImpersonateList() {
+-  const q = document.getElementById('impersonateSearch')?.value.toLowerCase() || '';
+-  const filtered = (window._impersonateStaffList || []).filter(s =>
+-    s.full_name.toLowerCase().includes(q) || (s.email||'').toLowerCase().includes(q)
+-  );
+-  renderImpersonateList(filtered, window._impersonatePortalUrl);
+-}
+-
+-function goImpersonate(staffId, portalUrl) {
+-  sessionStorage.setItem('impersonate_id', staffId);
+-  window.location.href = portalUrl + '?impersonate=' + staffId;
+-}
++// NOTE: The old "Staff Impersonation Modal" (pick any staff member, view
++// as them via a `?impersonate=<id>` URL param with no server-side check)
++// has been removed. It's replaced by switchToRole() above, which only
++// ever switches the CALLER's own active role and is verified server-side
++// by the switch_active_role RPC. See supabase/migrations/0001_multi_role_support.sql
++// and the "My Other Roles" nav group in _ADMIN_GROUPS.
+ 
+ function renderAdminLayout(activePage, pageTitle) {
+   const bottomItems = [
+@@ -354,7 +312,11 @@ async function initAdminLayout(activePage, pageTitle) {
+   document.getElementById('app').innerHTML = renderAdminLayout(activePage, pageTitle);
+   const user = await requireAuth(['admin']);
+   if (!user) return null;
+-  window._layoutUser = user; // make available to impersonation modal
++  window._layoutUser = user;
++  // Rebuild the sidebar nav now that we know this user's own roles,
++  // so "My Other Roles" shows only roles actually assigned to them.
++  const navEl = document.querySelector('.sidebar__nav');
++  if (navEl) navEl.innerHTML = _renderAdminNav(activePage, user.roles || []);
+   // Update school info
+   document.getElementById('schoolName').textContent = user.schools?.name || 'My School';
+   document.getElementById('userName').textContent = user.full_name;
+diff --git a/client/portals/academic-office/documents.html b/client/portals/academic-office/documents.html
+index 58a4c4d..141c2ad 100644
+--- a/client/portals/academic-office/documents.html
++++ b/client/portals/academic-office/documents.html
+@@ -27,7 +27,6 @@
+ <div id="app"></div>
+ <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
+ <script src="../../js/config.js"></script>
+-<script src="../../js/impersonate.js"></script>
+ <script src="../../api/database.js"></script>
+ <script src="../../api/auth.js"></script>
+ <script src="../../assets/js/sidebar.js"></script>
+diff --git a/client/portals/academic-office/index.html b/client/portals/academic-office/index.html
+index 1efb2ab..9d31b06 100644
+--- a/client/portals/academic-office/index.html
++++ b/client/portals/academic-office/index.html
+@@ -24,7 +24,6 @@
+ <div id="app"></div>
+ <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
+ <script src="../../js/config.js"></script>
+-<script src="../../js/impersonate.js"></script>
+ <script src="../../api/database.js"></script>
+ <script src="../../api/auth.js"></script>
+ <script src="../../api/calculations.js"></script>
+diff --git a/client/portals/bursary/index.html b/client/portals/bursary/index.html
+index 1928cbe..8d121e4 100644
+--- a/client/portals/bursary/index.html
++++ b/client/portals/bursary/index.html
+@@ -95,7 +95,6 @@
+ </script>
+ 
+ 
+-  <script src="../../js/impersonate.js"></script>
+ <script src="../../js/assistant.js"></script>
+ </body>
+ </html>
+diff --git a/client/portals/staff/index.html b/client/portals/staff/index.html
+index 2e77d18..d6c3239 100644
+--- a/client/portals/staff/index.html
++++ b/client/portals/staff/index.html
+@@ -18,22 +18,14 @@
+ <div id="app"></div>
+ <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
+ <script src="../../js/config.js"></script>
+-<script src="../../js/impersonate.js"></script>
+ <script src="../../api/database.js"></script>
+ <script src="../../api/auth.js"></script>
+ <script src="../../api/calculations.js"></script>
+ <script src="../../assets/js/sidebar.js"></script>
+ <script>
+ (async () => {
+-  // If impersonating, use the overridden getCurrentUser; otherwise use initPage normally
+-  let user;
+-  if (window._impersonating) {
+-    user = await getCurrentUser();
+-    if (!user) return;
+-  } else {
+-    user = await initPage(['teacher', 'admin'], 'Dashboard', 'dashboard');
+-    if (!user) return;
+-  }
++  const user = await initPage(['teacher', 'admin'], 'Dashboard', 'dashboard');
++  if (!user) return;
+   const body = document.getElementById('pageBody');
+ 
+   // Get current term
+diff --git a/client/student-application.html b/client/student-application.html
+index 28934fa..d5f8c38 100644
+--- a/client/student-application.html
++++ b/client/student-application.html
+@@ -908,9 +908,17 @@ async function submitApplication(){
+     if(!rpcErr&&result&&!result.error){
+       appId=result.id;
+       // RPC succeeded — stamp ref, programme fields and photo_url onto the row
+-      const{error:stampErr}=await db.from('student_applications')
+-        .update({...progFields, photo_url: photoUrl}).eq('id',appId);
+-      if(stampErr) console.warn('[EduTrack] ref_id stamp failed:',stampErr.message);
++      // via the narrow SECURITY DEFINER RPC (a direct .update() no longer
++      // works here now that the blanket anon UPDATE policy has been removed).
++      const{data:stamped,error:stampErr}=await db.rpc('stamp_application_details',{
++        p_id:appId,
++        p_ref_id:ref,
++        p_intended_level:progFields.intended_level,
++        p_intended_program:progFields.intended_program,
++        p_intended_combo:progFields.intended_combo,
++        p_photo_url:photoUrl
++      });
++      if(stampErr||!stamped) console.warn('[EduTrack] ref_id stamp failed:',stampErr?.message||'row not eligible for stamping');
+     } else {
+       // Fallback: direct insert — ref_id + programme fields included from the start
+       const payload={
+@@ -986,6 +994,14 @@ async function checkStatus(){
+   try{
+     let data=null, error=null;
+ 
++    // Open a scoped tracking session for this ref_id before querying —
++    // RLS now requires this (see open_application_tracking RPC).
++    const { data: opened, error: openErr } = await db.rpc('open_application_tracking', { p_ref: ref });
++    if (openErr || !opened) {
++      document.getElementById('trackerResult').innerHTML = '<div class="alert alert-error">No application found for that reference number.</div>';
++      return;
++    }
++
+     // Build selects with graceful column fallbacks
+     const fullSelect = 'ref_id,full_name,status,submitted_at,reviewed_at,rejection_reason,gender,date_of_birth,address,parent_name,parent_phone,blood_group,admission_number,photo_url,intended_class_id,intended_level,intended_program,intended_combo,school_id,schools(name,address,lga,state,phone,email,logo_url,school_type),classes:intended_class_id(id,name,level)';
+     const safeSelect  = 'ref_id,full_name,status,submitted_at,reviewed_at,rejection_reason,gender,date_of_birth,address,parent_name,parent_phone,blood_group,admission_number,photo_url,intended_class_id,intended_level,intended_program,school_id,schools(name,address,lga,state,phone,email,logo_url,school_type),classes:intended_class_id(id,name,level)';
+diff --git a/supabase/migrations/0001_multi_role_support.sql b/supabase/migrations/0001_multi_role_support.sql
+new file mode 100644
+index 0000000..b134dd7
+--- /dev/null
++++ b/supabase/migrations/0001_multi_role_support.sql
+@@ -0,0 +1,90 @@
++-- ============================================================
++--  EduTrack NG — Multi-Role Support Migration
++--  Replaces the insecure client-side "impersonation" hack with
++--  a safe, server-verified way for one staff member to hold
++--  several roles (common in small schools where one person is
++--  Admin + Exam Officer + Registrar, etc.)
++--
++--  Run this in Supabase Dashboard → SQL Editor (or via CLI:
++--  supabase db push) BEFORE deploying the updated client code.
++-- ============================================================
++
++-- 1. Add a `roles` array column. `role` stays as-is and now means
++--    "currently active role" — i.e. which portal/menu the user is
++--    currently viewing. It must always be one of the values in `roles`.
++alter table public.users
++  add column if not exists roles text[] not null default '{}';
++
++-- 2. Backfill: every existing user's `roles` becomes a single-item
++--    array containing their current `role`, so nothing breaks.
++update public.users
++  set roles = array[role]
++  where roles = '{}' and role is not null;
++
++-- 3. Keep data consistent going forward: whenever `role` is set/changed
++--    directly (e.g. by admin editing a staff record), make sure it's
++--    always included in `roles` too, so the invariant "role ⊆ roles"
++--    never breaks even from direct table edits.
++create or replace function public._sync_role_into_roles()
++returns trigger
++language plpgsql
++as $$
++begin
++  if new.role is not null and not (new.role = any(coalesce(new.roles, '{}'))) then
++    new.roles := array_append(coalesce(new.roles, '{}'), new.role);
++  end if;
++  return new;
++end;
++$$;
++
++drop trigger if exists trg_sync_role_into_roles on public.users;
++create trigger trg_sync_role_into_roles
++  before insert or update of role, roles on public.users
++  for each row
++  execute function public._sync_role_into_roles();
++
++-- 4. Safe, server-verified role switch.
++--    - Always operates on the CALLER's own row (auth.uid()) — a user
++--      can never switch another user's active role.
++--    - Only allows switching to a role already present in the
++--      caller's own `roles` array — never an arbitrary role.
++--    - This fully replaces the old impersonate.js approach, which
++--      let anyone view/act as any other user via a URL parameter
++--      with no server-side check at all.
++create or replace function public.switch_active_role(new_role text)
++returns public.users
++language plpgsql
++security definer
++set search_path = public
++as $$
++declare
++  updated_row public.users;
++begin
++  if not exists (
++    select 1 from public.users
++    where id = auth.uid()
++      and new_role = any(roles)
++  ) then
++    raise exception 'Role "%" is not assigned to this account', new_role
++      using errcode = '42501';
++  end if;
++
++  update public.users
++    set role = new_role
++    where id = auth.uid()
++    returning * into updated_row;
++
++  return updated_row;
++end;
++$$;
++
++-- Only the authenticated user may call this, and only for themselves.
++revoke all on function public.switch_active_role(text) from public;
++grant execute on function public.switch_active_role(text) to authenticated;
++
++-- 5. Sanity view for admins to see who holds multiple roles
++--    (handy for auditing after rollout).
++create or replace view public.v_multi_role_staff as
++select id, school_id, full_name, role as active_role, roles
++from public.users
++where array_length(roles, 1) > 1;
+diff --git a/supabase/migrations/0002_fix_anon_rls_leaks.sql b/supabase/migrations/0002_fix_anon_rls_leaks.sql
+new file mode 100644
+index 0000000..1fec0c8
+--- /dev/null
++++ b/supabase/migrations/0002_fix_anon_rls_leaks.sql
+@@ -0,0 +1,172 @@
++-- ============================================================
++--  EduTrack NG — Fix Overly-Permissive Anonymous RLS Policies
++--
++--  Found via live audit (Aug 2026): several tables had a SELECT
++--  (and in one case UPDATE) policy for the `anon` role with
++--  `USING (true)` or an effectively-always-true condition,
++--  exposing full cross-tenant data to anyone with just the
++--  public anon key — no login required. Confirmed exploitable
++--  on `students` (full name + school_id dump across schools).
++--
++--  Fix strategy: replace every `true`/near-true anon policy with
++--  the SAME safe, already-proven pattern used elsewhere in this
++--  project — scoping to `current_setting('app.school_id')`,
++--  which is only set (per-request) by a trusted SECURITY DEFINER
++--  RPC (e.g. use_scratch_card) after it has already verified a
++--  scratch-card PIN. Until that GUC is set, the condition is
++--  NULL and access is correctly denied by default.
++--
++--  IMPORTANT — verify BEFORE relying on this pattern anywhere:
++--  confirm `app.school_id` cannot be set directly by a client
++--  request header (Supabase Dashboard → Database → Roles/API →
++--  check for any custom GUC-to-header mapping / pre-request
++--  hook). If it can, this pattern is bypassable the same way the
++--  `true` policies were, just with one extra step.
++-- ============================================================
++
++-- ── CRITICAL: students ──────────────────────────────────────
++-- Confirmed exploited: returned full_name + school_id for
++-- students across 3+ schools with zero authentication.
++drop policy if exists "Allow public student verification" on public.students;
++
++create policy "students_anon_scoped" on public.students
++  for select to anon
++  using (
++    school_id = (current_setting('app.school_id', true))::uuid
++    and current_setting('app.school_id', true) is not null
++  );
++
++-- ── CRITICAL: student_applications ──────────────────────────
++-- Multiple duplicate/overlapping policies, effectively `true`.
++-- Worse: an UPDATE policy also allowed anon to modify ANY
++-- application, not just their own.
++drop policy if exists "anon_read_student_applications"   on public.student_applications;
++drop policy if exists "anon_track_by_ref"                on public.student_applications;
++drop policy if exists "student_applications_anon_select" on public.student_applications;
++drop policy if exists "anon_select_own_application"      on public.student_applications;
++drop policy if exists "anon_stamp_own_application"       on public.student_applications;
++
++-- Applicants track their OWN application only, via the unique
++-- reference code they were given at submission time — never a
++-- blanket listing. The tracking page must call this RPC first,
++-- which verifies the ref_id actually exists, then scopes this
++-- request to it. `select=*` with no ref_id known returns nothing.
++create or replace function public.open_application_tracking(p_ref text)
++returns boolean
++language plpgsql
++security definer
++set search_path = public
++as $$
++begin
++  if not exists (select 1 from public.student_applications where ref_id = p_ref) then
++    return false;
++  end if;
++  -- NOTE: is_local must match whatever `use_scratch_card` (or whichever
++  -- RPC currently sets app.school_id) already uses — check its source in
++  -- Supabase Dashboard → Database → Functions before assuming this value.
++  -- If it uses `false` (session-persistent, relies on a session-mode
++  -- pooler connection), use `false` here too; a mismatch will silently
++  -- break tracking (RPC succeeds, follow-up SELECT sees nothing).
++  perform set_config('app.tracking_ref', p_ref, true);
++  return true;
++end;
++$$;
++
++revoke all on function public.open_application_tracking(text) from public;
++grant execute on function public.open_application_tracking(text) to anon, authenticated;
++
++create policy "student_applications_anon_by_ref" on public.student_applications
++  for select to anon
++  using (
++    ref_id is not null
++    and ref_id = current_setting('app.tracking_ref', true)
++  );
++
++-- Anon may still SUBMIT a new application (that's the intended
++-- public flow) but may never blanket-UPDATE any application row.
++-- The submission page needs to attach a few extra fields
++-- (ref_id, intended_level/program/combo, photo_url) onto a row
++-- right after `submit_student_application` creates it — this RPC
++-- does that server-side, narrowly, instead of a blanket UPDATE
++-- policy. It only allows stamping a row that is still 'pending'
++-- and doesn't already have a ref_id, so it can't be used to
++-- tamper with an already-submitted or already-reviewed application.
++create or replace function public.stamp_application_details(
++  p_id uuid,
++  p_ref_id text,
++  p_intended_level text default null,
++  p_intended_program text default null,
++  p_intended_combo text default null,
++  p_photo_url text default null
++)
++returns boolean
++language plpgsql
++security definer
++set search_path = public
++as $$
++begin
++  update public.student_applications
++    set ref_id = p_ref_id,
++        intended_level = coalesce(p_intended_level, intended_level),
++        intended_program = coalesce(p_intended_program, intended_program),
++        intended_combo = coalesce(p_intended_combo, intended_combo),
++        photo_url = coalesce(p_photo_url, photo_url)
++    where id = p_id
++      and status = 'pending'
++      and ref_id is null;
++
++  return found;
++end;
++$$;
++
++revoke all on function public.stamp_application_details(uuid,text,text,text,text,text) from public;
++grant execute on function public.stamp_application_details(uuid,text,text,text,text,text) to anon, authenticated;
++
++-- ── CRITICAL: notifications ──────────────────────────────────
++drop policy if exists "notif_anon" on public.notifications;
++
++create policy "notifications_anon_scoped" on public.notifications
++  for select to anon
++  using (
++    school_id = (current_setting('app.school_id', true))::uuid
++    and current_setting('app.school_id', true) is not null
++  );
++
++-- ── CRITICAL: daily_activities ────────────────────────────────
++drop policy if exists "dact_anon_r" on public.daily_activities;
++
++create policy "daily_activities_anon_scoped" on public.daily_activities
++  for select to anon
++  using (
++    school_id = (current_setting('app.school_id', true))::uuid
++    and current_setting('app.school_id', true) is not null
++  );
++
++-- ── CRITICAL: installment_plans ───────────────────────────────
++drop policy if exists "inst_anon" on public.installment_plans;
++
++create policy "installment_plans_anon_scoped" on public.installment_plans
++  for select to anon
++  using (
++    school_id = (current_setting('app.school_id', true))::uuid
++    and current_setting('app.school_id', true) is not null
++  );
++
++-- ── MEDIUM: remove duplicate wide-open policies where a safer
++--    scoped policy for the same table already exists ──────────
++
++-- classes: keep "anon can read classes for active schools", drop the blanket one
++drop policy if exists "classes_anon_read" on public.classes;
++
++-- schools: keep "anon_read_school_name" / "anon can read active schools"
++-- (is_active = true), drop the unconditional duplicate
++drop policy if exists "schools_anon_read" on public.schools;
++
++-- terms: keep the JWT-claims-scoped "terms_anon", drop the blanket one
++drop policy if exists "terms_anon_read" on public.terms;
++
++-- ============================================================
++--  After running this: re-test the same curl commands used to
++--  find the original leak. GET /rest/v1/students with only the
++--  anon key should now return [] (empty), not student rows.
++-- ============================================================
