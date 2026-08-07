@@ -908,9 +908,17 @@ async function submitApplication(){
     if(!rpcErr&&result&&!result.error){
       appId=result.id;
       // RPC succeeded — stamp ref, programme fields and photo_url onto the row
-      const{error:stampErr}=await db.from('student_applications')
-        .update({...progFields, photo_url: photoUrl}).eq('id',appId);
-      if(stampErr) console.warn('[EduTrack] ref_id stamp failed:',stampErr.message);
+      // via the narrow SECURITY DEFINER RPC (a direct .update() no longer
+      // works here now that the blanket anon UPDATE policy has been removed).
+      const{data:stamped,error:stampErr}=await db.rpc('stamp_application_details',{
+        p_id:appId,
+        p_ref_id:ref,
+        p_intended_level:progFields.intended_level,
+        p_intended_program:progFields.intended_program,
+        p_intended_combo:progFields.intended_combo,
+        p_photo_url:photoUrl
+      });
+      if(stampErr||!stamped) console.warn('[EduTrack] ref_id stamp failed:',stampErr?.message||'row not eligible for stamping');
     } else {
       // Fallback: direct insert — ref_id + programme fields included from the start
       const payload={
@@ -985,6 +993,14 @@ async function checkStatus(){
   document.getElementById('trackerResult').innerHTML='';
   try{
     let data=null, error=null;
+
+    // Open a scoped tracking session for this ref_id before querying —
+    // RLS now requires this (see open_application_tracking RPC).
+    const { data: opened, error: openErr } = await db.rpc('open_application_tracking', { p_ref: ref });
+    if (openErr || !opened) {
+      document.getElementById('trackerResult').innerHTML = '<div class="alert alert-error">No application found for that reference number.</div>';
+      return;
+    }
 
     // Build selects with graceful column fallbacks
     const fullSelect = 'ref_id,full_name,status,submitted_at,reviewed_at,rejection_reason,gender,date_of_birth,address,parent_name,parent_phone,blood_group,admission_number,photo_url,intended_class_id,intended_level,intended_program,intended_combo,school_id,schools(name,address,lga,state,phone,email,logo_url,school_type),classes:intended_class_id(id,name,level)';
